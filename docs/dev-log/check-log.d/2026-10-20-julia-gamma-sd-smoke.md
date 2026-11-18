@@ -1,0 +1,3 @@
+# Check log: Julia Gamma random-effect SD smoke
+
+On 2026-10-20, `devtools::test(filter = "^julia-gamma-sd$", reporter = "summary", stop_on_failure = TRUE)` passed two live Julia bridge tests, four fits total across native TMB and Julia. The fixtures cover an ordinary random-intercept SD formula and an independent random-slope SD formula with a fixed SD predictor. The test log and identical before/after manifest for 196 source, test-helper, and dependency files are stored in the general SD evidence directory. These results cover two Gamma routes; interval coverage and complete Gamma parity remain untested. See `docs/dev-log/after-task/2026-10-20-julia-gamma-sd-smoke.md`.

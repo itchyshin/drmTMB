@@ -1,0 +1,18 @@
+{
+  "initial_capsule_sha256": "2ed7a0100b9cc3d450552347c2083db0c3e1701959f5b274ce4567a224194dad",
+  "initial_result": "4 Poisson integration errors: missing public SD coefficients",
+  "repair_capsule_sha256": "50df64feeac92b33d5c775613db102101a99df2f0408cc165190a85467e7f9b1",
+  "repair_new_poisson_expectations": 26,
+  "repair_compiled_suite_counts": {
+    "poisson": 26,
+    "selector_workflows": 12,
+    "selector_integration": 22,
+    "binomial_initial_six_files": 117,
+    "gaussian_corrected_expectation": 89,
+    "clamp": 26
+  },
+  "repair_compiled_distinct_expectations": 292,
+  "preserved_failure": "first regression pass reached old Gaussian blanket-Poisson rejection; corrected only stale expected error, no model change; final89 passed",
+  "clamp_expected_warnings": 1,
+  "calibration_claim": false
+}

@@ -1,0 +1,44 @@
+{
+  "evidence_id": "native-poisson-sd-missing-include-20261102r",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); r<-as.data.frame(testthat::test_file(\"tests/testthat/test-poisson-sd-missing-include.R\", reporter=\"silent\")); print(colSums(r[c(\"passed\",\"failed\",\"error\",\"skipped\")]))'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "427a9a40198d588409a350843ef7fe8c788454a9",
+  "tree_state": "dirty shared candidate (uncommitted edits present); unreviewed",
+  "run_started_utc": "2026-11-02T11:24:54Z",
+  "run_ended_utc": "2026-11-02T11:25:25Z",
+  "exit_code": 0,
+  "expectations_passed": 38,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r/test-console.log",
+  "console_log_sha256": "603f5abae00b5004b0511376eb38b601ff7d5ed398b701b5295169a5dea6853e",
+  "test_path": "tests/testthat/test-poisson-sd-missing-include.R",
+  "test_sha256": "81ecbaacb2acc3dfad2be3fd98c29f035aeedc4d5d7ebcda01bf8871651ea133",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r/source-manifest.json",
+  "source_manifest_sha256": "56212e18457f3eb783115ca11968286a20fde2e5b9af675f7151204868c42223",
+  "live_julia": "not run; native R engine only",
+  "scope": "Poisson (log) ordinary intercept and slope SD regression, including same-group intercept and slope SDs, under miss_control(response='include'): include equals complete-case (1e-8) and per-group Laplace oracle (1e-6).",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    }
+  ],
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "other Poisson SD routes under include: fences pinned, not linked"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,61 @@
+{
+  "evidence_id": "gaussian-native-correlated-q2-sd-20261101",
+  "date": "2026-11-01",
+  "status": "unreviewed",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "endpoint": "mu",
+      "mechanism_id": "iid_correlated_block",
+      "target_member": "mu:I",
+      "member_coefs": "I,x1",
+      "link_variant": "identity",
+      "provider_input": "group_factor",
+      "layout": "labelled_cross_parameter_block",
+      "q_value": "2",
+      "block_rule_id": "O2-within",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "endpoint": "mu",
+      "mechanism_id": "iid_correlated_block",
+      "target_member": "mu:x1",
+      "member_coefs": "I,x1",
+      "link_variant": "identity",
+      "provider_input": "group_factor",
+      "layout": "labelled_cross_parameter_block",
+      "q_value": "2",
+      "block_rule_id": "O2-within",
+      "ledger_status": "unresolved"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-20261101/run-test.R gaussian-correlated-q2-sd  # run-test.R: devtools::test(filter=\"gaussian-correlated-q2-sd\", reporter=\"summary\", stop_on_failure=FALSE), exit 1 on any failure/error/skip; actually invoked from a byte-identical scratch copy",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "git_branch": "codex/general-sd-regression",
+  "test_path": "tests/testthat/test-gaussian-correlated-q2-sd.R",
+  "test_sha256": "47ba105e7a4592b138d9b95f2d4ee24da60f71ba456fddc5a9f16110e1479b26",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "d213ed35f0d169f0be440495aa76fa198c11de27cfbe43acce079ae8a069d8e3",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-20261101/test-console.log",
+  "console_log_sha256": "b852f84f53f0b7d3989b7cba981680c35a74f2fe0ffd0f09ca3e7ffed1f8b83b",
+  "result": {
+    "exit_status": 0,
+    "expectations_passed": 17,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "tolerances_copied_from_test": "oracle logLik 1e-8 (full) and 1e-6 (slope-only SD); constant-SD vs ordinary logLik 1e-6; recovery bands 0.3 on both SD slopes and rho",
+  "scope": "native Gaussian engine, linked rows only as listed in candidate_rows; rows the test merely uses as comparator (ordinary or base fits) are not linked",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

@@ -1,0 +1,151 @@
+--- /tmp/beta-relmat-q2-R-before.R	2026-10-27 23:35:27
++++ R/drmTMB.R	2026-10-27 23:37:43
+@@ -6818,7 +6818,8 @@
+   dpars <- vapply(entries, `[[`, character(1), "dpar")
+   is_sd_mu_dpar <- startsWith(dpars, "sd(")
+   is_sd_phylo_dpar <- startsWith(dpars, "sd_phylo(") |
+-    startsWith(dpars, "sd_animal(")
++    startsWith(dpars, "sd_animal(") |
++    startsWith(dpars, "sd_relmat(")
+   is_sd_dpar <- is_sd_mu_dpar | is_sd_phylo_dpar
+   sd_entries <- entries[is_sd_mu_dpar]
+   sd_target_dpar <- vapply(sd_entries, function(entry) {
+@@ -6911,6 +6912,16 @@
+   mu_animal <- extract_gaussian_mu_known_term(mu_entry, "animal")
+   mu_entry$rhs <- mu_animal$rhs
+   validate_beta_animal_mu_structured_term(mu_animal$term)
++  mu_relmat <- extract_gaussian_mu_known_term(mu_entry, "relmat")
++  mu_entry$rhs <- mu_relmat$rhs
++  if (!is.null(mu_relmat$term) &&
++      (!is.null(mu_relmat$term$covariance_label) ||
++       !structured_term_is_intercept_one_slope(mu_relmat$term))) {
++    cli::cli_abort(c(
++      "Beta relmat mu effects currently require an unlabelled intercept-plus-one-slope term.",
++      "i" = "Use {.code relmat(1 + x | id, K = K)} or {.code Q = Q}; intercept-only, slope-only, multiple-slope and labelled relmat terms remain outside this route."
++    ))
++  }
+   sigma_animal <- extract_gaussian_mu_known_term(
+     sigma_entry,
+     "animal",
+@@ -6921,17 +6932,20 @@
+     sigma_animal$term$dpars <- "sigma"
+   }
+   validate_beta_animal_sigma_structured_term(sigma_animal$term)
+-  if (!is.null(mu_phylo$term) && !is.null(mu_animal$term)) {
++  if (sum(!is.null(mu_phylo$term), !is.null(mu_animal$term),
++          !is.null(mu_relmat$term)) > 1L) {
+     cli::cli_abort(c(
+       "A {.fn beta} model can use only one structured {.code mu} provider in this route.",
+-      "x" = "The formula contains both {.fn phylo} and {.fn animal} terms.",
+-      "i" = "Use one unlabelled q1 {.fn phylo} or {.fn animal} intercept in {.code mu}; simultaneous structured providers remain deferred."
++      "x" = "The formula contains more than one of {.fn phylo}, {.fn animal} and {.fn relmat}.",
++      "i" = "Use one supported unlabelled structured term in {.code mu}; simultaneous structured providers remain deferred."
+     ))
+   }
+   beta_mu_structured_term <- if (!is.null(mu_phylo$term)) {
+     mu_phylo$term
+-  } else {
++  } else if (!is.null(mu_animal$term)) {
+     mu_animal$term
++  } else {
++    mu_relmat$term
+   }
+   if (!is.null(beta_mu_structured_term) && !is.null(sigma_animal$term)) {
+     cli::cli_abort(c(
+@@ -6945,30 +6959,31 @@
+   } else {
+     beta_mu_structured_term
+   }
+-  allow_beta_animal_q2_sd <- length(sd_phylo_entries) > 0L &&
++  allow_beta_structured_q2_sd <- length(sd_phylo_entries) > 0L &&
+     !is.null(beta_mu_structured_term) &&
+-    identical(structured_mu_type(beta_mu_structured_term), "animal") &&
++    structured_mu_type(beta_mu_structured_term) %in% c("animal", "relmat") &&
+     structured_term_is_intercept_one_slope(beta_mu_structured_term)
+-  if (allow_beta_animal_q2_sd &&
+-      !beta_mu_structured_term$structure %in% c("A", "Ainv", "pedigree")) {
++  if (allow_beta_structured_q2_sd &&
++      !(beta_mu_structured_term$structure %in%
++        c("A", "Ainv", "pedigree", "K", "Q"))) {
+     cli::cli_abort(c(
+-      "Beta animal intercept-slope SD regression requires A, Ainv, or pedigree input.",
+-      "i" = "Use {.code animal(1 + x | id, A = A)}, {.code Ainv = Ainv}, or {.code pedigree = pedigree}."
++      "Beta structured intercept-slope SD regression requires A, Ainv, pedigree, K or Q input.",
++      "i" = "Use {.code animal(1 + x | id, A = A)}, {.code Ainv = Ainv}, {.code pedigree = pedigree}, or {.code relmat(1 + x | id, K = K)} / {.code Q = Q}."
+     ))
+   }
+   sd_phylo_targets <- parse_sd_phylo_entries(
+     sd_phylo_entries,
+     beta_structured_term,
+-    allow_multiple_coefficients = allow_beta_animal_q2_sd
++    allow_multiple_coefficients = allow_beta_structured_q2_sd
+   )
+-  if (allow_beta_animal_q2_sd) {
++  if (allow_beta_structured_q2_sd) {
+     selected_coefficients <- vapply(
+       sd_phylo_targets, `[[`, integer(1L), "target_coef"
+     )
+     if (anyDuplicated(selected_coefficients) ||
+         !setequal(selected_coefficients, seq_along(beta_mu_structured_term$coef_names))) {
+       cli::cli_abort(c(
+-        "Beta animal intercept-slope SD regression requires one SD formula for each coefficient.",
++        "Beta {structured_mu_type(beta_mu_structured_term)} intercept-slope SD regression requires one SD formula for each coefficient.",
+         "x" = "Select exactly {.val {beta_mu_structured_term$coef_names}} with separate {.code coef} selectors."
+       ))
+     }
+@@ -6978,7 +6993,8 @@
+           sd_phylo_targets[[i]]$target_coef
+         ]]
+         sd_phylo_entries[[i]]$dpar <- format_sd_lhs_dpar(
+-          "sd_animal", sd_phylo_targets[[i]]$group, "mu", coef_name,
++          paste0("sd_", structured_mu_type(beta_mu_structured_term)),
++          sd_phylo_targets[[i]]$group, "mu", coef_name,
+           NA_character_
+         )
+         sd_phylo_targets[[i]]$dpar <- sd_phylo_entries[[i]]$dpar
+@@ -6997,11 +7013,11 @@
+   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+   sigma_entry$rhs <- sigma_re$rhs
+   validate_beta_sigma_random_terms(sigma_re$terms)
+-  if (allow_beta_animal_q2_sd &&
++  if ((allow_beta_structured_q2_sd || !is.null(mu_relmat$term)) &&
+       (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L)) {
+     cli::cli_abort(c(
+-      "Beta animal intercept-slope SD regression requires fixed sigma regression and no other random effects.",
+-      "i" = "Keep one unlabelled animal intercept-plus-slope term in mu and two matching group-level SD formulas."
++      "Beta structured intercept-slope regression requires fixed sigma regression and no other random effects.",
++      "i" = "Keep one unlabelled animal or relmat intercept-plus-slope term in mu; SD regression needs two matching group-level formulas."
+     ))
+   }
+ 
+@@ -7046,6 +7062,10 @@
+       "Missing-response masking and missing-predictor {.fn mi} are not implemented together for a beta response yet.",
+       "i" = "Use one of {.code miss_control(response = \"include\")} or {.code miss_control(predictor = \"model\")}."
+     ))
++  }
++  if (!is.null(mu_relmat$term) &&
++      (include_missing_response || include_missing_predictor)) {
++    cli::cli_abort("Beta relmat intercept-slope regression requires complete responses and predictors.")
+   }
+   if (
+     length(sd_phylo_entries) > 0L &&
+@@ -7232,7 +7252,7 @@
+     phylo_mu,
+     data_model
+   )
+-  if (allow_beta_animal_q2_sd) {
++  if (allow_beta_structured_q2_sd) {
+     validate_gamma_animal_q2_sd_identifiability(
+       phylo_mu, sd_phylo, family_label = "Beta"
+     )
+@@ -24335,8 +24355,8 @@
+   if (
+     (identical(spec$model_type, "gamma") ||
+        (identical(spec$model_type, "beta") &&
+-          identical(phylo_mu$type, "animal") &&
+-          phylo_mu$structure %in% c("A", "Ainv", "pedigree"))) &&
++          phylo_mu$type %in% c("animal", "relmat") &&
++          phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q"))) &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+       phylo_mu$type %in% c("animal", "relmat") &&
+       identical(phylo_mu$q, 2L) &&

@@ -1,0 +1,54 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-poisson-20261017-01/library/drmTMB
+poisson-sd-integration: ....1......234
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-poisson-sd-integration.R:10:3'): Poisson latent SD has named 
+Error in `match.arg(dpar, names(object$coefficients))`: 'arg' should be "mu"
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_named(...) at test-poisson-sd-integration.R:10:3
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::coef(fit, "sd(id)")
+ 5. └─drmTMB:::coef.drmTMB(fit, "sd(id)")
+ 6.   └─base::match.arg(dpar, names(object$coefficients))
+
+── 2. Error ('test-poisson-sd-integration.R:57:3'): constant Poisson SD preserve
+Error in `match.arg(dpar, names(object$coefficients))`: 'arg' should be "mu"
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-poisson-sd-integration.R:57:3
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─base::unname(predict(scaled, dpar = "sd(id)"))
+ 5. ├─stats::predict(scaled, dpar = "sd(id)")
+ 6. └─drmTMB:::predict.drmTMB(scaled, dpar = "sd(id)")
+ 7.   └─base::match.arg(dpar, names(object$coefficients))
+
+── 3. Error ('test-poisson-sd-integration.R:71:3'): Poisson SD prediction and ma
+Error in `match.arg(dpar, names(object$coefficients))`: 'arg' should be "mu"
+Backtrace:
+    ▆
+ 1. ├─stats::coef(fit, key) at test-poisson-sd-integration.R:71:3
+ 2. └─drmTMB:::coef.drmTMB(fit, key)
+ 3.   └─base::match.arg(dpar, names(object$coefficients))
+
+── 4. Error ('test-poisson-sd-integration.R:97:3'): Poisson SD bootstrap refits 
+Error in `profile_match_confint_targets(targets, parm, fixed_only = FALSE)`: Unknown confidence-interval target: "sd(id):w".
+i Use full profile target names such as "fixef:mu:x".
+i First available targets: fixef:mu:(Intercept), fixef:mu:x.
+Backtrace:
+    ▆
+ 1. ├─base::suppressMessages(...) at test-poisson-sd-integration.R:97:3
+ 2. │ └─base::withCallingHandlers(...)
+ 3. ├─stats::confint(...)
+ 4. └─drmTMB:::confint.drmTMB(...)
+ 5.   └─drmTMB:::profile_match_bootstrap_targets(all_targets, parm)
+ 6.     └─drmTMB:::profile_match_confint_targets(targets, parm, fixed_only = FALSE)
+ 7.       └─cli::cli_abort(...)
+ 8.         └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Execution halted

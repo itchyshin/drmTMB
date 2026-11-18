@@ -1,0 +1,42 @@
+{
+  "scope": "Native Gamma(log) mu animal(1 + x | p | id, A = A), dense A, q=2 labelled correlated block, coefficient-specific SD regressions sd(id, level=animal, dpar=mu, coef=...) ~ s0 / s1; also the unlabelled independent comparator, three fixed seeds and the designed-error refusals.",
+  "note": "Dirty shared candidate tree (branch codex/general-sd-regression, HEAD b87566680778831c2bae38d66399c3ca667e29fc plus uncommitted edits); hashes identify test-time files. Test file hashed after the run and verified unchanged since before the run.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c098b422b4ca7e325b382a95f2bc5cd3410b747200d4c11081ccf4595b3337eb"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "2eb971378841edebc1bb3f217d3436bee47d0fe2a23727de7ceca236e9580600"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "88f0e0bb31b8250c75ba025d04c89c65cf81448223b6c1d5b8313a3ba5ba8b9f"
+    },
+    {
+      "file": "tests/testthat/test-gamma-animal-q2-correlated-sd.R",
+      "sha256": "a69b3cded6e82b1e439eb170bafac330acf8e1fcfb637b1cd436905eb4e40b9f"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-correlated-sd-r2-20261101/test-console.log",
+      "sha256": "9cfbbe190cd29c54b9f9891ec975d4bcd47fe235b683eef30c0ca2a81e019be9"
+    }
+  ]
+}

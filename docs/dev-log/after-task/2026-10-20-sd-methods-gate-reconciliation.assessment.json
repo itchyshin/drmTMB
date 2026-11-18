@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "83b4f44ccfc49ff311fe9aeed8be8c876beb340b1b50359a84eeb05a2d5293c4",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review against the saved source-mapped methods memo, acceptance ledger and exact gate-status output.",
+  "genre": "Internal engineering after-task report",
+  "coverage": "Whole 12-section report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report names the exact ledger update and preserves the distinction between the completed literature synthesis and the open design gate. Its repeated headings are required by the repository report checker.",
+  "confidence": "medium",
+  "confidence_reason": "The report was compared with the local memo and gate output; the perceived-style score is a subjective self-assessment.",
+  "examples": [
+    {
+      "location": "Section 2, lines 10-14",
+      "cue": "The report identifies the changed ledger and names the remaining independent review.",
+      "impact": "The reader can see exactly what evidence landed and what remains open.",
+      "repair": "no change needed",
+      "line": 10,
+      "quote": "Updated `.unlazy/general-sd-regression/GATES.md` to cite"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "not_applicable",
+  "science_gate_reason": "This report changes programme evidence text only and makes no new scientific claim.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The saved methods review, source count, gate wording, eight-gate status output and whitespace checks were inspected.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report uses local file references and no external citations.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were assessed; repository after-task reports have been seen.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,58 @@
+{
+  "evidence_id": "zi-poisson-plain-slope-20261101b",
+  "evidence_grade": "focused_test",
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'res <- devtools::test(filter = \"^zi-poisson-plain-slope$\", reporter = \"summary\", stop_on_failure = TRUE)' > docs/dev-log/general-sd-regression/evidence/zi-poisson-plain-slope-20261101b/test-console.log 2>&1",
+  "command_note": "The R expression actually run additionally converted the test result to a data frame, printed a final DRM_RECEIPT_COUNTS line, and set a nonzero exit status on any failure, error or skip; the devtools::test(...) call itself is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7309d3cd813f9c0f42da9974470c23d87da5bcf4",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "2026-11-01T22:05:15Z",
+  "run_ended_utc": "2026-11-01T22:05:28Z",
+  "exit_code": 0,
+  "test_blocks": 2,
+  "expectations_passed": 12,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/zi-poisson-plain-slope-20261101b/test-console.log",
+  "console_log_sha256": "87086e0756b44aac57770b7f4bd088c2c5f1f986e57f96ef8f467dba906f511c",
+  "test_path": "tests/testthat/test-zi-poisson-plain-slope.R",
+  "test_sha256": "0a88ba90599a0ee0ece94a63aac73d014275cc31d8b73eb054f8d60a1e50dc8b",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/zi-poisson-plain-slope-20261101b/source-manifest.json",
+  "source_manifest_sha256": "ee3537db915ebaea568c1e4f259fd8d560940e5367a58a02ab61048f4f89f3c4",
+  "scope": "Native zero-inflated Poisson with one independent mu slope, with and without a constant sd(id, coef = 'x') ~ 1.",
+  "oracle": "Dense per-group integral of the zero-inflated Poisson likelihood at the fitted parameters.",
+  "checks": [
+    "constant-SD slope fit matches the dense integral",
+    "plain slope without sd() matches the oracle and the constant-SD fit",
+    "doubling the oracle SD moves it (sensitivity)"
+  ],
+  "tolerances_source": "test_header_comment (verbatim header comment of the test file)",
+  "test_header_comment": [
+    "Zero-inflated Poisson with one independent mu slope and NO sd() formula.",
+    "NB2 admits this shape; ZIP now admits it too (it used to build only with an",
+    "sd() formula). Tolerances, fixed before running:",
+    "* fit versus dense integral: |logLik - oracle| / groups < 0.1 (the same",
+    "per-group bound the other zero-inflated Poisson oracles use);",
+    "* plain versus constant-SD fit: logLik relative tolerance 1e-5, fitted SD",
+    "relative tolerance 1e-4;",
+    "* sensitivity: doubling the oracle SD must move it by more than 1.",
+    "This is a short targeted synthetic fit, not a calibration or parity claim."
+  ],
+  "candidate_rows": [],
+  "candidate_rows_note": "No required row is linked by this slice.",
+  "not_covered": [
+    "predictor-dependent SD (only constant SD ~ 1 is fitted), so no required row is linked",
+    "Julia parity"
+  ],
+  "limits": [
+    "native engine only",
+    "fixed-seed synthetic fixtures",
+    "no calibration, interval-coverage or broad parity claim",
+    "no Julia parity claim",
+    "a receipt does not promote a row; direct_sd_claim stays none",
+    "review_status unreviewed"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "status": "worker_fits_completed_but_qualification_workflow_failed",
+  "failure": "summarize.R rejected original-path registry pin for copied subset manifest",
+  "worker_results": [
+    {
+      "index": "1",
+      "seed": "2123603550",
+      "elapsed": "9.744",
+      "valid_interval": "TRUE",
+      "oracle_error": "2.5525878299959e-08"
+    },
+    {
+      "index": "1001",
+      "seed": "1100069788",
+      "elapsed": "9.445",
+      "valid_interval": "TRUE",
+      "oracle_error": "-2.46216131927213e-08"
+    },
+    {
+      "index": "2001",
+      "seed": "1423404287",
+      "elapsed": "11.757",
+      "valid_interval": "TRUE",
+      "oracle_error": "-3.95425558963325e-09"
+    }
+  ],
+  "calibration_claim": false,
+  "registry_seal": "1ee65b061c35c401bc38ba4de835e3f3eef0b50bcbb75d1196fc7259bdbb1d35"
+}

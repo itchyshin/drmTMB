@@ -1,0 +1,13 @@
+"criterion","observed","threshold","pass"
+"G9b-A at least 22 finite selected fits",24,">= 22",TRUE
+"G9b-A exactly 48 retained starts, two per fixture",48,"48 and exactly two per fixture",TRUE
+"G9b-A between contrast MAE <= 0.15",0.123394111758253,"<= 0.15",TRUE
+"G9b-A within contrast MAE <= 0.15",0.0706187918362885,"<= 0.15",TRUE
+"G9b-A median absolute log-SD error <= 0.25",0.163043270489934,"<= 0.25",TRUE
+"G9b-A median absolute log-decay error <= 0.35",0.279611225036654,"<= 0.35",TRUE
+"G9b-B 100 finite fits for sd_phylo 0.3",100,"100",TRUE
+"G9b-B 100 finite fits for sd_phylo 0.6",100,"100",TRUE
+"G9b-B 100 finite fits for sd_phylo 1.0",100,"100",TRUE
+"G9b-B signed intercept bias / empirical SD <= 0.10 for sd_phylo 0.3",0.0324121432289611,"<= 0.10",TRUE
+"G9b-B signed intercept bias / empirical SD <= 0.10 for sd_phylo 0.6",0.0717548091041703,"<= 0.10",TRUE
+"G9b-B signed intercept bias / empirical SD <= 0.10 for sd_phylo 1.0",0.0629324566449435,"<= 0.10",TRUE

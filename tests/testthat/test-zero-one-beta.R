@@ -2052,7 +2052,8 @@ test_that("zero-one beta validates malformed and neighbouring inputs", {
       family = zero_one_beta(),
       data = dat
     ),
-    "Random-effect scale"
+    "requires one ordinary `mu` intercept or independent slope",
+    fixed = TRUE
   )
   expect_error(
     drmTMB(

@@ -1,0 +1,7 @@
+............................................................................................
+----------------------------------------------------------------------
+Ran 92 tests in 2.502s
+
+OK
+C14 receipt equivalence: OK (3 eligible, 7 source-different retained receipts; C17 current-source compatibility PASS)
+capability-ledger: OK (1 generated outputs)

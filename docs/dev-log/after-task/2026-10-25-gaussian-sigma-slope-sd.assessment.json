@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "3193afbf0be8fdb15025e22bbb2008fef97248e9e5f0ff8f2b2eeb2c7e5d5f87",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete report and compare its implementation, test, warning, and scope statements with the saved focused test output, source-stability manifest, current slice diff, and cited review handoff.",
+  "genre": "software after-task report",
+  "coverage": "Complete report, all 12 sections.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report is concrete and scoped, though the required section structure gives it some checklist rhythm.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and evidence-linked; its style judgment is editorial and the checklist structure limits confidence.",
+  "examples": [
+    {
+      "location": "Section 2, paragraph 1",
+      "cue": "The route requires a fixed-predictor design that is constant within each group.",
+      "impact": "This makes the admission boundary easy to locate.",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "The route requires fixed-effect-only `mu`, complete unaggregated observations, one sigma random-effect term and a group-constant SD design."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The stated model equation and bounded interpretation were checked against the reviewed symbol/formula/DGP alignment; no interval-calibration claim is made.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test exit code, source-stability status, render/check outcomes, and residual scope were checked against the saved log, manifests, current report and evidence receipt.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations.",
+  "date": "2026-10-25",
+  "calibration_status": "Previously seen examples; this is a self-review, not a held-out evaluation.",
+  "interpretation": "perceived_style_not_authorship"
+}

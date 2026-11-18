@@ -1,0 +1,17 @@
+
+REFUSING TO REWIRE: the measured behaviour moved.
+  worst |change| 3.230e-11 exceeds tolerance 0.000e+00
+  This is the signal the guard exists for. Do NOT raise the tolerance to
+  make it pass -- investigate what changed model-15 behaviour. The new
+  receipt is left at docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.rejected-priors-publish for inspection.
+prior receipt:
+    mc-0568  mean_tau_relative_error 0.0990031773680984
+    mc-0569  mean_tau_relative_error 0.166077467305878
+    mc-0576  mean_tau_relative_error 0.0613049351741076
+
+running tools/run-lane-c-c17c1-c14-model15-compatibility.R (~80 s) ...
+
+new receipt:
+    mc-0568  0.0990031773358032   |change| 3.230e-11
+    mc-0569  0.166077467301678   |change| 4.200e-12
+    mc-0576  0.061304935158128   |change| 1.598e-11

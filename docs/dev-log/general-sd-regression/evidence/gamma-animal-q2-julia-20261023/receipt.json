@@ -1,0 +1,18 @@
+{
+  "schema": "gamma-animal-q2-julia-run-receipt-v1",
+  "result": "PASS",
+  "passed": 35,
+  "total": 35,
+  "test_name": "Gamma animal independent intercept and slope SD regression",
+  "runtime": "31.7s",
+  "host": "Totoro",
+  "run_started_local": "2026-10-23T17:59:14-06:00",
+  "run_ended_local": "2026-10-23T17:59:52-06:00",
+  "source_archive": "candidate-v8.tar.gz",
+  "source_archive_sha256": "2fd6765a663c59948572aa95b2b6383186eff03c6952a2431b82d427b167bf74",
+  "focused_test_source": "test_gamma_animal_intercept_slope_sd.jl",
+  "focused_test_sha256": "1f7bd590b37dd46b79b9426a5f8dd9931731b480df8c913bc4e5c92b94b5b12b",
+  "run_log": "totoro-v8.log",
+  "run_log_sha256": "fc32c8be0c6b6973cb22d4ef5b75a0b2b2d9f725d2fc34e95bd4e2498712de60",
+  "boundary": "This focused q2 slice receipt does not close broad G3/G5, general Julia parity, or uncertainty coverage gates."
+}

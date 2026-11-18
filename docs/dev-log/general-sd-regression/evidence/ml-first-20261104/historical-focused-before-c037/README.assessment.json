@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "ef337151f5679959e50ccfaa2b199b419dbac8d22d29b8bda51f06cc211a10c0",
+  "draft_version": "accepted-focused-v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex numerical_packet",
+  "method": "Separate post-update review against accepted before/after receipt, all five job exit codes/log digests, three ZeroOneBeta result batches and explicit parent package/docs status snapshot; prose lint.",
+  "genre": "Maintainer WIP report and evidence documentation",
+  "coverage": "whole accepted-focused-phase receipt",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Specific checked quantities, numerical boundaries and status labels; formal procedural reporting remains appropriate.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review of retained accepted artifacts; package/integration statuses are timestamped handoff snapshots and final gates remain pending.",
+  "examples": [
+    {
+      "location": "line3",
+      "cue": "Concrete verification boundary",
+      "impact": "Names actual outputs or separates accepted focused verification from pending integration.",
+      "repair": "no change needed",
+      "line": 3,
+      "quote": "This receipt retains the bounded prediction checks, numerical probes and Gamma article candidate measured on 4 November 2026, including the accepted final focused frozen-source batch. It does not close the wider SD programme, interval calibration or the deferred REML policy."
+    },
+    {
+      "location": "line7",
+      "cue": "Concrete verification boundary",
+      "impact": "Names actual outputs or separates accepted focused verification from pending integration.",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "`source-snapshot.json` records R base `094706b5f93d9f08bcf34b76e0328eb2293fdee5` and Julia source `f4fa3aed451636b6ffa442ce2632515513d23b1f`, source-file SHA-256 values and the reused native DLL hash. The R base has uncommitted bridge, test and documentation changes. The snapshot was captured during receipt assembly. It identifies current bytes, rather than proving that every earlier log exercised the final source. That original snapshot remains historical. The later accepted batch below provides its own executed before/after binding."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Retains all six ZeroOneBeta attempts and original NB2 denominator; distinguishes source-code/DLL stability from full-package/integration success; no false-positive convergence or calibration claim.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared accepted fivejob status and hashes,66/20/27expectations,26liveblocks,38regressionexpectations, mixed outcomes in all3RDSdecodes and corrected predecessor binary-change classification. Running packagecheck/docs/HTTP states identify parent snapshot and pending completion.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No paper citations. Existing issue/PR references remain overlap pointers, and final public URLs are not claimed accessible.",
+  "date": "2026-11-04",
+  "calibration_status": "No calibration controls viewed; style judgment is not authorship evidence.",
+  "interpretation": "perceived_style_not_authorship"
+}

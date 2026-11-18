@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c7e392c2e649ec4da11010b9c17ccb0eaa2c36402d9015fbf155ac0255698548",
+  "draft_version": "checkpoint-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate whole-draft self-review against inspected source, source-pinned test logs and rendered tutorial; independent reviewers supplied the recorded specific corrections.",
+  "genre": "Progress and after-task report draft",
+  "coverage": "Whole docs/dev-log/after-task/2026-11-05-fixed-effect-priors.md",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Required audit headings create repetition, but source pins and failure explanations remain specific.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent scoped code/reader reviews; no human style assessment.",
+  "examples": [
+    {
+      "location": "Goal paragraph",
+      "cue": "Concrete purpose and authority",
+      "impact": "States the user outcome and limits before mechanics",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Help applied users regularize separation and unstable fixed coefficients in drmTMB and DRModels.jl, with explicit distributional-parameter, coefficient and intercept selection. Shinichi approved implementation and isolated overlap on 5 November 2026. Merge, release and publication remain unauthorized."
+    },
+    {
+      "location": "Paragraph beginning Five live bridge fixtures",
+      "cue": "Specific evidence and scope",
+      "impact": "Connects behavior, evidence and its limit",
+      "repair": "no change needed",
+      "line": 29,
+      "quote": "Five live bridge fixtures pass coefficient, data-likelihood, prior, total-objective, prior-gradient, selector and inference-guard comparisons. Maximum coefficient gap is 4.30e-11 and maximum data-likelihood gap 1.07e-12. These measurements concern the named fixtures only. Tutorial code executes; rendered R HTML and an isolated Julia prior page exist. Pkgdown configuration checks pass. The R package check completed with zero errors and two warnings from omitted vignette outputs in the intentionally unbuilt-vignette archive; examples and usage checks passed. Final full suites are still running; no full-suite success is claimed in this draft."
+    },
+    {
+      "location": "Paragraph beginning A live JuliaCall startup",
+      "cue": "Specific evidence and scope",
+      "impact": "Connects behavior, evidence and its limit",
+      "repair": "no change needed",
+      "line": 47,
+      "quote": "A live JuliaCall startup crashed before model code. The existing PR #1565 documented the launch-only bundled-libunwind workaround; the retry passed without importing or editing that PR. The remote archive initially lacked Git metadata, causing a source-only audit to stop before its intended assertion. Exact-baseline Git metadata restored the premise without changing source bytes, and that audit passed on rerun. Predecessor full runs were stopped only after final-source runs were active; their partial logs remain distinct."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and coefficient interpretations match the implemented targets; calibration and posterior-sampling claims are explicitly withheld.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Implementation and numerical claims checked against source and logs; pending broad checks are labelled pending.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external reference claim requiring verification in this artifact.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,13 @@
+M docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json
+M docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.log
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/dirty-state.txt
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/provenance.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/raw-attempts.tsv
+D docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1/summary.tsv
+?? docs/dev-log/evidence/julia-r-parity/lss-tip-identity/historical-pre-1589-main-refresh-2026-10-22/checker-001.log
+?? docs/dev-log/evidence/julia-r-parity/lss-tip-identity/historical-pre-1589-main-refresh-2026-10-22/public-001.json
+?? docs/dev-log/evidence/julia-r-parity/lss-tip-identity/historical-pre-1589-main-refresh-2026-10-22/public-001.log
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/dirty-state.txt
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/provenance.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/raw-attempts.tsv
+?? docs/dev-log/implementation-recovery/2026-08-01-lane-c-c17c1-c14-model15-compatibility-run-1.pre-recertify/summary.tsv

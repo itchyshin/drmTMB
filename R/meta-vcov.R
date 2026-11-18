@@ -83,7 +83,7 @@ meta_vcov_bivariate <- function(v1, v2, cov12 = NULL, cor12 = NULL) {
       "i" = "A block with sampling correlation {.val -1} or {.val 1} is singular and cannot be used."
     ))
   }
-  if (any(!positive_scale & abs(cov12) > tolerance)) {
+  if (any(!positive_scale & cov12 != 0)) {
     cli::cli_abort(c(
       "Each bivariate sampling covariance block must be positive semidefinite.",
       "x" = "A study with zero sampling variance must have {.code cov12 == 0}."

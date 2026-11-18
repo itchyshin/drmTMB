@@ -1,0 +1,43 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "3a5c4901da1579a9f73a2910abb68a781bb0eeb75b658cc92b23795ee92abed6",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "bounded native Beta spatial worker",
+  "method": "Separate self review after comparing final patch, independent review, all attempted runner logs and example",
+  "genre": "technical after-task report",
+  "coverage": "whole exact saved draft",
+  "score": 3,
+  "style_status": "known",
+  "score_reason": "Specific covariance and Beta mean, exact numerical results and retained parser error; required headings create a regular structure",
+  "confidence": "medium",
+  "confidence_reason": "Self judgment without human calibration",
+  "examples": [
+    {
+      "location": "11",
+      "line": 11,
+      "quote": "Independent fields satisfy u_k ~ N(0,K), b_k=D_k u_k and Cov(b_k)=D_k K D_k, with D_k=diag(exp(W_k alpha_k)). The predictor is X beta+b_0+x*b_1. Beta mean is eps+(1-2*eps)*plogis(eta), eps=1e-12, and precision phi=sigma^-2. The example pairs spatial(1+x|id,coords=coords) with two selected sd(id,level=\"spatial\",coef=...) formulas.",
+      "cue": "specific scoped explanation",
+      "impact": "Connects covariance, selected SDs and response link precisely",
+      "repair": "no change needed"
+    },
+    {
+      "location": "57",
+      "line": 57,
+      "quote": "Test the intended failure layer: a non-symbol matrix expression can be rejected by formula parsing before provider collision checks. Bind known matrices explicitly. Keep fixed coordinate range and jitter in the independent DGP, and distinguish latent fields from their predictor-dependent scaled effects.",
+      "cue": "specific scoped explanation",
+      "impact": "Records a concrete lesson supported by the retained parser error",
+      "repair": "no change needed"
+    }
+  ],
+  "science_gate": "pass",
+  "science_gate_reason": "Restricted to independent kernel/density calculations and one-seed point checks; no coverage claim",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared final 446-check log, example, scoped patch and independent review",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references",
+  "date": "2026-10-28",
+  "calibration_status": "Prior Gamma/Beta reports seen; no held-out controls",
+  "interpretation": "perceived_style_not_authorship"
+}

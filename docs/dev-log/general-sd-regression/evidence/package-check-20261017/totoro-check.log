@@ -1,0 +1,135 @@
+* using log directory ‘/tmp/drmtmb-package-check-20261017-47262cd45/drmTMB.Rcheck’
+* using R version 4.6.1 (2026-06-24)
+* using platform: x86_64-pc-linux-gnu
+* R was compiled by
+    x86_64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+    GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+* running under: Ubuntu 24.04.5 LTS
+* using session charset: UTF-8
+* current time: 2026-10-17 21:48:27 UTC
+* using options ‘--no-examples --no-tests --no-manual --no-vignettes’
+* checking for file ‘drmTMB/DESCRIPTION’ ... OK
+* this is package ‘drmTMB’ version ‘0.7.1’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... INFO
+Packages suggested but not available for checking:
+  'DHARMa', 'emmeans', 'extraDistr', 'metadat', 'metafor',
+  'palmerpenguins', 'spelling'
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘drmTMB’ can be installed ... OK
+* used C compiler: ‘x86_64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
+* used C++ compiler: ‘x86_64-linux-gnu-g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
+* checking installed package size ... INFO
+  installed size is 98.0Mb
+  sub-directories of 1Mb or more:
+    libs  91.5Mb
+    R      2.9Mb
+    sim    1.9Mb
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking code files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking whether startup messages can be suppressed ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking line endings in shell scripts ... OK
+* checking line endings in C/C++/Fortran sources/headers ... OK
+* checking compiled code ... OK
+* checking files in ‘vignettes’ ... WARNING
+Files in the 'vignettes' directory but no files in 'inst/doc':
+  ‘adding-families.Rmd’ ‘animal-models.Rmd’
+  ‘articles/distributional-outputs-and-adequacy.Rmd’
+  ‘articles/figure-gallery.Rmd’ ‘articles/function-map-cheatsheet.png’
+  ‘articles/function-map-cheatsheet.Rmd’ ‘articles/model-workflow.Rmd’
+  ‘articles/phylogenetic-spatial.Rmd’
+  ‘articles/simulation-plot-grammar.Rmd’
+  ‘bipartite-phylogenetic-interactions.Rmd’ ‘bivariate-coscale.Rmd’
+  ‘bivariate-nongaussian.Rmd’ ‘capability-and-limits.Rmd’
+  ‘comparing-with-other-packages.Rmd’ ‘convergence.Rmd’
+  ‘count-nbinom2.Rmd’ ‘cross-family.Rmd’ ‘distribution-families.Rmd’
+  ‘drmTMB.Rmd’ ‘first-week-intervals.Rmd’ ‘formula-grammar.Rmd’
+  ‘implementation-map.Rmd’ ‘includes/capability-ledger-family-map.md’
+  ‘includes/capability-ledger-missing-response.md’
+  ‘includes/capability-ledger-summary.md’ ‘julia-engine.Rmd’
+  ‘large-data.Rmd’ ‘location-scale-scale.Rmd’ ‘location-scale.Rmd’
+  ‘meta-analysis.Rmd’ ‘missing-data.Rmd’ ‘model-map.Rmd’
+  ‘model-selection.Rmd’ ‘phylogenetic-models.Rmd’
+  ‘proportion-beta-binomial.Rmd’ ‘relmat-known-matrices.Rmd’
+  ‘robust-student.Rmd’ ‘source-map.Rmd’ ‘spatial-models.Rmd’
+  ‘structural-dependence.Rmd’ ‘testing-likelihoods.Rmd’
+  ‘which-scale.Rmd’
+* checking examples ... SKIPPED
+* checking for unstated dependencies in ‘tests’ ... OK
+* checking tests ... SKIPPED
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes ... WARNING
+Directory 'inst/doc' does not exist.
+Package vignettes without corresponding single PDF/HTML:
+  ‘adding-families.Rmd’
+  ‘animal-models.Rmd’
+  ‘bipartite-phylogenetic-interactions.Rmd’
+  ‘bivariate-coscale.Rmd’
+  ‘bivariate-nongaussian.Rmd’
+  ‘capability-and-limits.Rmd’
+  ‘comparing-with-other-packages.Rmd’
+  ‘convergence.Rmd’
+  ‘count-nbinom2.Rmd’
+  ‘cross-family.Rmd’
+  ‘distribution-families.Rmd’
+  ‘drmTMB.Rmd’
+  ‘first-week-intervals.Rmd’
+  ‘formula-grammar.Rmd’
+  ‘implementation-map.Rmd’
+  ‘julia-engine.Rmd’
+  ‘large-data.Rmd’
+  ‘location-scale-scale.Rmd’
+  ‘location-scale.Rmd’
+  ‘meta-analysis.Rmd’
+  ‘missing-data.Rmd’
+  ‘model-map.Rmd’
+  ‘model-selection.Rmd’
+  ‘phylogenetic-models.Rmd’
+  ‘proportion-beta-binomial.Rmd’
+  ‘relmat-known-matrices.Rmd’
+  ‘robust-student.Rmd’
+  ‘source-map.Rmd’
+  ‘spatial-models.Rmd’
+  ‘structural-dependence.Rmd’
+  ‘testing-likelihoods.Rmd’
+  ‘which-scale.Rmd’
+* checking running R code from vignettes ... SKIPPED
+* checking re-building of vignette outputs ... SKIPPED
+* DONE
+
+Status: 2 WARNINGs
+See
+  ‘/tmp/drmtmb-package-check-20261017-47262cd45/drmTMB.Rcheck/00check.log’
+for details.
+

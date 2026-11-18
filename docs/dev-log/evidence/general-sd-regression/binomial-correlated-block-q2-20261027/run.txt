@@ -1,0 +1,14 @@
+Command:
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-correlated-sd", reporter = "summary", stop_on_failure = TRUE)'
+
+Result:
+  Exit code 0. The focused test file completed with no reported failures,
+  warnings, or skips. Its progress reporter emitted assertion dots but this
+  testthat configuration did not print a numeric total.
+
+Scope:
+  This file covers correlated Bernoulli q2 target selection, partial-target
+  TMB fits, q2 logit point recovery and workflows, a two-dimensional
+  Gauss-Hermite likelihood comparison, q3 covariance/recovery checks, and
+  non-logit q2 probit/cloglog point recovery. It is focused candidate evidence,
+  not an interval-coverage result or a capability-universe admission.

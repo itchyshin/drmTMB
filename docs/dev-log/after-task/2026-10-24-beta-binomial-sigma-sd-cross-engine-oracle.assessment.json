@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "1e3dab2af976747cd21ed3bee2ece3982c859557aac100d2da9517cb49041b34",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft self-review using writing-naturalness.md; facts checked against the source, focused test output, and gate validator output.",
+  "genre": "Technical after-task report",
+  "coverage": "Whole report, sections 1 through 12",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "The report uses concrete code paths and test outcomes, states the failed threshold and correction, and keeps the feature limits explicit. The required headings make the structure somewhat formulaic.",
+  "confidence": "medium",
+  "confidence_reason": "This is a short technical record with local source and test evidence; style judgments remain subjective.",
+  "examples": [
+    {
+      "location": "Section 10, line 52",
+      "cue": "This is one complete-data synthetic fixture with fixed `mu`, a `sigma` random intercept, and a group-level SD predictor.",
+      "impact": "The sentence names the tested cell and prevents a broad support claim.",
+      "repair": "no change needed",
+      "line": 52,
+      "quote": "This is one complete-data synthetic fixture with fixed `mu`, a `sigma` random intercept, and a group-level SD predictor."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The integration-method explanation matches the inspected Julia AGHQ implementation and native TMB random block; the limits are stated.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The test command exited 0, its source hash was checked, and the ledger/parser outcomes were read directly.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external citation claims.",
+  "date": "2026-10-24",
+  "calibration_status": "No human-calibrated style examples were reviewed for this assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

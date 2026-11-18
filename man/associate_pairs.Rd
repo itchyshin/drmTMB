@@ -2,9 +2,12 @@
 % Please edit documentation in R/associate-pairs.R
 \name{associate_pairs}
 \alias{associate_pairs}
+\alias{update.drm_pair_association}
 \title{Associate two frozen marginal drmTMB fits}
 \usage{
 associate_pairs(fit_1, fit_2, kernel, association)
+
+\method{update}{drm_pair_association}(object, ...)
 }
 \arguments{
 \item{fit_1, fit_2}{Two fitted \code{drmTMB} marginal models. They must use the
@@ -18,9 +21,20 @@ identical complete analysis data, in the same order.}
 fixed-effect formula, including multiple predictors, factors,
 interactions, and explicit transformations. Random effects, offsets,
 missing values, aliased columns, and \code{.} expansion are not supported.}
+
+\item{object}{A frozen-margin association object. Its \code{update()} method
+always refuses the call; refit the margins and construct a new association.}
+
+\item{...}{Reserved arguments. The association \code{update()} method refuses
+all update requests.}
 }
 \value{
-An object of class \code{drm_pair_association}.
+An object of class \code{drm_pair_association}. \code{fitted(object)} returns
+the two fitted marginal response values or probabilities. \code{summary(object)}
+returns the association summary, diagnostics, and provenance (or a \code{NULL}
+association summary when the boundary is unresolved). \code{simulate(object)}
+returns one paired-response data frame for \code{nsim = 1}, or a list of such
+data frames for larger \code{nsim}.
 }
 \description{
 \code{associate_pairs()} estimates a named within-row association after fitting
@@ -45,7 +59,17 @@ interval use with caveats. Intercept-only
 associations also expose bounded eta intervals through
 \code{confint(object, type = "eta")}; \code{\link[=predict.drm_pair_association]{predict.drm_pair_association()}} supplies
 delta-method eta standard errors and pointwise transformed intervals.
-Profiles remain unavailable.
+Profiles remain unavailable. \code{fitted()} returns the two stored marginal
+response values or probabilities, not the fitted latent association.
+\code{simulate()} returns paired outcomes from the fitted marginal predictions
+and latent-normal association; it requires a resolved interior or
+near-boundary association and cannot be used for an unresolved boundary.
+\code{profile()}, \code{quantile()}, \code{residuals()}, \code{sigma()}, \code{update()}, \code{rho12()},
+\code{corpairs()}, and \code{emmeans} are unavailable for this frozen-margin object.
+Use \code{association()} and \code{predict()} for the association estimand, and
+\code{vcov()} and \code{confint()} for the supported Wald uncertainty summaries.
+Refitting requires fitting the margins again and constructing a new
+association object.
 }
 \examples{
 set.seed(20260723)

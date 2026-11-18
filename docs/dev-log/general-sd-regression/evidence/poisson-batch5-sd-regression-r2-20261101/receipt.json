@@ -1,0 +1,61 @@
+{
+  "evidence_id": "native-poisson-batch5-sd-regression-r2-20261101",
+  "existing_evidence_ids_for_test_path": [],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); testthat::test_file(\"tests/testthat/test-poisson-batch5-sd-regression.R\", reporter=\"summary\")'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "test_path": "tests/testthat/test-poisson-batch5-sd-regression.R",
+  "test_sha256": "f6aa052a1ac95e7f757b9070d9b44db883c42ec83fd1d292c4f5262ae8ef9244",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "6da779c441e5301c0f4f10d51b3d2b4682bfcc5c644ce3e3a6dd3649786e6976",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/poisson-batch5-sd-regression-r2-20261101/test-console.log",
+  "console_log_sha256": "92c983d2366c46c49f3785079223723c91005b4c622824990d21b1e276dd7f00",
+  "result": {
+    "observed_exit_status": 0,
+    "expectations_passed": 45,
+    "failures": 0,
+    "skips": 0,
+    "count_method": "count of passing-expectation dots on the summary-reporter line of the console log; no failure or skip markers present"
+  },
+  "oracle": "Dense R Laplace marginal likelihood over the pair latent f~N(0,K), K=kronecker(A2,A1), eta=X beta+J f, J=diag(sd_pair*value)[pair,], y~Poisson(exp(eta)), evaluated at fitted parameters. Written in the test file with stats::dpois and base linear algebra, no drmTMB objective, so independent of the likelihood code under test. Not fully independent in fixtures: A1 and A2 come from drmTMB:::drm_phylo_tip_covariance, and predict()/coef() supply SDs and mu coefficients. Checks likelihood assembly at fitted parameters, not the optimiser.",
+  "checks": [
+    "convergence 0 and finite logLik",
+    "coefficient names",
+    "z_pair recovery within 0.5 (wiring check)",
+    "name-aligned SD predictions equal exp(X alpha) to 1e-8",
+    "logLik within 1e-4 of dense Laplace oracle",
+    "constant-SD equivalence 2e-5 relative",
+    "nested model bound 1e-3",
+    "row-order invariance 1e-5",
+    "within-pair varying SD input refused",
+    "simulate() count draws reproducible",
+    "save/reload predict identity",
+    "closed-gate refusals"
+  ],
+  "tolerances_copied_from_test": "oracle 1e-4 absolute logLik; constant-SD 2e-5 relative logLik, 1e-4 mu coef; z_pair recovery within 0.5; row-order 1e-5; predicted SD vs exp(X alpha) 1e-8; nested bound 1e-3",
+  "linked_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_interaction_intercept\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured intercept\",\"tree_pair\",\"phylogenetic interaction field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "phylo_interaction(1 | plant:pollinator, tree1, tree2) with sd(pair, level='phylogenetic_interaction') ~ z_pair"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_interaction_numeric_slope\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured numeric slope\",\"tree_pair\",\"independent phylogenetic interaction slope field\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "what_exercised": "phylo_interaction(0 + x | plant:pollinator, tree1, tree2) slope-only field with sd(pair, level='phylogenetic_interaction') ~ z_pair"
+    }
+  ],
+  "not_linked_not_tested": [],
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable (wiring checks, not calibration)",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree (hashes identify test-time files; R/ and src/ tracked files are unmodified relative to HEAD, other files in the tree are in flux)",
+    "unreviewed"
+  ],
+  "review_status": "unreviewed",
+  "direct_sd_claim_change": "none (a receipt never promotes a row)"
+}

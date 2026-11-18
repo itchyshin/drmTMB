@@ -51,6 +51,7 @@ check_drm.drmTMB_julia <- function(
 
   rows <- list(
     check_julia_engine_route(object),
+    check_convergence_status(object),
     check_julia_optimizer_convergence(object),
     check_julia_fixed_gradient(object, gradient_tolerance = gradient_tolerance),
     check_julia_bridge_covariance(object),

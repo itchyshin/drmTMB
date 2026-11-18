@@ -241,6 +241,11 @@ test_that("non-positive Hessian state is explicit in summaries and intervals", {
   fit$sdreport <- fit$sdr
 
   expect_error(stats::vcov(fit), "positive-definite Hessian")
+  # se = TRUE was already in effect, so the message must not tell the user to refit with it
+  msg <- tryCatch(stats::vcov(fit), error = conditionMessage)
+  expect_false(grepl("Refit with", msg, fixed = TRUE))
+  expect_match(msg, "already set", fixed = TRUE)
+  expect_match(msg, "check_drm", fixed = TRUE)
   smry <- summary(fit)
   expect_true(all(is.na(smry$coefficients$std_error)))
   expect_equal(
@@ -805,4 +810,19 @@ test_that("bivariate sd_phylo1/2 REML keeps finite SEs with the default se_group
   expect_true(all(is.finite(sqrt(diag(stats::vcov(fit))))))
   expect_true(all(is.finite(summary(fit)$coefficients$std_error)))
   expect_true(isTRUE(fit$sdr$pdHess))
+})
+
+test_that("vcov() still suggests se = TRUE when standard errors were skipped", {
+  dat <- data.frame(
+    y = c(-0.2, 0.0, 0.3, 0.6, 0.8, 1.2),
+    x = c(-1, -0.5, 0, 0.5, 1, 1.5)
+  )
+  fit <- drmTMB(
+    bf(y ~ x, sigma ~ 1),
+    family = gaussian(),
+    data = dat,
+    control = drm_control(optimizer = list(eval.max = 100, iter.max = 100), se = FALSE)
+  )
+  msg <- tryCatch(stats::vcov(fit), error = conditionMessage)
+  expect_match(msg, "se = TRUE", fixed = TRUE)
 })

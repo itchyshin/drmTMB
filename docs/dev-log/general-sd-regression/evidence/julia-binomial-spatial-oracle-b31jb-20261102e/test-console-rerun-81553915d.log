@@ -1,0 +1,20 @@
+julia-binomial-spatial-oracle-b31jb: .i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..........b31jb spatial intercept logit: ll=-757.087859 oracle=-757.087857 agreement=2.13e-06 min_gap=0.6295 (x630); gaps: selector_swap=-58.013, sd_slope_sign=-26.242, reversed_sd_vector=-26.901, sd_intercept_plus_log2=-4.136, K_scale_2=-1.009, range_max_distance=-0.630, K_by_position=-14.278
+...................b31jb spatial intercept probit: ll=-668.291898 oracle=-668.291895 agreement=3.40e-06 min_gap=1.5944 (x1594); gaps: selector_swap=-85.308, sd_slope_sign=-40.208, reversed_sd_vector=-45.812, sd_intercept_plus_log2=-6.451, K_scale_2=-1.594, range_max_distance=-1.804, K_by_position=-19.076
+...................b31jb spatial intercept cloglog: ll=-578.328752 oracle=-578.328748 agreement=3.94e-06 min_gap=1.6893 (x1689); gaps: selector_swap=-30.491, sd_slope_sign=-31.477, reversed_sd_vector=-35.604, sd_intercept_plus_log2=-7.106, K_scale_2=-1.777, range_max_distance=-1.689, K_by_position=-25.354
+...................b31jb spatial slope logit: ll=-757.878707 oracle=-757.878706 agreement=1.79e-06 min_gap=1.8405 (x1841); gaps: selector_swap=-11.007, sd_slope_sign=-12.919, reversed_sd_vector=-11.713, sd_intercept_plus_log2=-7.455, K_scale_2=-1.841, range_max_distance=-3.337, K_by_position=-9.055
+...................b31jb spatial slope probit: ll=-669.609165 oracle=-669.609162 agreement=2.83e-06 min_gap=2.4594 (x2459); gaps: selector_swap=-20.188, sd_slope_sign=-22.275, reversed_sd_vector=-22.194, sd_intercept_plus_log2=-9.356, K_scale_2=-2.459, range_max_distance=-4.902, K_by_position=-18.317
+...................b31jb spatial slope cloglog: ll=-675.143058 oracle=-675.143056 agreement=2.58e-06 min_gap=2.0677 (x2068); gaps: selector_swap=-3.277, sd_slope_sign=-13.521, reversed_sd_vector=-13.043, sd_intercept_plus_log2=-7.955, K_scale_2=-2.068, range_max_distance=-3.857, K_by_position=-18.770
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 2 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=114 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T01:19:27Z end=2026-11-03T01:19:56Z rc=0

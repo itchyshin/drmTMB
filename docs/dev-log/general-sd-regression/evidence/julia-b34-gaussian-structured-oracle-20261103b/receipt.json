@@ -1,0 +1,75 @@
+{
+  "evidence_id": "julia-b34-gaussian-structured-oracle-20261103b",
+  "evidence_grade": "focused_test",
+  "command": "NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<private DRModels.jl copy: git archive HEAD ab8b67127 plus worktree Manifest.toml> OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-b34-gaussian-structured-oracle.R', reporter='summary'))\"",
+  "execution_host": "Mac Studio, live Julia 1.10.0, one R process at a time, from a private git-archive copy of the drmTMB worktree at HEAD (R/, src/ identical to HEAD) with DRM_JL_PATH at a private git-archive copy of DRModels.jl ab8b67127",
+  "working_directory": "private copy of /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression (git archive HEAD plus the batch 34 files)",
+  "git_head": "81553915db8b422982b277a0d50c1521f3596ab4",
+  "tree_state": "HEAD 81553915d; the evidence run used a git-archive copy of HEAD (tracked R/, src/ and tests/ identical to HEAD) plus the new batch 34 helper and test files; unreviewed",
+  "run_started_utc": "2026-11-03T01:42:44Z",
+  "run_ended_utc": "2026-11-03T01:43:24Z",
+  "exit_code": 0,
+  "counts": {
+    "test_blocks": 4,
+    "expectations": 56,
+    "passed": 56,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "warnings": 0
+  },
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b34-gaussian-structured-oracle-20261103b/test-console.log",
+  "console_log_sha256": "66488bf3dc02a99b92045f328407bd6fe82566ebec55a27703b77363e8c8a79c",
+  "test_path": "tests/testthat/test-julia-b34-gaussian-structured-oracle.R",
+  "test_sha256": "6c920b3ea455a09f930215ca1dafabb68639c7c82cdf672a12a0b957153c97b4",
+  "helper_path": "tests/testthat/helper-b34-julia-oracles.R",
+  "helper_sha256": "39d763f004d17cd9d4a020625a730a629c0d3e165fb114597aa987964050d199",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-b34-gaussian-structured-oracle-20261103b/source-manifest.json",
+  "source_manifest_sha256": "9a0121a4dfb953ce06eada2a74ee33ffa7a2ff60e060cbabb9bf8b811c117feb",
+  "live_julia": "run live on the Mac; the live blocks ran (skips 0)",
+  "drmodels_jl": "DRModels.jl worktree general-sd-julia HEAD ab8b67127 via git archive (tracked src unmodified) plus the worktree Manifest.toml",
+  "strengthens_evidence_ids": [
+    "julia-b32-gaussian-structured-intercept-bridge-20261103a"
+  ],
+  "scope": "Live Julia (DRModels.jl, engine='julia') Gaussian identity-link structured intercept SD regression evaluated against an independent base-R exact Gaussian marginal logLik (dense V = sigma^2 I + Z D K D Z') at the Julia estimates: relmat (hand K, non-unit diagonal, supplied in permuted order), animal (Henderson A from a 40-animal inbred pedigree, diagonal 1.25 for full-sib offspring) and coordinate spatial (hand kernel exp(-d/median)+1e-6 I, coordinates in permuted order). Shuffled data rows, named levels. Observed agreement 2.8e-13 or better. Emulated bugs (selectors swapped, reversed SD vector, cov2cor(K) for relmat and animal, mean-distance range for spatial, kernel read by position, SD intercept shifted by log 2) move the oracle by at least 0.0465 (more than 4.6 million times the tolerance).",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "standard-error or Hessian parity",
+    "recovery or estimator-accuracy claims",
+    "calibration or broad parity beyond the fixtures and seeds run",
+    "any family, link, provider or endpoint not listed in candidate_rows",
+    "fitted() or residuals() parity",
+    "engine = 'julia' behaviour on any family not named here"
+  ],
+  "tolerances": "logLik within 1e-8 absolute of an exact Gaussian marginal oracle; every emulated bug gap above 20 times 1e-8; one-step profile check at the Julia estimates; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Checked: helper and test read line by line; test and helper SHA-256 match the receipt; the 3 linked row_keys equal the 3 receipt candidate_rows verbatim. Oracle: b34_gaussian_marginal() is base R (dense V = sigma^2 I + (sd %o% sd)*K indexed by level, Cholesky), with a hand Henderson tabular A (40 animals, diagonal 1.25 for full-sib offspring, asserted), a hand relmat K (diagonal 0.49 to 2.56, asserted non-unit) and a hand exp(-d/median)+1e-6 kernel; no drmTMB code. It is evaluated at the live Julia estimates (engine='julia', Julia 1.10.0, 3 live blocks ran, skips 0). Agreement with logLik(fit): relmat 2.8e-13, animal 5.7e-14, spatial 5.7e-14 (tolerance 1e-8). Each fit is intercept-only SD (sd(id, level=...) ~ z), q=1, independent, so no correlation is required; the rows are fitted literally. Emulated bugs are asserted above 20 x tol: selectors swapped 95/380/119, reversed SD vector 4.7/29.8/12.7, kernel read by position 83/10.3/10.0, SD intercept +log 2 9.5/9.0/9.5, cov2cor(K) 1.00 (relmat) and 0.25 (animal), mean-distance range 0.0465 (spatial, the smallest gap, 4.6 million times tol). Rows shuffled, levels named, kernel/coordinates supplied in a different order and the fit asserts the unique(id) order differs from the levels. A one-step profile check at +-0.1 on every mu and SD coefficient stays below the oracle maximum. Console log clean (0 failures, 0 errors, 0 skips, 0 warnings; only the experimental-engine notice and Julia startup lines). What this does NOT establish: one fixture and one seed per route; no calibration, coverage, SE or Hessian parity, or recovery. The hand spatial kernel (median positive distance, 1e-6 jitter) is rebuilt to match the package convention, so agreement confirms the convention is implemented as written, not that it is the right one. The animal fit supplies A as a matrix, so pedigree to A construction in the package is not tested. sigma is not profile-checked. fitted() and residuals() are not covered. The test does not assert that the fit object records engine 'julia' (the Julia notice and live-block count in the log show it ran). The manifest is stale against R/julia-bridge.R and will be re-recorded after the rerun; rerun on the current files is the evidence.",
+  "reviewed_at": "2026-11-03",
+  "reviewer": "independent reviewer, batch 34, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-b34-gaussian-structured-oracle.R",
+    "test_sha256": "6c920b3ea455a09f930215ca1dafabb68639c7c82cdf672a12a0b957153c97b4",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T03:52:30Z",
+    "ended_utc": "2026-11-03T03:53:06Z",
+    "expectations_passed": 56,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-b34-gaussian-structured-oracle-20261103b/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "adbeb123620337ddb7074d905814b8ff5b27f1a2badc7ba2e65dfa91de5121f6",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

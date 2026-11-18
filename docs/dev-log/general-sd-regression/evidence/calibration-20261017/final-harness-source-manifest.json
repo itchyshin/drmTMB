@@ -1,0 +1,65 @@
+{
+  "archive_sha256": "d36bd0dac4c7bb8a8d7ce7a82e70299c95dcc5774e4a0071ea8bf2692e7aea60",
+  "files": [
+    {
+      "path": "docs/dev-log/general-sd-regression/native-calibration-design.md",
+      "sha256": "ddaa9c8ae3b5ca8468b65a6ad0383c0350e9330cd6f10c12aaab89a127470e3d"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/stage-two-manifest.csv",
+      "sha256": "8fd627ccb8a7f8689c56e629a5ff12e53405be1a508167216632bcf445652e96"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/staged-calibration-contract.md",
+      "sha256": "6598b19e63dbe18358fae5b703f13f40685162ee9f7300da525f7bad19a4af58"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/contention.py",
+      "sha256": "725cd5efdc7ccf888536eb215f33524161a4604e38e4bf6cee73ed14e75a5f41"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/generator.R",
+      "sha256": "10c165e6b4283ed1ee052ec7206ff0c4eed3a2cbd60a99d78cdcbb71044b50c2"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/integrity.py",
+      "sha256": "5069605e05acbff5e268bc1e5b30f7447ac872d1098eaff2e481888a3b2c3af8"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/prepare.R",
+      "sha256": "d06190798e30aaa6d17f5de8a3f93d126b0557d43382e0b2d168e73fe832fb1f"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/run.py",
+      "sha256": "2a38b70954ccf38ca763b489fced1f3f53b0c60c123e129b37d0fdba84d0e3f4"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/self-test.py",
+      "sha256": "87e0bfb7c89f64777e896571302cbd022994eb0eabfc818ff1e4151c64f16042"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/stage-two-seeds.R",
+      "sha256": "23a9de0f103d0d3234b4993666f3a57383cb7db7bcc5e344819c59551e99d614"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/staged-decision.R",
+      "sha256": "dbbdfb472ec0a8af2ed0de2c3aa90892f814a5178c6613d3244d6cba48c2fa3b"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/summarize.R",
+      "sha256": "57fb57c955efb64024c8bbe7e8dee8205b37d74e71395146116ac13de77c96bd"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/test-contention.py",
+      "sha256": "95f7886d0f7e2e77cbbd0cf428aef9f6e8940bb2f3db8989b1237fbeaf6b7e96"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/test-staged-decision.R",
+      "sha256": "df62412bd0a9d27f5cc032c7ff9354d2059c8fdfc544ff0aea03a147b9f965d2"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/worker.R",
+      "sha256": "166d35a2b06a3e72206942857f3ef06beec8d855cd0a00a65cd8445e646d9480"
+    }
+  ]
+}

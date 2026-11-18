@@ -1,0 +1,29 @@
+ℹ Testing drmTMB
+gamma-spatial-q2-sd-regression: ...............1........................`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+..
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-gamma-spatial-q2-sd-regression.R:106:3'): Gamma spatial q2 ma
+Error in `validate_positive_continuous_structured_provider_surface(mu_entry, family_label = "lognormal")`: lognormal structured `mu` effects do not admit `spatial()` in this route.
+i Use an unlabelled intercept with an admitted structured provider, or remove the structured term.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-gamma-spatial-q2-sd-regression.R:106:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. └─drmTMB:::drm_build_lognormal_ls_spec(...)
+  8.   └─drmTMB:::validate_positive_continuous_structured_provider_surface(mu_entry, family_label = "lognormal") at general-sd-regression/R/drmTMB.R:5628:3
+  9.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13503:5
+ 10.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+No one is perfect!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 41 FAILED 0 ERRORS 1 SECONDS 17.343 

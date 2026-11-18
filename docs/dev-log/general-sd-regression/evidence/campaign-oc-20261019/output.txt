@@ -1,0 +1,21 @@
+               scenario n_campaigns look1_fail look2_required accept fail
+                nominal         100          0             97     78    0
+          undercoverage         100        100              0      0  100
+           low_validity         100        100              0      0  100
+            log_sd_bias         100        100              0      0  100
+ informative_invalidity         100         52             48      0   99
+         joint_boundary         100        100              0      0  100
+ inconclusive expected_attempts     seed accept_mc_lower accept_mc_upper
+           22             11730 20261019       0.6860803      0.85669642
+            0              3000 20261019       0.0000000      0.03621669
+            0              3000 20261019       0.0000000      0.03621669
+            0              3000 20261019       0.0000000      0.03621669
+            1              7320 20261019       0.0000000      0.03621669
+            0              3000 20261019       0.0000000      0.03621669
+ fail_mc_lower fail_mc_upper inconclusive_mc_lower inconclusive_mc_upper
+     0.0000000    0.03621669           0.143303577            0.31391965
+     0.9637833    1.00000000           0.000000000            0.03621669
+     0.9637833    1.00000000           0.000000000            0.03621669
+     0.9637833    1.00000000           0.000000000            0.03621669
+     0.9455406    0.99974685           0.000253146            0.05445939
+     0.9637833    1.00000000           0.000000000            0.03621669

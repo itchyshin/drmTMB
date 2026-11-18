@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-binomial-ordinary-animal-cloglog-A-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd.R",
+      "sha256": "02a69d0e8e1d1c2455dc8c2c20a6595a6e648a7df3fe4c8fef0d053f7ab7a6c6"
+    }
+  ]
+}

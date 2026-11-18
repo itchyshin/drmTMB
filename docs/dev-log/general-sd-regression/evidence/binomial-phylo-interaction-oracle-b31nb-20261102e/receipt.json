@@ -1,0 +1,42 @@
+{
+  "evidence_id": "binomial-phylo-interaction-oracle-b31nb-20261102e",
+  "git_head": "4f2d9ba01172657766a25b62f0dd98835f0a28ab",
+  "tree_state": "R/ and src/ unmodified at HEAD; new test and helper files untracked in the worktree",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 230-235 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-binomial-phylo-interaction-oracle-b31nb.R\", reporter = \"summary\")' (Totoro, clean export ~/hsq_work/exp-9d229de68 from 9d229de68 with R/ and src/ unchanged at HEAD 4f2d9ba01, cwd = package root)",
+  "counts": {
+    "expectations": 45,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "seconds": 19.2
+  },
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-phylo-interaction-oracle-b31nb-20261102e/test-console.log",
+  "console_log_sha256": "60f247d9f16e75bdb7b7affae74788491fda591a5bedf19a9c2a5138e8ab3f18",
+  "test_path": "tests/testthat/test-binomial-phylo-interaction-oracle-b31nb.R",
+  "test_sha256": "7fa5af43896543d72bdec2d6779827fcfe3e8a57472e5a950bea1321bd52a113",
+  "rows_claimed": [
+    "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"cloglog\",\"phylo_interaction_numeric_slope\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured numeric slope\",\"tree_pair\",\"independent phylogenetic interaction slope field\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"phylo_interaction_numeric_slope\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured numeric slope\",\"tree_pair\",\"independent phylogenetic interaction slope field\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"probit\",\"phylo_interaction_numeric_slope\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured numeric slope\",\"tree_pair\",\"independent phylogenetic interaction slope field\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "does_not_establish": "No calibration, coverage, recovery or broad parity claim; likelihood assembly and selector/kernel alignment at the fitted parameters for one seed per route only; the unlabelled native q2 block fixes the intercept-slope correlation at 0.",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "All four conditions hold for the 3 phylo_interaction_numeric_slope rows (mu:x1..xp; cloglog, logit, probit). (1) The oracle is independent. The pair kernel is kron(cov2cor(ape::vcv(poll)), cov2cor(ape::vcv(plant))), built by hand and named by pair label. Tip order is shuffled and data order is shuffled. The tip covariances are also checked against drmTMB:::drm_phylo_tip_covariance via b26sa_check_phylo_cov. Laplace is base R. (2) Bugs are asserted at more than 0.1: reversed pair SD, pair kernel read by position, Kronecker factors swapped, K x 2, and dropped slope design. Minimum gaps are 1.12 to 1.43 against agreement of about 1e-11. (3) The fit is phylo_interaction(0 + x | plant:pollinator, tree1, tree2) with sd(pair, level = 'phylogenetic_interaction') ~ z_pair. This is a single pair-level slope field with an independent SD curve, which matches the row layout (independent phylogenetic interaction slope field, q1). (4) The manifest and fragment hashes match the current files. The console log shows 45 expectations, 0 failed, 0 skipped, 0 errors, and my rerun on Totoro gave 45/0/0/0. This does NOT establish: calibration or recovery (one seed per link, 8x8 tips); an interaction intercept field or correlated block; any Julia parity; the fitted optimum beyond the 1e-4 logLik agreement.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-phylo-interaction-oracle-b31nb.R",
+    "test_sha256": "7fa5af43896543d72bdec2d6779827fcfe3e8a57472e5a950bea1321bd52a113",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:47Z",
+    "ended_utc": "2026-11-03T01:07:05Z",
+    "expectations_passed": 45,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-phylo-interaction-oracle-b31nb-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "6d681294e6ca7ba44da953d287d19c9838093be6689abce46fc0df07fdb558d9",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

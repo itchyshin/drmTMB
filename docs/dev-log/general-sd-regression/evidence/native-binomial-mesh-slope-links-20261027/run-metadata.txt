@@ -1,0 +1,7 @@
+branch: codex/general-sd-regression
+HEAD: 425bee81572c625a634b2b083050c5c57c1dc1f1
+command: OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-mesh-sd-regression", reporter = "summary", stop_on_failure = TRUE)'
+result: focused test file passed; 40 expectations, zero failures or warnings
+new cases: native Binomial probit and cloglog fixed-kappa mesh spatial-slope SD point recovery, formula-based site SD prediction, and marginal binary simulation
+scope: one mesh slope coefficient, complete responses, fixed kappa, ML; point recovery only; no interval coverage; no Julia parity
+source stability: six source files have identical before and after SHA-256 manifests

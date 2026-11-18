@@ -111,24 +111,15 @@ EXPECTED_UNLEDGERED_FOR_S5 <- c(
   "biv_gaussian | bivariate q2 phylo | mu1,mu2" = "Arc 1 plan S5: biv_gaussian q2 phylo on mu1/mu2; admitted, unledgered (the ledgered biv_q4_phylo_reml row is q4 REML only)",
   "biv_gaussian | bivariate q4 dense phylo | mu1,mu2,sigma1,sigma2" = "Arc 1 plan S5: biv_gaussian q4 dense phylo under ML; the ledgered biv_q4_phylo_reml row covers REML = TRUE only, not this ML route",
   "biv_gaussian | bivariate q4 block-diagonal phylo | mu1,mu2,sigma1,sigma2" = "Arc 1 plan S5 + finding 5/hypothesis (b): admitted identically to q4 dense (drm_julia_biv_phylo_dimension() ignores the covariance-block tag), and unledgered under ML for the same reason as the dense cell",
-  "poisson | (1|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on poisson escapes the fe-only fence via phylo_only/structured",
   "poisson | animal | mu" = "Arc 1 plan S5: poisson animal() random intercept on mu; admitted (general-covariance route), unledgered",
-  "nbinom2 | (1|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on nbinom2 mu",
   "nbinom2 | (1|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on nbinom2 sigma",
-  "nbinom2 | (1+x|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on nbinom2 mu",
   "nbinom2 | (1+x|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on nbinom2 sigma",
   "nbinom2 | animal | mu" = "Arc 1 plan S5: nbinom2 animal() random intercept on mu; admitted (general-covariance route), unledgered",
-  "gamma | (1|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on gamma mu",
   "gamma | (1|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on gamma sigma",
-  "gamma | (1+x|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on gamma mu",
   "gamma | (1+x|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on gamma sigma",
   "gamma | animal | mu" = "Arc 1 plan S5: gamma animal() random intercept on mu; admitted (general-covariance route), unledgered",
-  "beta | (1|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on beta mu",
   "beta | (1|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on beta sigma",
-  "beta | (1+x|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on beta mu",
-  "beta | (1+x|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on beta sigma",
-  "binomial | (1|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1|g) on binomial mu",
-  "binomial | (1+x|g) | mu" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on binomial mu"
+  "beta | (1+x|g) | sigma" = "Arc 1 plan S5, hypothesis (a): ordinary (1+x|g) on beta sigma"
 )
 
 test_that("every unledgered ADMIT cell is named on the explicit S5 list (leaf-S2 G2)", {
@@ -215,13 +206,13 @@ test_that("every REFUSE_UNGATED cell is named on the explicit list, with a reaso
   expect_setequal(census_cell_keys(ungated), names(EXPECTED_UNGATED_REFUSALS))
 })
 
-test_that("hypothesis (a): ordinary (1|g) on poisson/nbinom2/binomial/gamma/beta is admitted with no ledger row", {
+test_that("hypothesis (a): ordinary mean (1|g) on poisson/nbinom2/binomial/gamma/beta is now refused by the ordinary_mean_re_unlabelled gate (#1551)", {
   census <- census_admission_census()
   for (fam in c("poisson", "nbinom2", "binomial", "gamma", "beta")) {
     row <- census[census$family == fam & census$structure == "(1|g)" & census$dpar == "mu", , drop = FALSE]
     expect_equal(nrow(row), 1L, info = fam)
-    expect_identical(row$decision, "ADMIT", info = fam)
-    expect_identical(row$ledger_row, "", info = fam)
+    expect_identical(row$decision, "REFUSE", info = fam)
+    expect_identical(row$gate_id, "ordinary_mean_re_unlabelled", info = fam)
   }
 })
 

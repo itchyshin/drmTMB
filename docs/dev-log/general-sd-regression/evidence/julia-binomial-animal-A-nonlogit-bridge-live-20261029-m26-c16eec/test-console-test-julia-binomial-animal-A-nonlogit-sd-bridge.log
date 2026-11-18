@@ -1,0 +1,9 @@
+julia-binomial-animal-A-nonlogit-sd-bridge: S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. probit and cloglog animal-intercept SD regression accepts A ('test-julia-binomial-animal-A-nonlogit-sd-bridge.R:2:3') - Reason: Julia bridge tests are opt-in
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=0 failed=0 errors=0 skipped=1
+DRM_RUN start=2026-11-02T13:14:32Z end=2026-11-02T13:14:43Z rc=0

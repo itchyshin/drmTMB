@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "fa7bbe242544d4377fe0e0cbff3a9d4732ec6766e2b0dca5436aacee0f87c528",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review against the source diff, focused test results, documentation render, and recorded limitations; no independent style model call.",
+  "genre": "Technical after-task report",
+  "coverage": "Whole 135-line report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report is concrete about the model, test counts, scope limits, and next actions. Its required structure is visible without extra summaries.",
+  "confidence": "medium",
+  "confidence_reason": "Implementation and test claims can be cross-checked against source and command output; the style score is a subjective editorial judgment.",
+  "examples": [
+    {
+      "location": "Team Learning, paragraph 1, line 113",
+      "cue": "The report records the specific change to the DGP grouping structure and its observed effect.",
+      "impact": "Readers can see why the test design changed and that the conclusion is limited to this seed.",
+      "repair": "no change needed",
+      "line": 113,
+      "quote": "The initial same-tip simulation gave unstable separation of ordinary and"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The equations and reported interpretation match the independent latent effects and the test does not claim interval calibration or general identifiability.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test counts, runtime, renderer behavior, diagnostics, and open limitations were compared with the command outputs and working tree.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report cites no external literature; it reports local code, test, and issue-search evidence.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were assessed; prior drmTMB after-task reports have been seen.",
+  "interpretation": "perceived_style_not_authorship"
+}

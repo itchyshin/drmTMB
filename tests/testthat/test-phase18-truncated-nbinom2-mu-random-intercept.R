@@ -185,13 +185,18 @@ test_that("Phase 18 truncated NB2 mu random-intercept lane rejects neighbouring 
     ),
     "random intercepts"
   )
-  expect_error(
+  # A mu random intercept with a hurdle `hu` formula is no longer refused: the
+  # general SD-regression branch deliberately admits it
+  # (validate_truncated_nbinom2_mu_random_terms(allow_hurdle_intercept = has_hu));
+  # evidence is test-hurdle-nbinom2-sd-regression.R. Here we only pin that the
+  # formula assembles (it is fitted, so convergence is not asserted).
+  expect_no_error(
     drmTMB(
       bf(count ~ x + (1 | id), sigma ~ z, hu ~ 1),
       family = truncated_nbinom2(),
-      data = transform(dat, count = c(0L, 2L, 1L, 3L, 2L, 4L))
-    ),
-    "Hurdle"
+      data = transform(dat, count = c(0L, 2L, 1L, 3L, 2L, 4L)),
+      control = drm_control(se = FALSE)
+    )
   )
   expect_error(
     drmTMB(

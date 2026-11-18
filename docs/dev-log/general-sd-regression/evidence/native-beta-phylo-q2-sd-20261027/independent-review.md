@@ -1,0 +1,5 @@
+# Bounded independent review
+
+Parent coordinator and read-only next_gap_scout reviewed the exact R patch, symbolic contract and test. No P0/P1 identified. Gamma coefficient-provider admission is logically equivalent; existing q1 Beta phylo remains admitted. Phylo tree structures have no structure field and the explicit type special-case is correct. Base q2 complete-data/no-other-random-layer gates apply independently of SD formulas. The independent balanced64-tip normalized covariance, augmented inverse tip-block comparison and dense Beta score/Hessian/Laplace oracle agree. Tree tip relabel plus edge-index remapping preserves the named covariance. The unused-tip test establishes assembly/extraction only; internal-node integration is checked by the all-observed-tip dense likelihood oracle. No separate reduced-tip likelihood fit is claimed.
+
+The exact Julia Beta phylo slope route is statically refused by the early marker-slope bridge guard before setup. Beta is absent from the structured phylo exceptions. No live Julia process or parity test ran. Reviewers ran no fits; counts and source hashes require separate verification.

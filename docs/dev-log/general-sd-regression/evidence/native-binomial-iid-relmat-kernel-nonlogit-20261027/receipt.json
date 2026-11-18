@@ -1,0 +1,15 @@
+{
+  "evidence_id": "native-binomial-iid-relmat-kernel-nonlogit-20261027",
+  "test_command": "Rscript -e 'devtools::test(filter=\"binomial-iid-relmat-kernel-equivalence-nonlogit-sd\", reporter=\"summary\")'",
+  "exit_code": 0,
+  "result": "21 expectations passed; probit and cloglog; K/Q equivalent fits; iid and relmat SD slope direction and broad fixed-seed recovery bounds; named predictions agree.",
+  "limitations": [
+    "Native R/TMB only.",
+    "Two link-matched synthetic conditions; not a recovery grid.",
+    "No interval-coverage validation.",
+    "No Julia parity.",
+    "No independent likelihood oracle."
+  ],
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "26e2eff152e6a4ae346aa6b12024f6a2bc708f91743f9598444064587fcd5a18"
+}

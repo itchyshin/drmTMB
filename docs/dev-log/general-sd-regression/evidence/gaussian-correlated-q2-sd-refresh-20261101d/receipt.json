@@ -1,0 +1,52 @@
+{
+  "evidence_id": "gaussian-native-correlated-q2-sd-20261101-20261101d",
+  "refresh_of_evidence_ids": [
+    "gaussian-native-correlated-q2-sd-20261101"
+  ],
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-correlated-q2-sd.R\", reporter = \"summary\")'",
+  "command_note": "The R expression actually run additionally captured the test_file result as a data frame, printed a final DRM_RECEIPT_COUNTS line and set a nonzero exit status on any failure, error or skip; the test_file(...) call is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "2026-11-02T04:35:48Z",
+  "run_ended_utc": "2026-11-02T04:35:59Z",
+  "exit_code": 0,
+  "test_blocks": 3,
+  "expectations_passed": 17,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261101d/test-console.log",
+  "console_log_sha256": "0eeb1192dbb4d514fa4c7156e77082f84fdbfccd0dc02c347b8e9de7d968952c",
+  "test_path": "tests/testthat/test-gaussian-correlated-q2-sd.R",
+  "test_sha256": "fa7120ec5874748504a053f307e8cfdc7aaf48b1b74c3e9428bd4a5b187493af",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-correlated-q2-sd-refresh-20261101d/source-manifest.json",
+  "source_manifest_sha256": "4312b4d45cb92a6eccd5066d3587719a9429b534cbe1c2f82956224da58ec659",
+  "evidence_grade": "recovery",
+  "evidence_grade_basis": "inherited from replaced ledger rows (gaussian-native-correlated-q2-sd-20261101)",
+  "scope": "Same row_keys as the replaced ledger lines for gaussian-native-correlated-q2-sd-20261101; see candidate_rows. Fresh run of the current test source.",
+  "tolerances_note": "Tolerances are those in the test source at the recorded sha256; none were loosened. Numeric tolerance tokens found by regex in the test file (informational): 1e-6, 1e-8",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"iid_correlated_block\",\"O2-within\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]"
+    }
+  ],
+  "not_covered": [
+    "rows the test only uses as comparators",
+    "interval calibration or coverage",
+    "provider inputs the test does not fit (not tested; not asserted to be fenced)",
+    "Julia parity (native engine only)"
+  ],
+  "live_julia": "not applicable; log states 0 live Julia tests ran",
+  "limits": [
+    "dirty shared tree",
+    "unreviewed",
+    "a receipt does not promote any row; direct_sd_claim stays none"
+  ],
+  "supersedes_note": "Refresh: the test file changed after the earlier receipt, so the earlier digest no longer matches the live test. Old evidence directories are untouched."
+}

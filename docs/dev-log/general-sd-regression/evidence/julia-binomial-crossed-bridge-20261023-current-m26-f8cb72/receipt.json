@@ -1,0 +1,27 @@
+{
+  "evidence_id": "julia-binomial-crossed-bridge-20261023-current-m26",
+  "rerecord_of_evidence_id": "julia-binomial-crossed-bridge-20261023-current",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-bridge-20261023-current/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"PATH=\"\"$HOME/.juliaup/bin:$PATH\"\" DRM_JL_PATH=\"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\"\" DRMTMB_JULIA_TESTS=true JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 /usr/local/bin/Rscript -e 'devtools::test(filter = \"\"julia-binomial-crossed-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'; exit=0; one live Julia bridge test; no failed assertions or skips; one non-fatal LogExpFunctionsInverseFunctionsExt precompile warning.\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-crossed-sd.R",
+      "test_sha256": "c1e14ef006dc7f8ada4fdbd2de43228b2280623ba32204194a0d6ed98cb0eb07",
+      "started_utc": "2026-11-02T13:18:28Z",
+      "ended_utc": "2026-11-02T13:19:26Z",
+      "exit_code": 0,
+      "expectations_passed": 30,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-bridge-20261023-current-m26-f8cb72/test-console-test-julia-binomial-crossed-sd.log",
+      "console_log_sha256": "8c9c7571c63c73871dbcbfaa0ceffd3ed0c58346040ec10290b0ebfea27e78b5"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-bridge-20261023-current-m26-f8cb72/source-manifest.json",
+  "source_manifest_sha256": "12c1512bb0ebaf24492abcbf5bde4618d2cc7cae881c6e8476228bf90a7f91b5",
+  "review_status": "unreviewed",
+  "claim": "One crossed Bernoulli fixture with two independent random-intercept SD targets passes current-source R/TMB-to-Julia output and marginal-simulation checks, with paired Julia implementation tests."
+}

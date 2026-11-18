@@ -1,0 +1,15 @@
+--- /tmp/gamma-phylo-neighbor-before.R	2026-10-28 00:01:17
++++ tests/testthat/test-positive-continuous-structured-mu.R	2026-10-28 00:01:17
+@@ -533,7 +533,11 @@
+     }
+     family <- arc3a_family(case$family)
+ 
+-    for (lhs in c("0 + x", "1 + x", "1 + x + site")) {
++    rejected_lhs <- c("0 + x", "1 + x", "1 + x + site")
++    if (identical(case$family, "gamma") && identical(case$provider, "phylo")) {
++      rejected_lhs <- setdiff(rejected_lhs, "1 + x")
++    }
++    for (lhs in rejected_lhs) {
+       expect_error(
+         drmTMB(
+           arc3a_formula_from_text(sprintf("y ~ x + %s", sprintf(marker, lhs))),

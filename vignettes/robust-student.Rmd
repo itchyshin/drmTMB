@@ -35,7 +35,7 @@ model can still be useful, but a Student-t model asks a slightly different
 question: are the location and scale patterns stable when the likelihood allows
 heavier tails?
 
-This article introduces the first implemented robust continuous family in
+This article introduces an implemented robust continuous family in
 `drmTMB`: fixed-effect Student-t location-scale-shape regression. It builds on
 the location-scale reading pattern from [When variance carries
 signal](location-scale.html) and adds a third parameter.

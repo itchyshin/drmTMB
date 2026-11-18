@@ -1,0 +1,5 @@
+# Check log: current-source animal SD parity
+
+The focused Poisson animal-intercept test passed with one live Julia bridge test. Its evidence receipt and manifest bind both engines to candidate HEADs and link the exact required native and Julia rows as `focused_test`, still unreviewed. The full Gamma SD test file passed with five live Julia tests; its source-bound receipt refreshes six existing iid-intercept, iid-slope, and phylogenetic-intercept evidence rows. The Gamma animal-slope test now compares log likelihoods at tolerance `1e-3`; it remains a slope-only test and does not qualify the separate intercept-plus-slope row.
+
+The evidence reconciler passed: 19,118 candidate rows, 30 receipts, 25 distinct rows with receipts, and 19,093 rows without receipts. The 11 evidence-reconciler unit tests passed. JuliaCall emitted a non-fatal extension warning during both live runs. No interval-coverage or broad parity claim is made. See `docs/dev-log/after-task/2026-10-23-cross-engine-animal-sd-parity.md` and the two evidence folders named there.

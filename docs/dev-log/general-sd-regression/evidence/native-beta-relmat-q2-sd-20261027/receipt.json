@@ -1,0 +1,79 @@
+{
+  "slice": "native Beta related-matrix independent intercept and numeric-slope SD K/Q",
+  "date": "2026-10-27",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "baeb7c837a230f8275fd7121e375aecc99fdd5571ce99e2eada969179c367576",
+  "implementation": "Beta relmat base extraction plus two-field selected SD gates; R-only; no C++ or DLL rebuild",
+  "test": {
+    "passed": 259,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "seconds": 213.97,
+    "estimate_seconds": 240,
+    "initial_red_errors": 3,
+    "initial_focus_passed": 56,
+    "initial_focus_errors": 1,
+    "initial_focus_seconds": 57.006,
+    "initial_error": "new test matcher expected later sigma refusal; corrected to earlier existing validator, no model change"
+  },
+  "example": {
+    "convergence": 0,
+    "seconds": 12.841,
+    "sd_slopes": [
+      0.5332939,
+      -0.3947029
+    ],
+    "truth": [
+      0.5,
+      -0.5
+    ],
+    "qualification": "One fixed-seed point-fit smoke only; no general recovery guarantee"
+  },
+  "numerical_acceptance": {
+    "laplace_nll_absolute_error": "<1e-4 passed",
+    "eta_max_absolute_error": "<1e-4 passed",
+    "provider_loglik_coefficient_errors": "<1e-4 passed",
+    "constant_base_loglik_error": "<1e-4 passed",
+    "unused_node": "assembly/extraction only; no reduced-observation marginal likelihood test"
+  },
+  "candidate_row_keys": [
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "mu only; unlabelled independent intercept+one numeric slope; supplied non-unit K/full Q; no whole-domain admission",
+  "shared_ledger_modified": false,
+  "interval_coverage": "deferred",
+  "julia_parity": "source-audited refusal only; no runtime Julia",
+  "aggregate_acceptance_gate": "UNKNOWN: existing runner unavailable",
+  "limitations": [
+    "q1/slope-only/multiple slopes/labelled relmat refused",
+    "extra random layers and missing-data routes refused",
+    "no new-data prediction or uncertainty workflow validation",
+    "no fresh q2 marginal simulation",
+    "no weighted recovery validation",
+    "unused-node check is extraction only",
+    "no full package/release checks or public map promotion"
+  ],
+  "review": "Parent coordinator plus read-only scout found no P0/P1 in bounded source/math; neither ran fits",
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/R-implementation.patch": "74654b6d17a07f5f19c2de3230c16e09f8e0bbebc0e2e258ed836659c08955f8",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/candidate-rows.tsv": "1bf324666aa18b6933d155d96780122db0b46ded3c6a28521df34daaff289c1f",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/coordination.md": "7ce8dcd73dc635918412c276e5f5dbeda1f3f84b6caa6513c24d59c9f3f0e6bc",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/environment.log": "17b8d4d17bcca43846e4de81a0b7c880fc074aaabf0b544f6d46229d54465776",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/example.log": "9784864f85b21f5016d820de080b6aeb1c112fa95d5d1210646a4b6e08b3344d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/focused.log": "42a610b6e5d0414e7b411ec0bd457a5415ab61ec5bc4683d9f1baad023c7dc7d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/independent-review.md": "1c00ee6705c3b7bfa879158dcdb76bb0cd103ce71ad59d8debd54442941933b9",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/pre-fit-alignment.md": "1888b92ca8c992e46fec1b58ceffe0f0a8ebf16182b7608e756c9acf22b690b1",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/red-runner.R": "087d39a6558e90b832782ad96ebd420a072869303d7bc171acf731fd47f3dde8",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/red.log": "184c4583e3fd1d839444f0c1200fc5958b908ae7d7c27950a63eaa8b3007c96d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/regression.log": "b87bf3f6a4654be6e2a279a1d18c92ccba981f725d5bbfbfc5a66e82664c9c2d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/report-prose-assessment.json": "c89792ef34ac620375d32604243b5427d59bfdf29caa6e0aa972f7eeacba5a08",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/source-capsule.tar.gz": "a265996c0c99fe62151ed1ff86811b96c1fbcd923cdf917bf11939c2d83ede27",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/source-manifest.json": "baeb7c837a230f8275fd7121e375aecc99fdd5571ce99e2eada969179c367576",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/test-runner.R": "1b75889b18bab5e9db55744d2b3f0f43295470e82e15b0a2d6e564a7224db172"
+  }
+}

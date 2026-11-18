@@ -1,0 +1,6 @@
+lognormal-ordinary-correlated-q2: ........................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=40 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-03T01:10:10Z end=2026-11-03T01:10:30Z rc=0

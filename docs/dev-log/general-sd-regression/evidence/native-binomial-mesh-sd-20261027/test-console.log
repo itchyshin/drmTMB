@@ -1,0 +1,34 @@
+ℹ Testing drmTMB
+✔ | F W  S  OK | Context
+
+⠏ |          0 | binomial-mesh-sd-regression                                    
+⠋ |          1 | binomial-mesh-sd-regression                                    
+⠇ |          9 | binomial-mesh-sd-regression                                    
+⠋ |         11 | binomial-mesh-sd-regression                                    
+⠙ |         12 | binomial-mesh-sd-regression                                    
+✔ |         12 | binomial-mesh-sd-regression [4.1s]
+
+⠏ |          0 | binomial-phylo-sd-simulation                                   
+⠙ |          2 | binomial-phylo-sd-simulation                                   
+⠹ |          3 | binomial-phylo-sd-simulation                                   
+⠼ |          5 | binomial-phylo-sd-simulation                                   
+✔ |         11 | binomial-phylo-sd-simulation [3.4s]
+
+⠏ |          0 | mesh-contract                                                  
+⠼ |          5 | mesh-contract                                                  
+⠴ |          6 | mesh-contract                                                  
+⠦ |          7 | mesh-contract                                                  
+⠴ |         16 | mesh-contract                                                  
+⠼ |         25 | mesh-contract                                                  
+⠋ |         31 | mesh-contract                                                  
+⠹ |         43 | mesh-contract                                                  
+⠼ |         45 | mesh-contract                                                  
+✔ |         48 | mesh-contract [1.6s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 9.1 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 71 ]
+
+🥳
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

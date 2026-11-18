@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-gamma-structured-slope-sd.R",
+      "sha256": "99c9e72a95c26c2b412b321e2c76ff8a442459c05c13aed535ea7b26252e750c"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/bf.R",
+      "sha256": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gamma-structured-slope-sd-20261101d/test-console.log",
+      "sha256": "2654f18ec51a1a47356a2b2ba0e7248ba72b881f86d7bd5ef60328a9c7990dbe"
+    }
+  ],
+  "note": "dirty shared candidate tree; hashes identify test-time files",
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'src/drmTMB.cpp']"
+}

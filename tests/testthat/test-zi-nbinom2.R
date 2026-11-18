@@ -322,22 +322,20 @@ test_that("zero-inflated nbinom2 rejects unsupported or invalid inputs", {
     ),
     "one-sided"
   )
-  expect_error(
-    drmTMB(
-      drm_formula(y ~ x + (1 | id), sigma ~ 1, zi ~ 1),
-      family = nbinom2(),
-      data = dat
-    ),
-    "Zero-inflated .* random effects"
+  zi_intercept_spec <- drm_build_nbinom2_spec(
+    drm_formula(y ~ x + (1 | id), sigma ~ 1, zi ~ 1), dat
   )
-  expect_error(
-    drmTMB(
-      drm_formula(y ~ x + (0 + x | id), sigma ~ 1, zi ~ 1),
-      family = nbinom2(),
-      data = dat
-    ),
-    "Zero-inflated .* random effects"
+  expect_identical(zi_intercept_spec$model_type, "zi_nbinom2")
+  expect_true("u_mu" %in% zi_intercept_spec$random_names)
+  dat$w <- c(-1, -1, 1, 1)
+  zi_slope_spec <- drm_build_nbinom2_spec(
+    drm_formula(y ~ x + (0 + x | id), sigma ~ 1, zi ~ 1,
+                sd(id, coef = "x") ~ w),
+    dat
   )
+  expect_identical(zi_slope_spec$model_type, "zi_nbinom2")
+  expect_equal(zi_slope_spec$random$mu$n_re, nlevels(dat$id))
+  expect_equal(zi_slope_spec$random_scale$mu$n_models, 1L)
   expect_error(
     drmTMB(
       drm_formula(y ~ x, sigma ~ 1, zi ~ x + (1 | id)),
@@ -384,7 +382,7 @@ test_that("zero-inflated nbinom2 rejects unsupported or invalid inputs", {
       family = nbinom2(),
       data = dat
     ),
-    "Random-effect scale"
+    "No random-effect term matches"
   )
   expect_error(
     drmTMB(

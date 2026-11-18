@@ -1,0 +1,39 @@
+# Independent review of the expanded SD-regression universe
+
+## Follow-up correction (2026-10-29)
+
+The earlier review below predates a newly identified omission: the finite
+mechanism table represented animal intercepts, independent animal slopes, and
+labelled cross-endpoint animal blocks, but omitted a correlated intercept plus
+slope within one animal endpoint. The denominator now represents that shape
+separately as `animal_correlated_block` / `A2-animal-within`. The generated
+ledger has 20,350 rows, 28 mechanism templates, and 150 engine/mechanism rule
+rows. The additional 672 rows are obligations, not blanket support claims;
+the single-endpoint `structural_inapplicable` status still applies only to
+cross-endpoint blocks. The Oct 17 independent review does not review this
+follow-up correction, so G0 and independent review of the revised universe
+remain open.
+
+A second correction (2026-11-01) added `phylo_correlated_block`,
+`relmat_correlated_block` and `spatial_correlated_block` (21,246 rows, 31
+templates, 156 rule rows). It is likewise not covered by the Oct 17 review.
+
+**Decision (2026-10-17): the correction repairs the identified denominator omissions, but G0 remains open.** I inspected the 18,996-row `required-rows.tsv`, the 148-row `block-rules.tsv`, `universe.py` and its tests, and the correction/root/older contracts. This was a source and mathematical-contract review, not a model fit or a claim of implementation or calibration. The generator is a finite *required-candidate* ledger: its status labels do not establish source admission, estimability, or identifiable SD coefficients.
+
+## Preservation and the 72 exclusions
+
+The 4,950 non-block rows remain, and the new 6,750 candidate rows enumerate every size-two-or-larger subset of each family's declared endpoints for the five existing cross-endpoint covariance mechanism families. Each candidate has a target member and provider input, with `unresolved` status except provider inputs already known to lack base plumbing. This keeps `nu`, `zi`, `hu`, `zoi`, `coi`, and `rho12` combinations visible without treating them as fitted or identifiable. The 1,440 native rows mirroring Julia's finite tagged-q4 partitions are present and marked blocked. Mesh higher-q rows are now `blocked_base_plumbing`, not mathematical exclusions. The tests specifically remove a native mirror or an entire candidate subset, mutate a mesh status, and remove source provenance; each altered ledger is rejected. These are meaningful denominator controls, although the validator rebuilds from the same input tables and therefore cannot independently prove that the 54 endpoint rows, 25 mechanisms, or 148 rule rows exhaust source reality.
+
+I independently counted the 72 `structural_inapplicable` rows. All have `endpoint_members=none`, mechanism in the five cross-endpoint block families, and family `binomial` (36 rows across its four engine/link combinations), `cumulative_logit` (18), or `poisson` (18). Each of these routes declares only `mu` in `family-endpoints.tsv`; a block requiring two *different distributional endpoints* cannot be formed. The classification is mathematically correct **for that exact cross-endpoint mechanism and the frozen endpoint set**. It does not exclude a q2 correlated intercept-slope block within `mu`, an additive pair of independent q1 fields, or a future family variant with an additional endpoint. Keep the reason as “no second declared endpoint,” not a general identifiability claim.
+
+Native source-shaped rules are represented in the Julia ledger with provenance and no admission inference; the finite Julia tagged-q4 partitions are mirrored into native. For example, Julia rows for native `O-cross-LS-I` and native rows for Julia tagged q4 remain as obligations, even though their respective base dispatch is absent. Scalar q1 and provider-pair combinations also remain in the ledger when code is absent; several are labelled `required` rather than `blocked_base_plumbing` because the engine/family/endpoint/provider base-route audit has not yet been done. The expansion therefore fixes **row preservation**, not the per-cell base-status classification. Before G0 closes, audit the 4,399 initially `required` rows against both pinned dispatchers and reclassify absent base routes as `blocked_base_plumbing` while retaining the rows. A `required` label must not be read as proof of a fitted base model.
+
+The candidate rule `q=number of endpoint members` is a canonical **intercept-only** covariance obligation, not a proof that every parameter can share a latent factor. In particular, `rho12` is a residual correlation parameter; a random effect on its transformed linear predictor can be written mathematically, but its interpretation and identifiability require separate review. Likewise, zero-inflation and shape endpoints have distinct links and likelihood contributions. No blanket mathematical exclusion follows from the current absence of a builder. The finite symbolic q rules for numeric-slope series remain tied to their source shapes; the new subset candidates do not authorize arbitrary slopes, provider pairs, more than two responses, or correlation-regression formulas.
+
+## Older-contract corrections needed
+
+1. `universe-contract.md` says near its opening that the crossproduct “is not generated yet,” and its final section is titled “Remaining mechanical work before executable rows.” Replace these with the current 18,996-row generated ledger, then state the still-open source/base-route and mathematical-compatibility reviews. Its status vocabulary (`structural_reviewed`, `missing`, `inapplicable_endpoint`, `inapplicable_math`) is a design taxonomy, whereas the generated ledger currently uses `required`, `unresolved`, `blocked_base_plumbing`, and `structural_inapplicable`; distinguish the two or align them before a machine gate consumes statuses.
+2. `block-dimension-contract.md:112–118` says cross-endpoint member tuples are “only the rules above,” and `:125–128` says the symbolic q domains do not license arbitrary endpoint subsets. Narrow both statements to **source-admitted shapes**. Add that the approved denominator now retains finite canonical intercept-only subsets of actual family endpoints as unresolved candidates, including special endpoints, without claiming a source fit. Its final `:133–135` still calls for a rule table and 306 placeholders; replace that historical task with the remaining base-route, provider compatibility, and identifiability review. Keep its useful source-specific q limits and the distinction between `rho12` and a latent covariance axis.
+3. `universe-review.md:7–21` describes the historical 5,438-row scaffold and 306 unresolved placeholders, and its later addendum identifies missing native tagged partitions and special-dpar compositions. Mark those findings explicitly as superseded by `universe-correction-receipt.md`, while retaining the review as provenance. Otherwise a reader could mistake the prior omissions for current ones. The correction receipt itself correctly says G0 remains open.
+
+**Recommended next gate.** Create a pinned source-status audit keyed by `engine × family × endpoint × mechanism × provider_input × layout` for both dispatchers, using negative source-refusal evidence as well as positive fits. Separately adjudicate whether each unresolved intercept-only endpoint subset has a coherent transformed-predictor covariance and a credible identification design; preserve a row when undecided. Add an independent fixture for the three single-endpoint structural families and representative special-endpoint/mirrored-block obligations, so a shared mistake in `universe.py` and its tests cannot silently redefine the denominator. No direct-SD row is promoted by this review.

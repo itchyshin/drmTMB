@@ -1,0 +1,38 @@
+{
+  "evidence_id": "julia-binomial-cloglog-correlated-q2-mu-I-recovery-20261026-relink27",
+  "relink_of_evidence_id": "julia-binomial-cloglog-correlated-q2-mu-I-recovery-20261026",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026/receipt-cloglog-mu-I.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026/test-snapshot/test/test_binomial_nonlogit_correlated_sd_regression.jl",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Totoro",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 taskset -c 243 julia +1.10.12 --startup-file=no --project=. test/test_binomial_nonlogit_correlated_sd_regression.jl (Totoro, cwd = copy of DRModels.jl at 87a371a667e8823e8f5aca75ed1344145982c532, src/test/ext/Project/Manifest hashes identical to the Mac worktree)",
+  "live_test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026-relink27-783e44/test-snapshot/test/test_binomial_nonlogit_correlated_sd_regression.jl",
+  "live_test_origin": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_binomial_nonlogit_correlated_sd_regression.jl",
+  "row_key_support": "live test differs from the frozen snapshot: live test keeps the q2 probit/cloglog correlated-block fits (mu:I and mu:x1 SD recovery) unchanged and adds an independent Gauss-Hermite likelihood oracle (order 96/128, loglik within 0.5) plus a separate q3 logit testset",
+  "runs": [
+    {
+      "test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026-relink27-783e44/test-snapshot/test/test_binomial_nonlogit_correlated_sd_regression.jl",
+      "test_sha256": "1890f1285a1a503ffd631cea8a6fae917b8912c15fb4416f290d3f11cbcb4871",
+      "started_utc": "2026-11-02T13:59:46Z",
+      "ended_utc": "2026-11-02T14:04:31Z",
+      "exit_code": 0,
+      "expectations_passed": 48,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026-relink27-783e44/test-console.log",
+      "console_log_sha256": "c791b0910c0d5256b62dac9f6115389baabedddaa449a032368d404576bc676c"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026-relink27-783e44/source-manifest.json",
+  "source_manifest_sha256": "911a3ab26364286aa94c36c14380e913bc47d8a24656b2173a2f0cee1b3baf54",
+  "review_status": "unreviewed",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ],
+  "test_snapshot_note": "DRModels.jl test copied into the evidence dir as test-snapshot because reconcile_evidence.py requires test_path inside this repository root; it is a byte copy of the live DRModels.jl test at 87a371a667e8823e8f5aca75ed1344145982c532 (identical to the file executed on Totoro: src/test/ext hashes compared)."
+}

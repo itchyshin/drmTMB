@@ -1,0 +1,17 @@
+{
+  "scope": "Native Binomial q1 animal A covariance plus coordinate-spatial pair with separate SD regressions under probit and cloglog.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "7d1f4ca356413a07214673a7ba8b6aa79af673c5d4c078d528bf60b08e95c39a"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-spatial-nonlogit-pair-sd.R",
+      "sha256": "c85102d158b192293d259c3ff264bab1e14274d8122ff4e366400e9ed47216b7"
+    }
+  ]
+}

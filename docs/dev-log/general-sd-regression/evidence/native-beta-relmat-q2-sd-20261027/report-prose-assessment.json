@@ -1,0 +1,43 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "2d882daf4cb71cc74e806fdad05f461eee287b62898ace12c87be3621235689b",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "bounded native Beta worker",
+  "method": "Separate self review after final report and source/result comparison; parent code review separate",
+  "genre": "technical after-task report",
+  "coverage": "whole exact saved draft",
+  "score": 3,
+  "style_status": "known",
+  "score_reason": "Required technical headings; concrete model, attempts and limits avoid generic summary",
+  "confidence": "medium",
+  "confidence_reason": "Self judgment without human calibration",
+  "examples": [
+    {
+      "location": "3a",
+      "cue": "specific scoped evidence",
+      "impact": "Explains the implementation prerequisite",
+      "repair": "no change needed",
+      "line": 15,
+      "quote": "A ledger base-admission entry did not establish a working Beta relmat builder."
+    },
+    {
+      "location": "10",
+      "cue": "specific scoped evidence",
+      "impact": "Keeps extraction evidence distinct from likelihood validation",
+      "repair": "no change needed",
+      "line": 53,
+      "quote": "Reduced-observation K/Q marginal-likelihood equivalence was not newly fitted."
+    }
+  ],
+  "science_gate": "pass",
+  "science_gate_reason": "Bounded independent numerical checks and single-seed smoke only; no calibration claims",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared final runner, example log, R patch and source review against report",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references",
+  "date": "2026-10-27",
+  "calibration_status": "Prior Beta/Gamma reports seen; no held-out writing controls",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,7 @@
+Pre-change RED run: `/Library/Frameworks/R.framework/Resources/bin/Rscript -e 'pkgload::load_all(quiet=TRUE); testthat::test_file("tests/testthat/test-beta-structured-intercept-q1-sd-regression.R")'`
+
+Result: FAIL 1, PASS 0, WARN 0, SKIP 0. The test parsed and reached the intended
+production refusal: `Beta relmat mu effects currently require an unlabelled
+intercept-plus-one-slope term.` No production code had been changed at the time
+of this run. An earlier attempt was a test-source parse error in the labelled
+spatial formula; that test typo was corrected before this recorded RED run.

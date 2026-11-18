@@ -1,0 +1,101 @@
+{
+  "slice": "native Gamma phylogenetic independent intercept and numeric-slope SD tree",
+  "date": "2026-10-28",
+  "started": "2026-10-27",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "493882bc9ead6e42e95755b7b794c942b3dcf5628586bb6d4c9738a30ecf6038",
+  "implementation": "Gamma-only validator opt-in and Gamma target/data admissions, base complete-response guard; no C++/DLL rebuild",
+  "test": {
+    "focused_passed": 48,
+    "focused_seconds": 12.386,
+    "regression_passed": 171,
+    "regression_seconds": 57.241,
+    "regression_estimate_seconds": 150,
+    "positive_neighbor_passed": 198,
+    "positive_neighbor_seconds": 18.016,
+    "positive_neighbor_estimate_seconds": 180,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0
+  },
+  "example": {
+    "convergence": 0,
+    "seconds": 2.643,
+    "sd_slopes": [
+      0.3280183,
+      -0.5660805
+    ],
+    "truth": [
+      0.5,
+      -0.5
+    ],
+    "qualification": "one fixed seed point smoke, no general recovery or interval claim"
+  },
+  "numerical_acceptance": {
+    "laplace_nll_absolute_error": "<1e-4 passed",
+    "eta_max_absolute_error": "<1e-4 passed",
+    "constant_base_and_reordered_tree_errors": "<1e-4 passed",
+    "augmented_precision_tip_covariance_error": "<1e-10 passed",
+    "latent_gradient": "<1e-5 passed",
+    "unused_tip": "assembly/extraction only"
+  },
+  "attempts": {
+    "red_errors": 2,
+    "red_seconds": 4.9,
+    "first_nested_patch_errors": 2,
+    "first_nested_patch_seconds": 2.662,
+    "intermediate_malformed_pass48_seconds": 12.507,
+    "intermediate_status": "not final evidence; independent review found shared-validator regression",
+    "repair": "restored full validator from owned before bytes and inserted complete sibling phylo branch; final provider-neighbor tests rerun"
+  },
+  "candidate_row_keys": [
+    "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "native Gamma mu, one independent intercept and numeric slope, tree only; no whole-domain admission",
+  "review": "parent + read-only Gamma scout; P1 malformed nesting found and repaired; no remaining P0/P1 in corrected patch/math; reviewers ran no fits",
+  "compiled_artifacts_unchanged_from": "native-beta-phylo-q2-sd-20261027/source-manifest.json",
+  "shared_ledger_modified": false,
+  "coverage": "deferred",
+  "julia_parity": "not run or established; bridge statically refused before setup",
+  "aggregate_acceptance_gate": "UNKNOWN: existing runner unavailable",
+  "limitations": [
+    "single-seed point checks",
+    "unused-tip likelihood unassessed",
+    "no weighted/missing/new-data fits",
+    "no profile/bootstrap workflow or calibrated intervals",
+    "no labelled/correlated/multiple slopes or extra layers",
+    "fresh q2 marginal simulation unavailable",
+    "dirty development candidate; no commit/push/merge/release"
+  ],
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/R-implementation.patch": "92fcb8f972f9020d2af551b2d4e651c3da527b52e4bea3b044e9f70b6ec0a7ce",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/assessment-check.log": "7d3792bcf913f01e23979a1e570386822a81d605d02fdeab213d023a110a759f",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/candidate-rows.tsv": "0a26f1e858cc6879b1ac2cc708810b066a79cdc2d7e1bf9b0840c86101bd8c85",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/environment.log": "c7f951e49e787ae7489c9e9937f2d247d8c427db952d997f2a2040b32f3ad05a",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/example-final.log": "4df8904b181c4846217ccd83a55eda98ab50e46fc0e2f30060764862bd537f08",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/example.log": "e829c30a108f58b35fd6f59962e37c3e2575e1516f441f89e55c24fe3a8887b4",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/file-preflight.log": "3aa2970aba265f495a3ded991fc4722b0effd0dc8b130912e192d3def4661a7b",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/focused-corrected.log": "b7c37bcce416118773e4e7095737a41bcd1fc79e584199508b73a78d4789d848",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/focused-final.log": "1649654463190ab813e2ed9f1786261abab55406e61a88b35946035dbcd9d90a",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/focused.log": "59f087c91d3d84861a778a37295cf93a9d011a23bfefaee4eff85c851950a04b",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/independent-review.md": "66864c490c42909ed421b6806ea9be7c033e93d602465c723a4bc68eb958bab3",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/lease-extension.log": "2e716d2e78055e8b8a966a16124c97434b3efcc3d4f897a0422091e46ba0abe1",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/lease.log": "b778f207a8e3f9e2d65be6b2ce79375d28e96b4620cb9664b37981345fbcc714",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/neighbor-implementation.patch": "878c7278926e3a256c80d582348126b61c4a214549cf575ce6d07a12af2c5ff7",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/neighbor-preflight.log": "112239d1ffeb3735c2174eaca58d81c0cf8fc4ff217ed362d401a0c692210a1d",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/neighbor-runner.R": "c5746ebfdcff83487cbe732e94f456dc7aae92c2e2a900785e99fadefa12b9d2",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/positive-neighbor.log": "8a14228dcc6e028fc15d6da45af8ec714d4b89b7b391882056815e06ed89ad91",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/pre-fit-alignment.md": "0d28c8572d153e4e5657104e5d2ec53a08e53e5aa509483654972541211b0926",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/prose-check.log": "b998afa2436f85c9746c5dd1cac9b4b8aa16c46d1e807c48890f344fe7c21430",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/red.log": "8efd67ab06a99b3b205b5c05b09179a22be918973eb00c0ca143379cbdb3af6d",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/regression.log": "83dfd9d42e48eb8f129aae169f2c68730416b1f6d6f089fdee154c0301da354a",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/report-check.log": "5a2841c38ef6a0560766820c2f14d5c526e11811767e70c0dbed121a8ab6034c",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/report-prose-assessment.json": "4b201843ecddb9b8f9e0ffdc88a77621dcefe1bcd7701f9ea8a9e43ef3421038",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/source-capsule.tar.gz": "eed2a9f036af4d544ecb384b309073d5e5169b81e759e6e2e32f33f9ffc77a58",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/source-manifest.json": "493882bc9ead6e42e95755b7b794c942b3dcf5628586bb6d4c9738a30ecf6038",
+    "docs/dev-log/general-sd-regression/evidence/native-gamma-phylo-q2-sd-20261027/test-runner.R": "a03b23e94898eef73274d0d3fc457a9686085d6412b120a48ecdfa3635bbadf9"
+  }
+}

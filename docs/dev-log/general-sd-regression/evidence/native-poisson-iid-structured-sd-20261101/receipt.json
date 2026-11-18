@@ -1,0 +1,65 @@
+{
+  "evidence_id": "native-poisson-iid-structured-sd-20261101",
+  "engine": "native R/TMB",
+  "family": "poisson (log)",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:K_covariance\",\"additive independent latent fields\",\"iid:group_factor+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "description": "simultaneous_iid_structured / iid:group_factor+relmat:K_covariance [iid:group_factor+relmat:K_covariance; additive independent latent fields; status required] (1 | site) + relmat(1 | id, K = K), sd(id, level='relmat') ~ z_id, sd(site) ~ z_site"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:Q_precision\",\"additive independent latent fields\",\"iid:group_factor+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "description": "simultaneous_iid_structured / iid:group_factor+relmat:Q_precision [iid:group_factor+relmat:Q_precision; additive independent latent fields; status required] (1 | site) + relmat(1 | id, Q = Q)"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "description": "simultaneous_iid_structured / iid:group_factor+animal:A_covariance [iid:group_factor+animal:A_covariance; additive independent latent fields; status required] (1 | site) + animal(1 | id, A = A)"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "description": "simultaneous_iid_structured / iid:group_factor+animal:Ainv_precision [iid:group_factor+animal:Ainv_precision; additive independent latent fields; status required] (1 | site) + animal(1 | id, Ainv = Ainv)"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "description": "simultaneous_iid_structured / iid:group_factor+phylo:tree [iid:group_factor+phylo:tree; additive independent latent fields; status required] (1 | site) + phylo(1 | id, tree = tree), sd(id, level='phylogenetic') ~ z_id"
+    }
+  ],
+  "rows_not_linked": [
+    "simultaneous_iid_structured / iid+animal:pedigree (not tested; no pedigree fit)",
+    "animal_intercept, relmat_intercept, phylo_intercept single-field rows (the structured field is fitted here only together with an ordinary field; unsure, not linked)",
+    "simultaneous_structured_structured rows (not tested)"
+  ],
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e devtools::test(filter = '^poisson-iid-structured-sd-regression$', reporter = 'summary', stop_on_failure = FALSE) [wrapper run_one.sh in the evidence directory adds counts and exit status]",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "dirty_shared_tree_entries": 1289,
+  "test_path": "tests/testthat/test-poisson-iid-structured-sd-regression.R",
+  "test_sha256": "bea50df7d03d66a4201245e88c5224bdbe8c38cbbe921b71abb52e218828eb91",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-iid-structured-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "51669074b409f3b18c968dcb80484eaaf65263980f4145026813116a94857246",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-iid-structured-sd-20261101/test-console.log",
+  "console_log_sha256": "93624d3836c3ab0d51ddc32f712469333a9fa05325e331252decde49e87e450c",
+  "result": {
+    "exit_code": 0,
+    "expectations": 170,
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "test_blocks": 4
+  },
+  "tolerances_copied_from_test": "convergence==0; |z_id slope - 0.5| < 0.5; |z_site slope - 0.5| < 0.6; predict()==exp(X alpha) tol 1e-8; |logLik - dense joint-field Laplace oracle| < 1e-4 absolute; K vs Q and A vs Ainv logLik tol 1e-4 (relative); constant-SD vs base logLik tol 2e-5 (relative), mu coef 1e-4; term-order logLik abs < 1e-5; nested models may not beat full by >1e-3; saved-fit predict tol 1e-12",
+  "oracle": "dense independent Laplace marginal likelihood over the joint (structured, site) latent field at the fitted coefficients",
+  "evidence_grade": "focused_test",
+  "review_status": "unreviewed",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

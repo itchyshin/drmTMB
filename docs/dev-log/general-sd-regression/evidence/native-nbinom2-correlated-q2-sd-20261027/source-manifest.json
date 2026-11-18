@@ -1,0 +1,37 @@
+{
+  "scope": "Native complete-data ordinary NB2 q2 unlabelled correlated intercept-slope block, with a separate group-level SD regression for each coefficient.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "10434d6140eb68f1fe7bb9ec92c230af6af5873d9fa948004f9476a29c265d50"
+    },
+    {
+      "file": "tests/testthat/test-nbinom2-correlated-q2-sd.R",
+      "sha256": "7e3ecddea8d751083b84ae7a6491adcef79efed789d1fc0298987924eefdebd1"
+    },
+    {
+      "file": "NEWS.md",
+      "sha256": "f65639c214f92cfad90d79ba2e87dee374921a17b08ebddd4893967acab62d7c"
+    },
+    {
+      "file": "docs/design/01-formula-grammar.md",
+      "sha256": "4a53630c3c72004d0c6d96c1bb8bf249e88d716bfc5a896124501d549d3c7416"
+    },
+    {
+      "file": "docs/design/59-structural-slope-and-non-gaussian-map.md",
+      "sha256": "be946ebda4e9476b63829f99412cefdafb212472c8b2ac4e4adc75d2a7ae1445"
+    },
+    {
+      "file": "vignettes/predictor-dependent-random-sd.Rmd",
+      "sha256": "3db897466ec644de24f9f4f9f68d939222642ffdc016f13719fdcd5bb9d8dc85"
+    },
+    {
+      "file": "docs/dev-log/internal-roadmap.md",
+      "sha256": "165c471fda3a473cfa79a209f19ea34ea0a7665f79efdfd9b01fb7e9d89d7c73"
+    },
+    {
+      "file": "vignettes/formula-grammar.Rmd",
+      "sha256": "e160f34885c6d9161476c24eb4f7045482dad14c8d17168cf0c7b4767104781c"
+    }
+  ]
+}

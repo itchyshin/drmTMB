@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "0cc8b74c23a02285f1c44db4a88c6440401ad815000cffb6dcea9a82b4d2ec42",
+  "draft_version": "validation-final-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Whole-draft self-review against source-pinned receipts; an independent integration reviewer verified the result and corrected stale report wording.",
+  "genre": "Technical validation report, check log or recovery record",
+  "coverage": "Whole /Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/docs/dev-log/check-log.d/2026-11-05-fixed-effect-priors.md",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Concrete measurements and limitations; audit structure and source identifiers add necessary density.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent fact review; no held-out prose calibration or human authorship assessment.",
+  "examples": [
+    {
+      "location": "Line 3",
+      "line": 3,
+      "quote": "Status: first fixed-effect prior slice complete. R broad residuals reproduce on baseline; the Julia default-suite follow-up passed all eight shards. No push, merge, release or submission.",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 5",
+      "line": 5,
+      "quote": "R isolated branch: `codex/fixed-effect-priors-20261105`, base `9fea3036791e9bd836e080d9297cd04b1b29c2f8`. Aggregate SHA-256 of R/native source and the two prior test files: `6495656050f6f5a958c0151bad8730c124dbff55aea6fa39e5d133f01596da5c` (76 files, manifest in `docs/dev-log/priors-lane-20261105/evidence/`). Julia base: `24ac6ca925a5c0f870b345b18804c9e592d0d275`; final aggregate source SHA-256 `a30e347285f925af2e128ed6350fafe4d6b9035668444606bfa2fcea13e26653`. Aggregate hashes are not Git commit IDs.",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 7",
+      "line": 7,
+      "quote": "The first slice admits ordinary, complete, unit-weight, fixed-effect Gaussian mu/sigma and binomial-logit mu models. Normal priors include density constants; ridge adds exactly 0.5 lambda beta squared. Selection uses dpar and final design-matrix column, with explicit intercept policy for whole-block selectors. Zero ridge retains ML and ordinary likelihood controls. Active fits expose local penalized-Hessian curvature; interval and likelihood-comparison methods refuse. SD priors and sampling remain outside this slice.",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "No new estimator or calibration claim; default-suite checks are distinguished from parity, intervals and release readiness.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "All eight exits,554ordered file completions,raw/transcript hashes and source/runtime checks pass; old90minute run remains historical and incomplete.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No literature claim; primary operational run evidence was verified separately.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

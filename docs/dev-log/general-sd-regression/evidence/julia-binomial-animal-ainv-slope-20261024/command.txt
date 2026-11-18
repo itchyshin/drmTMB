@@ -1,0 +1,1 @@
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 /Users/z3437171/.juliaup/bin/julia --project=. -e 'include("test/test_binomial_animal_ainv_slope_sd_regression.jl")'

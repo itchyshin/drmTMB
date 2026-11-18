@@ -1,0 +1,74 @@
+{
+  "evidence_id": "gaussian-native-mu-sigma-joint-sd-20261101",
+  "date": "2026-11-01",
+  "status": "unreviewed",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "endpoint": "mu",
+      "mechanism_id": "iid_intercept",
+      "target_member": "mu:I",
+      "member_coefs": "I",
+      "link_variant": "identity",
+      "provider_input": "group_factor",
+      "layout": "one scalar independent field",
+      "q_value": "1",
+      "block_rule_id": "O1",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "endpoint": "sigma",
+      "mechanism_id": "iid_intercept",
+      "target_member": "sigma:I",
+      "member_coefs": "I",
+      "link_variant": "identity",
+      "provider_input": "group_factor",
+      "layout": "one scalar independent field",
+      "q_value": "1",
+      "block_rule_id": "O1",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:x1..xp\",\"x1..xp\",\"identity\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "endpoint": "sigma",
+      "mechanism_id": "iid_numeric_slope",
+      "target_member": "sigma:x1..xp",
+      "member_coefs": "x1..xp",
+      "link_variant": "identity",
+      "provider_input": "group_factor",
+      "layout": "separate q1 field, optionally alongside intercept and other terms",
+      "q_value": "1",
+      "block_rule_id": "O1",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101/run-test.R gaussian-mu-sigma-joint-sd  # run-test.R: devtools::test(filter=\"gaussian-mu-sigma-joint-sd\", reporter=\"summary\", stop_on_failure=FALSE), exit 1 on any failure/error/skip; actually invoked from a byte-identical scratch copy",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "git_branch": "codex/general-sd-regression",
+  "test_path": "tests/testthat/test-gaussian-mu-sigma-joint-sd.R",
+  "test_sha256": "f6199220e10d8be7f4f9284a90c51ac9906b08b494fb9817d465f8e3f04f843a",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "3ba307d17720e2867b3a305e713d8825ab2164b77e697988c8177829b1cd1a10",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sd-20261101/test-console.log",
+  "console_log_sha256": "dc14b69a90bc97e5f345c155fa80e6cbe1e7d6c984b9afcb8da8b08161f9b0eb",
+  "result": {
+    "exit_status": 0,
+    "expectations_passed": 29,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "tolerances_copied_from_test": "dense Laplace oracle |logLik diff|<1e-4 with max grad<1e-8; constant-SD vs base logLik 1e-5, coef 1e-3; recovery max|alpha diff| <0.5 (mu), <0.6 (sigma)",
+  "scope": "native Gaussian engine, linked rows only as listed in candidate_rows; rows the test merely uses as comparator (ordinary or base fits) are not linked",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

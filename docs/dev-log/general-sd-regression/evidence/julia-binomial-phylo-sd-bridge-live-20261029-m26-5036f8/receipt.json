@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-phylo-probit-sd-bridge-live-20261029-m26",
+  "rerecord_of_evidence_id": "julia-binomial-phylo-probit-sd-bridge-live-20261029",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-sd-bridge-live-20261029/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"JULIA_HOME='/Users/z3437171/.juliaup/bin' DRMTMB_JULIA_TESTS=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 R_PROFILE_USER=/dev/null /usr/local/bin/Rscript -e 'devtools::test(filter = \"\"julia-binomial-phylo-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-phylo-sd.R",
+      "test_sha256": "69177fed96998939c56c825b3a567074cc11104b2e51cb5699f87c0162462b6c",
+      "started_utc": "2026-11-02T13:19:30Z",
+      "ended_utc": "2026-11-02T13:21:42Z",
+      "exit_code": 0,
+      "expectations_passed": 84,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-sd-bridge-live-20261029-m26-5036f8/test-console-test-julia-binomial-phylo-sd.log",
+      "console_log_sha256": "c965b68aeaa404ae2defe7118b376abdd71611eb8fa4be696737e803bf0d60b1"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-sd-bridge-live-20261029-m26-5036f8/source-manifest.json",
+  "source_manifest_sha256": "6e6dc1d3d98398cddc92611f8e3fa1338d299668a3e513b8ecdadacf5489b77c",
+  "review_status": "unreviewed"
+}

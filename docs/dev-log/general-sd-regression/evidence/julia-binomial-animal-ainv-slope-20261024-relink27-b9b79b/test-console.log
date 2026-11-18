@@ -1,0 +1,3 @@
+Test Summary:                                            | Pass  Total   Time
+Binomial animal random-slope SD accepts direct precision |   10     10  56.2s
+DRM_RUN start=2026-11-02T14:00:29Z end=2026-11-02T14:01:27Z rc=0 core=240

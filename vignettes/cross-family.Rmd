@@ -78,6 +78,7 @@ shared_tendency <- rnorm(n)
 
 paired_data <- data.frame(
   habitat_score = habitat_score,
+  season = factor(rep(c("spring", "summer", "autumn"), length.out = n)),
   bred = rbinom(
     n,
     size = 1,
@@ -338,3 +339,10 @@ Use [Changing residual coupling with rho12](bivariate-coscale.html) for the
 released Gaussian joint model. Use [Bivariate non-Gaussian models](bivariate-nongaussian.html)
 to choose between an exact same-family joint model and this staged association
 route.
+
+Working in Julia? The DRModels.jl
+[cross-family page](https://itchyshin.github.io/DRModels.jl/stable/cross-family)
+describes that package's own route for mixed-family pairs. It is a joint
+shared-latent model, not the staged association route described here, so read
+its status note before comparing results across the two packages. Julia is
+optional for `drmTMB` users.

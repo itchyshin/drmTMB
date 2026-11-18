@@ -1,0 +1,48 @@
+julia-binomial-correlated-q3-sd-bridge: ...................i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates = Int64[]
+│   rcond = 9.292704476612821e-17
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:101
+.1.......2....┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     12
+│   rcond = 6.270106395952565e-11
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:101
+..............
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-binomial-correlated-q3-sd-bridge.R:179:5'): Julia bri
+Expected `is_converged(fit_julia)` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+logit
+
+── 2. Failure ('test-julia-binomial-correlated-q3-sd-bridge.R:184:7'): Julia bri
+Expected `coef(fit_julia, targets[[i]])` to equal `coef(fit_tmb, targets[[i]])`.
+Differences:
+  `actual`: -22.5 22.7
+`expected`: -10.4 10.5
+
+logit
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+Execution halted
+Julia exit.

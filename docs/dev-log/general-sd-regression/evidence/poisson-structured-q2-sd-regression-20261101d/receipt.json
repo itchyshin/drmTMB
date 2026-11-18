@@ -1,0 +1,53 @@
+{
+  "evidence_id": "native-poisson-structured-q2-sd-regression-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "Poisson native animal(1 + x | id, A = A) q2 independent unit-scale fields, one SD formula per coefficient, dense Laplace oracle at 1e-4 with emulated-bug sensitivity",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-poisson-structured-q2-sd-regression.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-poisson-structured-q2-sd-regression.R",
+  "test_sha256": "21e72042eb318b9bf5a13ee8d2ab06451412aa4b6565b435c5e4ca860c1bbe71",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-20261101d/source-manifest.json",
+  "source_manifest_sha256": "f43fc6274f47cf7deb2e07550c96aee8b206ba0047bc1cb387c2ca9ee3cd913b",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-20261101d/test-console.log",
+  "console_log_sha256": "53190ebf50d25c8b372a88ba2f4ffbb7d08b781172679079ab509126508d841e",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "animal_intercept",
+      "provider_input": "A_covariance",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "animal_numeric_slope",
+      "provider_input": "A_covariance",
+      "target_member": "mu:x1..xp"
+    }
+  ],
+  "not_covered": [
+    "Ainv_precision and pedigree animal inputs",
+    "labelled/correlated poisson animal q2 (refused in the test)",
+    "sigma endpoint",
+    "recovery, calibration, Julia parity",
+    "likelihood-evaluation check only"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ]
+}

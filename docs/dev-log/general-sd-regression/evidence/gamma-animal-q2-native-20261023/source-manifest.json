@@ -1,0 +1,10 @@
+{
+  "source_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "sha256": {
+    "R/drmTMB.R": "2114394bb74528a003e5f699c515bfda12be1822401b4d066db6d19ef2f628cd",
+    "src/drmTMB.cpp": "bf4b30d9cb2774133b51b3f183d2b454933cbb9a47ae6450d187f8b08169fc19",
+    "test-gamma-animal-pedigree-sd-regression.R": "39667eca4dfe8b2745d5c89b7e3073f8cf60269f8debf33a4a76308980e15cca"
+  },
+  "copied_test_source": "tests/testthat/test-gamma-animal-pedigree-sd-regression.R"
+}

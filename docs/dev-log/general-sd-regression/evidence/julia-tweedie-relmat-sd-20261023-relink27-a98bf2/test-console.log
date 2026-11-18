@@ -1,0 +1,7 @@
+Test Summary:                                         | Pass  Total  Time
+Tweedie relmat mode polish handles objective roundoff |    7      7  6.1s
+Test Summary:                                        | Pass  Total     Time
+Tweedie relmat predictor-dependent mean-intercept SD |   43     43  7m23.8s
+Test Summary:                                         | Pass  Total  Time
+Tweedie rejects unused structured covariance keywords |    4      4  0.8s
+DRM_RUN start=2026-11-02T14:04:31Z end=2026-11-02T14:12:04Z rc=0 core=243

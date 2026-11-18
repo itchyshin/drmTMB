@@ -11,7 +11,9 @@
 #   spatial(1 | g, coords) -> native fixed-range K -> drm(...; K = K)
 #
 # Supported families are DRM.jl's general-covariance set: Gaussian, Poisson, NB2,
-# Gamma. (Beta / Binomial fit only `phylo()` in DRM.jl and are rejected here.)
+# Gamma. Binomial has a separate exact exception for one relmat intercept with
+# its matching direct SD regression; it is tested in
+# `test-julia-binomial-relmat-sd-parity.R`. Beta remains phylo-only here.
 # Precision / inverse marker forms (relmat `Q`, animal `Ainv`), pedigrees, meshes,
 # and non-Gaussian `spatial()` have no bridge route and are rejected with a
 # pointer to `engine = "tmb"` or to `relmat(1 | g, K = K)`.
@@ -33,11 +35,11 @@ test_that("structured family set is Gaussian/Poisson/NB2/Gamma, gated as such", 
   for (fam in c("gaussian", "poisson", "nbinom2", "gamma")) {
     expect_equal(drmTMB:::drm_julia_structured_family_tag(fam), fam)
   }
-  # Beta / Binomial fit phylo() but have no relmat/animal/spatial drm() route.
+  # Without its exact direct-SD formula, Binomial and Beta remain refused.
   for (fam in c("beta", "binomial", "student")) {
     expect_error(
       drmTMB:::drm_julia_structured_family_tag(fam),
-      "relmat.*animal.*spatial"
+      "general-covariance"
     )
   }
 })
@@ -107,7 +109,8 @@ test_that("marker-kwarg strip removes the matrix arg for every structured marker
 test_that("matrix resolution routes relmat->K, animal->A, spatial->coords", {
   env <- environment()
   K <- diag(3)
-  A <- diag(3)
+  dimnames(K) <- list(c("a", "b", "c"), c("a", "b", "c"))
+  A <- K
   co <- cbind(c(0, 1, 2), c(0, 1, 2))
   dat <- data.frame(
     id = c("a", "b", "c"),
@@ -170,14 +173,18 @@ test_that("unsupported structured forms are rejected with a tmb pointer", {
     ),
     "relmat.*K"
   )
+  # `drm_julia_structured_matrix()` now marshals an animal `Ainv` (the gate moved
+  # to `drm_julia_structured_payload()` in b87566680 so that the Poisson and
+  # Binomial animal SD routes can consume it), so the Gaussian refusal is
+  # asserted at the payload, which still refuses it.
   expect_error(
-    drmTMB:::drm_julia_structured_matrix(
-      term(bf(y ~ x + animal(1 | id, Ainv = Ainv))),
+    drmTMB:::drm_julia_structured_payload(
+      bf(y ~ x + animal(1 | id, Ainv = Ainv)),
       "gaussian",
-      env,
-      dat
+      dat,
+      env
     ),
-    "animal.*A"
+    "animal.*Ainv.*Poisson or Binomial"
   )
   # spatial() is coordinate-based and Gaussian-only; a count spatial fit must use
   # relmat(1 | g, K = K) instead.
@@ -240,7 +247,7 @@ test_that("structured payload requires intercept-only mu and sigma ~ 1", {
       dat,
       env
     ),
-    "1 \\| group"
+    "explicitly admitted animal-, relmat-, or fixed-coordinate spatial-slope SD routes"
   )
 })
 
@@ -273,6 +280,42 @@ test_that("Gaussian spatial payload uses the native fixed-range K target", {
   expect_match(payload$formula$mu, "relmat(1 | site)", fixed = TRUE)
   expect_equal(payload$matrix, solve(as.matrix(native$precision)))
   expect_equal(names(payload$structured_sd_scales), "spatial(1 | site)")
+})
+
+# drmTMB#1512 sibling: per-site coords are matched to sites by row name on the
+# native engine, so a labelled coords matrix in another row order must give the
+# same K through the bridge.
+test_that("Gaussian spatial payload matches labelled coords by row name", {
+  env <- environment()
+  coords <- data.frame(
+    x = c(0, 1, 0),
+    y = c(0, 0, 3),
+    row.names = c("c", "a", "b")
+  )
+  dat <- data.frame(
+    site = c("a", "b", "c", "a"),
+    x = stats::rnorm(4),
+    y = stats::rnorm(4)
+  )
+  # The coords row order must really differ from first-appearance order.
+  expect_false(identical(rownames(coords), unique(dat$site)))
+
+  payload <- drmTMB:::drm_julia_structured_payload(
+    bf(y ~ x + spatial(1 | site, coords = coords), sigma ~ 1),
+    "gaussian",
+    dat,
+    env
+  )
+
+  native <- drmTMB:::drm_spatial_coords_precision(
+    coords,
+    site = dat$site,
+    group = "site"
+  )
+  expect_equal(
+    unname(payload$matrix),
+    unname(solve(as.matrix(native$precision)))
+  )
 })
 
 test_that("bivariate q2 known structured payload admits relmat and animal only", {
@@ -473,4 +516,221 @@ test_that("Poisson relmat fit via engine = 'julia' is finite and sane", {
   expect_true(is.finite(res$sd))
   expect_gt(res$sd, 0)
   expect_true(isTRUE(res$converged))
+})
+
+# drmTMB#1512 live check: a labelled K in sorted-id order and in a shuffled
+# order must give the native logLik through engine = "julia". Before the fix
+# the bridge dropped the names and paired rows by first appearance in `data`.
+test_that("Gaussian relmat logLik on engine = 'julia' ignores the row order of a labelled K", {
+  drm_skip_live_julia()
+  skip_if_not_installed("JuliaCall")
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  skip_if_not(
+    dir.exists(drm_structured_path()),
+    "DRM.jl general-covariance engine not available"
+  )
+
+  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
+  res <- callr::r(
+    function(pkg, jl_path) {
+      julia_home <- Sys.getenv(
+        "DRM_JL_JULIA_HOME",
+        Sys.getenv("JULIA_HOME", "")
+      )
+      if (nzchar(julia_home)) {
+        Sys.setenv(JULIA_HOME = julia_home)
+      }
+      options(drmTMB.DRModels.jl.path = jl_path)
+      suppressMessages(pkgload::load_all(pkg, quiet = TRUE))
+
+      # 40 individuals in two related clusters, three records each. Data rows
+      # are shuffled so first-appearance order differs from sorted-id order.
+      set.seed(1512)
+      n <- 40L
+      ids <- sprintf("id%02d", seq_len(n))
+      cluster <- rep(1:2, each = n / 2L)
+      K <- outer(cluster, cluster, function(a, b) ifelse(a == b, 0.5, 0))
+      diag(K) <- 1
+      dimnames(K) <- list(ids, ids)
+      u <- 0.9 * as.numeric(crossprod(chol(K), stats::rnorm(n)))
+      names(u) <- ids
+      dat <- data.frame(id = rep(ids, each = 3L), x = stats::rnorm(3L * n))
+      dat$y <- 0.3 + 0.5 * dat$x + u[dat$id] + stats::rnorm(3L * n, sd = 0.6)
+      dat <- dat[sample(nrow(dat)), ]
+
+      form <- drmTMB::bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1)
+      ll <- function(engine) {
+        as.numeric(stats::logLik(drmTMB::drmTMB(
+          form,
+          family = stats::gaussian(),
+          data = dat,
+          engine = engine
+        )))
+      }
+      K_sorted <- K
+      out <- c(tmb = ll("tmb"), julia_sorted = ll("julia"))
+      shuffled <- sample(ids)
+      K <- K_sorted[shuffled, shuffled]
+      out[["julia_shuffled"]] <- ll("julia")
+      first <- unique(dat$id)
+      K <- K_sorted[first, first]
+      out[["julia_first"]] <- ll("julia")
+      out
+    },
+    args = list(pkg = pkg, jl_path = drm_structured_path()),
+    error = "error"
+  )
+
+  expect_true(all(is.finite(res)))
+  expect_equal(res[["julia_sorted"]], res[["tmb"]], tolerance = 1e-6)
+  expect_equal(res[["julia_shuffled"]], res[["tmb"]], tolerance = 1e-6)
+  expect_equal(res[["julia_first"]], res[["tmb"]], tolerance = 1e-6)
+})
+
+# drmTMB#1512: DRModels.jl never sees dimnames, so the bridge must align a
+# labelled K / A to the first-appearance order of the grouping variable itself.
+test_that("labelled K / A is reordered to first-appearance group order", {
+  dat <- data.frame(
+    id = c("c", "a", "b", "a", "c"),
+    x = stats::rnorm(5),
+    y = stats::rnorm(5)
+  )
+  ids <- c("a", "b", "c")
+  K <- matrix(
+    c(1, 0.1, 0.2, 0.1, 1, 0.3, 0.2, 0.3, 1),
+    3L,
+    3L,
+    dimnames = list(ids, ids)
+  )
+  term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
+  env <- environment()
+  want <- K[c("c", "a", "b"), c("c", "a", "b")]
+  dimnames(want) <- NULL
+
+  res <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + relmat(1 | id, K = K))),
+    "gaussian",
+    env,
+    dat
+  )
+  expect_equal(res$matrix, want)
+
+  # Any row order of the same labelled matrix gives the same aligned matrix.
+  K <- K[c("b", "c", "a"), c("b", "c", "a")]
+  res_shuffled <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + relmat(1 | id, K = K))),
+    "gaussian",
+    env,
+    dat
+  )
+  expect_equal(res_shuffled$matrix, want)
+
+  # animal(A) takes the same route; a numeric id column matches by character.
+  datn <- dat
+  datn$id <- c(3, 1, 2, 1, 3)
+  A <- K
+  dimnames(A) <- list(c("2", "3", "1"), c("2", "3", "1"))
+  res_a <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + animal(1 | id, A = A))),
+    "gaussian",
+    env,
+    datn
+  )
+  expect_equal(unname(diag(res_a$matrix)), rep(1, 3))
+  expect_equal(res_a$matrix[1L, 2L], A["3", "1"])
+})
+
+test_that("unalignable labelled K / A is refused; unlabelled warns", {
+  dat <- data.frame(id = c("a", "b", "c"), x = 1:3, y = c(0.1, 0.2, 0.3))
+  term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
+  call_matrix <- function(K) {
+    drmTMB:::drm_julia_structured_matrix(
+      term(bf(y ~ x + relmat(1 | id, K = K))),
+      "gaussian",
+      environment(),
+      dat
+    )
+  }
+  lab <- function(ids) {
+    m <- diag(3)
+    dimnames(m) <- list(ids, ids)
+    m
+  }
+
+  expect_error(
+    call_matrix(lab(c("a", "b", "z"))),
+    class = "drmTMB_julia_structured_labels"
+  )
+  expect_error(
+    call_matrix(lab(c("a", "b", "b"))),
+    class = "drmTMB_julia_structured_labels"
+  )
+  K_half <- diag(3)
+  rownames(K_half) <- c("a", "b", "c")
+  expect_error(call_matrix(K_half), class = "drmTMB_julia_structured_labels")
+  expect_warning(
+    res <- call_matrix(diag(3)),
+    class = "drmTMB_julia_unlabelled_structured_matrix"
+  )
+  expect_equal(res$matrix, diag(3))
+})
+
+test_that("numeric and integer-valued double ids match K / A names as plain integers", {
+  term <- function(f) drmTMB:::drm_julia_collect_structured_terms(f)[[1L]]
+  env <- environment()
+  # R's as.character(1e5) is "1e+05"; DRModels.jl's string(1e5) is "100000.0".
+  # Both sides normalise integer-valued doubles to "100000".
+  expect_identical(drmTMB:::drm_julia_group_key(c(1, 100000, 2.5)), c("1", "100000", "2.5"))
+  expect_identical(drmTMB:::drm_julia_group_key(c(3L, 1L)), c("3", "1"))
+  expect_identical(drmTMB:::drm_julia_group_key(factor(c("b", "a"))), c("b", "a"))
+
+  ids <- c("100000", "2", "7")
+  K <- matrix(
+    c(1, 0.1, 0.2, 0.1, 1, 0.3, 0.2, 0.3, 1),
+    3L,
+    3L,
+    dimnames = list(ids, ids)
+  )
+  dat <- data.frame(
+    id = c(7, 100000, 2, 100000, 7), # doubles, first appearance 7, 1e5, 2
+    x = stats::rnorm(5),
+    y = stats::rnorm(5)
+  )
+  res <- drmTMB:::drm_julia_structured_matrix(
+    term(bf(y ~ x + relmat(1 | id, K = K))),
+    "gaussian",
+    env,
+    dat
+  )
+  want <- unname(K[c("7", "100000", "2"), c("7", "100000", "2")])
+  expect_equal(res$matrix, want)
+  expect_identical(res$labels, c("7", "100000", "2"))
+})
+
+test_that("the structured payload carries the row names and grouping column", {
+  ids <- c("c", "a", "b")
+  K <- diag(3)
+  dimnames(K) <- list(ids, ids)
+  dat <- data.frame(id = c("a", "b", "c"), x = 1:3, y = c(0.1, 0.2, 0.3))
+  payload <- drmTMB:::drm_julia_structured_payload(
+    formula = bf(y ~ x + relmat(1 | id, K = K), sigma ~ 1),
+    family_type = "gaussian",
+    data = dat,
+    env = environment()
+  )
+  # Labels are those of the aligned matrix (first-appearance order of `id`).
+  expect_identical(payload$matrix_labels, c("a", "b", "c"))
+  expect_identical(payload$structured_group, "id")
+
+  # An unlabelled matrix sends no labels (and warns, tested above).
+  K0 <- diag(3)
+  payload0 <- suppressWarnings(drmTMB:::drm_julia_structured_payload(
+    formula = bf(y ~ x + relmat(1 | id, K = K0), sigma ~ 1),
+    family_type = "gaussian",
+    data = dat,
+    env = environment()
+  ))
+  expect_null(payload0$matrix_labels)
+  expect_null(payload0$structured_group)
 })

@@ -59,11 +59,11 @@ CDF, and quantile function at the fitted parameters
   `exceedance()`, `centile_chart()` -- conditional quantiles, exceedance
   probabilities, and centile curves at the fitted model.
 
-The worked contrast below follows Fig. 4c of the GAMLSS Primer (Merder,
-Rigby, Stasinopoulos et al., *Nature Reviews Methods Primers*, 2026, 6:49):
-a location-only fit to heteroscedastic data looks fine on a coefficient
-table, but its quantile residuals bend a worm plot and fail a normality
-test; the matching location-scale fit is flat and passes.
+The GAMLSS Primer (Merder et al., *Nature Reviews Methods Primers*, 2026,
+6:49) provides background on distributional regression and model checking.
+The contrast below is a package-generated Gaussian example with
+heteroscedastic data: a location-only fit has constant `sigma`, while the
+matching location-scale fit lets `sigma` vary with `x`.
 
 ## Setup
 
@@ -107,7 +107,7 @@ worm_plot(fit_true) +
 qq_plot(fit_true)
 ```
 
-## Reproducing the Fig-4c contrast: a location-only fit to heteroscedastic data
+## A location-only fit to heteroscedastic data
 
 Now fit a location-only model to the same data -- `sigma` held constant, so
 the growing spread in `y` has nowhere to go but into the residuals.
@@ -118,10 +118,9 @@ r_mis <- residuals(fit_mis, type = "quantile")
 stats::ks.test(r_mis, "pnorm")
 ```
 
-The KS test now rejects sharply. The worm plot bends into the same
-systematic curve the GAMLSS Primer's Fig-4c shows: at extreme covariate
-values the observations are consistently too close to (or too far from)
-`mu`, because the constant `sigma` cannot track the true variance growth.
+The KS test now rejects sharply. The worm plot shows a systematic bend:
+at extreme covariate values, observations are consistently too close to or
+too far from `mu` because the constant `sigma` cannot track the growing variance.
 
 ```{r worm-mis, fig.cap="Worm plot of quantile residuals for the location-only fit to heteroscedastic data; the systematic bend flags a mis-specified distributional shape.", fig.alt="Worm plot showing a clear curved departure from the zero reference line for the location-only fit, in contrast to the flat scatter under the correctly specified fit."}
 worm_plot(fit_mis) +

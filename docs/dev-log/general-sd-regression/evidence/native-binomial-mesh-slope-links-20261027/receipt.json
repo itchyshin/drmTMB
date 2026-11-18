@@ -1,0 +1,12 @@
+{
+  "result": "passed",
+  "test_file": "tests/testthat/test-binomial-mesh-sd-regression.R",
+  "expectations": 40,
+  "failures": 0,
+  "warnings": 0,
+  "new_link_cases": ["probit", "cloglog"],
+  "recovery": "one-seed point recovery for the log-SD slope; tolerance 0.4 around truth 0.55",
+  "outputs": ["site SD predictions checked against model.matrix", "binary marginal simulation"],
+  "coverage_calibration": false,
+  "julia_bridge_live": false
+}

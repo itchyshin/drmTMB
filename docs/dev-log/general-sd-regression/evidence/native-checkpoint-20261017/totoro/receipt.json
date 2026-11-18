@@ -1,0 +1,17 @@
+{
+  "exit": 0,
+  "started_utc": "Sat Oct 17 20:52:42 UTC 2026",
+  "completed_utc": "Sat Oct 17 20:54:53 UTC 2026",
+  "source_archive_sha256": "ede274abff60b948a296a9d09f259249535a8172aaec738f700eeafb5096190e",
+  "attempted": 6,
+  "completed": 6,
+  "valid_intervals": 6,
+  "seconds_min": 9.299,
+  "seconds_max": 13.654,
+  "calibration_claim": false,
+  "retained_remote": "/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01",
+  "threads": {
+    "build": 2,
+    "blas": 1
+  }
+}

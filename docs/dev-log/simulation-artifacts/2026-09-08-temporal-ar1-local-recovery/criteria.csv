@@ -1,0 +1,6 @@
+"criterion","observed","threshold","pass"
+"twelve selected finite fits",12,"12",TRUE
+"twenty-four retained signed-start attempts",24,"24",TRUE
+"mean absolute fixed-effect error <= 0.20",0.0914999666239469,"<= 0.20",TRUE
+"median absolute SD error <= 0.35",0.0786131380636527,"<= 0.35",TRUE
+"median absolute persistence error <= 0.30",0.0778563087438816,"<= 0.30",TRUE

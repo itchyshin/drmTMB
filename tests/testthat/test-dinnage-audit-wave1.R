@@ -66,7 +66,7 @@ test_that("remaining A1 help pages document Dinnage audit caveats", {
 
   predict_help <- rd_text("predict.drmTMB.Rd")
   expect_match(predict_help, "not always \\code{E[Y]}", fixed = TRUE)
-  expect_match(predict_help, "fitted-row response means", fixed = TRUE)
+  expect_match(predict_help, "Use \\code{type = \"mean\"} for \\code{E[Y]}", fixed = TRUE)
 
   summary_help <- rd_text("summary.drmTMB.Rd")
   expect_match(summary_help, "\\pkg{emmeans}", fixed = TRUE)
@@ -268,4 +268,24 @@ test_that("Md-M: skew_normal's far tail matches pnorm(log.p = TRUE) (Dinnage aud
     log(2) - log(omega) + stats::dnorm(z, log = TRUE) +
     stats::pnorm(alpha * z, log.p = TRUE)
   expect_equal(as.numeric(nll_pkg), -log_density_ref, tolerance = 1e-6)
+})
+
+test_that("unused fixed-effect factor levels are dropped with a message naming the column (#1584)", {
+  set.seed(1)
+  d <- data.frame(y = rnorm(30), g = factor(rep(c("a", "b", "c"), 10)))
+  d <- subset(d, g != "c")
+  expect_message(
+    fit <- drmTMB(bf(y ~ g, sigma ~ 1), data = d, family = gaussian()),
+    class = "drmTMB_dropped_factor_levels"
+  )
+  msg <- tryCatch(
+    drmTMB(bf(y ~ g, sigma ~ 1), data = d, family = gaussian()),
+    drmTMB_dropped_factor_levels = function(m) conditionMessage(m)
+  )
+  expect_match(msg, "g", fixed = TRUE)
+  expect_match(msg, "c", fixed = TRUE)
+  # No message when nothing is unused.
+  expect_no_message(
+    drmTMB(bf(y ~ g, sigma ~ 1), data = droplevels(d), family = gaussian())
+  )
 })

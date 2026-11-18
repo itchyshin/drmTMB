@@ -1,0 +1,57 @@
+{
+  "archive_sha256": "e7563077b0ac9706f81a17dc3c50d7de191aebb662e9493f538f2b0e58f51063",
+  "files": [
+    {
+      "path": "docs/dev-log/general-sd-regression/native-calibration-design.md",
+      "sha256": "ddaa9c8ae3b5ca8468b65a6ad0383c0350e9330cd6f10c12aaab89a127470e3d"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/stage-two-manifest.csv",
+      "sha256": "8fd627ccb8a7f8689c56e629a5ff12e53405be1a508167216632bcf445652e96"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/staged-calibration-contract.md",
+      "sha256": "6598b19e63dbe18358fae5b703f13f40685162ee9f7300da525f7bad19a4af58"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/generator.R",
+      "sha256": "10c165e6b4283ed1ee052ec7206ff0c4eed3a2cbd60a99d78cdcbb71044b50c2"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/integrity.py",
+      "sha256": "5069605e05acbff5e268bc1e5b30f7447ac872d1098eaff2e481888a3b2c3af8"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/prepare.R",
+      "sha256": "8fd7d957905f7dad69cbfacabb4e542fb1ef79e43b8f65747712679407e5f247"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/run.py",
+      "sha256": "2a38b70954ccf38ca763b489fced1f3f53b0c60c123e129b37d0fdba84d0e3f4"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/self-test.py",
+      "sha256": "ebaa7e4b59ef954d3da8c33e6f6fa5975e4c13f74f481eeb57493a6dd1a3d603"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/stage-two-seeds.R",
+      "sha256": "23a9de0f103d0d3234b4993666f3a57383cb7db7bcc5e344819c59551e99d614"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/staged-decision.R",
+      "sha256": "dbbdfb472ec0a8af2ed0de2c3aa90892f814a5178c6613d3244d6cba48c2fa3b"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/summarize.R",
+      "sha256": "000d445e527e7cc0fac9c975b818c53e03e8de09453133c76f7c27ff9b4e6206"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/test-staged-decision.R",
+      "sha256": "df62412bd0a9d27f5cc032c7ff9354d2059c8fdfc544ff0aea03a147b9f965d2"
+    },
+    {
+      "path": "tools/general-sd-regression/native-calibration/worker.R",
+      "sha256": "166d35a2b06a3e72206942857f3ef06beec8d855cd0a00a65cd8445e646d9480"
+    }
+  ]
+}

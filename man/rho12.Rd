@@ -34,6 +34,11 @@ not imply independent margins. Use \code{type = "link"} for the Fisher-z-like
 linear predictor whose response transform is
 \code{0.999999 * tanh(eta)}.
 }
+\details{
+For Julia-backed fits, \code{rho12()} returns the stored residual
+correlation vector and errors if the fit has no residual \code{rho12} block.
+This method does not accept \code{newdata}.
+}
 \examples{
 set.seed(20260525)
 n <- 36

@@ -103,8 +103,9 @@ and operating-characteristic evidence justify a broader claim.
   `profile_targets()` expose the random-effect SDs through direct
   `log_sd_mu` profile targets.
 - Debt: larger grids, correlated non-Gaussian `mu` slopes, labelled
-  covariance blocks, zero-inflated Poisson random effects beyond the exact
-  q1 spatial-`zi` intercept, and
+  covariance blocks, zero-inflated Poisson random effects beyond one complete-
+  data ordinary `mu` intercept with fixed `zi` and the exact q1 spatial-`zi`
+  intercept, and
   cross-parameter covariance need later slice evidence before Phase 18 treats
   them as routine.
 
@@ -138,6 +139,23 @@ and operating-characteristic evidence justify a broader claim.
   structured count slopes need separate implementation and evidence before the
   map can claim broad non-Gaussian structural parity.
 
+### Poisson relatedness-matrix predictor-dependent SD
+
+- Matrix status: first direct-SD regression slice for a non-Gaussian
+  structured location effect.
+- Register status: complete-data, non-inflated Poisson admits one q=1
+  `relmat(1 | id, K = K)` location intercept with
+  `sd(id, level = "relmat") ~ z`. The covariance is `D K D`; `z` must be
+  constant within `id`. Ordinary `sd()` formulas and zero inflation are not
+  admitted in this combination.
+- Evidence: `tests/testthat/test-poisson-relmat-sd-regression.R` checks seeded
+  SD-slope recovery, group-SD prediction, extraction scaling, marginal
+  simulation, save/reload prediction, and equivalence to the existing
+  constant-SD fit.
+- Status boundary: this is one native fit/recovery cell. It does not establish
+  interval calibration, Julia parity, alternate providers, or broader Poisson
+  structured-SD support.
+
 ### NB2 ordinary random effects
 
 - Matrix status: first non-Gaussian overdispersed-count paths implemented for
@@ -150,7 +168,10 @@ and operating-characteristic evidence justify a broader claim.
   same fit. Exact q1 structured `sigma` intercept-plus-one-slope routes for
   `phylo()`, `spatial()`, `animal()`, and `relmat()` are fitted at recovery
   grade. Correlated ordinary slope blocks, labelled covariance blocks, joint
-  `mu`/`sigma` random effects, zero-inflated NB2 random effects, ordinary NB2
+  `mu`/`sigma` random effects, zero-inflated NB2 correlated or structured
+  effects beyond the exact spatial diagnostic and direct-SD slices, and other
+  random targets beyond the complete-response ordinary `mu` intercept and
+  independent-slope SD slices, ordinary NB2
   `sigma` slopes, richer structured sigma blocks, and structured-sigma
   intervals/coverage remain planned.
 - Evidence: `tests/testthat/test-nbinom2-location-scale.R`,
@@ -165,7 +186,8 @@ and operating-characteristic evidence justify a broader claim.
   through a direct `log_sd_sigma` target and replication diagnostics. The Phase
   18 smoke surface records fixed-effect Wald rows for `mu` and `sigma`
   coefficients and direct profile rows for the `mu` random-effect SDs.
-- Debt: zero-inflated NB2 random effects, ordinary NB2 `sigma` slopes, joint
+- Debt: zero-inflated NB2 correlated or structured effects and other random
+  targets; ordinary NB2 `sigma` slopes, joint
   `mu`/`sigma` random effects, correlated or labelled NB2 slope blocks,
   richer or labelled structured NB2 scale effects, structured-`sigma`
   intervals/coverage, and cross-parameter non-Gaussian covariance
@@ -210,14 +232,19 @@ and operating-characteristic evidence justify a broader claim.
   closed.
 - Register status: ordinary NB2, lognormal, and Gamma each admit an independent
   grouped log-`sigma` random intercept; lognormal/Gamma cannot combine that
-  gate with their `mu` random effects. NB2 additionally has exact
+  gate with their `mu` random effects. Beta-binomial now admits one complete-data
+  ordinary `sigma` random intercept in native TMB; a matching direct-SD formula
+  permits a group-level predictor, with fixed-effect `mu` and group-constant
+  SD predictors. Julia parity remains open. NB2 additionally has exact
   recovery-grade q1 structured `sigma` intercept-plus-one-slope routes for
   `phylo()`, `spatial()`, `animal()`, and `relmat()`. Beta has one exact q1
   `sigma ~ animal()` intercept at point/recovery grade. Other scale
   random-effect terms error before optimization.
 - Evidence: `tests/testthat/test-nongaussian-scale-boundary.R` plus the
   neighbouring family malformed-input tests.
-- Diagnostics and intervals: the ordinary NB2/lognormal/Gamma gates expose
+- Diagnostics and intervals: the beta-binomial sigma-SD route has focused
+  point-recovery and bootstrap-refit routing checks, but no calibration claim.
+  The ordinary NB2/lognormal/Gamma gates expose
   fitted extractor and direct log-SD target surfaces; only the exact lognormal
   ledger domain is `inference_ready_with_caveats`. The structured NB2 and beta
   gates remain point/recovery-only, without interval/coverage promotion.
@@ -609,8 +636,8 @@ and focused recovery tests already exist.
 | Surface | Current fitted state | Main failure modes to track | Phase 18 decision |
 | --- | --- | --- | --- |
 | Ordinary Poisson `mu` random effects | Fitted for non-zero-inflated Poisson random intercepts and independent numeric random slopes. | Boundary fitted SDs near zero, weak group replication, weak within-group slope variation, biased fixed effects when group SD is small, and profile failure for `log_sd_mu` targets. | Include in the first non-Gaussian pilot grid with true SD, number of groups, repeats per group, fixed-effect contrast size, factor predictors, slope variation, convergence, Hessian, `check_drm()` status, profile success, bias, RMSE, and interval coverage where available. |
-| NB2 and zero-truncated NB2 ordinary random effects | NB2 is fitted for non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and ordinary log-`sigma` random intercepts; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals for `mu`, a weak-SD boundary test, focused `sigma` intercept recovery/extractor tests, and a separate NB2 log-`sigma` smoke-grid artifact writer with direct `log_sd_sigma` profile-target rows. Zero-truncated NB2 is fitted for ordinary `mu` random intercepts with focused source tests, direct `log_sd_mu` profile targets, and planned-neighbour boundary tests. | Confounding among overdispersion, group-level heterogeneity, zero truncation, count-side mean effects, and grouped overdispersion heterogeneity. | Admit NB2 as a focused first slice until larger grids vary overdispersion, group count, repeats, true `mu` SD, true `sigma` SD, and mean count; admit zero-truncated NB2 `mu` intercepts only as a source-tested first slice until a separate positive-count grid is designed. |
-| Non-Gaussian `sigma` random effects | Ordinary non-zero-inflated NB2 fits a plain log-`sigma` random intercept and separate recovery-grade q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` structured `sigma` intercept-plus-one-slope routes; fixed-effect `sigma` formulas remain available where other families support them. | Scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Keep the plain NB2 intercept in its dedicated small smoke grid and the exact q=1 structured routes at recovery grade; exclude plain NB2 `sigma` slopes, richer or labelled structured `sigma`, structured-`sigma` intervals/coverage, zero-inflated/truncated/hurdle scale random effects, and other family-specific scale-random-effect likelihoods until their own contracts and grid evidence exist. |
+| NB2 and zero-truncated NB2 ordinary random effects | NB2 is fitted for non-zero-inflated `mu` random intercepts, independent numeric `mu` slopes, and ordinary log-`sigma` random intercepts; NB2 now has a smoke runner, fixed-effect Wald intervals, direct SD profile intervals for `mu`, a weak-SD boundary test, focused `sigma` intercept recovery/extractor tests, and a separate NB2 log-`sigma` smoke-grid artifact writer with direct `log_sd_sigma` profile-target rows. Zero-truncated NB2 has ordinary `mu` intercepts and independent slopes; the direct-SD slice supports one selected independent numeric `mu` slope with fixed `sigma` and complete responses, with one seeded recovery fit, a quadrature sanity check, and constant-SD equivalence. | Confounding among overdispersion, group-level heterogeneity, zero truncation, count-side mean effects, and grouped overdispersion heterogeneity. | Admit NB2 as a focused first slice until larger grids vary overdispersion, group count, repeats, true `mu` SD, true `sigma` SD, and mean count. Treat the zero-truncated NB2 direct-SD slope as point-recovery evidence only; interval calibration, Julia parity, correlated/structured effects, and broader positive-count grids remain open. |
+| Non-Gaussian `sigma` random effects | Ordinary non-zero-inflated NB2 fits a plain log-`sigma` random intercept and separate recovery-grade q=1 `phylo()`/`spatial()`/`animal()`/`relmat()` structured `sigma` intercept-plus-one-slope routes. Native zero-inflated NB2 has a separate complete-data direct-SD route for one ordinary `sigma` random intercept with fixed `mu` and `zi`, at focused point-recovery/output grade. Native beta-binomial fits one complete-data ordinary `sigma` random intercept with fixed-effect `mu`; its direct-SD form uses a group-level predictor. | Scale random effects can mimic mean random effects, overdispersion, zero inflation, tail shape, and unmodelled heteroscedasticity. | Keep the plain NB2 intercept in its dedicated small smoke grid, the exact q=1 structured routes at recovery grade, and beta-binomial at focused point-recovery/output grade. Beta-binomial Julia parity and interval calibration remain open. Exclude plain NB2 `sigma` slopes, richer or labelled structured `sigma`, structured-`sigma` intervals/coverage, other zero-inflated NB2 scale targets, truncated/hurdle scale random effects, and other family-specific scale-random-effect likelihoods until their own contracts and grid evidence exist. |
 | Shape, skewness, and tail random effects | One exact q=1 Student-t `nu ~ phylo(1 | id, tree = tree)` intercept is fitted at diagnostic-only local fit/extractor grade; its single smoke has no recovery denominator. Other Student-t `nu` random effects are blocked. Skew-normal fixed effects are fitted; skew-normal random/structured/bivariate routes and the skew-t family remain planned. | Tail shape, residual skewness, residual scale, outliers, and latent ID-level skewness can mimic each other. | Keep the exact Student-t phylogenetic `nu` intercept diagnostic-only with no recovery, interval, or coverage claim. Exclude every other random effect in `nu`, future `tau`, and future ID-level skewness such as `skew(id) ~ x`. |
 | Zero inflation, hurdle, zero-one inflation, and one inflation | Fixed-effect `zi` and `hu` paths exist for selected count families; one diagnostic-only Poisson q=1 `zi ~ spatial()` intercept and one diagnostic-only truncated-NB2 q=1 `hu ~ relmat(K/Q)` intercept are fitted. Fixed-effect bounded-response `zoi`/`coi` paths exist in `zero_one_beta()`; its exact ordinary `zoi` and `coi` random-intercept/same-raw-symbol slope routes are point-fit-only. | Count-side random effects can mimic structural zeros; hurdle, inflation, and exact-boundary components can be weakly separated from mean, dispersion, sampling zeros, and sampling ones. The `coi` routes have sparse-atom and boundary-predictor-spread conditional-mode warnings. | Keep the exact q=1 `zi`/`hu` count gates diagnostic-only and the exact ordinary atom gates point-fit-only; exclude other random effects in `zi`, `hu`, `zoi`, and `coi`, plus joint/correlated atom effects, until separately evidenced. |
 | Ordinal mixed models | Cumulative-logit fixed effects, ordinary `mu` random intercepts and independent slopes, and one exact diagnostic-only q=1 `mu ~ phylo(1 | id, tree = tree)` intercept are fitted. The phylogenetic route has local point-fit/extractor evidence only. | Cutpoint separation, sparse categories, latent-scale identification, and random-effect SD boundaries can dominate ordinary coefficient recovery. | Keep the exact phylogenetic gate diagnostic-only with no interval or coverage claim; exclude other structured ordinal effects, ordinal scale/discrimination, and broader ordinal covariance until they receive route-specific evidence. |

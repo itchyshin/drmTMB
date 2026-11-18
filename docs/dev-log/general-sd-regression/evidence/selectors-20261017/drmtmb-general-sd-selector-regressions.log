@@ -1,0 +1,18 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-selectors-20261017-02/library/drmTMB
+clamp-active-guard: .....................W.....
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. check_drm() reports a clamp-active row (warning when active, ok when not) ('test-clamp-active-guard.R:132:3') - `drmTMB()`: the `log(sigma)` clamp is active at the optimum (the fitted `log(sigma)` reached -0.6, above the band upper bound -0.8).
+i The scale ran to the upper clamp, so the fit may have converged artificially: estimates and standard errors near the clamp are unreliable. Rescale the response, widen the band with `drm_control(logsigma_clamp = )`, add within-group replication, or use a penalized/MAP fit; `check_drm()` reports the fit state.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-links: ..................................................................S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. probit and cloglog converge on extreme-probability data ('test-binomial-links.R:425:3') - Reason: On CRAN
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+binomial-response: ............................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+NATIVE_BINOMIAL_SD_PASS

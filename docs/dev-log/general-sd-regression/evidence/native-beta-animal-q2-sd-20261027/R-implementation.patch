@@ -1,0 +1,118 @@
+--- R/drmTMB.R
++++ R/drmTMB.R
+@@ -6945,10 +6945,46 @@
+   } else {
+     beta_mu_structured_term
+   }
++  allow_beta_animal_q2_sd <- length(sd_phylo_entries) > 0L &&
++    !is.null(beta_mu_structured_term) &&
++    identical(structured_mu_type(beta_mu_structured_term), "animal") &&
++    structured_term_is_intercept_one_slope(beta_mu_structured_term)
++  if (allow_beta_animal_q2_sd &&
++      !beta_mu_structured_term$structure %in% c("A", "Ainv")) {
++    cli::cli_abort(c(
++      "Beta animal intercept-slope SD regression currently requires a supplied A or Ainv matrix.",
++      "i" = "Use {.code animal(1 + x | id, A = A)} or {.code Ainv = Ainv}; pedigree SD routes for two fields remain unimplemented."
++    ))
++  }
+   sd_phylo_targets <- parse_sd_phylo_entries(
+     sd_phylo_entries,
+-    beta_structured_term
+-  )
++    beta_structured_term,
++    allow_multiple_coefficients = allow_beta_animal_q2_sd
++  )
++  if (allow_beta_animal_q2_sd) {
++    selected_coefficients <- vapply(
++      sd_phylo_targets, `[[`, integer(1L), "target_coef"
++    )
++    if (anyDuplicated(selected_coefficients) ||
++        !setequal(selected_coefficients, seq_along(beta_mu_structured_term$coef_names))) {
++      cli::cli_abort(c(
++        "Beta animal intercept-slope SD regression requires one SD formula for each coefficient.",
++        "x" = "Select exactly {.val {beta_mu_structured_term$coef_names}} with separate {.code coef} selectors."
++      ))
++    }
++    if (anyDuplicated(vapply(sd_phylo_entries, `[[`, character(1L), "dpar"))) {
++      for (i in seq_along(sd_phylo_entries)) {
++        coef_name <- beta_mu_structured_term$coef_names[[
++          sd_phylo_targets[[i]]$target_coef
++        ]]
++        sd_phylo_entries[[i]]$dpar <- format_sd_lhs_dpar(
++          "sd_animal", sd_phylo_targets[[i]]$group, "mu", coef_name,
++          NA_character_
++        )
++        sd_phylo_targets[[i]]$dpar <- sd_phylo_entries[[i]]$dpar
++      }
++    }
++  }
+   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+   mu_entry$rhs <- mu_re$rhs
+   validate_beta_mu_random_terms(mu_re$terms)
+@@ -6961,6 +6997,13 @@
+   sigma_re <- extract_random_sigma_terms(sigma_entry$rhs, "sigma")
+   sigma_entry$rhs <- sigma_re$rhs
+   validate_beta_sigma_random_terms(sigma_re$terms)
++  if (allow_beta_animal_q2_sd &&
++      (length(mu_re$terms) > 0L || length(sigma_re$terms) > 0L)) {
++    cli::cli_abort(c(
++      "Beta animal intercept-slope SD regression requires fixed sigma regression and no other random effects.",
++      "i" = "Keep one unlabelled animal intercept-plus-slope term in mu and two matching group-level SD formulas."
++    ))
++  }
+ 
+   if (length(c(sd_mu_entries, sd_sigma_entries)) > 0L) {
+     if (length(mu_re$terms) == 0L) {
+@@ -7189,6 +7232,11 @@
+     phylo_mu,
+     data_model
+   )
++  if (allow_beta_animal_q2_sd) {
++    validate_gamma_animal_q2_sd_identifiability(
++      phylo_mu, sd_phylo, family_label = "Beta"
++    )
++  }
+ 
+   spec <- list(
+     model_type = "beta",
+@@ -14857,7 +14905,9 @@
+   "phylo"
+ }
+ 
+-validate_gamma_animal_q2_sd_identifiability <- function(structured, sd) {
++validate_gamma_animal_q2_sd_identifiability <- function(
++  structured, sd, family_label = "Gamma"
++) {
+   coef_names <- structured_mu_endpoint_coef_names(structured)
+   slope_coef <- which(coef_names != "(Intercept)")
+   if (length(slope_coef) != 1L || ncol(structured$value) < slope_coef) {
+@@ -14867,7 +14917,7 @@
+   loading <- structured$value[, slope_coef]
+   if (all(loading == 0)) {
+     cli::cli_abort(c(
+-      "Gamma {structured_mu_type(structured)} intercept-slope SD regression has an unidentified slope scale.",
++      "{family_label} {structured_mu_type(structured)} intercept-slope SD regression has an unidentified slope scale.",
+       "x" = "The slope loading is identically zero, so its SD formula does not enter the likelihood.",
+       "i" = "Use a nonzero numeric slope predictor or remove the structured slope and its SD formula."
+     ))
+@@ -14886,7 +14936,7 @@
+     length(unique(X0[, 1L])) == 1L
+   if (same_constant_sd_design) {
+     cli::cli_abort(c(
+-      "Gamma {structured_mu_type(structured)} intercept-slope SD scales are not separately identifiable.",
++      "{family_label} {structured_mu_type(structured)} intercept-slope SD scales are not separately identifiable.",
+       "x" = "With a globally constant slope loading and identical constant SD designs, only the combined variance is identified.",
+       "i" = "Vary the slope loading across observations or use a predictor that separates the two SD surfaces."
+     ))
+@@ -24283,7 +24333,10 @@
+   phylo_mu <- spec$structured$phylo_mu
+   sd_phylo <- spec$random_scale$phylo
+   if (
+-    identical(spec$model_type, "gamma") &&
++    (identical(spec$model_type, "gamma") ||
++       (identical(spec$model_type, "beta") &&
++          identical(phylo_mu$type, "animal") &&
++          phylo_mu$structure %in% c("A", "Ainv"))) &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+       phylo_mu$type %in% c("animal", "relmat") &&
+       identical(phylo_mu$q, 2L) &&

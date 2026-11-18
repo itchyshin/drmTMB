@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_11",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 4.034819326184172e-16,
+        "point_data_nll": 2.694342001252557e-16,
+        "point_prior": 3.497032768696976e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6361068680608783e-16,
+        "point_hessian": 2.379518626235015e-10,
+        "fit_objective_at_returned_point": 3.536045968409453e-16,
+        "fit_data_nll": 3.5090439294217393e-16,
+        "fit_prior": 1.0020967523356529e-16,
+        "fit_optimum_objective": 7.072091936818906e-16,
+        "fit_coefficients": 2.176346571884485e-09,
+        "fit_interior_group_sd": 1.2580931541229631e-10
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_11",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 1.3471710006262782e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 9.131894131107241e-17,
+        "point_hessian": 3.090866405108695e-16,
+        "fit_objective_at_returned_point": 0.0,
+        "fit_data_nll": 0.0,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.840114921023639e-16,
+        "fit_coefficients": 2.1770456615598084e-09,
+        "fit_interior_group_sd": 1.258166818592586e-10
+      },
+      "unavailable": []
+    },
+    {
+      "id": "ri_11",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 0.0,
+        "fit_data_nll": 0.0,
+        "fit_prior": 1.3361290031144824e-16,
+        "fit_optimum_objective": 8.840114921023639e-16,
+        "fit_coefficients": 2.1770456615598084e-09,
+        "fit_interior_group_sd": 1.258166818592586e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ]
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

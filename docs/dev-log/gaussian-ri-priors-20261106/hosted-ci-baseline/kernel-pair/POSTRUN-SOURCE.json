@@ -1,0 +1,12 @@
+{
+  "baseline": {
+    "head": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+    "victim_sha256": "57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+    "source_and_victim_diff_empty": true
+  },
+  "candidate": {
+    "head": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+    "victim_sha256": "57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5",
+    "source_and_victim_diff_empty": true
+  }
+}

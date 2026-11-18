@@ -1,0 +1,1 @@
+| 2026-10-22 | **Gamma phylogenetic SD Julia point parity** | Focused live Julia bridge tests; `git diff --check`; prose review | ✅ Three live Julia Gamma SD bridge tests passed, including same-data TMB/Julia coefficient and tip-SD prediction comparison on a unit-height tree. No interval calibration or broader provider parity claim. | Codex |

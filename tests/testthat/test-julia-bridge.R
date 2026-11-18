@@ -51,6 +51,34 @@ test_that("Julia bridge serializes drm_formula() objects", {
   )
 })
 
+test_that("Julia bridge preserves coefficient-selected random-effect SD targets", {
+  form <- bf(
+    y ~ x + (1 | id) + (0 + x | id),
+    sd(id, dpar = "mu", coef = "(Intercept)") ~ w_intercept,
+    sd(id, dpar = "mu", coef = "x") ~ w_slope
+  )
+
+  spec <- drmTMB:::drm_julia_formula_spec(form)
+
+  # Selector-bearing ordinary SD targets are sent as positional (unnamed) parts;
+  # DRM.jl reads each SD target from its formula LHS (b87566680).
+  expect_null(names(spec))
+  expect_identical(spec[[2L]], "sd(id, coef(intercept)) ~ w_intercept")
+  expect_identical(spec[[3L]], "sd(id, coef(x)) ~ w_slope")
+  targets <- lapply(form$entries[2:3], function(entry) {
+    drmTMB:::parse_sd_lhs(entry$lhs)
+  })
+  blocks <- vapply(targets, drmTMB:::drm_julia_sd_target_block, character(1L))
+  expect_length(unique(blocks), 2L)
+  mock <- list(
+    formula = form,
+    coefficients = stats::setNames(list(c(0, 1), c(0, 1)), blocks)
+  )
+  aliases <- drmTMB:::drm_julia_lss_dpar_aliases(mock)
+  sd_dpars <- vapply(form$entries[2:3], function(entry) entry$dpar, character(1L))
+  expect_identical(unname(aliases[sd_dpars]), blocks)
+})
+
 test_that("bivariate parameter aliases are not required data columns", {
   form <- bf(
     mu1 = y1 ~ x,
@@ -960,4 +988,43 @@ test_that("sdpars, sigma random intercept: the sigma-side random-effect SD is fi
   expect_length(ft$sdpars$mu, 0L)
   expect_true("sigma" %in% names(fj$sdpars))
   expect_true("sigma" %in% names(ft$sdpars))
+})
+
+# Issue #1570: bridge fits (class "drmTMB_julia", no "drmTMB" inheritance) had
+# no simulate() or predict_parameters() method, so both failed with base R's
+# "no applicable method" error. Both generics were later wired (simulate() in
+# R/julia-simulate.R, predict_parameters() in R/predict-parameters.R), so the
+# by-name engine fences are gone. The refusals that remain are route-specific:
+# an ordinary Gamma random intercept has no marginal simulator, and
+# predict_parameters() rejects unknown distributional parameters and stray
+# options. Stub objects keep this Julia-free.
+test_that("simulate() and predict_parameters() refuse unsupported engine = 'julia' routes", {
+  gamma_ordinary_re <- structure(
+    list(
+      model = list(model_type = "gamma"),
+      formula = list(entries = list(list(
+        dpar = "mu",
+        rhs = quote(x + (1 | g)),
+        structured = list()
+      )))
+    ),
+    class = "drmTMB_julia"
+  )
+  expect_error(
+    simulate(gamma_ordinary_re, nsim = 2),
+    "Marginal simulation is not implemented for this Julia random-effect model",
+    fixed = TRUE
+  )
+  stub <- structure(
+    list(coefficients = list(mu = c(`(Intercept)` = 0)), formula = list(entries = list())),
+    class = "drmTMB_julia"
+  )
+  expect_error(
+    predict_parameters(stub, dpar = "nope"),
+    "Unknown distributional parameter"
+  )
+  expect_error(
+    predict_parameters(stub, nonsense = 1),
+    "reserved for future options"
+  )
 })

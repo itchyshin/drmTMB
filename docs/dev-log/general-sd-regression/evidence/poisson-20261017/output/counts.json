@@ -1,0 +1,78 @@
+{
+  "rows": [
+    {
+      "suite": "random-scale-prediction-labels",
+      "passed": 11,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "poisson-sd-integration",
+      "passed": 28,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-target-workflows",
+      "passed": 12,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-target-selectors-integration",
+      "passed": 22,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-random-effect-scale",
+      "passed": 21,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-integration",
+      "passed": 18,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-links",
+      "passed": 15,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-profile",
+      "passed": 16,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-simulation",
+      "passed": 15,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "binomial-sd-clamp",
+      "passed": 32,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "gaussian-random-effect-scale",
+      "passed": 89,
+      "warnings": 0,
+      "skips": 0
+    },
+    {
+      "suite": "clamp-active-guard",
+      "passed": 26,
+      "warnings": 1,
+      "skips": 0
+    }
+  ],
+  "total_passed": 305,
+  "source_archive_sha256": "eaf3198f9a703c4d88e21b106dc0c9dbe16fa8adef1235be83da33aa7167c417"
+}

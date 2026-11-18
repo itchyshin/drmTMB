@@ -1,0 +1,5 @@
+7295e6a40f04a02c2b2abe6e56d9275eee32162dfe125367472809a3c917ca25  R/drmTMB.R
+5f5a9f7e2d09b9b18de9238445ff596b86226e583c6bc551679c8cb84349824c  R/julia-bridge.R
+601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6  src/drmTMB.cpp
+9f3ea080f444ed025e42d357afb0cd275ee6d186403e3940ba25609fb4e0992a  tests/testthat/test-beta-binomial-sigma-sd-regression.R
+ebee64798c44187cd0d1519c73e0ec820cdb4057d6d6f84d80b4903f7c277400  tests/testthat/test-julia-beta-binomial-sigma-sd-bridge.R

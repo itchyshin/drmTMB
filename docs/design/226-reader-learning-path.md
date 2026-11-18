@@ -1,4 +1,6 @@
-# 226 — One canonical reader learning path across 38 vignettes
+# 226: One canonical reader learning path across 42 vignettes
+
+<!-- slop-ok: Historical review prose is preserved. The prior slice updates only the vignette count and placement inventory; new inventory wording was reviewed separately. -->
 
 ## 1. The problem
 
@@ -35,10 +37,13 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 38 vignettes after the
+The synchronized placement table below now contains 42 vignettes after the
 location-scale tutorial was split into two shorter parts, the first-week
-interval and bivariate non-Gaussian routes were added, and the comparator
-article was placed under stage 5.
+interval and bivariate non-Gaussian routes were added, the comparator
+article was placed under stage 5, and the temporal random-effect tutorial
+and its development-only phylogenetic OU companion were added to stage 4,
+and the predictor-dependent group-SD tutorial was added to stage 3. The
+fixed-effect prior guide joins the specialist branch for optional penalized fits.
 
 ## 2. The canonical sequence
 
@@ -86,7 +91,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-38 rows. Role legend: **tutorial** = worked biological example with fitted
+42 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -104,6 +109,7 @@ path.
 | 5 | `model-map` | 2. Choose your family | route-chooser | "What can I fit today?" status map; the reader consults it while deciding which family/syntax combination is actually implemented. |
 | 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Part 1 of the Gaussian variance sequence: `mu` and residual `sigma` interpretation with a biological example. |
 | 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: personality and sex-specific repeatability from `sigma` plus `sd(individual)`, followed by a short phylogenetic `sd(group, level = "phylogenetic")` extension. |
+| 6b | `predictor-dependent-random-sd` | 3. Interpretation tutorials | tutorial | Part 3 of the variance sequence: lets the group-level SD itself depend on a predictor with `sd(group) ~ x`, and separates it from residual `sigma`; read after `location-scale-scale`. Point estimates only, no interval calibration. |
 | 7 | `robust-student` | 3. Interpretation tutorials | tutorial | Student-t shape-parameter (`nu`) worked tutorial for robust continuous responses. |
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
@@ -111,8 +117,11 @@ path.
 | 10a | `bivariate-nongaussian` | 3. Interpretation tutorials | route-chooser | Distinguishes the implemented joint and staged routes for non-Gaussian response pairs before readers interpret an association as if every family combination used the same model. |
 | 11 | `missing-data` | 3. Interpretation tutorials | guide | Documents `miss_control()` response/predictor routes; a reader needs this while writing the formula for their chosen family, not after fitting, so it sits with the family/formula-writing stage rather than stage 5. |
 | 12 | `meta-analysis` | Specialist branch | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
+| 12a | `fixed-effect-priors` | Specialist branch | guide | Optional normal priors and ridge penalties for selected fixed effects in Gaussian location-scale and binomial-logit models, with explicit intercept selection and restricted inference. |
 | 13 | `structural-dependence` | 4. Random & structured effects | route-chooser | Overview and router across `animal()`, `phylo()`, `spatial()`, `relmat()` before the reader picks a specific structured-effect tutorial. |
 | 14 | `animal-models` | 4. Random & structured effects | tutorial | Worked `animal()` / additive-relatedness tutorial. |
+| 14a | `temporal-random-effects` | 4. Random & structured effects | tutorial | Worked `temporal()` tutorial separating stable series differences, temporal persistence, and residual noise in repeated Gaussian measurements. |
+| 14b | `phylogenetic-temporal-effects` | 4. Random & structured effects | tutorial | Development-only worked example pairing a stable `phylo()` species intercept with independent within-species `temporal(structure = "ou")` deviations; read after `temporal-random-effects`. Point estimates only. |
 | 15 | `phylogenetic-models` | 4. Random & structured effects | tutorial | Worked `phylo()` tutorial for phylogenetic mixed models. |
 | 16 | `bipartite-phylogenetic-interactions` | 4. Random & structured effects | tutorial | Worked two-tree `phylo_interaction()` tutorial. |
 | 17 | `spatial-models` | 4. Random & structured effects | tutorial | Worked `spatial()` coordinate-structured tutorial. |
@@ -134,12 +143,12 @@ path.
 | 33 | `simulation-plot-grammar` | Developer track | developer | Bias/RMSE/coverage plotting conventions for simulation-based validation; used when writing or reviewing recovery studies, not when applying the package. |
 | 34 | `comparing-with-other-packages` | 5. Uncertainty & inference boundaries | guide | Fits eight models drmTMB shares with `lme4`, `glmmTMB`, `metafor` and `ordinal`, and shows the estimates agreeing on matched scales. Read when the question is "should I trust this package", after the reader can already fit and interpret a model. States which comparisons are independent engines and which share drmTMB's TMB stack. |
 
-Total: 38 placed. Stage counts **after the §9 corrections**: **1. First fit**
+Total: 40 placed. Stage counts **after the §9 corrections**: **1. First fit**
 = 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 9 ·
-**Specialist branch** = 3 · **4. Random & structured effects** = 7 ·
+**Specialist branch** = 3 · **4. Random & structured effects** = 9 ·
 **5. Uncertainty & inference boundaries** = 5 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-4 + 4 + 9 + 3 + 7 + 5 + 1 + 5 = 38.
+4 + 4 + 9 + 3 + 9 + 5 + 1 + 5 = 40.
 
 Two rows deserve a placement note beyond the reason column:
 

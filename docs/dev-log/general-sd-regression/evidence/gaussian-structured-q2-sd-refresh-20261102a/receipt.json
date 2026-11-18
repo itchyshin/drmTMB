@@ -1,0 +1,46 @@
+{
+  "evidence_id": "native-gaussian-structured-q2-sd-20261101d-20261102a",
+  "refresh_of_evidence_ids": [
+    "native-gaussian-structured-q2-sd-20261101d"
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-structured-q2-sd.R\", reporter = \"summary\")'",
+  "git_head": "3cfc6c2eb743c2f86f0bdedcb706274952563b57",
+  "tree_state": "uncommitted staged edits; unreviewed",
+  "run_started_utc": "2026-11-02T06:22:27Z",
+  "run_ended_utc": "2026-11-02T06:22:47Z",
+  "exit_code": 0,
+  "expectations_passed": 64,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/test-console.log",
+  "console_log_sha256": "e5b6aa2e6bdc46563bc37fb8e1f56812e45bb48f7989165e51393d77be80c2e0",
+  "test_path": "tests/testthat/test-gaussian-structured-q2-sd.R",
+  "test_sha256": "0e9600f5e43e27cd65bfb5ab415b72ea566795dbf33f12aca42fa3fa04c6d4e7",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/source-manifest.json",
+  "source_manifest_sha256": "90296ea186d8d4679c8cda51a518363d7ce395b554ecbee3d67b2e58bd809e8d",
+  "live_julia": "not run unless the console log says live tests ran",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent mathematical review confirmed the dense exact Gaussian marginal oracle, y ~ N(X beta, sigma^2 I + sum R_ab l_a l_b' o K_obs), with K indexed by level name. It shares no code with the TMB template. It covers all six rows: animal (A), relmat (K) and phylo (tree, K = cov2cor(ape::vcv(tree))), each with the labelled (1 + x | p | id) block and a separate SD formula for the intercept and for the slope. K has a non-unit diagonal for animal and relmat and is passed in shuffled order. The likelihood is matched at 1e-6 and an independent L-BFGS-B optimum at 1e-5. Emulated-bug sensitivity exists: unit_diag, positional_K, swap_sd_formulas, shared_sd, no_slope_loading, drop_rho and cross_sign each move the oracle by more than 1e-3, plus a raw-versus-correlation phylo check. Manifest rehash: 2 of 5 entries match; 3 mismatch (R/drmTMB.R vs 95c8a58dc, R/methods.R vs b300610ce, src/drmTMB.cpp vs 33e4e966a). The later diffs are gated: Gaussian q3/q4 re_cov SD (needs an ordinary correlated block with sd_mu entries), missing-response include relaxations, simulate/summary changes, and the false-convergence nlminb restart; none changes this structured q2 likelihood path. The focused test was rerun on the current tree and matches the receipt count. Covers only native Gaussian identity-link structured q2 labelled blocks with one correlation. It does not establish calibration, coverage, Julia parity, or non-Gaussian families. Recommend regenerating the manifest at the current head.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-structured-q2-sd.R",
+    "test_sha256": "0e9600f5e43e27cd65bfb5ab415b72ea566795dbf33f12aca42fa3fa04c6d4e7",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:07Z",
+    "ended_utc": "2026-11-03T01:10:36Z",
+    "expectations_passed": 64,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-q2-sd-refresh-20261102a/test-console-rerun-81553915d.log",
+    "console_log_sha256": "2ae9fc2d0213913fa59d762e7b00241c8b5aa2318b611f84fc464dd0900d4fd2",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

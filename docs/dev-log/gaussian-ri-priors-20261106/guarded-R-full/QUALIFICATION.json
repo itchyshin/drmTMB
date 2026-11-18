@@ -1,0 +1,43 @@
+{
+  "source": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+  "check_exit": 0,
+  "check_status": "1 NOTE: report-only spelling output comparison",
+  "test_phase": {
+    "passed": 42125,
+    "failed": 0,
+    "warnings": 117,
+    "skips": 696
+  },
+  "source_tree": {
+    "passed": 26516,
+    "failed": 0,
+    "warnings": 14,
+    "skips": 6,
+    "exit": 0
+  },
+  "source_manifest_exit": 0,
+  "timings_seconds": {
+    "preflight": 0,
+    "census-check": 5,
+    "build": 225,
+    "check": 3813,
+    "source-manifest": 5,
+    "source-tests": 126
+  },
+  "sha256": {
+    "source-tests-exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "source-manifest-exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "source-tests.log": "c8044925efec7b289de99d743d923806ec83184678fdf5838a164c4ef2c64d4d",
+    "testthat.Rout": "7318e41191fe86f7c918abf33713ce3bf3b4e240038ce4115debb2034157e14e",
+    "00check.log": "605cd52d1631a1c0ad6b5f7aa55f6cfd573ec5a78c84ca120bf72586c6712631",
+    "source-manifest.log": "23456a2e0ec94291d7a7fd7c194b4098a5b102086389bab690735bd0df2c505a",
+    "check-exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "check.log": "a9561554c5e4ae5efa23a4c44e67be44dd204e2230793a4616aef1a1d1ceed9d",
+    "timings.csv": "726d3b50303909fb6450ee66907289eaaa777eed6581664ee6818ebc8dc1804b"
+  },
+  "limits": [
+    "These full runs exercise no live Julia bridge. Separate guarded live evidence contains one actual bridge test.",
+    "The raw test log retains the parallel shutdown message. It is not the cause of the spelling NOTE.",
+    "This receipt does not qualify the outstanding Julia full-suite shard or CI capability-receipt gate."
+  ]
+}

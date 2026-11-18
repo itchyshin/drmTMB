@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c1dca6b83b9326e784f9a6d6000fd98578972c3ca51f9c2b87bf4fa9f236a45b",
+  "draft_version": "v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-assessment",
+  "method": "Separate read of the exact saved report, cross-check against retained test and smoke receipts, plus slop_check.py.",
+  "genre": "internal technical after-task report",
+  "coverage": "whole report, including the updated post-fix timing capsule, source activation review, package installation readback, and remaining scope",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "The report is specific and cautious, though the evidence paragraphs are dense because they carry exact audit receipts and scope limits.",
+  "confidence": "medium",
+  "confidence_reason": "The exact report and retained test, source-registry, timing, reviewer, and Totoro package-install receipts were checked; the report remains internal and its reference gate is unknown.",
+  "examples": [
+    {
+      "location": "section 3a, paragraph 1",
+      "line": 15,
+      "quote": "The fix changes the profile search range, not the likelihood-ratio cutoff or the interval method.",
+      "cue": "The report uses a direct, bounded explanation of what changed.",
+      "impact": "The scope is easy to distinguish from a likelihood change.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "section 5, post-fix timing bullet",
+      "line": 42,
+      "quote": "This is timing-only evidence, not recovery or calibration.",
+      "cue": "The key limitation follows the runtime projection.",
+      "impact": "It prevents the timing result from being mistaken for inference evidence.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "section 10, paragraph 1",
+      "line": 77,
+      "quote": "The successful 45-row run estimates runtime only; it does not establish recovery, bias, or calibrated coverage.",
+      "cue": "The residual limitation is stated in concrete terms.",
+      "impact": "It makes the remaining evidence gap explicit.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The qchisq(level, 1)/2 cutoff, half-unit ytol headroom, and distinction between timing and calibration were checked against the contract and independent math/inference reviews.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Focused and broad test outputs, source registry and worker hashes, timing summary and supervisor receipt, independent activation review, and the Totoro install readback support the updated report claims.",
+  "references_gate": "unknown",
+  "references_gate_reason": "TMB documentation is named, but this internal report does not give a direct source citation.",
+  "date": "2026-10-19",
+  "calibration_status": "no personal-writing calibration benchmark run for this assessment",
+  "interpretation": "perceived_style_not_authorship"
+}

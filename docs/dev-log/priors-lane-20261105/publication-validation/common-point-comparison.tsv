@@ -1,0 +1,4 @@
+cell_id	objective_baseline	objective_candidate	objective_difference	gradient_max_abs_difference	fitted_objective_difference
+mc-0568	220.113311148818	220.113311148818	0	0	0
+mc-0569	745.216022712251	745.216022712251	0	0	0
+mc-0576	835.887472739459	835.887472739459	0	0	0

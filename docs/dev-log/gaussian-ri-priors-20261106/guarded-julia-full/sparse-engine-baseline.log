@@ -1,0 +1,10 @@
+  Activating project at `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`
+=== sparse TMB-like LBFGS, q4_p100, Λ0 off-diagonal (p=100) ===
+
+--- result ---
+logLik Julia=-256.5059  drmTMB=-256.5200  |Δ|=0.0141
+converged=true iters=120 g_resid=7.36e-04 f_calls=129 g_calls=129
+wall Julia=0.691s (best of 2: 0.694, 0.691)  drmTMB=2.48s  ratio=3.59x JULIA FASTER
+β_mu1=[0.278, 0.388] β_mu2=[0.178, 0.582] β_s1=[0.214] β_s2=[-0.556] β_rho=[0.399]
+sd_phy(=sqrt diag Λ)=[0.974, 0.512, 0.114, 0.173] (drmTMB [1.70,0.89,0.18,0.29])
+=== done ===

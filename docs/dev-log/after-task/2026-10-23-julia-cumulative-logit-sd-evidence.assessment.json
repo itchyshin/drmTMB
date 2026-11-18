@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "6dc631055e94ca8f4677518e158387ed475e5a21e646d4914ad1f31109c26fbf",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the complete saved report against the Julia test output, source manifest, evidence reconciliation, and lane preflight; ran slop_check.py.",
+  "genre": "Technical after-task evidence report",
+  "coverage": "Entire report, all sections",
+  "score": 3,
+  "style_status": "rated",
+  "score_reason": "The report uses exact paths, counts, commands, and limits. Its required structure is template-driven, while the sentences remain concrete.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and technically anchored; the perceived-style score is an uncertain editorial judgment, not a calibrated measure.",
+  "examples": [
+    {
+      "location": "paragraph line 9",
+      "line": 9,
+      "quote": "The rerun passed 39 assertions: 14 for the intercept route and 25 for the slope route.",
+      "cue": "Names the result with exact counts.",
+      "impact": "Readers can distinguish the two tested routes and see the scope of the run.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Known Residuals, paragraph line 55",
+      "line": 55,
+      "quote": "Both receipts remain unreviewed and apply only to the tested Julia cumulative-logit routes. They do not establish native TMB parity, structured effects, other response families, other endpoints, broad public-method consistency, or interval coverage.",
+      "cue": "States concrete evidence limits.",
+      "impact": "Prevents a narrow Julia test from being mistaken for programme-wide completion.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Claims stay within the 39-assertion Julia test and explicitly withhold parity and coverage conclusions.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Assertion counts and runtime match the rerun; candidate hashes and row links are checked by the evidence reconciler.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations or literature claims.",
+  "date": "2026-10-23",
+  "calibration_status": "Prior project after-task report formats were seen; no held-out style controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

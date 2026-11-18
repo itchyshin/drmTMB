@@ -4,6 +4,7 @@
 \alias{convergence_status}
 \alias{convergence_status.default}
 \alias{convergence_status.drmTMB}
+\alias{convergence_status.drmTMB_julia}
 \title{Convergence status for a drmTMB fit}
 \usage{
 convergence_status(object, ...)
@@ -11,6 +12,8 @@ convergence_status(object, ...)
 \method{convergence_status}{default}(object, ...)
 
 \method{convergence_status}{drmTMB}(object, ...)
+
+\method{convergence_status}{drmTMB_julia}(object, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -25,11 +28,15 @@ One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}.
 workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit can report
 optimizer code \code{0} while the likelihood geometry is degenerate (no proper
 maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
-when \code{multi_start} selected among several starts. \code{"boundary"} marks an
-optimizer-converged fit with variance-component or residual-correlation
-parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} stays a
-plain logical: it is \code{TRUE} for \code{"converged"} and \code{"boundary"}, and
-\code{FALSE} for \code{"degenerate"}.
+when \code{multi_start} selected among several starts. Fixed-effect binomial
+separation, Poisson / NB2 rays with no finite MLE, and an unbounded
+continuous location-scale likelihood are included in that geometry.
+\code{"boundary"} marks an optimizer-converged fit with variance-component,
+residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
+parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} and
+\code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
+\code{"converged"}. Numeric predicates are identical in DRModels.jl
+(\code{docs/design/278-twin-convergence-status.md}).
 }
 \examples{
 set.seed(20260916)

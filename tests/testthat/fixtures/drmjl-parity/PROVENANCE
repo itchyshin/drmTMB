@@ -1,0 +1,6 @@
+drmjl_commit: 64ccb2d8d87b329e5a43b2358fd5cb4a36cd9716
+drmjl_dirty: false
+julia_version: 1.10.12
+generated: 2026-10-31
+generator: tools/drmjl-parity/make-reference.jl (DRModels.drm_bridge)
+data: tools/drmjl-parity/make-data.R

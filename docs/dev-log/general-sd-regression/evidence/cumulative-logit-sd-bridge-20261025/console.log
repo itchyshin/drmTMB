@@ -1,0 +1,29 @@
+ℹ Testing drmTMB
+julia-cumulative-logit-sd-intercept-parity: ....i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+................
+julia-cumulative-logit-sd-slope-parity: 1
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-cumulative-logit-sd-slope-parity.R:32:3'): cumulative-l
+Error in `drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload)`: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling.
+x no payload label was built for fixed-effect dpar(s): sd.
+i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-julia-cumulative-logit-sd-slope-parity.R:32:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::new_drmTMB_julia(...) at general-sd-regression/R/julia-bridge.R:829:3
+ 4.       └─drmTMB:::drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload) at general-sd-regression/R/julia-bridge.R:5865:3
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/julia-coefficient-labels.R:116:3
+ 6.           └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted
+Julia exit.

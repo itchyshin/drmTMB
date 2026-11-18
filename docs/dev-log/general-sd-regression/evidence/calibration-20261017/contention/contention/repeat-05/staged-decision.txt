@@ -1,0 +1,7 @@
+List of 6
+ $ decision     : chr "incomplete"
+ $ look         : int 1
+ $ reason       : chr "campaign has not reached its terminal receipt"
+ $ metrics      :'data.frame':	0 obs. of  0 variables
+ $ gates        :'data.frame':	0 obs. of  0 variables
+ $ status_counts:'data.frame':	0 obs. of  0 variables

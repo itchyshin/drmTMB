@@ -1,0 +1,18 @@
+{
+  "runtime_unchanged": true,
+  "changes": [
+    {
+      "file": "tests/testthat/test-poisson-slope-sd-assembly.R",
+      "compiled_capsule_sha256": "f161e8851eb8f1e721d6c34aa1e8e63fdbfab53cee4ae113b25650e7b44b234f",
+      "current_sha256": "8d561810ef12f30c71fd3d08d993e4234fd66ab019c8ab2a03a681a8f735f66b"
+    },
+    {
+      "file": "tests/testthat/test-poisson-slope-sd-integration.R",
+      "compiled_capsule_sha256": "7cc853c223aa2a02a29fc1f8e29c8baa0bc86c78ea2bb31df7c2737cf61701ea",
+      "current_sha256": "4954063fad5261482c1392cc30641f62cf59a8e1368dcce0f9ee2292697d693e"
+    }
+  ],
+  "compiled_test_execution": "corrected integration test copied outside immutable source; corrected-tests.log exit0",
+  "additional_source_tests": "four extra unsupported-combination assertions; final source18pass; no fitting-code change",
+  "calibration_claim": false
+}

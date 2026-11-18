@@ -1,0 +1,14 @@
+key	value
+run_status	COMPLETE
+source_sha	6687639b0197dbcb5978072c0fedee4dcbc45954
+runner_sha256	03e230c48539267d803a22e43ffcc68786b08236c4bd6bf9f11c1b1b37c9b1df
+git_blob:R/drmTMB.R	76ded29afb893d1e5e62c51a759c00ab828d17e6
+git_blob:R/methods.R	5801baf0fd2675c703fea4ad92e74a344c486197
+git_blob:src/drmTMB.cpp	07fbf6a9728f7a843bc1b31600c68860ff0372fb
+git_blob:tests/testthat/test-zero-one-beta.R	5791bad2278c05be035f63308dbb3be0c86b29fe
+git_blob:tools/run-lane-c-c17c1-c14-model15-compatibility.R	b0650851d2a7a2989d9622eed1f3ed68d9ef2a3d
+loaded_namespace_path	/Users/z3437171/local-scratch/lanes/ml-drmTMB-1646
+utc_start	2026-11-06 00:07:36 UTC
+utc_finish	2026-11-06 00:12:49 UTC
+exact_command	R_PROFILE_USER=/dev/null Rscript --no-init-file tools/run-lane-c-c17c1-c14-model15-compatibility.R
+dirty_state_path	dirty-state.txt

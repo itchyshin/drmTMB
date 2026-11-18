@@ -1,0 +1,62 @@
+{
+  "purpose": "Source binding for focused Julia Binomial coordinate-spatial SD regression and exact capability-ledger rows.",
+  "created_utc": "2026-10-27",
+  "candidate_roots": {
+    "drmTMB": "../general-sd-regression",
+    "DRModels.jl": "../general-sd-julia"
+  },
+  "candidate_heads": {
+    "drmTMB": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "DRModels.jl": "70dbf564eb670144c63c08f61ea099084d95add2"
+  },
+  "files": [
+    {
+      "path": "../general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "d7275dfb38da5d6397e95d78c62870ce8b9569786f4c8e90d2617037f8ec24af"
+    },
+    {
+      "path": "../general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "63a35dd6d1bddb1d1b3652483d9a174c6f970c2e436d9238a15d452b11133e39"
+    },
+    {
+      "path": "../general-sd-julia/src/inference.jl",
+      "sha256": "b1c0ab6bdbbb2b61ac781feb68b63f03229359ec0340b82bb8cae8ae8b177ca4"
+    },
+    {
+      "path": "../general-sd-julia/test/test_binomial_spatial_sd_regression.jl",
+      "sha256": "770663defb8ef176c9c6057b15db41e3883d1f90ad979271488ea17d1a35f25a"
+    },
+    {
+      "path": "../general-sd-julia/docs/src/families.md",
+      "sha256": "eb08ba56a791b4e666c1cf37c0e2d741cbf86a971929eb9d896df07085d332f8"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-sd-20261027/test-snapshot/test_binomial_spatial_sd_regression.jl",
+      "sha256": "770663defb8ef176c9c6057b15db41e3883d1f90ad979271488ea17d1a35f25a"
+    },
+    {
+      "path": "tools/general-sd-regression/universe.py",
+      "sha256": "78d087e6e8c1bddebdabdc64b2a40f3c4c221f88ed450b99e65acc0717cca90e"
+    },
+    {
+      "path": "tools/general-sd-regression/tests/test_universe.py",
+      "sha256": "8718673ad21bcad718cdffa53f4097aba2ff277bff90b89113696407279e7892"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/universe-contract.md",
+      "sha256": "26fe0fb13aaef0ac32e1b53662f09e4922449babc05663a44632a8af6789558d"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/required-rows.tsv",
+      "sha256": "4ab75cdc43030c3f574c56b7fa4ee16b750147689e8bea61a99aedaf4d9f3c71"
+    }
+  ],
+  "test_command": "JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /Users/z3437171/.juliaup/bin/julia --project=. test/test_binomial_spatial_sd_regression.jl",
+  "test_result": "Exit 0; 21/21 intercept assertions, 22/22 independent-slope assertions, and 1/1 extreme smooth-clamp assertion.",
+  "docs_example_result": "Extracted spatial-slope @example ran successfully with the package Julia project after qualifying DRModels.Binomial().",
+  "limits": [
+    "No interval-coverage calibration.",
+    "No native TMB or R bridge parity claim.",
+    "Adjacent broader Bernoulli SD test file was partial and interrupted during a later phylogenetic fit."
+  ]
+}

@@ -1,0 +1,44 @@
+julia-binomial-sd: ...........................................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+...............................i Julia has 4 threads available, but refits are running SERIALLY because `threads` defaults to `FALSE`.
+i `JULIA_NUM_THREADS` alone does not parallelise refits -- pass `threads = TRUE` as well, e.g. `confint(fit, method = "profile", threads = TRUE)`.
+.................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 5 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=155 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     7
+│   rcond = 9.23265335367337e-10
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     7
+│   rcond = 8.83698932953179e-12
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:101
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates = Int64[]
+│   rcond = 3.5469200853720336e-17
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:101
+DRM_RUN start=2026-11-02T13:22:25Z end=2026-11-02T13:25:16Z rc=0

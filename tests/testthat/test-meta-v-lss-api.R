@@ -17,6 +17,6 @@ test_that("meta_V direct-SD grammar requires its matching location random effect
       ),
       family = gaussian(), data = dat
     ),
-    "No random-effect term matches `sd\\(study\\)`"
+    "No random-effect term matches the Gaussian `sd\\(\\)` formula for `mu`"
   )
 })
