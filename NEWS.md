@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* Gaussian, Student-t, and skew-normal fits now refuse a factor or ordered
+  response and name the column, instead of modelling the integer level
+  codes. A numeric response is unchanged (refs #1481).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
