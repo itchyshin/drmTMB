@@ -68,6 +68,33 @@ test_that("a full-rank sigma ~ x design still fits (#1478 neighbour)", {
   expect_true(is_converged(fit))
 })
 
+test_that("unused sd_mu and sd_sigma placeholders are not fixed-effect designs", {
+  placeholder <- matrix(0, nrow = 1L, ncol = 1L)
+  spec <- list(
+    X = list(
+      mu = cbind(`(Intercept)` = 1, x = c(0, 1, 0, 1)),
+      sigma = cbind(`(Intercept)` = rep(1, 4L)),
+      sd_mu = placeholder,
+      sd_sigma = placeholder
+    )
+  )
+  expect_true(drmTMB:::drm_validate_fixed_design_rank(spec))
+
+  spec$X$sigma <- cbind(x = 1:4, xdup = 1:4)
+  expect_error(
+    drmTMB:::drm_validate_fixed_design_rank(spec),
+    "rank-deficient.*sigma"
+  )
+  expect_false(drmTMB:::drm_is_unused_sd_placeholder(
+    "sigma",
+    matrix(0, nrow = 1L, ncol = 1L)
+  ))
+  expect_false(drmTMB:::drm_is_unused_sd_placeholder(
+    "sd_mu",
+    cbind(`(Intercept)` = 1)
+  ))
+})
+
 test_that("1e-9 near-collinear mu still fits (#1478; abort is exact aliases only)", {
   set.seed(1)
   n <- 80L

@@ -1800,6 +1800,18 @@ drm_optimizer_selected_record <- function(row) {
 # non-mu dpar (sigma, nu, zi, hu, rho12, ...) untested, so a collinear
 # sigma ~ x + xdup design fitted, reported converged, and only failed
 # later in vcov() (#1478 / #1470).
+#
+# Student, skew-normal, and beta-binomial specs always store sd_mu$X
+# (and beta-binomial also sd_sigma$X). With no sd() formula that object
+# is the 1x1 zero from empty_sd_mu_structure(), not a fixed-effect design.
+# A real sd() design is already refused by check_sd_design_rank().
+drm_is_unused_sd_placeholder <- function(name, block) {
+  name %in% c("sd_mu", "sd_sigma") &&
+    is.matrix(block) &&
+    identical(dim(block), c(1L, 1L)) &&
+    isTRUE(block[[1L]] == 0)
+}
+
 drm_validate_fixed_design_rank <- function(spec) {
   X <- spec$X
   if (is.null(X) || length(X) == 0L) {
@@ -1814,6 +1826,9 @@ drm_validate_fixed_design_rank <- function(spec) {
       is.null(block) ||
         (!is.matrix(block) && !inherits(block, "Matrix"))
     ) {
+      next
+    }
+    if (drm_is_unused_sd_placeholder(nm, block)) {
       next
     }
     if (is.list(spec$sparse_fixed) && isTRUE(spec$sparse_fixed[[nm]])) {
