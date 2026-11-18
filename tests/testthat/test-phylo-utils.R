@@ -184,6 +184,12 @@ phylo_prior_tmb_data <- function(precision) {
       prior_beta_mean = numeric(0),
       prior_beta_sd = numeric(0),
       prior_beta_normalized = integer(0),
+      # The SD-prior data are also global TMB inputs; empty vectors keep
+      # these hand-built phylogeny probes unpenalized.
+      prior_sd_index = integer(0),
+      prior_sd_shape = numeric(0),
+      prior_sd_rate = numeric(0),
+      prior_sd_lgamma = numeric(0),
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),

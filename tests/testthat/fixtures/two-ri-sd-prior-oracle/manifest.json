@@ -1,0 +1,8 @@
+{
+  "schema": "two-ri-oracle-freeze-v1",
+  "sha256": {
+    "oracle.py": "d6e272b9993c686a50909ffca6714154503f29a666bb49c3b00f533da064c80e",
+    "frozen.json": "d2bfbbac2d5e0127c90ef877c01259fda56526b2797240ddf718e0f782f6e1e2",
+    "verify.py": "a77e51aa95b8f4a2f1237f0b181fc46a8f2e5f5a4c11c82f26a3fd5d5fcad7b5"
+  }
+}

@@ -1,3 +1,83 @@
+# drmTMB 0.8.2
+
+* The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.
+
+* Add an opt-in prior table for supported fixed effects and Gaussian random-intercept standard deviations.
+
+* In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Confidence intervals and information criteria remain unavailable for active-prior fits. The Julia bridge requires a DRModels.jl version containing the two-intercept prior-table support. Random slopes and correlation priors remain outside this slice.
+
+* A formula transform that produces `NA` or `NaN`, such as `log(x)` or
+  `sqrt(x)` on a negative predictor, drops those rows from the response and the
+  design.
+  The same rows are now dropped from the weights, the known sampling
+  covariance, and the data used to build random effects. Distributional
+  formulas that would keep different rows abort with class
+  `drmTMB_model_frame_rows` instead of fitting (#1725).
+
+* Bivariate Gaussian models now abort before starting-value or optimizer
+  code when an observed response or a fixed-effect design value is
+  non-finite. `Inf` in `y1` or `y2` names that response. `Inf` in a `mu1`,
+  `mu2`, `sigma1`, `sigma2`, or `rho12` design names the column. `NA` and
+  `NaN` responses are still dropped by the existing missingness rules
+  (#1709).
+
+* Unknown `stats::nlminb()` settings in `control` or `drm_control(optimizer =
+  ...)` now trigger a classed `drmTMB_unknown_optimizer_control` warning that
+  names the element and suggests the closest valid control name; the typo is
+  dropped before optimization so the generic `nlminb` warning does not repeat
+  (#1734).
+
+* Student-t and skew-normal models now abort before starting-value or
+  optimizer code when a fixed-effect design value is non-finite (`Inf` in a
+  `mu`, `sigma`, or `nu` predictor). The abort names the family, the
+  distributional parameter, and the design column. `NA` predictors are still
+  dropped by the existing complete-case rule. The Gaussian wording is
+  unchanged (#1710).
+
+* Bivariate Gaussian `relmat(K = K)` and `relmat(Q = solve(K))` are the same
+  known-relatedness likelihood. On the q = 4 location-slope block, maximised
+  log-likelihoods can differ by about 0.003 when `nlminb` and the BFGS
+  fallback stop at different points on a flat unstructured-correlation ridge.
+  The equivalence check is the TMB objective at one shared parameter vector,
+  which matches well inside the existing 1e-5 tolerance (#1703).
+
+* Gaussian location-scale models now abort before TMB when an observed
+  response or fixed-effect design value is non-finite (`Inf` in `y` or in a
+  predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
+  Missing (`NA`) and not-a-number (`NaN`) responses are still dropped by the
+  existing missingness rules (#1697).
+
+* Added internal `sha256_file_portable()` so parity-evidence scripts and tests can
+  compute file SHA-256 digests on every R version in `Depends`, using
+  `tools::sha256sum()` when exported (R 4.5+) and otherwise Suggested
+  `openssl`/`digest` or the `sha256sum`/`shasum` system utilities (#1702).
+
+# drmTMB 0.8.1
+
+* `mi()` predictors with a `beta_family()`, `zero_one_beta()` or
+  `Gamma(link = "log")` imputation model now use the stable Beta and Gamma
+  log-densities that the response kernels gained in #1547. The old inline
+  `lgamma()` forms lost up to 6e-7 per observed predictor at phi or shape
+  1e8. The R-side beta-binomial pmf behind `beta_binomial()` residuals and
+  quantiles, and the R density for beta-binomial `mi()` predictors, now use
+  the same cancellation-free gamma-function ratio as the compiled kernel.
+  Values at ordinary shape are unchanged to rounding (#1548).
+
+* Fixed-effect normal priors and ridge penalties now support Gaussian mean formulas with one independent random intercept. Priors can target mean and residual log-SD coefficients; the group SD remains estimated without a prior. The admitted route remains ML with complete data, unit weights and dense full-rank fixed designs.
+
+* Heritability, ICC and repeatability confidence intervals refuse active fixed-prior MAP fits. Existing interval and likelihood-comparison restrictions remain.
+
+* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
+  `se = TRUE` was already set and the Hessian is not positive definite; it now
+  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
+
+* `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
+  per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
+  bridge used to drop the row names, so labelled coordinates in any order other
+  than first appearance in `data` were paired with the wrong sites. A live
+  regression test now checks that a labelled `relmat()` K in sorted or
+  shuffled order gives the native logLik through the bridge (#1512).
+
 # drmTMB 0.8.0
 
 * Add explicit fixed-effect normal priors and ridge penalties for ordinary Gaussian location-scale and binomial-logit models. Select each distributional parameter and coefficient, with explicit intercept handling for whole-block selectors. Fits report penalized/MAP estimates and local curvature; confidence intervals and likelihood comparisons remain unavailable. Random-effect SD priors and tmbstan are outside this slice.
@@ -973,9 +1053,6 @@ parity or calibrated intervals.
   compare each input across Julia and native TMB and compare `A` with `Ainv`.
   Profile/bootstrap refitting for this route and interval calibration remain
   unverified. The existing Poisson animal-intercept `Ainv` route is unchanged.
-* `vcov()` no longer tells you to refit with `drm_control(se = TRUE)` when
-  `se = TRUE` was already set and the Hessian is not positive definite; it now
-  points to a boundary or aliased/collinear column and `check_drm()` (#1470).
 
 ## New features
 
@@ -1077,8 +1154,8 @@ parity or calibrated intervals.
   on the fixed-effect route, matching the Julia family registry and the
   Julia engine guide. Plain binomial is documented as admitted for
   fixed effects only. `@param engine` now cites the NEWS and
-  `tests/testthat/test-julia-family-*.R` same-target receipts at DRM.jl
-  pin 430ef64cc for those four families instead of a blanket unsourced
+  `tests/testthat/test-julia-family-*.R` same-target receipts at DRModels.jl
+  source pin 19e5e2fe for those four families instead of a blanket unsourced
   1e-4 / 1e-3 claim (#1569).
 * `?mi` now states that U-shaped Beta and zero-one-Beta priors (missing-row mean within 0.10 of 0 or 1) are flagged by the `drmTMB_mi_quadrature_inaccurate` warning, not integrated accurately by the fixed 15-node rule; no adaptive rule is planned (#1531).
 * `?nbinom2` now states that NB2 cannot go below the Poisson limit (an underdispersed count fit hits the `sigma` boundary (limit) and returns a degenerate result) and points underdispersed counts to `glmmTMB::compois()` / `glmmTMB::genpois()`. This is a documentation pointer only; no underdispersed count family is added (Refs #1466).
@@ -1110,12 +1187,6 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
-* `engine = "julia"` Gaussian `spatial(1 | site, coords = coords)` now matches
-  per-site `coords` rows to sites by row name, as `engine = "tmb"` does. The
-  bridge used to drop the row names, so labelled coordinates in any order other
-  than first appearance in `data` were paired with the wrong sites. A live
-  regression test now checks that a labelled `relmat()` K in sorted or
-  shuffled order gives the native logLik through the bridge (#1512).
 * Fit warnings and `check_drm()` now report active direct latent-SD clamps
   separately from residual-scale clamps. Start checks include direct SD
   regression coefficients. Residual-scale accessors keep their existing scope.

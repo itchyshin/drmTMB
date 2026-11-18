@@ -1,0 +1,93 @@
+name: Upload main coverage
+
+# workflow_run is loaded from the default branch, not the pull-request head.
+# Same-repo PRs never obtain OIDC. Fork PRs never obtain OIDC.
+# Authentication is GitHub OIDC via codecov/codecov-action; no CODECOV_TOKEN
+# is read. github.token below is only the Actions artifact download token for
+# workflow_run, not a Codecov credential.
+on:
+  workflow_run:
+    workflows: [test-coverage]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  upload:
+    # Never consume a pull-request artifact with an OIDC-capable job.
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the tested commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Download the trusted coverage artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-*
+          path: ${{ runner.temp }}/coverage
+          merge-multiple: false
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - name: Check all R coverage reports
+        run: |
+          set -euo pipefail
+          for shard in {1..9}; do
+            report="${COVERAGE_ROOT}/main-coverage-shard-${EXPECTED_ATTEMPT}-${shard}/cobertura.xml"
+            identity="${COVERAGE_ROOT}/main-coverage-shard-${EXPECTED_ATTEMPT}-${shard}/coverage-identity.txt"
+            if [[ ! -f "$report" || ! -s "$report" || ! -f "$identity" || ! -s "$identity" ]]; then
+              echo "::error::Missing or empty R coverage report or identity for shard ${shard}" >&2
+              exit 1
+            fi
+            if ! python3 -c 'import sys, xml.etree.ElementTree as E; sys.exit(0 if E.parse(sys.argv[1]).getroot().tag == "coverage" else 1)' "$report"; then
+              echo "::error::Invalid Cobertura XML for shard ${shard}" >&2
+              exit 1
+            fi
+            case "$shard" in
+              1) spec=1/16 ;;
+              9) spec=9/16 ;;
+              *) spec="${shard}/8" ;;
+            esac
+            for key in coverage_id shard checkout_sha run_id run_attempt; do
+              case "$key" in
+                coverage_id) expected="$shard" ;;
+                shard) expected="$spec" ;;
+                checkout_sha) expected="$EXPECTED_SHA" ;;
+                run_id) expected="$EXPECTED_RUN_ID" ;;
+                run_attempt) expected="$EXPECTED_ATTEMPT" ;;
+              esac
+              count=$(grep -c "^${key}=" "$identity" || true)
+              if [[ "$count" != 1 ]] || ! grep -Fxq "${key}=${expected}" "$identity"; then
+                echo "::error::Invalid ${key} in coverage identity for shard ${shard}" >&2
+                exit 1
+              fi
+            done
+          done
+        env:
+          COVERAGE_ROOT: ${{ runner.temp }}/coverage
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          EXPECTED_RUN_ID: ${{ github.event.workflow_run.id }}
+          EXPECTED_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5
+        with:
+          use_oidc: true
+          fail_ci_if_error: true
+          files: ${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-1/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-2/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-3/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-4/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-5/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-6/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-7/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-8/cobertura.xml,${{ runner.temp }}/coverage/main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-9/cobertura.xml
+          disable_search: true
+          plugins: noop
+          version: v11.3.2
+          override_branch: main
+          override_commit: ${{ github.event.workflow_run.head_sha }}
+          override_build_url: ${{ github.event.workflow_run.html_url }}
