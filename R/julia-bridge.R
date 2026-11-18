@@ -4602,6 +4602,65 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
   )
 }
 
+# Families whose DRM.jl `drm()` method accepts `marginal = :Laplace` on an
+# ordinary mean `(1 | g)` with an `sd(g)` formula (DRM.jl ordinary_laplace.jl,
+# binomial_sd_regression.jl, tweedie.jl, student.jl). Routes with no Julia
+# Laplace option (beta_binomial, cumulative_logit, hurdle/zero-inflated and
+# the other families) are not listed and keep their current behaviour.
+drm_julia_ordinary_laplace_families <- function() {
+  c("poisson", "nbinom2", "gamma", "beta", "binomial", "student", "tweedie")
+}
+
+# TRUE when the bridge should send `marginal = "Laplace"`: ML, one of the
+# families above, exactly one ordinary mean intercept bar `(1 | g)` whose group
+# has the one ordinary `sd(g, ...)` entry, only fixed-effect `sigma` / `nu`
+# entries besides, and no offset. Every other shape returns FALSE, so DRM.jl
+# keeps its default integrator there rather than refusing the call.
+drm_julia_ordinary_laplace_admitted <- function(formula, family_type, method) {
+  if (!identical(method, "ML") ||
+      !(family_type %in% drm_julia_ordinary_laplace_families())) {
+    return(FALSE)
+  }
+  sd_groups <- character()
+  for (entry in formula$entries) {
+    if (any(all.names(entry$rhs) == "offset")) {
+      return(FALSE)
+    }
+    if (identical(entry$dpar, "mu")) {
+      next
+    }
+    if (!is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)) {
+      target <- parse_sd_lhs(entry$lhs)
+      ordinary <- identical(target$fun, "sd") && is.na(target$level) &&
+        (is.na(target$target_dpar) || identical(target$target_dpar, "mu"))
+      if (!ordinary) {
+        return(FALSE)
+      }
+      sd_groups <- c(sd_groups, target$group)
+      next
+    }
+    if (!(entry$dpar %in% c("sigma", "nu")) ||
+        any(vapply(flatten_plus_terms(entry$rhs), is_random_bar_call, logical(1L)))) {
+      return(FALSE)
+    }
+  }
+  mu <- Filter(function(entry) identical(entry$dpar, "mu"), formula$entries)
+  if (length(mu) != 1L || length(sd_groups) != 1L) {
+    return(FALSE)
+  }
+  terms <- extract_random_mu_terms(mu[[1L]]$rhs, "mu")$terms
+  length(terms) == 1L &&
+    identical(terms[[1L]]$type, "intercept") &&
+    identical(terms[[1L]]$group, sd_groups)
+}
+
+drm_julia_bridge_sigma <- function(sigma) {
+  if (is.list(sigma) && identical(names(sigma), "trials")) {
+    return(list())
+  }
+  sigma
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -4641,6 +4700,20 @@ drm_julia_bridge_payload <- function(
     method = method,
     control_overrides = control_overrides
   )
+  # SHINICHI-1846-1117 (P6a option 3): on an ordinary mean `(1 | g)` with its
+  # `sd(g)` formula, native drmTMB integrates the group effect by the Laplace
+  # approximation while DRM.jl defaults to adaptive quadrature, so the two
+  # engines report slightly different logLik and estimates on the same model.
+  # Ask DRM.jl for its drmTMB-convention Laplace route here so that switching
+  # `engine` gives drmTMB's answer. DRM.jl's own default is unchanged, and a
+  # `marginal` already present in `options` is kept.
+  if (
+    is.null(phylo_payload) &&
+      is.null(options$marginal) &&
+      drm_julia_ordinary_laplace_admitted(formula, family_type, method)
+  ) {
+    options$marginal <- "Laplace"
+  }
   # Design 258 section 7.1: the Julia call carries only formula/family/data/
   # tree/options, so `coef_labels` travels INSIDE `options` (the bridge's
   # free-form channel) as options$coef_labels -- a list keyed by dpar of
@@ -7973,7 +8046,10 @@ new_drmTMB_julia <- function(
       result[["conditional_structured"]]
     ),
     residuals = drm_julia_plain(result[["residuals"]]),
-    sigma = drm_julia_plain(result[["sigma"]]),
+    # DRM.jl's Binomial `marginal = :Laplace` route stores the trial counts in
+    # `scales` under `trials`; they are not a sigma, so keep `sigma()` empty as
+    # on the default Binomial route.
+    sigma = drm_julia_bridge_sigma(drm_julia_plain(result[["sigma"]])),
     corpairs = drm_julia_plain(result[["corpairs"]]),
     opt = drm_julia_opt_slot(result),
     # #1108 / DRM.jl #632: the bridge attaches "gradient" (index-aligned with
