@@ -4592,6 +4592,28 @@ is_r_family_object <- function(x) {
   inherits(x, "family") && is.character(x$family) && length(x$family) == 1L
 }
 
+# Factor and ordered responses are integer level codes. Modelling those
+# codes as a continuous location used to succeed with no message (#1481).
+drm_abort_factor_location_response <- function(y, model_frame, family_label) {
+  if (!is.factor(y)) {
+    return(invisible(NULL))
+  }
+  resp_i <- attr(stats::terms(model_frame), "response")
+  response <- if (is.numeric(resp_i) && length(resp_i) == 1L && resp_i >= 1L) {
+    names(model_frame)[[resp_i]]
+  } else {
+    "response"
+  }
+  cli::cli_abort(
+    c(
+      "{family_label} response values must be numeric, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Factor level codes are not the response. Convert the column yourself if those codes are the measurements you mean to model."
+    ),
+    class = "drmTMB_factor_response"
+  )
+}
+
 drm_build_gaussian_ls_spec <- function(
   formula,
   data,
@@ -5124,6 +5146,7 @@ drm_build_gaussian_ls_spec <- function(
   keep <- aligned$keep
   V_known <- aligned$V_known
   y_raw <- stats::model.response(mf_mu)
+  drm_abort_factor_location_response(y_raw, mf_mu, "Gaussian")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && any(!observed_y)) {
@@ -5918,6 +5941,7 @@ drm_build_student_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_abort_factor_location_response(y_raw, mf_mu, "Student-t")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
@@ -6286,6 +6310,7 @@ drm_build_skew_normal_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_abort_factor_location_response(y_raw, mf_mu, "Skew-normal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
