@@ -1,0 +1,65 @@
+{
+  "evidence_id": "poisson-animal-pedigree-sensitivity-b26-20261102c",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 100-103> Rscript -e \"pkgload::load_all('.'); r<-as.data.frame(testthat::test_file('tests/testthat/test-poisson-animal-pedigree-sensitivity-b26.R', reporter='silent')); print(colSums(r[c('passed','failed','error','skipped')])); print(nrow(r))\"",
+  "execution_host": "Totoro, rsync copy of the worktree at HEAD (R/, src/, tests/ verified identical by checksum), 1 pinned core",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "7fd8acec38a3466cab97a543abdf13f8a634a9d9",
+  "tree_state": "HEAD 7fd8acec3; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T13:54:49Z",
+  "run_ended_utc": "2026-11-02T13:55:05Z",
+  "exit_code": 0,
+  "expectations_passed": 22,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 3,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-animal-pedigree-sensitivity-b26-20261102c/test-console.log",
+  "console_log_sha256": "8cb12d8fc5e3f99bbdda68ae30df524e484b3612dc63284b96351ff8d6aed585",
+  "test_path": "tests/testthat/test-poisson-animal-pedigree-sensitivity-b26.R",
+  "test_sha256": "8d8502c7b87b98f933eee8d5552e2a0929d06eb9f114367be6895d573bb11f1f",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-animal-pedigree-sensitivity-b26-20261102c/source-manifest.json",
+  "source_manifest_sha256": "d0e45cd26aafe9bda957ccabfe4718d2ce6ef07e9566b038bfe35eb4f0064bd6",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-poisson-animal-slope-ainv-pedigree-sd-20261101-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows. The parent receipts were re-recorded as -m26 at e9c72ab3e; the base ids without the -m26 suffix are the ones named in the test header.",
+  "scope": "Poisson animal(pedigree): slope-only animal(0 + x | id) with sd ~ v, and unlabelled animal(1 + x | id) (two independent fields, one SD formula per coefficient); independent Henderson tabular A compared with the package helper (1e-12), dense Laplace oracle (1e-4 on logLik), emulated-bug sensitivity. The unlabelled q2 fit is two independent fields, so it supports the animal_intercept and animal_numeric_slope rows, NOT the animal_correlated_block (shared-rho) rows.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"pedigree\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"pedigree\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "any family, link, provider or endpoint not listed in candidate_rows",
+    "Ainv_precision and A_covariance animal rows (only the pedigree input is fitted)",
+    "animal_correlated_block (shared-rho) rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Granted on native Poisson animal(pedigree) fits only. (1) The oracle is independent of the package. A is built by a hand-written Henderson tabular method (helper-sb26-oracle.R, no drmTMB internals) and checked against drmTMB:::drm_pedigree_additive_relationship at 1e-12 on an inbred pedigree (diag(A) up to 1.25). The marginal is a dense base-R Laplace evaluated at the fitted parameters. logLik agreement was 2.9e-11 and 2.3e-12 in my Totoro rerun (cores 174-179), against a tolerance of 1e-4. (2) Emulated-bug gaps from my rerun, which printed each gap, are far beyond that tolerance. Slope-only fit: cov2cor(A) 0.48, reversed SD vector 227, flipped v-slope sign 442, pedigree order read as factor order 20.8. Intercept-plus-slope fit: swapped selectors 143, reversed SDs 98, cov2cor(A) 0.57, A in the wrong order 52.7. The smallest gaps (0.48 and 0.57) are over 4,000 times the tolerance. The SD curves are non-trivial (sd of log SD 0.48 and 1.06). (3) Fitted rows: animal_numeric_slope is fitted twice, as slope-only animal(0 + x | id) with sd ~ v, and as the slope member of the unlabelled animal(1 + x | id), which is two independent fields with one SD formula each (sd ~ w on the intercept, sd ~ v on x). The animal_intercept row is supported only as the intercept member of that two-field fit, because no intercept-only animal(1 | id) fit exists, so the 'single additive-genetic field' wording is met only per coefficient. (4) Manifest: all 7 sha256 values match current files; the test is byte-identical to the ledger hash. The console log shows 22 passed, 0 failed, 0 errors, 0 skips, and 3 blocks. It also reports 0 live Julia tests, which is correct for this native id. Does NOT establish: that a lone intercept-only animal(1 | id) pedigree fit was tested; the animal_correlated_block (shared-rho) rows, since the two fields are independent; Ainv_precision or A_covariance animal rows (only pedigree input); other families or links; Julia parity; interval calibration, coverage, recovery or estimator accuracy; any broad parity claim.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 29, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-animal-pedigree-sensitivity-b26.R",
+    "test_sha256": "8d8502c7b87b98f933eee8d5552e2a0929d06eb9f114367be6895d573bb11f1f",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:58Z",
+    "ended_utc": "2026-11-03T01:11:11Z",
+    "expectations_passed": 22,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-animal-pedigree-sensitivity-b26-20261102c/test-console-rerun-81553915d.log",
+    "console_log_sha256": "d87d689a108e49f9a6506ad95ef4dcb4ff77a1a2a5ea9c1079fd4ec0939392e8",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

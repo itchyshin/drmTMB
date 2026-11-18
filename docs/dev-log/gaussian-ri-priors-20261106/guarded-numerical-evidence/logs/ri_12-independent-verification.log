@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_12",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 3.6818044250676854e-16,
+        "point_data_nll": 5.379979266662302e-16,
+        "point_prior": 2.9385130121538507e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.7562642377994675e-16,
+        "point_hessian": 5.569953982180869e-10,
+        "fit_objective_at_returned_point": 4.2358308725060824e-15,
+        "fit_data_nll": 3.0291531628983232e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 1.994598101941104e-11,
+        "fit_coefficients": 9.002235414901e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 7.234681502584778e-07
+      }
+    },
+    {
+      "id": "ri_12",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.2272681416892284e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 9.657005590368023e-17,
+        "point_hessian": 1.3471046019796629e-16,
+        "fit_objective_at_returned_point": 8.19838233371922e-16,
+        "fit_data_nll": 5.862877089396385e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 5.465588222479477e-16,
+        "fit_coefficients": 8.995662515331467e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 6.829466769502941e-10
+      }
+    },
+    {
+      "id": "ri_12",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 8.19838233371922e-16,
+        "fit_data_nll": 5.862877089396385e-16,
+        "fit_prior": 9.67648382578805e-17,
+        "fit_optimum_objective": 5.465588222479477e-16,
+        "fit_coefficients": 8.995662515331467e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 6.829466769502941e-10
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

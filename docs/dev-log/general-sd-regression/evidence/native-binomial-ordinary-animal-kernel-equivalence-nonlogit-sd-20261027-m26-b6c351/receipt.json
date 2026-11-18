@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-ordinary-animal-cloglog-ainv-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-ordinary-animal-cloglog-ainv-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e devtools::test(filter = \"\"binomial-ordinary-animal-kernel-equivalence-nonlogit-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd.R",
+      "test_sha256": "02a69d0e8e1d1c2455dc8c2c20a6595a6e648a7df3fe4c8fef0d053f7ab7a6c6",
+      "started_utc": "2026-11-02T13:16:10Z",
+      "ended_utc": "2026-11-02T13:17:31Z",
+      "exit_code": 0,
+      "expectations_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd-20261027-m26-b6c351/test-console-test-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd.log",
+      "console_log_sha256": "a2ff44de87e10f2b5fd4cbc220735fbef3c5c72271d886c7586c27c4fd6d1273"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd-20261027-m26-b6c351/source-manifest.json",
+  "source_manifest_sha256": "8b8cbc1353c4cbfabd14899cf31419bcfa9e6554f6bcced75c428bba9c81125a",
+  "review_status": "unreviewed"
+}

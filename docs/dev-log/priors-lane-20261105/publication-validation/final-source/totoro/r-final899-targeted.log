@@ -1,0 +1,402 @@
+loaded package: /home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-final899-lib/drmTMB 
+dinnage-audit-a3-curie: .....
+dinnage-audit-a3-misc: ..                     estimate std_error
+mu:(Intercept)    -0.06484252 0.2396454
+mu:x               0.17034292 0.4792909
+sigma:(Intercept)  0.16043216 0.1507556
+                         component  dpar       term     estimate std_error
+sigma         distributional-scale sigma (constant) 1.174018e+00 0.1769898
+sd:mu:(1 | g)     random-effect-sd    mu    (1 | g) 2.103086e-05 0.6504254
+                 scale
+sigma         response
+sd:mu:(1 | g) response
+                                            quantity level group    term
+derived:total_variance_share(g) total_variance_share group     g (1 | g)
+                                    estimate random_effect_variance
+derived:total_variance_share(g) 3.208962e-10           4.422971e-10
+                                residual_variance
+derived:total_variance_share(g)          1.378319
+                     estimate std_error
+mu:(Intercept)    -0.06484252 0.2294430
+mu:x               0.17034292 0.4588861
+sigma:(Intercept)  0.11692646 0.1443376
+                            component  dpar       term     estimate std_error
+sigma            distributional-scale sigma (constant) 1.124037e+00        NA
+sd:mu:(1 | g)        random-effect-sd    mu    (1 | g) 8.098234e-05 0.6227347
+sd:sigma:(1 | g)     random-effect-sd sigma    (1 | g) 1.423121e-07 0.1800684
+                    scale
+sigma            response
+sd:mu:(1 | g)    response
+sd:sigma:(1 | g) response
+                                            quantity level group    term
+derived:total_variance_share(g) total_variance_share group     g (1 | g)
+                                    estimate random_effect_variance
+derived:total_variance_share(g) 5.190624e-09           6.558139e-09
+                                residual_variance
+derived:total_variance_share(g)          1.263459
+..........<summary.drmTMB>
+estimator: ML
+                     estimate std_error
+mu:(Intercept)    -0.07701229 0.2290373
+sigma:(Intercept)  0.11469039 0.1443375
+sigma:x            0.14387012 0.2903029
+Distributional, random-effect, scale, and correlation parameters:
+                         component  dpar         term     estimate std_error
+sd:mu:(1 | g)     random-effect-sd    mu      (1 | g) 2.819993e-05 0.3797069
+fitted:sigma  distributional-scale sigma fitted range 1.124429e+00        NA
+               minimum  maximum    scale
+sd:mu:(1 | g)       NA       NA response
+fitted:sigma  1.043683 1.205176 response
+logLik: -36.81
+convergence_status: boundary
+convergence: 0
+.
+dinnage-audit-m1-families: ...................................................................................................
+dinnage-audit-m2: ..........................................
+dinnage-audit-s2: ......................<summary.drmTMB>
+estimator: ML
+                    estimate  std_error
+mu:(Intercept)     1.0386869 0.07619654
+sigma:(Intercept) -0.4318308 0.04567354
+Distributional, random-effect, scale, and correlation parameters:
+                                component  dpar        term  estimate
+sigma                distributional-scale sigma  (constant) 0.6493193
+sd:mu:(1 | g)            random-effect-sd    mu     (1 | g) 0.3644690
+sd:sigma:(0 + x | g)     random-effect-sd sigma (0 + x | g) 0.3147653
+                      std_error    scale
+sigma                0.02965671 response
+sd:mu:(1 | g)        0.06181252 response
+sd:sigma:(0 + x | g) 0.06659871 response
+logLik: -325.4
+convergence_status: converged
+convergence: 0
+................................
+dinnage-audit-wave1: .....................Dropped 1 unused factor level from g: "c".
+i Call `droplevels()` on the data before fitting to silence this message.
+..........
+dinnage-audit-wave2a: ..................................
+dinnage-audit-wave2b: .`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+......................
+dinnage-audit-wave4a: ...........
+dinnage-audit-wave4b1: .....ok: 0; notes: 0; warnings: 0; errors: 0
+.................W.
+dinnage-audit-wave4b2: ...............................................
+dinnage-audit-wave4c: S.....................
+Attaching package: 'glmmTMB'
+
+The following objects are masked from 'package:drmTMB':
+
+    beta_family, lognormal, nbinom2, truncated_nbinom2, tweedie
+
+Loading required package: Matrix
+boundary (singular) fit: see help('isSingular')
+......
+drmTMB-unused-dots: ............
+fixed-effect-priors: ..................................
+fixed-priors-workflow: ............................................
+predict-mean: ..................
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. Mi-1: unqualified beta() is base::beta after drmTMB attach ('test-dinnage-audit-wave4c.R:9:5') - Reason: pkgload dev attach binds unexported beta(); install attach is covered by test_check()
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Md-J: bias-corrected Wald intervals record wald_bias_corrected (Dinnage audit) ('test-dinnage-audit-wave4b1.R:164:3') - Wald interval for "sd:mu:spatial(1 | site)" is at or near a variance-component or correlation boundary.
+i Wald coverage is unreliable on the boundary; use `confint(method = "profile")` for this target.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+                               file
+1     test-dinnage-audit-a3-curie.R
+2     test-dinnage-audit-a3-curie.R
+3      test-dinnage-audit-a3-misc.R
+4      test-dinnage-audit-a3-misc.R
+5      test-dinnage-audit-a3-misc.R
+6      test-dinnage-audit-a3-misc.R
+7      test-dinnage-audit-a3-misc.R
+8  test-dinnage-audit-m1-families.R
+9  test-dinnage-audit-m1-families.R
+10 test-dinnage-audit-m1-families.R
+11 test-dinnage-audit-m1-families.R
+12 test-dinnage-audit-m1-families.R
+13 test-dinnage-audit-m1-families.R
+14 test-dinnage-audit-m1-families.R
+15 test-dinnage-audit-m1-families.R
+16 test-dinnage-audit-m1-families.R
+17 test-dinnage-audit-m1-families.R
+18 test-dinnage-audit-m1-families.R
+19          test-dinnage-audit-m2.R
+20          test-dinnage-audit-m2.R
+21          test-dinnage-audit-m2.R
+22          test-dinnage-audit-m2.R
+23          test-dinnage-audit-m2.R
+24          test-dinnage-audit-m2.R
+25          test-dinnage-audit-m2.R
+26          test-dinnage-audit-m2.R
+27          test-dinnage-audit-m2.R
+28          test-dinnage-audit-s2.R
+29          test-dinnage-audit-s2.R
+30          test-dinnage-audit-s2.R
+31          test-dinnage-audit-s2.R
+32          test-dinnage-audit-s2.R
+33          test-dinnage-audit-s2.R
+34          test-dinnage-audit-s2.R
+35          test-dinnage-audit-s2.R
+36       test-dinnage-audit-wave1.R
+37       test-dinnage-audit-wave1.R
+38       test-dinnage-audit-wave1.R
+39       test-dinnage-audit-wave1.R
+40       test-dinnage-audit-wave1.R
+41       test-dinnage-audit-wave1.R
+42       test-dinnage-audit-wave1.R
+43       test-dinnage-audit-wave1.R
+44      test-dinnage-audit-wave2a.R
+45      test-dinnage-audit-wave2a.R
+46      test-dinnage-audit-wave2b.R
+47      test-dinnage-audit-wave2b.R
+48      test-dinnage-audit-wave2b.R
+49      test-dinnage-audit-wave2b.R
+50      test-dinnage-audit-wave4a.R
+51      test-dinnage-audit-wave4a.R
+52     test-dinnage-audit-wave4b1.R
+53     test-dinnage-audit-wave4b1.R
+54     test-dinnage-audit-wave4b1.R
+55     test-dinnage-audit-wave4b1.R
+56     test-dinnage-audit-wave4b1.R
+57     test-dinnage-audit-wave4b1.R
+58     test-dinnage-audit-wave4b2.R
+59     test-dinnage-audit-wave4b2.R
+60     test-dinnage-audit-wave4b2.R
+61     test-dinnage-audit-wave4b2.R
+62     test-dinnage-audit-wave4b2.R
+63     test-dinnage-audit-wave4b2.R
+64     test-dinnage-audit-wave4b2.R
+65     test-dinnage-audit-wave4b2.R
+66     test-dinnage-audit-wave4b2.R
+67     test-dinnage-audit-wave4b2.R
+68      test-dinnage-audit-wave4c.R
+69      test-dinnage-audit-wave4c.R
+70      test-dinnage-audit-wave4c.R
+71      test-dinnage-audit-wave4c.R
+72      test-dinnage-audit-wave4c.R
+73      test-dinnage-audit-wave4c.R
+74        test-drmTMB-unused-dots.R
+75        test-drmTMB-unused-dots.R
+76        test-drmTMB-unused-dots.R
+77       test-fixed-effect-priors.R
+78       test-fixed-effect-priors.R
+79       test-fixed-effect-priors.R
+80       test-fixed-effect-priors.R
+81       test-fixed-effect-priors.R
+82       test-fixed-effect-priors.R
+83       test-fixed-effect-priors.R
+84     test-fixed-priors-workflow.R
+85     test-fixed-priors-workflow.R
+86     test-fixed-priors-workflow.R
+87     test-fixed-priors-workflow.R
+88     test-fixed-priors-workflow.R
+89     test-fixed-priors-workflow.R
+90     test-fixed-priors-workflow.R
+91              test-predict-mean.R
+92              test-predict-mean.R
+93              test-predict-mean.R
+94              test-predict-mean.R
+95              test-predict-mean.R
+96              test-predict-mean.R
+                                                                                                                                                                            test
+1                                                                                                 Md-H: beta_binomial kernel stays finite at extreme logit means (Dinnage audit)
+2                                                                                                     Md-H: beta_binomial mi() response leaf stays finite at extreme logit means
+3                                                                                                                     Md-I: REML summaries expose whether the estimator is exact
+4                                                                                                                 Mi-6: phylo validation reports extra tips pruned from the data
+5                                                                                                                Mi-10: pair-association simulation restores the caller RNG seed
+6                                                                                                        Mi-12: O3 optimizer controls are shared and non-convergence is reported
+7                                                                                                      UX-2 and UX-3: summary exposes nobs and redirects empty derived summaries
+8                                                                                                    M1 ordinal: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+9                                                                                                M1 categorical: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+10                                                                                                      M1 beta: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+11                                                                                                   M1 poisson: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+12                                                                                                 M1 lognormal: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+13                                                                                                     M1 gamma: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+14                                                                                                   M1 nbinom2: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+15                                                                                                   M1 tweedie: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+16                                                                                             M1 zero_one_beta: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+17                                                                                         M1 truncated_nbinom2: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+18                                                                                             M1 beta_binomial: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+19                                                                                                           M2: hand-recomputed log-likelihood matches logLik() under the clamp
+20                                                                                M2: sigma() equals the softclamp of the raw linear predictor and stays inside the clamp bounds
+21                                                                                                  M2: Pearson residual SD is close to 1 once sigma() reports the clamped scale
+22                                                                                           M2: simulate() per-row draw SD at the most-clamped rows matches the clamped sigma()
+23                                                                                                               M2: the clamp fix is a no-op when the clamp band is not binding
+24 M2 repair: clamp-bent rows are NA and flagged clamp_limited; in-band rows keep the ordinary Wald interval (review item 1, was 'interval brackets the clamped point estimate')
+25                  M2 repair: in-band Wald intervals are bit-identical to the pre-2a5b0665e raw-eta interval; no 'wald' row is clamp-bent or near-zero-width (review items 1-3)
+26                                                                     M2 repair: an se = FALSE fixed-effect sigma fit reports wald_unavailable without erroring (review item 4)
+27                                                                                  M2 repair: predict(fit, dpar = 'sd(id)') matches the kernel's clamped sd(id) (review item 2)
+28                                                                          S2: drm_constant_residual_sigma() returns the marginal moment for an ordinary sigma random intercept
+29                                                                                             S2: a constant sigma ~ 1 fit is unaffected by the fix (bit-identical closed form)
+30                                                                                              S2: a random SLOPE on sigma is refused by name, not silently returned as exp(b0)
+31                                                                                          S2: a unit-diagonal phylogenetic random intercept on sigma gets the same closed form
+32                                                                        S2b: sigma ~ spatial(1 | site, coords = ) with a q == 1 unit-diagonal correlation gets the closed form
+33                                                  S2b: a unit-diagonal phylogenetic random intercept on sigma ALONE (no phylo on mu) gets the closed form -- the regressed arm
+34                                                                                                S2b: a genuinely non-unit-diagonal structured precision still refuses, by name
+35                                                       S2b: a clamp-active fit refuses the marginal residual variance by name, and the default band still gets the closed form
+36                                                                                              Md-F: capability table lists non-Gaussian one-binary mi() routes (Dinnage audit)
+37                                                                                                                        remaining A1 help pages document Dinnage audit caveats
+38                                                                                                           M1: a constant weight leaves the mi() MLE unchanged (Dinnage audit)
+39                                                                                                                 Md-D: mi() is rejected outside the mu formula (Dinnage audit)
+40                                                                                                    Md-E: an unused factor level no longer zeroes out every SE (Dinnage audit)
+41                                                                                                               Md-N: dropped_rows reflects MSPL-discarded rows (Dinnage audit)
+42                                                                                                      Md-M: skew_normal's far tail matches pnorm(log.p = TRUE) (Dinnage audit)
+43                                                                                        unused fixed-effect factor levels are dropped with a message naming the column (#1584)
+44                                                                                         fixed_gradient does not fire on a correct Gaussian fit at n = 2000 (Dinnage audit M3)
+45                                                                                 fitted_distribution()$p()/$d() recycle a scalar threshold across every row (Dinnage audit S1)
+46                                                                                                    M4: simulate() masks missing-response rows instead of leaking the sentinel
+47                                                                                                                      M4: the already-correct beta_binomial branch still masks
+48                                                                                              S4: vcov(fit, type = 'robust') no longer silently returns the model-based matrix
+49                                                                                                       S5: AIC() with a drmTMB fit and a foreign fit returns one row per model
+50                                                                                                          A-8: dropped_rows reports groups that lost every row (Dinnage audit)
+51                                                                                                  Mi-5: Wald rho12 boundary warning does not recommend profile (Dinnage audit)
+52                                                                                                  Md-B: SE-inflation ratio uses a non-flagged median reference (Dinnage audit)
+53                                                                                                      UX-1: subset drm_check print reports X of N checks shown (Dinnage audit)
+54                                                                                               A-7: low observations-per-parameter ratio adds a check_drm note (Dinnage audit)
+55                                                                                                   Mi-4: near-collinear fixed-effect design columns add a note (Dinnage audit)
+56                                                                                         A-3: convergence_status and multi_start cannot clear a degenerate fit (Dinnage audit)
+57                                                                                                Md-J: bias-corrected Wald intervals record wald_bias_corrected (Dinnage audit)
+58                                                                                                   A-2: miss_control(predictor = fail) errors on NA predictors (Dinnage audit)
+59                                                                                                               UX-5: bf() accepts a formula held in a variable (Dinnage audit)
+60                                                                                             Mi-15: as.matrix() on confint gives a 2-column stats-style matrix (Dinnage audit)
+61                                                                                                     Mi-bundle: unsupported-parameter aborts include an i hint (Dinnage audit)
+62                                                                                          Mi-bundle: all drmTMB unsupported-parameter branches carry an i hint (Dinnage audit)
+63                                                                                                           Mi-bundle: mistyped data columns get a guided error (Dinnage audit)
+64                                                                                                       Mi-bundle: singular missing weight uses correct grammar (Dinnage audit)
+65                                                                                                       Mi-bundle: AIC across identical REML fits does not warn (Dinnage audit)
+66                                                                                           Mi-bundle: Tweedie d/p/q guard invalid power before calling tweedie (Dinnage audit)
+67                                                                                         S7: drm_control documents joint sigma+zi local optima and multi_start (Dinnage audit)
+68                                                                                                                    Mi-1: unqualified beta() is base::beta after drmTMB attach
+69                                                                                                             Mi-1: beta_family() is the exported proportion family constructor
+70                                                                                                                        Mi-1: unexported drmTMB:::beta() aliases beta_family()
+71                                                                                                                Mi-1: family = beta() names beta_family() instead of missing a
+72                                                                                                                   Mi-2: exported fixef and ranef work with drmTMB-only attach
+73                                                                                                         Mi-2: foreign glmmTMB and lmerMod extractors work after drmTMB attach
+74                                                                                                                drmTMB() names an unused subset argument without evaluating it
+75                                                                                                                                      drmTMB() names misspelt arguments in ...
+76                                                                                                                                      drmTMB() reports unnamed extra arguments
+77                                                                                                                     fixed-effect priors select columns by dpar and assignment
+78                                                                                                                                    selectors and numerical inputs fail closed
+79                                                                                                         resolved priors handle factors, zero ridge and mutated specifications
+80                                                                                                  compiled Gaussian and binomial objectives contain exactly the selected terms
+81                                                                                                                            missing and aliased columns cannot receive a prior
+82                                                                                                              Gaussian ridge coefficients match the exact conditional solution
+83                                                                                                             proper coefficient priors yield a finite MAP fit under separation
+84                                                                                                           fixed-prior request guards reject unsupported routes before fitting
+85                                                                                                                                     fixed-prior inference has explicit limits
+86                                                                                               prior defaults use an unclamped likelihood without overriding explicit controls
+87                                                                                                               prior workflow retains targets and guards unsupported inference
+88                                                                                                                 bridge options preserve selectors and expected public columns
+89                                                                                                                 public selectors match fitted factor and no-intercept columns
+90                                                                                                                              zero ridge preserves default likelihood controls
+91                                                                                                                        predict(type = 'mean') returns E[Y] for lognormal fits
+92                                                                                                                    predict(type = 'mean') returns E[Y] for zero-inflated fits
+93                                                                                                                           predict(type = 'mean') returns E[Y] for hurdle fits
+94                                                                                                        predict(type = 'mean') returns the expected score for cumulative_logit
+95                                                                                                              predict(type = 'mean') refuses dpar and leaves other types alone
+96                                                                                                                   predict(type = mean) gives a clear error for bivariate fits
+   failed error warning skipped passed
+1       0 FALSE       0   FALSE      2
+2       0 FALSE       0   FALSE      3
+3       0 FALSE       0   FALSE      4
+4       0 FALSE       0   FALSE      1
+5       0 FALSE       0   FALSE      1
+6       0 FALSE       0   FALSE      3
+7       0 FALSE       0   FALSE      4
+8       0 FALSE       0   FALSE      9
+9       0 FALSE       0   FALSE      9
+10      0 FALSE       0   FALSE      9
+11      0 FALSE       0   FALSE      9
+12      0 FALSE       0   FALSE      9
+13      0 FALSE       0   FALSE      9
+14      0 FALSE       0   FALSE      9
+15      0 FALSE       0   FALSE      9
+16      0 FALSE       0   FALSE      9
+17      0 FALSE       0   FALSE      9
+18      0 FALSE       0   FALSE      9
+19      0 FALSE       0   FALSE      1
+20      0 FALSE       0   FALSE      4
+21      0 FALSE       0   FALSE      1
+22      0 FALSE       0   FALSE      1
+23      0 FALSE       0   FALSE      4
+24      0 FALSE       0   FALSE     19
+25      0 FALSE       0   FALSE      6
+26      0 FALSE       0   FALSE      5
+27      0 FALSE       0   FALSE      1
+28      0 FALSE       0   FALSE     12
+29      0 FALSE       0   FALSE      4
+30      0 FALSE       0   FALSE      7
+31      0 FALSE       0   FALSE     11
+32      0 FALSE       0   FALSE      2
+33      0 FALSE       0   FALSE     11
+34      0 FALSE       0   FALSE      2
+35      0 FALSE       0   FALSE      5
+36      0 FALSE       0   FALSE      4
+37      0 FALSE       0   FALSE     13
+38      0 FALSE       0   FALSE      2
+39      0 FALSE       0   FALSE      2
+40      0 FALSE       0   FALSE      2
+41      0 FALSE       0   FALSE      2
+42      0 FALSE       0   FALSE      2
+43      0 FALSE       0   FALSE      4
+44      0 FALSE       0   FALSE      3
+45      0 FALSE       0   FALSE     31
+46      0 FALSE       0   FALSE     12
+47      0 FALSE       0   FALSE      1
+48      0 FALSE       0   FALSE      3
+49      0 FALSE       0   FALSE      7
+50      0 FALSE       0   FALSE      4
+51      0 FALSE       0   FALSE      7
+52      0 FALSE       0   FALSE      4
+53      0 FALSE       0   FALSE      2
+54      0 FALSE       0   FALSE      3
+55      0 FALSE       0   FALSE      4
+56      0 FALSE       0   FALSE      9
+57      0 FALSE       1   FALSE      1
+58      0 FALSE       0   FALSE      1
+59      0 FALSE       0   FALSE      2
+60      0 FALSE       0   FALSE      6
+61      0 FALSE       0   FALSE      6
+62      0 FALSE       0   FALSE     18
+63      0 FALSE       0   FALSE      3
+64      0 FALSE       0   FALSE      4
+65      0 FALSE       0   FALSE      1
+66      0 FALSE       0   FALSE      2
+67      0 FALSE       0   FALSE      4
+68      0 FALSE       0    TRUE      0
+69      0 FALSE       0   FALSE      2
+70      0 FALSE       0   FALSE      4
+71      0 FALSE       0   FALSE      9
+72      0 FALSE       0   FALSE      6
+73      0 FALSE       0   FALSE      6
+74      0 FALSE       0   FALSE      4
+75      0 FALSE       0   FALSE      7
+76      0 FALSE       0   FALSE      1
+77      0 FALSE       0   FALSE      3
+78      0 FALSE       0   FALSE      4
+79      0 FALSE       0   FALSE      4
+80      0 FALSE       0   FALSE     12
+81      0 FALSE       0   FALSE      3
+82      0 FALSE       0   FALSE      4
+83      0 FALSE       0   FALSE      4
+84      0 FALSE       0   FALSE      5
+85      0 FALSE       0   FALSE      3
+86      0 FALSE       0   FALSE      4
+87      0 FALSE       0   FALSE     19
+88      0 FALSE       0   FALSE      3
+89      0 FALSE       0   FALSE      6
+90      0 FALSE       0   FALSE      4
+91      0 FALSE       0   FALSE      4
+92      0 FALSE       0   FALSE      6
+93      0 FALSE       0   FALSE      3
+94      0 FALSE       0   FALSE      2
+95      0 FALSE       0   FALSE      2
+96      0 FALSE       0   FALSE      1

@@ -1,0 +1,22 @@
+TEST_SHA256_BEFORE bea50df7d03d66a4201245e88c5224bdbe8c38cbbe921b71abb52e218828eb91  tests/testthat/test-poisson-iid-structured-sd-regression.R
+START 2026-11-01T17:01:02Z
+ℹ Testing drmTMB
+poisson-iid-structured-sd-regression: ..........................................................................................................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+COUNTS expectations=170 failed=0 skipped=0 errors=0 warnings=0 tests=4
+                                                                      test nb
+1    Poisson relmat plus IID intercepts keep separate SD designs (K and Q) 70
+2 Poisson animal plus IID intercepts keep separate SD designs (A and Ainv) 65
+3               Poisson phylo plus IID intercepts keep separate SD designs 33
+4              Poisson IID plus structured SD keeps its other gates closed  2
+  failed skipped error warning
+1      0   FALSE FALSE       0
+2      0   FALSE FALSE       0
+3      0   FALSE FALSE       0
+4      0   FALSE FALSE       0
+EXIT_STATUS 0
+END 2026-11-01T17:01:25Z
+TEST_SHA256_AFTER bea50df7d03d66a4201245e88c5224bdbe8c38cbbe921b71abb52e218828eb91  tests/testthat/test-poisson-iid-structured-sd-regression.R

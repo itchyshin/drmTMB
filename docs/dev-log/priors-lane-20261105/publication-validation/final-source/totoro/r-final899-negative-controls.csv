@@ -1,0 +1,7 @@
+"control","rejected"
+"dropped_sigma",TRUE
+"excluded_intercept_penalized",TRUE
+"wrong_lambda_factor",TRUE
+"missing_derivative",TRUE
+"duplicated_penalty",TRUE
+"dropped_rebuild_metadata",TRUE

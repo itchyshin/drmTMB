@@ -333,6 +333,7 @@ Type drm_log1p_accurate(Type x)
 // both branches. The direct branch is kept below the switch, where it is
 // accurate to about 1e-13, and is finite (unclamped) on the far side; the
 // Stirling branch sees x clamped to the switch so S() stays bounded.
+// Note: x = Inf gives NaN (Stirling branch: (Inf - 1/2) * log1p(0) = Inf * 0); callers must keep x finite.
 template<class Type>
 Type drm_lgamma_ratio(Type x, Type m)
 {

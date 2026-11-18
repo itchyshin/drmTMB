@@ -1,0 +1,5 @@
+Test Summary:                        | Pass  Total     Time
+Binomial correlated q3 SD regression |   16     16  3m16.5s
+Test Summary:                                     | Pass  Total     Time
+Binomial non-logit correlated-block SD regression |   32     32  1m25.5s
+DRM_RUN start=2026-11-02T13:59:46Z end=2026-11-02T14:04:31Z rc=0 core=243

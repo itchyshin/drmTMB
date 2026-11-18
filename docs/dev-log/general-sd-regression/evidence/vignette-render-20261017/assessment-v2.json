@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "9678c6d5caf89c8fc72a883f3d83532e0fe1d70e2c1f2cce7be0f419ea7e7150",
+  "draft_version": "v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex subagent self-review",
+  "method": "Manual whole-draft review using prose-style-review and source comparison; no model call.",
+  "genre": "Applied statistical methods vignette",
+  "coverage": "Entire v2 vignettes/predictor-dependent-random-sd.Rmd, including revised compact diagnostics, observed ratio table, and scope wording; source syntax parsed; fit/render outputs are from the prior exact-content-equivalent v1 code and fixed-seed data, while v2 presentation awaits fresh Totoro render.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The guide answers a concrete model question, pairs equations with formula syntax, shows observed rather than selectively tuned recovery values, and keeps full diagnostics inspectable without dominating the page. The render-based values and estimates were checked against the retained fixed-seed output; the new layout awaits a fresh render.",
+  "confidence": "medium",
+  "confidence_reason": "Exact v2 source was reviewed and parsed; model estimates and fixed-seed values were checked against the retained Totoro execution of unchanged fitting code. The revised page layout has not yet been rendered, and there is no independent reader review.",
+  "examples": [
+    {
+      "location": "Model formula explanation and diagnostics sections",
+      "cue": "More general random-regression models can use within-group predictors to define random slopes; that is a different model structure from the intercept-only examples here.",
+      "impact": "This preserves the example boundary without implying that all predictors used for random effects must be group-constant.",
+      "repair": "no change needed",
+      "line": 55,
+      "quote": "More general random- regression models can use within-group predictors to define random slopes"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and formulas remain scoped to the demonstrated ordinary scalar random-intercept cases. The fixed-seed ratio comparison is explicitly an example-specific observation, not recovery or calibration evidence.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Diagnostic objects and their compact display use the returned check/status columns; prediction and formula statements remain grounded in the package scope documentation and source. The recorded numeric estimates match the retained Totoro rendering of the same fixed-seed fitting code. V2 layout and rendered display await fresh verification.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The vignette makes no external literature claims and includes no citations.",
+  "date": "2026-10-17",
+  "calibration_status": "No parameter-recovery or interval-calibration claim. Fresh v2 Totoro render remains pending.",
+  "interpretation": "perceived_style_not_authorship"
+}

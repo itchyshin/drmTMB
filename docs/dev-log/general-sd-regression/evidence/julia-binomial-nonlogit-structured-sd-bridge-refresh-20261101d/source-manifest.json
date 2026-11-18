@@ -1,0 +1,38 @@
+{
+  "scope": "Source identity for tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R re-run on 2026-11-01 (stale-row refresh)",
+  "note": "Dirty shared candidate tree (branch codex/general-sd-regression, HEAD 33e4e966a05f4381ee790b238b41d6d12fa3032c plus uncommitted edits); hashes identify test-time files. Test file hash unchanged before and after the run. File list inherited from julia-binomial-animal-slope-Ainv-nonlogit-bridge-live-20261029 manifest.",
+  "files": [
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "ad889bfc6cf42ca9dde65301e4b8b04846eb0afcd17409d432da087d40074686"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "04858b361162fb58e15188e5498ecace25330c18c2a92e9e22260601d335377a"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "a0fd4f4d613467f13064c2512f10587316a78ae5ff776251180c17d36ce9e783"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R",
+      "sha256": "9c7e1d4949fabe218607ebcc3af8b5ff9c1e62dc80acc5869a262874176ec4fc"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "../general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "713f54870e3a7784c3cf17c3119b4ff96d88cdbab96aeea3ea782f4f1a3114bd"
+    },
+    {
+      "file": "../general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "71c23b8db4f70fe6a58da8a064cd001a279c1f2413925fb98fe01e3a0ce2712c"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-structured-sd-bridge-refresh-20261101d/test-console.log",
+      "sha256": "ea5464c77378e0002fe9ffaeee6c7892ff84ca2073ccfb28e4a2da9bfec7a12c"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+ℹ Testing drmTMB
+gaussian-correlated-q2-sd: .................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+=== COUNTS ===
+test_blocks: 3 
+expectations_passed: 17 
+failed: 0 
+errors: 0 
+skipped_blocks: 0 
+warnings: 0 
+                                                                                       test
+1                     Gaussian correlated q2 SD regression recovers both coefficient scales
+2                                         Gaussian correlated q3 SD regression stays closed
+3 Gaussian correlated q2 with an SD formula on the slope only keeps a constant intercept SD
+  nb passed failed skipped error warning
+1 12     12      0   FALSE FALSE       0
+2  1      1      0   FALSE FALSE       0
+3  4      4      0   FALSE FALSE       0
+EXIT_STATUS: 0 

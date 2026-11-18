@@ -1,0 +1,9 @@
+`engine = "julia"` cannot fit a random slope inside a `animal()` marker.
+✖ `animal(1 + x | id)` asks for slope "x" on the mu `animal()` covariance
+  structure, which this bridge does not marshal (DRM.jl#620/#621).
+ℹ Some family-specific animal-slope SD routes are admitted separately; other
+  structured random-slope routes remain unsupported by this bridge.
+ℹ Use native `engine = "tmb"` for structured random slopes.
+ℹ Use a family-specific admission only when its exact marker, coefficient, and
+  SD target are supported. 
+JULIA_REFUSAL_BEFORE_SETUP_PASS

@@ -1,0 +1,16 @@
+{
+  "draft_sha256": "9678c6d5caf89c8fc72a883f3d83532e0fe1d70e2c1f2cce7be0f419ea7e7150",
+  "native_archive_sha256": "2cab4d8f1ff25fd5d9ac6294dd0dae450e71143c90aa07c333a468f27d1204a4",
+  "remote_library": "/home/snakagaw/hsq_work/drmtmb-general-sd-poisson-label-20261017-01/library",
+  "execution": "two independent synthetic fits; knitr exit0; no fit reruns in local rendering",
+  "render": "rmarkdown html_vignette locally; exit0; one Pandoc deprecated --mathjax warning",
+  "visual_review": "Chrome localhost; equations rendered, compact check/status tables and true-versus-estimated ratios inspected; layout within page width; user browser extension popup overlays right margin",
+  "calibration_claim": false,
+  "files": {
+    "guide-knit-v2.log": "d40a5e541c1690431deb47f2a5026854e06ef019f06e374f74bcd4306a274e87",
+    "predictor-dependent-random-sd-v2.html": "3b3e553f2b56e380605fbe05e51b21c269bee532fc27de71d898f16345aef8c7",
+    "guide-knit.log": "93f11237421616b0c05d83a449e2a9a91f7dbdf1a9ee7eebacc20778de892244",
+    "predictor-dependent-random-sd.md": "3f72502b24fae3cc9f14f27655ba6a3a794c7f18923dce6550ae5d8dadbeccd7",
+    "predictor-dependent-random-sd-v2.md": "c9f7ec85161cae6b93c5e0fc2f99b74fcb82bfacaf7cf3899dd27a9d4699ba2f"
+  }
+}

@@ -1,0 +1,3 @@
+FRESH  docs/dev-log/priors-lane-20261105/release-default-bridge-recheck/current.json: 66 recorded R/ files match, 0 differ or absent, 0 unrecorded, all on the call path; 0 informational (changed or unrecorded, off the call path); runner matches; 41 R/ files on the call path; 115 of 115 DRM.jl-side entries match DRM_JL_PATH=/Users/z3437171/.codex/worktrees/drmodels-fixed-priors-20261105/DRM.jl
+PHYLO_LABEL_RECEIPT_PASS labels=12 rows=72 checks=8 tolerance=4e-06
+C14 receipt equivalence: OK (3 eligible, 7 source-different retained receipts; C17 current-source compatibility PASS)

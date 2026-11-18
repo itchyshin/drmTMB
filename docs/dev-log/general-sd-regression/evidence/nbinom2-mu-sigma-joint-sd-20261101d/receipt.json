@@ -1,0 +1,70 @@
+{
+  "evidence_id": "native-nbinom2-mu-sigma-joint-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "NB2 joint mu (1 | id) and sigma (1 | g) ordinary random intercepts, each with its own SD formula, dense Laplace oracle (logLik 1e-3), gradient 1e-2, emulated-bug sensitivity",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-nbinom2-mu-sigma-joint-sd.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-nbinom2-mu-sigma-joint-sd.R",
+  "test_sha256": "08f40179370fe34b7114cc44d64db8dc22380b335ce8502233c84bc363fcca55",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/source-manifest.json",
+  "source_manifest_sha256": "59b4855f499930bf8979501ba1f085f6a4b72ed819fcd7e204a5b5aa997b85e1",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console.log",
+  "console_log_sha256": "026006b6b9ac2c5cafe2b3ae8cabbc5cc6d8dedbb9fc5a89f76ceb8657652bce",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "iid_intercept",
+      "provider_input": "group_factor",
+      "target_member": "mu:I"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"sigma\",\"sigma\",\"sigma:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "iid_intercept",
+      "provider_input": "group_factor",
+      "target_member": "sigma:I"
+    }
+  ],
+  "not_covered": [
+    "labelled cross-parameter O-cross-LS-I rows",
+    "slopes",
+    "mu-sigma correlation",
+    "calibration, Julia parity"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed a base-R dense Laplace oracle for crossed id (mu) and g (sigma) random intercepts. The oracle has an analytic gradient, a finite-difference Hessian, a joint (G+H)-dimensional mode, NB2 size = exp(-2 log sigma), and does not call drmTMB or TMB. It supports both linked rows: native nbinom2 log, iid intercept, mu:I via sd(id) ~ w and sigma:I via sd(g, dpar='sigma') ~ z. Oracle agreement is 1e-3 (loose), with the oracle surface stationary at the fitted optimum (max |grad| < 1e-2) and pdHess true. Emulated-bug sensitivity exists and is explicit: swapped mu and sigma SD blocks, scrambled level assignment and a dropped sigma random effect each move the oracle by more than 0.1. A cold-start independent oracle MLE of the constant-SD fit matches (logLik 1e-3, coefficients 2e-2). Neighbouring routes (one SD formula only, slopes, zero-inflated, missing include, two mean intercepts) are asserted refused. Focused test rerun on the current worktree: 29 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 2 of 6 entries differ (R/drmTMB.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish cross-parameter mu-sigma correlation or labelled blocks, slopes, calibration, coverage or Julia parity. The 1e-3 oracle tolerance is loose, one fixture. The receipt manifest needs a refresh.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-mu-sigma-joint-sd.R",
+    "test_sha256": "08f40179370fe34b7114cc44d64db8dc22380b335ce8502233c84bc363fcca55",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:34Z",
+    "ended_utc": "2026-11-03T01:11:26Z",
+    "expectations_passed": 29,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-mu-sigma-joint-sd-20261101d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "4f48f3fc4888146ba4eaf153e9284c830467dae13fd9445046fd38348b27a429",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "positive_control": "PASS",
+  "mutations_rejected": [
+    "omitted_prior",
+    "doubled_prior",
+    "misindexed_gradient",
+    "altered_constant",
+    "missing_solver_status",
+    "failed_solver_status"
+  ]
+}

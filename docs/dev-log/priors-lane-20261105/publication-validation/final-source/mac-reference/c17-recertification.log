@@ -1,0 +1,29 @@
+capability-ledger: OK (31 generated outputs)
+............................................................................................
+----------------------------------------------------------------------
+Ran 92 tests in 2.005s
+
+OK
+C14 receipt equivalence: OK (3 eligible, 7 source-different retained receipts; C17 current-source compatibility PASS)
+capability-ledger: OK (1 generated outputs)
+prior receipt:
+    mc-0568  mean_tau_relative_error 0.0990031773680984
+    mc-0569  mean_tau_relative_error 0.166077467305878
+    mc-0576  mean_tau_relative_error 0.0613049351741076
+
+running tools/run-lane-c-c17c1-c14-model15-compatibility.R (~80 s) ...
+
+new receipt:
+    mc-0568  0.0990031773680984   |change| 0.000e+00
+    mc-0569  0.166077467305878   |change| 0.000e+00
+    mc-0576  0.0613049351741076   |change| 0.000e+00
+
+behaviour reproduced within tolerance (0.000e+00 <= 0.000e+00).
+receipt -> docs/dev-log/implementation-recovery/2026-11-06-priors-publish-c17c2-c14-final-source-compatibility
+manifest rewired: current_source_sha=8998056d7 source_fingerprint=4f17edf7992a...
+
+claim_boundary is NOT touched -- it is prose describing what sits outside the
+authenticated anchors, and only a human knows what the current change was.
+Review it before committing.
+
+verifying ...

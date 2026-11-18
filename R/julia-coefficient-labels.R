@@ -45,6 +45,27 @@ drm_julia_bridge_variance_component_prefixes <- function() {
   c("resd_", "recov_", "phylocov_")
 }
 
+# A sole selected ordinary SD target, e.g. `sd(id, coef = "x") ~ w`, is labelled
+# in the payload under its hashed `sdtarget_<hex>` block, but DRM.jl exposes a
+# single SD target through its stable `sd` block (DRM.jl's
+# `_bridge_single_sd_coef_label_alias()` renames the echoed label the same
+# way). Mirror that rename here so the check compares like with like. It fires
+# only when the engine returned an `sd` block, the payload has no `sd` key, and
+# exactly one `sdtarget_` key is present; the labels themselves are untouched,
+# so a real disagreement in the terms still aborts.
+drm_julia_alias_single_sd_target_labels <- function(coef_labels, engine_dpars) {
+  if (!("sd" %in% engine_dpars) || "sd" %in% names(coef_labels)) {
+    return(coef_labels)
+  }
+  hashed <- grep("^sdtarget_[[:xdigit:]]+$", names(coef_labels))
+  if (length(hashed) != 1L ||
+      any(grepl("^sdtarget_[[:xdigit:]]+$", engine_dpars))) {
+    return(coef_labels)
+  }
+  names(coef_labels)[[hashed]] <- "sd"
+  coef_labels
+}
+
 # Fail-closed check, run UNCONDITIONALLY after the post-call label step
 # resolves `coef_names` (whether from a validated `bridge_formula_labels_v1`
 # map or, absent a map, the engine's raw names) -- design 258 S7.3. D-202:
@@ -90,6 +111,9 @@ drm_julia_bridge_check_coef_labels <- function(coef_names, bridge_payload) {
     rep(FALSE, length(coef_names))
   )
   engine_dpars <- unique(split$dpar[!is_variance_component])
+  coef_labels <- drm_julia_alias_single_sd_target_labels(
+    coef_labels, engine_dpars
+  )
 
   detail <- character()
   missing_dpars <- setdiff(engine_dpars, names(coef_labels))

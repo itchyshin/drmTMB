@@ -1,0 +1,78 @@
+{
+  "evidence_id": "binomial-correlated-q3-sd-oracle-b29b-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 216-221> Rscript -e \"pkgload::load_all('.', quiet=TRUE); r<-as.data.frame(testthat::test_file('tests/testthat/test-binomial-correlated-q3-sd-oracle-b29b.R', reporter='summary')); print colSums of passed/failed/error/skipped\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 of HEAD (R/, src/ and tests/ b29b files verified identical by checksum), 1 pinned core",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD on the run host; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:51Z",
+  "run_ended_utc": "2026-11-02T18:16:55Z",
+  "exit_code": 0,
+  "expectations_passed": 36,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 1,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-correlated-q3-sd-oracle-b29b-20261102d/test-console.log",
+  "console_log_sha256": "02f9b103b8d4f30da2dbe5d4af55d0c35b3c025157d9471a665e9175d0ddd842",
+  "test_path": "tests/testthat/test-binomial-correlated-q3-sd-oracle-b29b.R",
+  "test_sha256": "6550b4caf4143c60b050a4ba8e284270b493b0278ab77d53b29850dc46852277",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-correlated-q3-sd-oracle-b29b-20261102d/source-manifest.json",
+  "source_manifest_sha256": "61d9ae59b8ff5f4a9fc3dbc15791938d09b669a467e403e18ff93de5b0c3d026",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-binomial-correlated-q3-nonlogit-sd-20261028-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows.",
+  "scope": "Bernoulli iid (1 + x + z | id) correlated q=3 block, probit and cloglog, sd() formula on every coefficient with its own group-level selector; dense per-group Laplace oracle in base R at 1e-4 on logLik; sensitivity to rotated SD sets, reversed SD vectors, flipped correlation sign, R=identity.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1,x2\",\"cloglog\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1,x2\",\"probit\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1,x2\",\"cloglog\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1,x2\",\"probit\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x2\",\"I,x1,x2\",\"cloglog\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x2\",\"I,x1,x2\",\"probit\",\"iid_correlated_block\",\"O-multi-within-q3-anchor\",\"iid\",\"intercept and numeric slope(s)\",\"group_factor\",\"labelled_cross_parameter_block\",\"q=3;partition=one_correlated_term\",\"anchor\",\"3\",\"one_correlated_term\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "logit link",
+    "q=2 or q>=4 blocks",
+    "structured providers (animal, phylo, relmat, spatial)",
+    "more than one seed per link"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read test and helper-b29b-corrblock-oracle.R line by line. Oracle is independent: base-R dense per-group Laplace (sb26_laplace/sb26_deriv_binary, hand-written probit and cloglog derivatives), SD vectors built by hand from fitted coefficients, R parsed by name from fitted cor() names; logLik agrees at 1e-4. Emulated bugs (rotated coefficient sets, reversed SD for each of I/x/z, flipped first correlation, R=identity) are each asserted to move the oracle by >0.1, about 1000x the tolerance. Fit is a single correlated q=3 block ((1+x+z|id), expect_length(cors,3)) with an sd() formula on each of I, x, z, so all six linked rows (mu:I/x1/x2 x probit/cloglog) are fitted. All sha256 in the fragment, manifest and receipt recompute correctly; console log shows 36 passed, 0 failed, 0 skipped. Minor gap: helper-sb26-oracle.R, which the test also uses, is not in the manifest (tracked at HEAD, same hash on Totoro). Supports likelihood assembly and selector alignment for these 6 rows only. Does NOT establish: calibration or coverage, recovery or estimator accuracy, Julia parity (live Julia not run), the logit link, q=2 or q>=4, structured providers (animal, phylo, relmat, spatial), or anything beyond one seed per link; the oracle is evaluated at the fitted parameters, so it checks likelihood assembly, not that the optimum is correct.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-correlated-q3-sd-oracle-b29b.R",
+    "test_sha256": "6550b4caf4143c60b050a4ba8e284270b493b0278ab77d53b29850dc46852277",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:06:07Z",
+    "ended_utc": "2026-11-03T01:06:51Z",
+    "expectations_passed": 36,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-correlated-q3-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "c19fca35217fd62e7a9de35cef00f299edfed735acbd09722f765b2cc2aa7bf0",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

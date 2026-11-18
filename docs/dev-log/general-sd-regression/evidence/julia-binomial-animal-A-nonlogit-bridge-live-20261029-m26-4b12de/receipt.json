@@ -1,0 +1,26 @@
+{
+  "evidence_id": "binomial-animal-A-probit-20261029-m26",
+  "rerecord_of_evidence_id": "binomial-animal-A-probit-20261029",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-A-nonlogit-bridge-live-20261029/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"JULIA_HOME='/Users/z3437171/.juliaup/bin' DRMTMB_JULIA_TESTS=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 R_PROFILE_USER=/dev/null /usr/local/bin/Rscript -e 'devtools::test(filter = \"\"julia-binomial-animal-A-nonlogit-sd-bridge\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-animal-A-nonlogit-sd-bridge.R",
+      "test_sha256": "4b4ebc9412e4df39a0331db295c5ad107c9f0acd2d9ac936c49da52af6e2c13d",
+      "started_utc": "2026-11-02T13:14:32Z",
+      "ended_utc": "2026-11-02T13:14:43Z",
+      "exit_code": 0,
+      "expectations_passed": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-A-nonlogit-bridge-live-20261029-m26-4b12de/test-console-test-julia-binomial-animal-A-nonlogit-sd-bridge.log",
+      "console_log_sha256": "83834878cddd22b31b9ca5275daaa4d87a259a8bc9a53867ecd19a222578ab57"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-A-nonlogit-bridge-live-20261029-m26-4b12de/source-manifest.json",
+  "source_manifest_sha256": "7d0be75c84d5f51b34aa64775b3d3df0d61f13b6cce676f762fb4bf5726dd31d",
+  "review_status": "unreviewed"
+}

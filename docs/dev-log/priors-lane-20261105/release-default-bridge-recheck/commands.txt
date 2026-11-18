@@ -1,0 +1,5 @@
+R b86709e16b477c4d232eaec16e9567ec12e136fa
+Julia f940fc4042ee2832c3343f7d334e830a96942f1b
+R CMD INSTALL --preclean --no-multiarch --with-keep.source --library=r-bridge-b867-lib r-bridge-b867-src
+env LD_PRELOAD=Julia-1.10.10/lib/julia/libunwind.so.8.0.1 Rscript --no-init-file tools/run-julia-phylo-labels-public.R JULIA_ROOT NEW_JSON tree
+Rscript --no-init-file tools/check-julia-phylo-labels-receipt.R NEW_JSON --current --self-test

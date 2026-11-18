@@ -1,0 +1,8 @@
+Current-source crossed Bernoulli workflow evidence:
+
+- R-to-Julia bridge: `PATH="$HOME/.juliaup/bin:$PATH" DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia" DRMTMB_JULIA_TESTS=true JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 /usr/local/bin/Rscript -e 'devtools::test(filter = "julia-binomial-crossed-sd", reporter = "summary", stop_on_failure = TRUE)'`: exit 0; one live Julia bridge test ran, no failed assertions or skips. JuliaCall emitted one non-fatal `LogExpFunctionsInverseFunctionsExt` precompile warning (`UndefVarError: loglogistic`).
+- Paired DRM.jl test: `PATH="$HOME/.juliaup/bin:$PATH" JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. -e 'using Test; include("test/test_binomial_crossed_sd_regression.jl")'`: 20/20 assertions passed in 20.2 seconds on Julia 1.10.0.
+- Evidence reconciler: `python3 tools/general-sd-regression/reconcile_evidence.py`: PASS, 19,118 candidate rows, 28 receipt records, 24 distinct linked rows, 19,094 unlinked rows.
+- Reconciler unit tests: `python3 -m unittest discover -s tools/general-sd-regression/tests -p 'test_reconcile_evidence.py'`: PASS, 11/11.
+
+The source-bound receipt is `docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-bridge-20261023-current/`. It remains unreviewed and supports this crossed synthetic workflow only; it does not establish interval coverage or broader family/effect parity. G2 remains the only checked programme gate.

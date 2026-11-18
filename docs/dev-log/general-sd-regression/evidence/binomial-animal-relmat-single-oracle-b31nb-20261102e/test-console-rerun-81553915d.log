@@ -1,0 +1,21 @@
+binomial-animal-relmat-single-oracle-b31nb: ..........B31NB animal intercept logit A | agree 4.09e-12 | min gap 0.555 (cov2cor_K) | n gaps 4
+..........B31NB animal intercept logit Ainv | agree 4.21e-12 | min gap 0.555 (cov2cor_K) | n gaps 4
+...........B31NB animal intercept probit A | agree 5.34e-09 | min gap 0.375 (cov2cor_K) | n gaps 4
+..........B31NB animal intercept probit Ainv | agree 5.34e-09 | min gap 0.375 (cov2cor_K) | n gaps 4
+...........B31NB animal intercept cloglog A | agree 7.96e-13 | min gap 1.302 (cov2cor_K) | n gaps 4
+..........B31NB animal intercept cloglog Ainv | agree 6.82e-13 | min gap 1.302 (cov2cor_K) | n gaps 4
+............B31NB animal slope logit A | agree 1.90e-11 | min gap 1.009 (cov2cor_K) | n gaps 5
+...........B31NB animal slope logit Ainv | agree 1.92e-11 | min gap 1.009 (cov2cor_K) | n gaps 5
+............B31NB animal slope probit A | agree 1.66e-11 | min gap 0.333 (cov2cor_K) | n gaps 5
+...........B31NB animal slope probit Ainv | agree 1.68e-11 | min gap 0.333 (cov2cor_K) | n gaps 5
+............B31NB animal slope cloglog A | agree 5.68e-13 | min gap 0.433 (cov2cor_K) | n gaps 5
+...........B31NB animal slope cloglog Ainv | agree 4.55e-13 | min gap 0.433 (cov2cor_K) | n gaps 5
+...........B31NB relmat intercept logit K | agree 1.69e-11 | min gap 1.556 (K_times_2) | n gaps 4
+..........B31NB relmat intercept probit K | agree 2.27e-13 | min gap 2.177 (K_times_2) | n gaps 4
+..........B31NB relmat intercept cloglog K | agree 2.50e-12 | min gap 0.899 (cov2cor_K) | n gaps 4
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=162 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-03T01:05:34Z end=2026-11-03T01:06:44Z rc=0

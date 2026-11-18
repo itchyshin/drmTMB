@@ -389,21 +389,19 @@ test_that("Poisson q1 phylogenetic structured intercept rejects nearby planned r
   dat <- sim$data
   dat$id <- factor(rep(seq_len(8L), each = 5L))
 
-  expect_error(
-    drmTMB(
-      bf(count ~ x + phylo(0 + x | species, tree = tree)),
-      family = stats::poisson(link = "log"),
-      data = dat
-    ),
-    "intercept-only or one-slope"
+  # A phylogenetic slope-only term is now admitted for Poisson (fit evidence in
+  # test-poisson-phylo-relmat-slope-sd-regression.R); it must still assemble.
+  expect_no_error(
+    drm_build_poisson_spec(
+      bf(count ~ x + phylo(0 + x | species, tree = tree)), dat
+    )
   )
-  expect_error(
-    drmTMB(
-      bf(count ~ x + (1 | id) + phylo(1 | species, tree = tree)),
-      family = stats::poisson(link = "log"),
-      data = dat
-    ),
-    "cannot be combined"
+  # One ordinary intercept plus one q1 phylogenetic intercept is now admitted
+  # (fit evidence: test-poisson-iid-structured-sd-regression.R).
+  expect_no_error(
+    drm_build_poisson_spec(
+      bf(count ~ x + (1 | id) + phylo(1 | species, tree = tree)), dat
+    )
   )
   expect_error(
     drmTMB(
@@ -622,13 +620,13 @@ test_that("Poisson models reject unsupported or invalid inputs", {
     ),
     "unlabelled Poisson intercept-slope block"
   )
-  expect_error(
+  expect_s3_class(
     drmTMB(
       bf(y ~ x + (1 | p | id)),
       family = stats::poisson(link = "log"),
       data = dat
     ),
-    "Only independent Poisson"
+    "drmTMB"
   )
   expect_error(
     drmTMB(

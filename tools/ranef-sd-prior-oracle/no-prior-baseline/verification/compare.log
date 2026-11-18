@@ -1,0 +1,13 @@
+   case relative_objective relative_logLik absolute_theta absolute_score
+   none                  0               0              0              0
+ normal                  0               0              0              0
+ scaled_hessian point_objective point_gradient point_hessian
+              0               0              0             0
+              0               0              0             0
+             base_score        candidate_score base_convergence
+ 7.7143540471816253e-11 7.7143540471816253e-11                0
+ 2.2593650115111789e-09 2.2593650115111789e-09                0
+ candidate_convergence estimator
+                     0        ML
+                     0       MAP
+R_BASELINE_CANDIDATE_IDENTITY_PASS

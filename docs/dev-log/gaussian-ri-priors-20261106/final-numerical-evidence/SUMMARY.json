@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "fixtures": 12,
+  "routes": 3,
+  "checks": 36,
+  "R_native_solver": "multi_start=5; caller seed777 reset perfixture; internal perturbation seed20260616; RNGkind Mersenne-Twister/Inversion/Rejection",
+  "default_attempt": "35/36; R ri10 failed fitted-optimum check, retained separately",
+  "max_normalized_errors": {
+    "point_objective": 4.3502907647672623e-16,
+    "point_data_nll": 5.379979266662302e-16,
+    "point_prior": 1.0441491938804093e-15,
+    "point_decomposition": 0,
+    "fit_objective_at_returned_point": 3.713230389819392e-14,
+    "fit_data_nll": 4.2647613371024086e-14,
+    "fit_prior": 3.249367232996384e-16,
+    "fit_optimum_objective": 5.370993806476651e-11,
+    "fit_coefficients": 5.3415850718545274e-08,
+    "fit_interior_group_sd": 3.570738465962321e-09,
+    "point_gradient": 9.88847834626613e-16,
+    "point_hessian": 6.971688304180681e-10
+  },
+  "scope": "native fixed-point and native/bridge fitted checks; bridge arbitrary-point derivatives unavailable; raw-factor bridge frontend remains refused"
+}

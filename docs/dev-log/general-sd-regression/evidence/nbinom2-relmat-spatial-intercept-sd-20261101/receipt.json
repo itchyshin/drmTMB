@@ -1,0 +1,37 @@
+{
+  "evidence_id": "nbinom2-relmat-spatial-intercept-sd-20261101",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"devtools::test(filter = 'nbinom2-relmat-spatial-intercept-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_source_path": "tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-20261101/test-snapshot/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+  "test_file_sha256": "c960027692e8692ef86360c04d8ac9daeb8450caca7a0aeaf0e96c41b49de60f",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "4283a8dcadf54aa1161010ae55d3a126572c19354b742a058f343cf82b4d5388",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-20261101/test-console.log",
+  "console_log_sha256": "6f6d367f7c060910ca49fabe8d79fcbfbe9bb00429cf3694803e0277713b9e7f",
+  "test_result": "Fresh run exit 0: 3 test_that blocks, 26 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (tolerance 1e-6) for relmat K and spatial coordinates intercepts.",
+  "exit_status": 0,
+  "expectation_counts": {
+    "tests": 3,
+    "expectations": 26,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "scope": "Native NB2 mu relmat(1 | id, K = K) with sd(id, level = 'relmat') ~ z, and spatial(1 | site, coords = coords) with sd(site, level = 'spatial') ~ z (log link, sigma ~ 1). Each checked against a dense Laplace oracle at the fitted parameters (abs tolerance 1e-6 relative via expect_equal), prediction identity at 1e-10, constant-SD equivalence (logLik 2e-5, mu coefficients 1e-4, log SD 1e-4), loose SD recovery bands (0.5 relmat intercept and slope; 0.6 spatial slope), and refusal of a z that varies within a relmat level. K covariance input only: no Q fit in this file.",
+  "limits": "native engine only, one fixture per cell, loose recovery bands, no interval calibration, no Julia parity, dirty shared tree, unreviewed. Evidence grade focused_test: oracle or equivalence checks with loose SD-recovery bounds, not a calibration study. Provider inputs or layouts not named in scope were not tested (not tested, not fenced)."
+}

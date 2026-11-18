@@ -1,0 +1,7 @@
+"file","sha256"
+"tools/general-sd-regression/run-reference-pilot.R","445aec714215eb61a262023ff626c9cf2ded2703269790edcc03b226febefb77"
+"tools/general-sd-regression/scalar-binomial-reference.R","991b82c0d36530852ae3cbfc0cfc06756391810a595dc3ca2c7762b919edfd4e"
+"tests/testthat/helper-binomial-sd-regression.R","f50a6a5849697de80869aa292040c8b841c04ca1904f775e61e3dea929e8868f"
+"/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/library/drmTMB/libs/drmTMB.so","2f1b305ff24db9691507d60a5d0025e99cb41c02e0ed1bf32eb71f1e1ce156f2"
+"/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/library/drmTMB/R/drmTMB.rdb","ba599cb74303867969cdb5ad43fa637052ae609f45ea3281ab2c8794da625d6d"
+"/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/library/drmTMB/R/drmTMB.rdx","d2944ae9ef345d1889f01c3e89ba3560cae327a7b62f2bf4807f8e8773c1717e"

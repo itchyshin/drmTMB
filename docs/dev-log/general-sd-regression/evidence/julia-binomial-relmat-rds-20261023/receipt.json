@@ -1,0 +1,18 @@
+{
+  "evidence_id": "julia-binomial-relmat-rds-20261023",
+  "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "One synthetic Binomial q1 related-matrix location-intercept SD workflow compared across native TMB and Julia; the Julia fit preserves coefficient, prediction, and prediction-table outputs after save/reload, and its marginal simulation matches a seeded independent covariance oracle.",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "0889784e9bea86386dd95faa4cce73d5cb10f8a567531063d8e85f14e9e95ce8",
+  "source_file_count": 199,
+  "test_path": "tests/testthat/test-julia-binomial-relmat-sd-parity.R",
+  "test_sha256": "826eb2eb0bad61b74d08a08fd9f21644a44119c810992704a97b54d79aacea4b",
+  "test_command": "PATH=\"/Users/z3437171/.juliaup/bin:$PATH\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"julia-binomial-relmat-sd-parity\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "result": "35/35 expectations passed; one live Julia bridge fit completed with exit status 0. JuliaCall emitted its known non-fatal LogExpFunctionsInverseFunctionsExt precompile warning (loglogistic undefined).",
+  "console_log": "test-console.log",
+  "console_log_sha256": "f3301dd027033c1367b8bfde8f82600aff9f04f64e43c5ec33e619090f7e2ffb",
+  "scope": "One complete-response synthetic Binomial location q1 related-matrix intercept, labelled non-unit-diagonal K, native TMB/Julia same-data fit comparison, three serialization assertions, and independent seeded Julia marginal-simulation oracle. No interval calibration or broad provider/family parity.",
+  "review_status": "unreviewed"
+}

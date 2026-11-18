@@ -1,0 +1,41 @@
+Compiled package: /home/snakagaw/hsq_work/drmtmb-general-sd-lognormal-20261017-01/library/drmTMB
+lognormal-sd-integration: ..12..........3...4
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-lognormal-sd-integration.R:49:3'): lognormal direct SD fit 
+Expected `abs(alpha_hat[["(Intercept)"]] - sim$truth$alpha[[1L]])` < 0.2.
+Actual comparison: 0.269 >= 0.200
+Difference: 0.069 >= 0
+
+── 2. Failure ('test-lognormal-sd-integration.R:50:3'): lognormal direct SD fit 
+Expected `abs(alpha_hat[["w"]] - sim$truth$alpha[[2L]])` < 0.2.
+Actual comparison: 0.244 >= 0.200
+Difference: 0.044 >= 0
+
+── 3. Error ('test-lognormal-sd-integration.R:88:3'): lognormal direct SD fit ma
+Error in `stats::simulate(fit, nsim = 2L, seed = 2026101712L)`: Marginal simulation (`re.form = NA`, the default) does not yet support modelled (heteroscedastic) random-effect scale.
+i Pass `re.form = NULL` to simulate conditionally on the fitted random effects instead.
+Backtrace:
+    ▆
+ 1. ├─stats::simulate(fit, nsim = 2L, seed = 2026101712L) at test-lognormal-sd-integration.R:88:3
+ 2. └─drmTMB:::simulate.drmTMB(fit, nsim = 2L, seed = 2026101712L)
+ 3.   └─cli::cli_abort(...)
+ 4.     └─rlang::abort(...)
+
+── 4. Error ('test-lognormal-sd-integration.R:118:3'): constant lognormal SD reg
+Error in `match.arg(dpar, names(object$coefficients))`: 'arg' should be one of "mu", "sigma"
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-lognormal-sd-integration.R:118:3
+ 2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─base::unname(coef(fit_ordinary, "sd(id)")[[1L]])
+ 5. ├─stats::coef(fit_ordinary, "sd(id)")
+ 6. └─drmTMB:::coef.drmTMB(fit_ordinary, "sd(id)")
+ 7.   └─base::match.arg(dpar, names(object$coefficients))
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

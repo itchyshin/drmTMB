@@ -1,0 +1,100 @@
+{
+  "recorded_at": "2026-11-07T04:46:20.613430+00:00",
+  "status": "PASS local prepublication acceptance audit for qualified prior-only draft review",
+  "scope": "Gaussian ML, complete data, unit weights, dense full-rank designs, one independent mean random intercept; fixed mu/log-residual-SD normal/ridge priors only",
+  "requirements": {
+    "independent_frozen_oracle": "19manifestentriesverified; unchangedsourcesandlimits",
+    "native_and_bridge_numerical": "36/36configuredchecks; Rpublicmulti_start5policy and original35/36retained",
+    "live_bridge": "87expectations;1actuallivebridge; focusedsourcehashesandinstalledDLLhashverified",
+    "R_full": "build/check/source-tree passed;42125+26516expectationszeroFAIL;3OSsuccess",
+    "Julia_full": "8originalshards passed; exact561-file disjointunion;8rawloghashes/packagepassmarkersverified;allJET2/2",
+    "inference": "Fixed-priorWald/profile/bootstrap andsharedderivedratio guards; point summaries andzero-ridge identities preserved; independentcorrective review",
+    "examples_and_documentation": "Rarticle rendered;Julia guideexamplesexecuted; unchanged byguardrepair; Documenter385previewpassed",
+    "baseline_exception": "Independentkernel-pair-outcome-review acceptsG5existingexception; baselineandcandidatepassCooperlake44/44 andfailHaswell43/44; samewithin-core8fitfields+rcond; originalCIremainsred andhistoricalkernelunknown",
+    "review": "Independent source/runtime/reader/inference reviews andfinalkerneladjudication retained",
+    "protection": "Fourdirtyconfigsoriginalhashes;PR1651exactheadopen/draft/unmerged;historicalC17rawhashesunchanged",
+    "release_boundary": "No versionbump, mergeor release; automaticPRpreviewonly, productiondeployment skipped"
+  },
+  "source_equivalence": {
+    "R": {
+      "validated_engine": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+      "inspected_documentation_head": "21061cd74ef41b748d1b659db55a8c4b248b8a1a",
+      "production_test_documented_API_paths": [
+        "R",
+        "src",
+        "tests",
+        "man",
+        "NAMESPACE",
+        "DESCRIPTION",
+        "tools/gaussian-ri-prior-adapters",
+        "tools/gaussian-ri-prior-validation"
+      ],
+      "diff_empty": true,
+      "tree_objects": {
+        "R": "3fd33d7ee34afca4fbc97b9082b08405abfb5146",
+        "src": "b63d7b6074adf664a397b78633600efbef12d396",
+        "tests": "70cc7f7db9a3986448898884d601ae8b7f5f912f",
+        "man": "908d85ba7670a8fb6518e28e636ed88eaf9886df",
+        "NAMESPACE": "cba37473f984c1cd61e1047a5a34d3def60c9e91",
+        "DESCRIPTION": "aa18b1b0632f291b17181fc47b7e6825244118f9",
+        "tools/gaussian-ri-prior-adapters": "b69ac24c003a3ca75564279fbb1b5c7a2201bfd3",
+        "tools/gaussian-ri-prior-validation": "2c9301c2df793f895c54935d4adb6d4e07a61ea6"
+      }
+    },
+    "Julia": {
+      "validated_engine": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+      "inspected_documentation_head": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+      "production_test_documented_API_paths": [
+        "src",
+        "test",
+        "Project.toml",
+        "tools/gaussian-ri-prior-adapters",
+        "docs/src/priors.md"
+      ],
+      "diff_empty": true,
+      "tree_objects": {
+        "src": "df8b087e8d30eaf281aa10ec7d49c1a6d14e9b11",
+        "test": "7b26d4b5d7f9c84e53e71b661be37daf60e81611",
+        "Project.toml": "b095abcf61053ec52a625c5a562442c2b8dc0f2b",
+        "tools/gaussian-ri-prior-adapters": "c27946e2978615be71e223fb1279c9cd9770cc95",
+        "docs/src/priors.md": "56fde46fb7cb139f77c24f4eeafb5675474c5f11"
+      }
+    }
+  },
+  "protected_config_hashes": {
+    "/Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/.claude/settings.json": "5eecaf99e832df8065e2c61a2b5ff23bc184c744ca7f79f5c5253247f8019a06",
+    "/Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/.cursor/hooks.json": "8fe08e11f192099c2c38f9a23a86d9de9fa0d71303368fbb4a17e0a4ce5cb43e",
+    "/Users/z3437171/.codex/worktrees/drmodels-fixed-priors-20261105/DRM.jl/.claude/settings.json": "c00296b956278cda5e6944a7af11467ab9f65f94b4d5cd31b639e9686820f069",
+    "/Users/z3437171/.codex/worktrees/drmodels-fixed-priors-20261105/DRM.jl/.cursor/hooks.json": "c74f0f5324ce5cb9d7cf305a795be55d492f0770ad0e083a163cca98bc49bd63"
+  },
+  "pull_requests": {
+    "drmTMB#1651": {
+      "headRefOid": "1bf51e2d61bd1ce0a2fb3fad914a9888544af491",
+      "isDraft": true,
+      "mergedAt": null,
+      "state": "OPEN",
+      "url": "https://github.com/itchyshin/drmTMB/pull/1651"
+    },
+    "drmTMB#1681": {
+      "headRefOid": "21061cd74ef41b748d1b659db55a8c4b248b8a1a",
+      "isDraft": true,
+      "mergedAt": null,
+      "state": "OPEN",
+      "url": "https://github.com/itchyshin/drmTMB/pull/1681"
+    },
+    "DRModels.jl#1258": {
+      "headRefOid": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+      "isDraft": true,
+      "mergedAt": null,
+      "state": "OPEN",
+      "url": "https://github.com/itchyshin/DRModels.jl/pull/1258"
+    }
+  },
+  "historical_raw_hashes": {
+    "docs/dev-log/implementation-recovery/2026-11-06-priors-publish-c17c2-c14-final-source-compatibility/provenance.tsv": "cf6f26e77f918dd840cc77b8bb9e36699dbfaefb23e2f82471a1de6e899281cf",
+    "docs/dev-log/implementation-recovery/2026-11-06-priors-publish-c17c2-c14-final-source-compatibility/raw-attempts.tsv": "cb035c5cd35dee35320fba72d875f1be534a4d5155fdb942d4a2a424327c104e",
+    "docs/dev-log/implementation-recovery/2026-11-06-priors-publish-c17c2-c14-final-source-compatibility/summary.tsv": "cf33bd35c51b6cb92cb879b4a875b68c23a870a7104cb360c1d04df54f1dfd58"
+  },
+  "independent_final_adjudication_sha256": "a7565e5ed2b7a9e63e411b106988cf9a2b8e396a7ed2ad5cb742ea31770dd231",
+  "publication_scope": "Owned evidence/report updates only. Exact final push/PR-body readback is verified after this source-independent receipt; it does not change engine qualification."
+}

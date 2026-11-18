@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "d71090dbe673c96d7a1106f85ff3365f4df139f84f5f40ccc3f57e666570f159",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the whole saved report and compared implementation, test, and limitation statements with current source and command output; applied protocols/writing-naturalness.md.",
+  "genre": "software engineering after-task report",
+  "coverage": "Whole draft, 137 lines and 786 words.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report uses a conventional technical template, but the sections carry concrete route, test, failure, and scope details rather than generic project claims.",
+  "confidence": "medium",
+  "confidence_reason": "I reviewed the complete draft against the exact implementation and test output. The score is an editorial judgment, and the technical review covers only this narrow candidate route.",
+  "examples": [
+    {
+      "location": "Tests Of The Tests, paragraph 1",
+      "line": 79,
+      "quote": "Before the implementation, the route test failed because the family fence",
+      "cue": "The sentence connects the initial failure to the exact code gate.",
+      "impact": "Readers can see why the regression test detects the missing feature.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "What Did Not Go Smoothly, paragraph 1",
+      "line": 108,
+      "quote": "The first live run without `DRM_JL_PATH` skipped Julia, so it did not exercise",
+      "cue": "The report admits that the first apparent run did not test the live engine.",
+      "impact": "This makes the evidence boundary and later rerun understandable.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The displayed model formula and fixed-SkewNormal assumptions match the route tested on the same synthetic data; the report limits its claim to point recovery and output mapping.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Changed-file descriptions, the 36 focused expectations, live Julia execution, and remaining limitations were checked against the code, output, and docs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no literature or external-source claims.",
+  "date": "2026-10-25",
+  "calibration_status": "Prior after-task reports were seen; no held-out human rating controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

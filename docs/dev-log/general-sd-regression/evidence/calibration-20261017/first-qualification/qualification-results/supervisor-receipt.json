@@ -1,0 +1,44 @@
+{
+  "campaign_complete": false,
+  "campaign_timeout_seconds": 120.0,
+  "case_timeout_seconds": 120.0,
+  "cases": [
+    {
+      "finished_at": 1792272794.3265383,
+      "index": 1,
+      "pid": 2909028,
+      "returncode": 0,
+      "started_at": 1792272783.7359116,
+      "status": "completed"
+    },
+    {
+      "finished_at": 1792272794.0256479,
+      "index": 1001,
+      "pid": 2909029,
+      "returncode": 0,
+      "started_at": 1792272783.7369905,
+      "status": "completed"
+    },
+    {
+      "finished_at": 1792272796.3337247,
+      "index": 2001,
+      "pid": 2909030,
+      "returncode": 0,
+      "started_at": 1792272783.7383585,
+      "status": "completed"
+    }
+  ],
+  "design_mode": "qualification",
+  "finished_at": 1792272796.334534,
+  "interrupted": false,
+  "manifest_sha256": "c707ff66635d4ba95aa14bcf452a83de30e559665a30e6146354b92cce5d8855",
+  "planned_indices": [
+    1,
+    1001,
+    2001
+  ],
+  "registry_sha256": "1ee65b061c35c401bc38ba4de835e3f3eef0b50bcbb75d1196fc7259bdbb1d35",
+  "started_at": 1792272783.7344766,
+  "subset_complete": true,
+  "workers": 3
+}

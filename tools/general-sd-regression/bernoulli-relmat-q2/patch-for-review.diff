@@ -1,0 +1,184 @@
+--- tools/general-sd-regression/bernoulli-relmat-q2/before/drmTMB.R	2026-10-28 02:10:32
++++ R/drmTMB.R	2026-10-28 02:14:14
+@@ -8597,6 +8597,18 @@
+     length(sd_mu_entries) == 0L &&
+     length(mu_re$terms) == 0L &&
+     !include_missing_response
++  allow_binomial_relmat_q2_base <-
++    identical(link, "logit") &&
++    identical(structured_mu_type(binomial_structured_term), "relmat") &&
++    binomial_structured_term$structure %in% c("K", "Q") &&
++    structured_term_is_intercept_one_slope(binomial_structured_term) &&
++    is.null(binomial_structured_term$covariance_label) &&
++    length(mu_re$terms) == 0L &&
++    length(sd_mu_entries) == 0L &&
++    is.null(binomial_structured_term2) &&
++    !include_missing_response
++  allow_binomial_relmat_q2_sd <-
++    allow_binomial_relmat_q2_base && length(sd_phylo_entries) > 0L
+   allow_binomial_spatial_slope <-
+     identical(structured_mu_type(binomial_structured_term), "spatial") &&
+     length(binomial_structured_term$coef_names) == 1L &&
+@@ -8651,6 +8663,7 @@
+     allow_animal_slope = allow_binomial_animal_slope || allow_animal_iid,
+     allow_phylo_slope = allow_binomial_phylo_slope,
+     allow_relmat_slope = allow_binomial_relmat_slope,
++    allow_relmat_q2_base = allow_binomial_relmat_q2_base,
+     allow_spatial_slope = allow_binomial_spatial_slope,
+     allow_phylo_interaction = allow_binomial_phylo_interaction,
+     allow_phylo_interaction_slope = allow_binomial_phylo_interaction_slope
+@@ -8689,9 +8702,33 @@
+       "The first Binomial structured-provider pair requires one SD formula per provider.",
+       "x" = "It does not combine with ordinary random effects or missing responses yet."
+     ))
++  }
++  sd_primary_targets <- parse_sd_phylo_entries(
++    sd_primary_entries, binomial_structured_term,
++    allow_multiple_coefficients = allow_binomial_relmat_q2_sd
++  )
++  if (allow_binomial_relmat_q2_sd) {
++    selected <- vapply(sd_primary_targets, `[[`, integer(1L), "target_coef")
++    if (length(selected) != 2L || anyDuplicated(selected) ||
++        !setequal(selected, 1:2)) {
++      cli::cli_abort(c(
++        "Binomial relmat intercept-slope SD regression requires one SD formula for each coefficient.",
++        "i" = "Select exactly (Intercept) and the numeric slope with separate coef selectors."
++      ))
++    }
++    for (i in seq_along(sd_primary_entries)) {
++      sd_primary_entries[[i]]$dpar <- format_sd_lhs_dpar(
++        "sd_relmat", sd_primary_targets[[i]]$group, "mu",
++        binomial_structured_term$coef_names[[selected[[i]]]], NA_character_
++      )
++      sd_primary_targets[[i]]$dpar <- sd_primary_entries[[i]]$dpar
++    }
++    if (anyDuplicated(vapply(sd_primary_targets, `[[`, character(1L), "dpar"))) {
++      cli::cli_abort("Binomial relmat SD targets must have distinct canonical names.")
++    }
+   }
+   sd_phylo_targets <- c(
+-    parse_sd_phylo_entries(sd_primary_entries, binomial_structured_term),
++    sd_primary_targets,
+     parse_sd_phylo_entries(sd_secondary_entries, binomial_structured_term2)
+   )
+   mi_setup <- drm_prepare_gaussian_mi_setup(mu_entry$rhs, impute, missing)
+@@ -8823,6 +8860,14 @@
+     response = mu_entry$response,
+     has_weights = !is.null(weights)
+   )
++  if (allow_binomial_relmat_q2_base &&
++      (!is.null(dim(raw_response)) || !is.numeric(raw_response) ||
++       any(!raw_response %in% c(0, 1)) ||
++       any(response$trials != 1) || !is.null(weights))) {
++    cli::cli_abort(
++      "Binomial relmat intercept-slope SD regression requires unweighted 0/1 Bernoulli responses."
++    )
++  }
+   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
+ 
+   missing_predictor <- drm_build_gaussian_missing_predictor_model(
+@@ -8901,10 +8946,25 @@
+   }
+   sd_phylo <- build_sd_phylo_structure(
+     sd_primary_entries,
+-    parse_sd_phylo_entries(sd_primary_entries, binomial_structured_term),
++    parse_sd_phylo_entries(
++      sd_primary_entries, binomial_structured_term,
++      allow_multiple_coefficients = allow_binomial_relmat_q2_sd
++    ),
+     sd_phylo_mu,
+     data_model
+   )
++  if (allow_binomial_relmat_q2_sd) {
++    validate_gamma_animal_q2_sd_identifiability(
++      phylo_mu, sd_phylo, family_label = "Binomial"
++    )
++    if (!identical(dim(sd_phylo$observation_sd_row0_by_coef),
++                   c(length(response$successes), 2L)) ||
++        any(sd_phylo$observation_sd_row0_by_coef < 0L)) {
++      cli::cli_abort(
++        "Binomial relmat intercept-slope SD rows must cover both fields for every observed response."
++      )
++    }
++  }
+   sd_phylo2 <- build_sd_phylo_structure(
+     sd_secondary_entries,
+     parse_sd_phylo_entries(sd_secondary_entries, binomial_structured_term2),
+@@ -13808,6 +13868,7 @@
+   allow_animal_slope = FALSE,
+   allow_phylo_slope = FALSE,
+   allow_relmat_slope = FALSE,
++  allow_relmat_q2_base = FALSE,
+   allow_spatial_slope = FALSE,
+   allow_phylo_interaction = FALSE,
+   allow_phylo_interaction_slope = FALSE
+@@ -13847,6 +13908,10 @@
+     identical(marker, "relmat") &&
+     length(term$coef_names) == 1L &&
+     !identical(term$coef_names, "(Intercept)")
++  supported_relmat_q2_base <-
++    isTRUE(allow_relmat_q2_base) &&
++    identical(marker, "relmat") &&
++    structured_term_is_intercept_one_slope(term)
+   supported_spatial_slope <-
+     isTRUE(allow_spatial_slope) &&
+     identical(marker, "spatial") &&
+@@ -13864,6 +13929,7 @@
+   if (!structured_term_is_intercept_only(term) &&
+       !supported_animal_slope && !supported_phylo_slope &&
+       !supported_relmat_slope && !supported_spatial_slope &&
++      !supported_relmat_q2_base &&
+       !supported_phylo_interaction && !supported_phylo_interaction_slope) {
+     cli::cli_abort(c(
+       "Binomial {.fn {marker}} {.code mu} effects currently support only an intercept-only q1 term.",
+@@ -24403,6 +24469,18 @@
+   out$has_sd_phylo_coef_model <- 0L
+   phylo_mu <- spec$structured$phylo_mu
+   sd_phylo <- spec$random_scale$phylo
++  if (identical(spec$model_type, "binomial") &&
++      identical(spec$link, "logit") &&
++      identical(phylo_mu$type, "relmat") &&
++      identical(phylo_mu$q, 2L) &&
++      identical(sd_phylo$n_models, 2L) &&
++      (nrow(sd_phylo$observation_sd_row0_by_coef) != length(spec$y) ||
++       ncol(sd_phylo$observation_sd_row0_by_coef) != 2L ||
++       any(sd_phylo$observation_sd_row0_by_coef < 0L))) {
++    cli::cli_abort(
++      "Binomial relmat intercept-slope SD data must map every observation to both selected coefficient scales."
++    )
++  }
+   if (
+     ((identical(spec$model_type, "gamma") &&
+         phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial")) ||
+@@ -24411,7 +24489,12 @@
+            (identical(phylo_mu$type, "spatial") &&
+             identical(phylo_mu$structure, "coords")) ||
+            (phylo_mu$type %in% c("animal", "relmat") &&
+-            phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q"))))) &&
++            phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q")))) ||
++       (identical(spec$model_type, "binomial") &&
++          identical(spec$link, "logit") &&
++          identical(phylo_mu$type, "relmat") &&
++          phylo_mu$structure %in% c("K", "Q") &&
++          is.null(phylo_mu$covariance_label))) &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+       phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial") &&
+       identical(phylo_mu$q, 2L) &&
+--- tools/general-sd-regression/bernoulli-relmat-q2/before/drmTMB.cpp	2026-10-28 02:10:32
++++ src/drmTMB.cpp	2026-10-28 02:02:51
+@@ -4374,7 +4374,14 @@
+           int effect_index = k * n_phylo + phylo_mu_node_index(i);
+           Type field_effect = u_phylo(effect_index);
+           if (has_sd_phylo_model == 1) {
+-            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
++            if (has_sd_phylo_coef_model == 1) {
++              int sd_row = phylo_mu_sd_row_coef(i, k);
++              if (sd_row >= 0) {
++                field_effect *= sd_phylo_group(sd_row);
++              }
++            } else {
++              field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
++            }
+           }
+           phylo_effect += phylo_mu_value(i, k) * field_effect;
+         }

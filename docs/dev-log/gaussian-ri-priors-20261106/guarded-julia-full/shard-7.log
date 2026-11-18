@@ -1,0 +1,893 @@
+Precompiling packages...
+   8522.4 ms  ✓ DRModels
+  1 dependency successfully precompiled in 9 seconds. 98 already precompiled.
+     Testing DRModels
+      Status `/tmp/jl_uZWLpn/Project.toml`
+  [4c88cf16] Aqua v0.8.18
+  [6c755ef2] DRModels v0.8.0 `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`
+  [8bb1440f] DelimitedFiles v1.9.1
+  [31c24e10] Distributions v0.25.134
+  [f6369f11] ForwardDiff v1.4.7
+⌅ [c3a54625] JET v0.9.18
+  [1fd47b50] QuadGK v2.11.3
+  [276daf66] SpecialFunctions v2.9.1
+  [860ef19b] StableRNGs v1.1.0
+  [82ae8749] StatsAPI v1.8.0
+  [3eaba693] StatsModels v0.7.10
+  [37e2e46d] LinearAlgebra
+  [56ddb016] Logging
+  [d6f4376e] Markdown
+  [de0858da] Printf
+  [9a3f8284] Random
+  [9e88b42a] Serialization
+  [2f01184e] SparseArrays v1.10.0
+  [10745b16] Statistics v1.10.0
+  [fa267f1f] TOML v1.0.3
+  [8dfed614] Test
+      Status `/tmp/jl_uZWLpn/Manifest.toml`
+  [47edcb42] ADTypes v1.24.0
+  [7d9f7c33] Accessors v0.1.46
+  [79e6a3ab] Adapt v4.8.0
+  [66dad0bd] AliasTables v1.1.3
+  [4c88cf16] Aqua v0.8.18
+  [4fba245c] ArrayInterface v7.30.2
+⌅ [da1fd8a2] CodeTracking v1.3.9
+  [38540f10] CommonSolve v0.2.14
+  [bbf7d656] CommonSubexpressions v0.3.1
+  [34da2185] Compat v4.18.1
+  [a33af91c] CompositionsBase v0.1.2
+  [187b0558] ConstructionBase v1.6.0
+  [6c755ef2] DRModels v0.8.0 `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`
+  [9a962f9c] DataAPI v1.16.0
+  [864edb3b] DataStructures v0.19.6
+  [e2d170a0] DataValueInterfaces v1.0.0
+  [8bb1440f] DelimitedFiles v1.9.1
+  [163ba53b] DiffResults v1.1.0
+  [b552c78f] DiffRules v1.16.0
+  [a0c0ee7d] DifferentiationInterface v0.7.22
+  [31c24e10] Distributions v0.25.134
+  [ffbed154] DocStringExtensions v0.10.2
+  [4e289a0a] EnumX v1.0.7
+  [1a297f60] FillArrays v1.18.2
+  [6a86dc24] FiniteDiff v2.33.0
+  [f6369f11] ForwardDiff v1.4.7
+  [a0844989] Gamma v1.2.0
+  [34004b35] HypergeometricFunctions v0.3.31
+  [3587e190] InverseFunctions v0.1.18
+  [92d709cd] IrrationalConstants v0.2.7
+  [82899510] IteratorInterfaceExtensions v1.0.0
+⌅ [c3a54625] JET v0.9.18
+  [692b3bcd] JLLWrappers v1.8.0
+⌅ [aa1ae85d] JuliaInterpreter v0.9.46
+⌅ [70703baa] JuliaSyntax v0.4.10
+⌃ [d3d80556] LineSearches v7.5.1
+  [2ab3a3ac] LogExpFunctions v1.0.3
+⌃ [6f1432cf] LoweredCodeUtils v3.2.2
+  [1914dd2f] MacroTools v0.5.16
+  [e1d29d7a] Missings v1.2.1
+⌅ [d41bc354] NLSolversBase v7.10.0
+  [77ba4419] NaNMath v1.1.5
+⌃ [429524aa] Optim v1.13.3
+  [bac558e1] OrderedCollections v2.0.3
+  [90014a1f] PDMats v0.11.41
+  [85a6dd25] PositiveFactorizations v0.2.4
+⌅ [aea7be01] PrecompileTools v1.2.1
+  [21216c6a] Preferences v1.6.1
+  [43287f4e] PtrArrays v1.4.0
+  [1fd47b50] QuadGK v2.11.3
+  [189a3867] Reexport v1.2.2
+  [79098fc4] Rmath v0.9.0
+  [f2b01f46] Roots v3.0.13
+  [efcf1570] Setfield v1.2.0
+  [1277b4bf] ShiftedArrays v2.0.0
+  [a2af1166] SortingAlgorithms v1.2.3
+  [276daf66] SpecialFunctions v2.9.1
+  [860ef19b] StableRNGs v1.1.0
+  [1e83bf80] StaticArraysCore v1.4.4
+  [82ae8749] StatsAPI v1.8.0
+  [2913bbd2] StatsBase v0.34.13
+  [4c63d2b9] StatsFuns v2.2.1
+  [3eaba693] StatsModels v0.7.10
+  [3783bdb8] TableTraits v1.0.1
+  [bd369af6] Tables v1.14.0
+  [efe28fd5] OpenSpecFun_jll v0.5.6+0
+  [f50d1b31] Rmath_jll v0.5.2+0
+  [0dad84c5] ArgTools v1.1.1
+  [56f22d72] Artifacts
+  [2a0f44e3] Base64
+  [ade2ca70] Dates
+  [8ba89e20] Distributed
+  [f43a241f] Downloads v1.6.0
+  [7b1f6079] FileWatching
+  [9fa8497b] Future
+  [b77e0a4c] InteractiveUtils
+  [b27032c2] LibCURL v0.6.4
+  [76f85450] LibGit2
+  [8f399da3] Libdl
+  [37e2e46d] LinearAlgebra
+  [56ddb016] Logging
+  [d6f4376e] Markdown
+  [a63ad114] Mmap
+  [ca575930] NetworkOptions v1.2.0
+  [44cfe95a] Pkg v1.10.0
+  [de0858da] Printf
+  [3fa0cd96] REPL
+  [9a3f8284] Random
+  [ea8e919c] SHA v0.7.0
+  [9e88b42a] Serialization
+  [6462fe0b] Sockets
+  [2f01184e] SparseArrays v1.10.0
+  [10745b16] Statistics v1.10.0
+  [4607b0f0] SuiteSparse
+  [fa267f1f] TOML v1.0.3
+  [a4e569a6] Tar v1.10.0
+  [8dfed614] Test
+  [cf7118a7] UUIDs
+  [4ec0a83e] Unicode
+  [e66e0078] CompilerSupportLibraries_jll v1.1.2+1
+  [deac9b47] LibCURL_jll v8.4.0+0
+  [e37daf67] LibGit2_jll v1.6.4+0
+  [29816b5a] LibSSH2_jll v1.11.0+1
+  [c8ffd9c3] MbedTLS_jll v2.28.1010+0
+  [14a3606d] MozillaCACerts_jll v2025.12.2
+  [4536629a] OpenBLAS_jll v0.3.23+5
+  [05823500] OpenLibm_jll v0.8.5+0
+  [bea87d4a] SuiteSparse_jll v7.2.1+1
+  [83775a58] Zlib_jll v1.2.13+1
+  [8e850b90] libblastrampoline_jll v5.11.0+0
+  [8e850ede] nghttp2_jll v1.52.0+1
+  [3f19e933] p7zip_jll v17.6.1+0
+        Info Packages marked with ⌃ and ⌅ have new versions available. Those with ⌃ may be upgradable, but those with ⌅ are restricted by compatibility constraints from upgrading.
+     Testing Running tests...
+DRModels tests: shard 7/8 - 70 of 561 files
+Test Summary:                                 | Pass  Total  Time
+DRModels.jl — engine loads + phylo foundation |   15     15  0.2s
+Test Summary:                                  | Pass  Total  Time
+Q-gate: JET type-stability (lc_to_Λ / Λ_to_lc) |    2      2  4.0s
+Test Summary:                           | Pass  Total   Time
+#1051 fit_mixed_family bootstrap status |   10     10  14.4s
+Test Summary:                     | Pass  Total   Time
+#1110 aliased fixed-effect design |   28     28  22.1s
+Test Summary:                                       | Pass  Total  Time
+#1220 non-finite Hessian gives an informative error |   10     10  6.2s
+Test Summary:                                   | Pass  Total  Time
+#949 converged surfaces agree with is_converged |   12     12  2.9s
+Test Summary:                         | Pass  Total  Time
+#995 tip variance C_ii: exact per row |    4      4  0.7s
+Test Summary:                                                        | Pass  Total  Time
+#995 tip variance C_ii: linear, not quadratic, in the number of tips |    2      2  0.1s
+Test Summary:                                  | Pass  Total  Time
+#995 phylo PIT on a tree with tip-varying C_ii |    4      4  7.4s
+Test Summary:               | Pass  Total  Time
+API freeze gate (v0.7 line) |  204    204  0.1s
+Test Summary:                                   | Pass  Total   Time
+Beta correlated random slope (1+x|g) — recovery |    4      4  17.6s
+Test Summary:                                     | Pass  Total   Time
+BetaBinomial sigma random-intercept SD regression |   21     21  20.8s
+Test Summary:                                          | Pass  Total   Time
+Binomial animal SD regression accepts direct precision |   17     17  12.8s
+Test Summary:     | Pass  Total   Time
+Binomial contract |   84     84  13.4s
+Test Summary:                                        | Pass  Total  Time
+Binomial probit and cloglog animal-slope SD recovery |   40     40  4.0s
+Test Summary:                                        | Pass  Total  Time
+Binomial phylo cbind response - sparse Laplace route |    6      6  3.7s
+Test Summary:                                            | Pass  Total  Time
+Binomial phylo Bernoulli response - sparse Laplace route |    5      5  1.0s
+Test Summary:                          | Pass  Total  Time
+Binomial phylo sparse Laplace gradient |    1      1  0.0s
+Test Summary:                         | Pass  Total  Time
+Binomial related-matrix SD regression |   20     20  8.2s
+Test Summary:                                            | Pass  Total  Time
+Binomial probit and cloglog related-matrix SD regression |   14     14  6.9s
+Test Summary:                  | Pass  Total  Time
+Binomial spatial SD regression |   23     23  2.1s
+Test Summary:                               | Pass  Total  Time
+Binomial spatial random-slope SD regression |   22     22  0.6s
+Test Summary:                                             | Pass  Total  Time
+Binomial structured SD scales use the fitted smooth clamp |    1      1  0.0s
+Test Summary:                                    | Pass  Total  Time
+bootstrap API docstrings list forwarded controls |   28     28  0.1s
+Test Summary:                                              | Pass  Total   Time
+bootstrap_sigma_a — q4 among-axis SD CIs (boundary-honest) |   39     39  28.5s
+DIRECT_TREE_BOOTSTRAP (2, 2, 0) failures=@NamedTuple{replicate::Int64, seed::UInt64, message::String}[]
+BRIDGE_TREE_BOOTSTRAP Dict{String, Any}("threaded" => false, "method" => "bootstrap", "param" => "mu", "used" => 2, "coef" => "x", "elapsed" => 0.4158597, "estimate" => 0.26665500456036145, "upper" => 0.7503840649519817, "failed" => 0, "julia_threads" => 4, "worker_threads" => 1, "attempted" => 2, "status" => "bootstrap", "message" => "2/2 successful refits", "lower" => -0.04353129838414502, "blas_threads" => 1)
+BRIDGE_TREE_BOOTSTRAP Dict{String, Any}("threaded" => true, "method" => "bootstrap", "param" => "mu", "used" => 2, "coef" => "x", "elapsed" => 0.240630972, "estimate" => 0.26665500456036145, "upper" => 0.7503840649519817, "failed" => 0, "julia_threads" => 4, "worker_threads" => 2, "attempted" => 2, "status" => "bootstrap", "message" => "2/2 successful refits", "lower" => -0.04353129838414502, "blas_threads" => 1)
+Test Summary:                              | Pass  Total   Time
+non-Gaussian phylogenetic bootstrap bridge |   20     20  25.1s
+Test Summary:                                   | Pass  Total  Time
+actual LSS transformed scale coefficient labels |   10     10  7.4s
+Test Summary:                    | Pass  Total  Time
+q2 direct export status contract |   23     23  0.5s
+Test Summary:                               | Pass  Total  Time
+q2 known-precision provider status contract |   20     20  0.5s
+Test Summary:                                                    | Pass  Total  Time
+q2 known covariance fixtures export residual-correlation targets |   38     38  3.0s
+Test Summary:                                                    | Pass  Total  Time
+q2 relmat and animal formula routes export their structured type |   17     17  8.0s
+Test Summary:                                                                  | Pass  Total  Time
+q2 residual-correlation phylo route carries the same target as bivariate rho12 |   18     18  2.1s
+Test Summary:                                                   | Pass  Total  Time
+restricted q2 phylo point export carries coevolution covariance |   19     19  1.3s
+Test Summary:                                                          | Pass  Total  Time
+private q2 known-precision bridge consumes provider precision directly |   32     32  0.8s
+Test Summary:                                                     | Pass  Total  Time
+private q2 phylo bridge primitive returns restricted point export |   12     12  0.4s
+Test Summary:                                      | Pass  Total   Time
+check_drm() — convergence / identifiability report |   82     82  18.4s
+Test Summary:                                      | Pass  Total  Time
+corpairs() — between-response residual correlation |   10     10  7.0s
+Test Summary:                         | Pass  Total   Time
+Cox–Reid REML on Poisson (1|g) (#443) |   35     35  19.5s
+Test Summary:                                   | Pass  Total  Time
+Crossed sparse-Laplace selected inverse entries |    5      5  0.4s
+Test Summary:            | Pass  Broken  Total  Time
+CumulativeLogit contract |  126       2    128  9.9s
+Test Summary:      | Pass  Total  Time
+FD Hessian sweep 2 |   18     18  2.7s
+Test Summary:                                                | Pass  Total   Time
+FX2 inverse links (Student ν / SkewNormal ν / ZeroOneBeta μ) |   29     29  10.1s
+Test Summary:                                  | Pass  Total   Time
+Gamma phylogenetic random-effect SD regression |   29     29  10.0s
+Test Summary:                                        | Pass  Total  Time
+Bivariate Gaussian location-scale + rho12 — recovery |    6      6  3.9s
+Test Summary:                                                 | Pass  Total  Time
+Bivariate residual-σ seed floor for saturated design (#324.3) |    6      6  1.3s
+Test Summary:                                     | Pass  Total  Time
+Gaussian spatial(1|site, coords) — fit + recovery |    4      4  9.8s
+Test Summary:                             | Pass  Total   Time
+Hurdle NB2 random-intercept SD regression |   17     17  29.9s
+Test Summary:                                     | Pass  Total   Time
+Hurdle NB2 independent random-slope SD regression |   22     22  30.0s
+Test Summary:                               | Pass  Total  Time
+J3a: _finite_hessian_from_gradient (helper) |    9      9  1.4s
+Test Summary:                                               | Pass  Total  Time
+J3a: grouseticks NB2 crossed SEs vs drmTMB sdreport (#1073) |    7      7  5.4s
+Test Summary:                                                          | Pass  Total  Time
+J3a: crossed-mean (binomial) SEs vs an independent ForwardDiff Hessian |    3      3  9.9s
+Test Summary:                                                               | Pass  Total  Time
+J3a: which Hessian is used when a coordinate is at its clamp (review fixes) |   28     28  4.6s
+Test Summary:                            | Pass  Total   Time
+joint missing-predictor formula frontend |   44     44  15.7s
+Test Summary:                                  | Pass  Total  Time
+joint public routing refuses ignored arguments |    3      3  0.6s
+JOINT_FRONTEND_PUBLIC_PASS
+Test Summary:                                      | Pass  Total  Time
+joint model requires exogenous complete covariates |    9      9  1.4s
+JOINT_EXOGENOUS_REFUSALS_PASS
+Test Summary:                       | Pass  Total   Time
+lane J3: fit-entry input validation |  134    134  51.7s
+START_B2 threads=false
+B2_COUNTS threads=false attempted=2 used=2 failures=@NamedTuple{replicate::Int64, seed::UInt64, message::String}[]
+START_B2 threads=true
+B2_COUNTS threads=true attempted=2 used=2 failures=@NamedTuple{replicate::Int64, seed::UInt64, message::String}[]
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 1.354578671453055e-10
+│   grad_source = :forward
+│   vcov_complete = false
+│   vcov_posdef = false
+│   min_eigval = NaN
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4457
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 1.191269305422793e-13
+│   grad_source = :forward
+│   vcov_complete = false
+│   vcov_posdef = false
+│   min_eigval = NaN
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `mu` block: x2 (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4457
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.5672130260213635e-11
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0016829861906817874
+│   cond = 2.358969968463276
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.6071588504473766e-11
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.001218920657610683
+│   cond = 3.5248330254399497e6
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 1.354578671453055e-10
+│   grad_source = :forward
+│   vcov_complete = false
+│   vcov_posdef = false
+│   min_eigval = NaN
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4457
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 1.354578671453055e-10
+│   grad_source = :forward
+│   vcov_complete = false
+│   vcov_posdef = false
+│   min_eigval = NaN
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4457
+┌ Warning: drm: this tree's maximum tip height is 7.05, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.655184 = sqrt(7.05) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/7.05 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 0.75, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.866025 = sqrt(0.75) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.75 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 1.7, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.30384 = sqrt(1.7) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.7 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 7.993065569594444e-9
+│   grad_source = :locscale
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.013182797322519611
+│   cond = 6.729032109098638e15
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 6.806777363976835e-13
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0004773662162536464
+│   cond = 2.094827756869694
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 3.007697868540049e-9
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.00114375809337953
+│   cond = 1.6574486553825791
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 0.0
+│   grad_source = :stored
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 1.0
+│   cond = 1.0
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = NaN
+│   grad_source = :none
+│   vcov_complete = false
+│   vcov_posdef = false
+│   min_eigval = NaN
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: the stored covariance has non-finite entries, so `vcov_posdef` / `min_eigval` / `cond` could not be computed and `ok` is false. This is EXPECTED on routes that report a partial covariance — the sparse phylo fitter computes the fixed-effect block only. Wald SEs on the finite directions are still usable; for the variance components use `profile_ci = true` or `profile_result`.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4433
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 0.0027504242439135847
+│   grad_source = :finite
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0017134397488071094
+│   cond = 57.71274832527539
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: `max_abs_grad` is a CENTRAL FINITE DIFFERENCE of the stored objective, not an exact gradient. This fit's objective is exact on `Float64` but not dual-number safe (it factorises a sparse matrix through CHOLMOD, or keeps Float64 work arrays), so ForwardDiff could not be run through it. Read the magnitude to about 1e-6 relative precision, not to machine precision; `grad_source` is `:finite`.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4442
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "two-structured Gaussian"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 4.572009134003146e-13
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 4.6895820560166606e-8
+│   grad_source = :finite
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0021715959740862935
+│   cond = 2.1859769865501667e12
+│   penalized_map = false
+└   ok = true
+┌ Warning: check_drm: `max_abs_grad` is a CENTRAL FINITE DIFFERENCE of the stored objective, not an exact gradient. This fit's objective is exact on `Float64` but not dual-number safe (it factorises a sparse matrix through CHOLMOD, or keeps Float64 work arrays), so ForwardDiff could not be run through it. Read the magnitude to about 1e-6 relative precision, not to machine precision; `grad_source` is `:finite`.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4442
+┌ Warning: check_drm: Structured SD at its lower boundary for species: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4454
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 5.416976173178156e-10
+│   grad_source = :stored
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.006636226162915312
+│   cond = 33.782787001968266
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.7849396769520351
+│   grad_source = :finite
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.006806220354553481
+│   cond = 47.797129657951
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: `max_abs_grad` is a CENTRAL FINITE DIFFERENCE of the stored objective, not an exact gradient. This fit's objective is exact on `Float64` but not dual-number safe (it factorises a sparse matrix through CHOLMOD, or keeps Float64 work arrays), so ForwardDiff could not be run through it. Read the magnitude to about 1e-6 relative precision, not to machine precision; `grad_source` is `:finite`.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4442
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse LSS multi REML"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     7
+│     8
+│   rcond = 5.7805778834652114e-18
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 1.0173136391955495
+│   grad_source = :finite
+│   vcov_complete = true
+│   vcov_posdef = false
+│   min_eigval = -2.3843500374249992e-18
+│   cond = Inf
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: `max_abs_grad` is a CENTRAL FINITE DIFFERENCE of the stored objective, not an exact gradient. This fit's objective is exact on `Float64` but not dual-number safe (it factorises a sparse matrix through CHOLMOD, or keeps Float64 work arrays), so ForwardDiff could not be run through it. Read the magnitude to about 1e-6 relative precision, not to machine precision; `grad_source` is `:finite`.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4442
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = NaN
+│   grad_source = :none
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 1.0
+│   cond = 1.0
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = NaN
+│   grad_source = :unavailable
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 1.0
+│   cond = 1.0
+│   penalized_map = false
+└   ok = true
+┌ Warning: check_drm: the gradient at the estimate could not be computed on this fit: neither the stored objective's derivative nor a central finite difference of it produced a finite value, so `max_abs_grad` is NaN and `ok` was NOT scored against the gradient criterion: `ok = true` here means converged and positive-definite covariance ONLY, with stationarity untested. `grad_source` is `:unavailable`, which is NOT `:none` (a fit that stores no objective at all).
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4447
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.000000000001
+│   grad_source = :finite
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 1.0
+│   cond = 1.0
+│   penalized_map = false
+└   ok = false
+┌ Warning: check_drm: `max_abs_grad` is a CENTRAL FINITE DIFFERENCE of the stored objective, not an exact gradient. This fit's objective is exact on `Float64` but not dual-number safe (it factorises a sparse matrix through CHOLMOD, or keeps Float64 work arrays), so ForwardDiff could not be run through it. Read the magnitude to about 1e-6 relative precision, not to machine precision; `grad_source` is `:finite`.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4442
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 5.552332446241292e-18
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     1
+│     2
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Student"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 2.2015552914205767e-19
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm: this tree's maximum tip height is 0.8, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.894427 = sqrt(0.8) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.8 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "bivariate Gaussian"
+│   flat_coordinates =
+│    5-element Vector{Int64}:
+│     4
+│     ⋮
+│   rcond = 2.723750472770767e-30
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `site` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/input_validation.jl:438
+┌ Warning: drm: this tree's maximum tip height is 3.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.732051 = sqrt(3.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/3.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: 1 of 120 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/gaussian_core.jl:1859
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 5.81681180875639e-19
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `animal` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/input_validation.jl:396
+┌ Info: canonical location-scale profile status fixture
+│   attempted = 1
+│   failed = 0
+│   lower_reason = :accepted
+└   upper_reason = :accepted
+┌ Warning: drm: 4 of 120 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/gaussian_core.jl:1859
+┌ Warning: drm: 4 of 120 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/gaussian_core.jl:1859
+┌ Warning: drm: 4 of 120 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/gaussian_core.jl:1859
+┌ Warning: drm: this tree's maximum tip height is 1.4, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.183216 = sqrt(1.4) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.4 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 1.6, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.264911 = sqrt(1.6) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.6 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 1.8, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.341641 = sqrt(1.8) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.8 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 0.8, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.894427 = sqrt(0.8) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.8 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 4.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.0 = sqrt(4.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/4.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: `sd_phylo(g) ~ …` is deprecated; use `sd(g, phylogenetic) ~ …` (drmTMB: `sd(g, level = "phylogenetic")`).
+│   caller = ip:0x0
+└ @ Core :-1
+┌ Warning: drm: this tree's maximum tip height is 0.8, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.894427 = sqrt(0.8) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.8 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Info: Poisson phylo gradient gate
+│   max_abs_diff = 4.5294680006691124e-8
+│   g_an =
+│    3-element Vector{Float64}:
+│     -5.492261101007133
+│      ⋮
+│   g_fd =
+│    3-element Vector{Float64}:
+│     -5.492261100457085
+└      ⋮
+┌ Warning: residuals(type = :quantile): this fit's random intercept is a structured (phylo / relmat / animal / spatial) effect. The σ_b-marginal reference used here assumes a population-level fitted mean and a random-effect variance of σ_b² for every unit (tree height 1, or a unit-diagonal relatedness / spatial matrix). Fits that store BLUP-conditional fitted means and raw-branch-length trees (unit variances σ_b²·C_ii) can give mis-calibrated residuals (DRModels.jl #995, #996).
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/quantile_residuals.jl:246
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 1.2, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.095445 = sqrt(1.2) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.2 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse phylo-mean variance block"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     2
+│   rcond = 2.984016604569147e-9
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for species: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: The fitted residual scale has collapsed towards 0 for some observations (e.g. all-singleton groups with `sigma ~ z`). Wald standard errors are withheld and the fit is reported as not converged.
+│   context = "Gaussian (1 | g) location-scale"
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/gaussian_ranef.jl:777
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     5
+│   rcond = 1.466933152344157e-9
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     1
+│     3
+│   rcond = 8.127489902867716e-11
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 3.317139668178294e-19
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.2658298462833767e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.2449424925847284e-18
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 6.203966068626399e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 2.421860942801724e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 2.421860942801724e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.399685902493748e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.399685902493748e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+[ Info: R-parity suite skipped (set DRM_PARITY_TESTS=1 to run)
+Test Summary:                     | Pass  Total  Time
+coupled Gamma public bootstrap B2 |   15     15  2.6s
+Test Summary:                            | Pass  Total  Time
+location–scale Λ log-Cholesky round-trip |    9      9  0.0s
+Test Summary:                                           | Pass  Total  Time
+location–scale inner joint: grad/Hessian vs ForwardDiff |    4      4  8.3s
+Test Summary:                                        | Pass  Total  Time
+location–scale inner mode reaches a stationary point |    3      3  0.9s
+Test Summary:                          | Pass  Total  Time
+location-scale profile endpoint status |  111    111  4.4s
+Test Summary:                               | Pass  Total  Time
+LogNormal random intercept (1|g) — recovery |    4      4  8.9s
+Test Summary:                                                | Pass  Total  Time
+_ls_lc_inv2x2 / _ls_lc_logdetΛ vs 256-bit BigFloat reference |   12     12  0.9s
+Test Summary:                                                                   | Pass  Total  Time
+_ls_lc_inv2x2 agrees with the matrix-formed path in the well-conditioned regime |   60     60  0.0s
+Test Summary:                                                                                | Pass  Total  Time
+matrix-formed path (_ls_inv2x2 ∘ _ls_lc_to_Λ) loses the claimed digits at the same diagonals |    2      2  0.2s
+Test Summary:                                                                      | Pass  Total  Time
+coupled NB2 location-scale fit through the rerouted _ls_lc_inv2x2 callers (ρ=0.95) |    4      4  2.3s
+Test Summary:                                                | Pass  Total  Time
+Gaussian LSS predictor-dependent SD for an independent slope |   19     19  8.2s
+Test Summary:                                    | Pass  Total  Time
+lsss multi: iid + phylo, both sd ~ x (fixture A) |    9      9  7.1s
+Test Summary:                                     | Pass  Total  Time
+lsss multi: three REs, five submodels (fixture B) |    5      5  7.4s
+Test Summary:        | Pass  Total   Time
+lsss multi: refusals |    6      6  10.6s
+Test Summary:                               | Pass  Total  Time
+sparse phylo-mean variance-block SEs (#556) |    5      5  1.6s
+Test Summary:                  | Pass  Total  Time
+Gaussian response-missing rows |   15     15  1.4s
+Test Summary:                            | Pass  Total  Time
+Bivariate Gaussian response-missing rows |   12     12  1.5s
+Test Summary:                                              | Pass  Total   Time
+#977 sparse multi-RE kernel: identity with the dense route |   51     51  27.3s
+Test Summary:                               | Pass  Total  Time
+NB2 relmat location-intercept SD regression |   26     26  7.6s
+Test Summary:                                          | Pass  Total   Time
+Zero-inflated NB2 sigma random-intercept SD regression |   10     10  23.7s
+Test Summary:                                                     | Pass  Total  Time
+Zero-inflated NB2 sigma SD keeps the native q1 admission boundary |    3      3  0.2s
+Test Summary:                                                   | Pass  Total   Time
+#938 no route estimates or drops offset(): random-effect routes |   81     81  27.4s
+Test Summary:                                      | Pass  Total  Time
+#938 no route estimates or drops offset(): zi / hu |   10     10  5.7s
+Test Summary:                                               | Pass  Total  Time
+#938 bivariate and mixed-family fits refuse offset() in mu1 |    5      5  1.3s
+Test Summary:                                         | Pass  Broken  Total   Time
+Beta / Binomial / BetaBinomial parity vs drmTMB 0.7.0 |   28       3     31  30.6s
+Test Summary:                                  | Pass  Total  Time
+phylo_count_large_p — Julia-side standing gate |   31     31  1.5s
+Test Summary:                                                           | Pass  Total   Time
+Gaussian two-SD phylogenetic random slope phylo(1 + x | species) (#620) |   51     51  12.1s
+Test Summary:                                                  | Pass  Total  Time
+Poisson phylo Laplace gradient gate (#165): FD-vs-exact ≤ 1e-6 |    4      4  0.2s
+Test Summary:                            | Pass  Total   Time
+ZIP independent mean-slope SD regression |   16     16  16.8s
+Test Summary:                           | Pass  Total  Time
+ZIP mean random-intercept SD regression |   17     17  2.3s
+Test Summary:                          | Pass  Total  Time
+independent profile acceptance oracles |   13     13  0.6s
+Test Summary:                    | Pass  Total     Time
+q4 perf identities (leaf-S5/S5d) |    7      7  1m07.5s
+Test Summary:                                            | Pass  Total  Time
+quantile residuals: random-intercept axis routing (#923) |   29     29  5.9s
+Test Summary:                                                              | Pass  Total  Time
+Poisson/NB2/Gamma relmat(1 | g) intercept use raw K (dense Laplace oracle) |    9      9  6.6s
+Test Summary:                                              | Pass  Total  Time
+REML q4: restricted correction reaches all four axes (#18) |    9      9  8.1s
+Test Summary:                                          | Pass  Total  Time
+REML vcov includes restricted-penalty curvature (#310) |    8      8  5.2s
+Test Summary:             | Pass  Total  Time
+sentinel fit-level guards |   18     18  1.4s
+Test Summary:                                                 | Pass  Total  Time
+Gaussian random effect on sigma: sigma ~ 1 + (1|g) — recovery |    6      6  0.1s
+Test Summary:                  | Pass  Total  Time
+SkewNormal() accessor contract |   34     34  3.0s
+Test Summary:                                | Pass  Total  Time
+TruncatedPoisson() (no hu) accessor contract |   27     27  2.4s
+Test Summary:                                                   | Pass  Total  Time
+phylo(1 | sp) + (1 | h): the ordinary bar is kept (was dropped) |   12     12  5.7s
+Test Summary:                                                                | Pass  Total  Time
+phylo(1 | sp) + (1 | h): rows go to tips BY NAME (shuffled rows, absent tip) |    7      7  0.2s
+Test Summary:                                                           | Pass  Total  Time
+bootstrap refuses marker + ordinary bar (the simulator draws one field) |    3      3  1.5s
+Test Summary:                                                   | Pass  Total   Time
+relmat(K = I) + (1 | h) is the two-bar (1 | id) + (1 | h) model |    7      7  13.3s
+Test Summary:                                                              | Pass  Total  Time
+(1 | sp) + phylo(1 | sp) is the sd() router with intercept-only sd() parts |    6      6  4.0s
+Test Summary:                                     | Pass  Total  Time
+phylo(1 | sp) + (0 + x | h) and two ordinary bars |    5      5  1.5s
+Test Summary:                                        | Pass  Total  Time
+drm_bridge: the R entry point returns the full model |    4      4  0.5s
+Test Summary:                                                       | Pass  Total   Time
+variants this route does not fit are refused by name, never dropped |    7      7  11.0s
+Test Summary:                             | Pass  Total  Time
+neighbouring routes are untouched (D-273) |    5      5  0.9s
+Test Summary:                                        | Pass  Total   Time
+Student-t correlated random slope (1+x|g) — recovery |    6      6  18.0s
+Test Summary:                                     | Pass  Total  Time
+Lane C: H² SIMD selinv identity (one banded cell) |    5      5  0.0s
+Test Summary:                                     | Pass  Total   Time
+triage G: level, update options, bootstrap status |  135    135  19.3s
+Test Summary:                                                                  | Pass  Total  Time
+Tweedie (1|g)/(0+x|g) adaptive GHQ: single group, sigma_b = 6, vs exact QuadGK |    8      8  2.1s
+Test Summary:                                                                     | Pass  Total   Time
+Tweedie (1|g)/(0+x|g): sigma_b recovery + fitted nll vs exact QuadGK at theta_hat |    4      4  33.0s
+Test Summary:                                                                       | Pass  Total  Time
+Tweedie (1|g)/(0+x|g): existing R-oracle fixtures move by ~1e-6, not 1e-3 (#563 S8) |   12     12  4.1s
+Test Summary:                                                                                         | Pass  Total   Time
+Tweedie (1|g)/(0+x|g): production route (no K arg) vs exact QuadGK at theta_hat — genuine numeric red |    2      2  44.2s
+Test Summary:                                          | Pass  Total  Time
+#668 — StatsAPI loglikelihood(fit) matches loglik(fit) |    2      2  1.0s
+Test Summary:                                        | Pass  Total   Time
+ZeroOneBeta random intercept (1|g) — recovery (#723) |    7      7  23.8s
+Test Summary:                                                    | Pass  Total  Time
+ZeroOneBeta(): other formulas still refuse random effects (#723) |    1      1  0.1s
+Test Summary:                                                                   | Pass  Total  Time
+residuals(type=:quantile) on a Binomial GLMM uses the marginal reference (#760) |    6      6  1.3s
+Test Summary:                    | Pass  Total     Time
+Rung 1 public VA frontend (#136) |   95     95  1m41.9s
+Test Summary:                                  | Pass  Total  Time
+NB2 random-intercept VA (ELBO) marginal (#136) |   17     17  4.9s
+Test Summary:                                          | Pass  Total   Time
+ZeroOneBeta predictor-dependent SD marginal simulation |   10     10  24.7s
+     Testing DRModels tests passed 

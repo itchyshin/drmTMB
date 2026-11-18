@@ -1,0 +1,370 @@
+{
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "source_state": "dirty candidate; foreign edits preserved",
+  "source_capsule_scope": "R and native sources, package metadata, new test/example; not a release source tarball",
+  "source_capsule_path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/source-capsule.tar.gz",
+  "source_capsule_sha256": "7265291ec109e87d3f982cb29f2312233e9203c9690fb6f88840c2afa984c61b",
+  "files": [
+    {
+      "path": "R/adequacy-plots.R",
+      "sha256": "50d41a04d8305b034c0e2dfbe4209591c992ee6d4cde800f71678d742b487d16",
+      "bytes": 10493
+    },
+    {
+      "path": "R/adequacy.R",
+      "sha256": "7a88ca078c0931f257b5bf5a1c9d5315448f7d8e907921e1418d2f6584163d9a",
+      "bytes": 13795
+    },
+    {
+      "path": "R/aghq-coxreid.R",
+      "sha256": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200",
+      "bytes": 10447
+    },
+    {
+      "path": "R/associate-pairs-sandwich-bernoulli-bernoulli.R",
+      "sha256": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3",
+      "bytes": 8078
+    },
+    {
+      "path": "R/associate-pairs-sandwich-gaussian-bernoulli.R",
+      "sha256": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860",
+      "bytes": 10359
+    },
+    {
+      "path": "R/associate-pairs-sandwich-gaussian-nbinom2.R",
+      "sha256": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd",
+      "bytes": 11761
+    },
+    {
+      "path": "R/associate-pairs-sandwich-nbinom2-nbinom2.R",
+      "sha256": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43",
+      "bytes": 10901
+    },
+    {
+      "path": "R/associate-pairs-sandwich.R",
+      "sha256": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c",
+      "bytes": 23314
+    },
+    {
+      "path": "R/associate-pairs.R",
+      "sha256": "6bca237180ad59297343db612b260b5f3b461efa0f54485b359cede58fd3f732",
+      "bytes": 81924
+    },
+    {
+      "path": "R/bf.R",
+      "sha256": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd",
+      "bytes": 2188
+    },
+    {
+      "path": "R/bootstrap-shards.R",
+      "sha256": "fcc55e070cc14b5162495194a519c0144f41b464af942f341662fe73942103ff",
+      "bytes": 8368
+    },
+    {
+      "path": "R/check.R",
+      "sha256": "0c4acbf8c48c5f03b8d869140dd428d4d56670a24097b7610b4558eeae12e1cf",
+      "bytes": 155947
+    },
+    {
+      "path": "R/coevolution-accessors.R",
+      "sha256": "2d0c55c4babb77188329dbfa8b936519a698317ea2c891d3a709255412e44c54",
+      "bytes": 13527
+    },
+    {
+      "path": "R/control.R",
+      "sha256": "2c11368f73afbd671c1862130c265719ed2762fad208bceb1a28d2157865f3c8",
+      "bytes": 20316
+    },
+    {
+      "path": "R/distributional-outputs.R",
+      "sha256": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450",
+      "bytes": 13650
+    },
+    {
+      "path": "R/drmTMB-package.R",
+      "sha256": "80ef3b42460050466b12c3bb50c97e6b5e6cd32a28b29021e2c5585cc1a37dc3",
+      "bytes": 1837
+    },
+    {
+      "path": "R/drmTMB.R",
+      "sha256": "e547d41fe000e8186103e636854082a0bb4d6f002511f48673ad0fe23b43e9b5",
+      "bytes": 892323
+    },
+    {
+      "path": "R/emmeans-preflight.R",
+      "sha256": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3",
+      "bytes": 8599
+    },
+    {
+      "path": "R/family-dpq.R",
+      "sha256": "e6822789bc7dac07ec2903bd08cf2be5f79c4db034248606c3d7ba0e830497d7",
+      "bytes": 63592
+    },
+    {
+      "path": "R/family.R",
+      "sha256": "9784beb7357b0a4c236772ae0bba9ac38a73a118586136f7fc2300c34357c17c",
+      "bytes": 21657
+    },
+    {
+      "path": "R/formula-markers.R",
+      "sha256": "f84297b7fabe505dde7aacaff0e66b02a8d5be44d9c3ca76769d122df8774240",
+      "bytes": 19440
+    },
+    {
+      "path": "R/gaussian-aggregation.R",
+      "sha256": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629",
+      "bytes": 9464
+    },
+    {
+      "path": "R/heritability.R",
+      "sha256": "8043f4e37614fe8f6bbba35d9ff685d9de497985badb2d4466e15bdb510119a3",
+      "bytes": 25197
+    },
+    {
+      "path": "R/julia-bridge.R",
+      "sha256": "9ef90a0c40419f14125b174cfc31ab3a7df0ec49247f331e834cff1a95141018",
+      "bytes": 604024
+    },
+    {
+      "path": "R/julia-coefficient-labels.R",
+      "sha256": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925",
+      "bytes": 7444
+    },
+    {
+      "path": "R/julia-diagnostics.R",
+      "sha256": "dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799",
+      "bytes": 17878
+    },
+    {
+      "path": "R/julia-family-cumulative_logit.R",
+      "sha256": "710d63606946196a81f111fd1d609a19aa54a494b564ee68e2f7aba1587d27dd",
+      "bytes": 13591
+    },
+    {
+      "path": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9",
+      "bytes": 18812
+    },
+    {
+      "path": "R/julia-joint-call.R",
+      "sha256": "1d892525aebbe7fffbf6314ded055312ef8f11119186b7fd43a996a42c623422",
+      "bytes": 2173
+    },
+    {
+      "path": "R/julia-joint-finite.R",
+      "sha256": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d",
+      "bytes": 8024
+    },
+    {
+      "path": "R/julia-joint-methods.R",
+      "sha256": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8",
+      "bytes": 30847
+    },
+    {
+      "path": "R/julia-joint-missing.R",
+      "sha256": "a5abe5f84f9776ee552436e9cc03648e150426123b3ab89130f75724d3b48539",
+      "bytes": 16849
+    },
+    {
+      "path": "R/julia-simulate.R",
+      "sha256": "9d18702f4cf7a9284abddcf7f6a9470fdecc85428dd9a92ee1cba119ef64f8e5",
+      "bytes": 32958
+    },
+    {
+      "path": "R/lrt-boundary.R",
+      "sha256": "bddf0f4cb35a44904ba3d78bc922c418669c51429d69f996504e929ef5877a9a",
+      "bytes": 11761
+    },
+    {
+      "path": "R/marginal-parameters.R",
+      "sha256": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea",
+      "bytes": 6795
+    },
+    {
+      "path": "R/mesh.R",
+      "sha256": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb",
+      "bytes": 10013
+    },
+    {
+      "path": "R/meta-vcov.R",
+      "sha256": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a",
+      "bytes": 5578
+    },
+    {
+      "path": "R/methods.R",
+      "sha256": "7732e623b6ae2a7f4b2f7e3663b66683f832265b55a1c881a4a3a49f310eac1b",
+      "bytes": 266393
+    },
+    {
+      "path": "R/missing-data.R",
+      "sha256": "3b61a7d3baf34c8e3983820b5684eeb6f537141a23f84aa5bf17861bee7d1e28",
+      "bytes": 186172
+    },
+    {
+      "path": "R/model-comparison.R",
+      "sha256": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db",
+      "bytes": 20831
+    },
+    {
+      "path": "R/mspl-estimator.R",
+      "sha256": "389633693e357910d3ecf0d23472e29dc7310df922e2f150f197dc9f149d40d5",
+      "bytes": 27135
+    },
+    {
+      "path": "R/mspl.R",
+      "sha256": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e",
+      "bytes": 18031
+    },
+    {
+      "path": "R/objective-at.R",
+      "sha256": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1",
+      "bytes": 6122
+    },
+    {
+      "path": "R/parallel-docs.R",
+      "sha256": "555a9ce271c8e57c0fd6b79dd561b7ce4fbdf377c75f721f91bb53e2f6279dd5",
+      "bytes": 4017
+    },
+    {
+      "path": "R/parse-formula.R",
+      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc",
+      "bytes": 38883
+    },
+    {
+      "path": "R/penalty.R",
+      "sha256": "de5dae88497da26e0ba46eaa1b580a12bb5ce288b6534e72f88a8b9df6f43615",
+      "bytes": 12653
+    },
+    {
+      "path": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4",
+      "bytes": 36087
+    },
+    {
+      "path": "R/plot-corpairs.R",
+      "sha256": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c",
+      "bytes": 12565
+    },
+    {
+      "path": "R/plot-parameter-surface.R",
+      "sha256": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421",
+      "bytes": 12008
+    },
+    {
+      "path": "R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014",
+      "bytes": 24752
+    },
+    {
+      "path": "R/prediction-grid.R",
+      "sha256": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647",
+      "bytes": 14475
+    },
+    {
+      "path": "R/profile.R",
+      "sha256": "9eb278c04950986f194fa793dbaf5baff60715b46b75e4f3b7e7d4614cefd837",
+      "bytes": 199264
+    },
+    {
+      "path": "R/provenance.R",
+      "sha256": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a",
+      "bytes": 3897
+    },
+    {
+      "path": "R/random-effect-scale-formulas.R",
+      "sha256": "0dba5cc7830b088a96b8dae3914b6cb4a7fbf73b235282f407848c50402881f5",
+      "bytes": 8259
+    },
+    {
+      "path": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c",
+      "bytes": 16604
+    },
+    {
+      "path": "R/reader-contracts.R",
+      "sha256": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f",
+      "bytes": 2141
+    },
+    {
+      "path": "R/sparse-fixed.R",
+      "sha256": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd",
+      "bytes": 1930
+    },
+    {
+      "path": "R/zzz.R",
+      "sha256": "091766cfe3940fc6d1c460884e733619121f9fd6afa6002ae437fb1a05a9432b",
+      "bytes": 985
+    },
+    {
+      "path": "src/drmTMB.cpp",
+      "sha256": "4f35929293a90d92fa792aa9ffe4e6b669795ae7919b7a9703b7458716fd575f",
+      "bytes": 252732
+    },
+    {
+      "path": "src/drm_count_kernels.h",
+      "sha256": "ccc6faa0f61e391770ca9611646ea694189a7588a50fe31f437cf1c511fc8047",
+      "bytes": 1651
+    },
+    {
+      "path": "src/drm_numeric.h",
+      "sha256": "089b5b084eae9ab276a3e3746fdd220a5ce3a20ea2cc1c791157cc4828f6600f",
+      "bytes": 5817
+    },
+    {
+      "path": "src/drm_response_kernels.h",
+      "sha256": "d7d75fe2346b7b0ff51ec5d9a77eacc4bf18e2aae06091501e3f52e83a02884d",
+      "bytes": 7595
+    },
+    {
+      "path": "src/init.c",
+      "sha256": "4ce218bc4d080bc2f0d179aa96f248c5d99dc7dc3ea542d848e1782673c913c3",
+      "bytes": 699
+    },
+    {
+      "path": "src/meuwissen_luo.c",
+      "sha256": "75c46ada4abebc419e019bf1d6e64d5a04cde120c9c0ed6d7072691afa5aa487",
+      "bytes": 3559
+    },
+    {
+      "path": "DESCRIPTION",
+      "sha256": "9273d37e6dd2850004051fbdb46945cb2bc6c61835050ff52033c45a2541e72c",
+      "bytes": 1498
+    },
+    {
+      "path": "NAMESPACE",
+      "sha256": "092132bae0940217c6e8a09ad1677e05ad0e8d325b9255252f495f55cfb81cb9",
+      "bytes": 6405
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "bytes": 35149
+    },
+    {
+      "path": "tests/testthat/test-beta-animal-q2-sd-regression.R",
+      "sha256": "6966e054833dde0ee3934664fbd2d1ebf554d6b424150de72a5784f4fa8293e8",
+      "bytes": 13467
+    },
+    {
+      "path": "inst/examples/beta-animal-q2-sd.R",
+      "sha256": "dad2a8b6e140e615ccdd3a7f660f17194c179f2ff9cc63546d4db4daa71f7714",
+      "bytes": 2314
+    },
+    {
+      "path": "docs/dev-log/after-task/2026-10-27-native-beta-animal-q2-sd.md",
+      "sha256": "608d95c5737c5c75b4570889a2a52355e27311799abfe7981b452aa6efc949f1",
+      "bytes": 10217
+    },
+    {
+      "path": "docs/dev-log/check-log.d/2026-10-27-native-beta-animal-q2-sd.md",
+      "sha256": "bace8d72aa355803938ad1b4178132e07abb88347ee076cf00eda806d400c374",
+      "bytes": 2026
+    },
+    {
+      "path": "src/drmTMB.so",
+      "sha256": "afde22660f3bc7577f9e6cb261356ceb11c31ef1c50ad27199295e3e1a71b7dc",
+      "bytes": 26831768
+    }
+  ]
+}

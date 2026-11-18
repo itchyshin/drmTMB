@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-phylo-relmat-q-cloglog-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-phylo-relmat-q-cloglog-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-q-nonlogit-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-phylo-relmat-q-nonlogit-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-phylo-relmat-q-nonlogit-sd.R",
+      "test_sha256": "48bc80a66b423629b9592ac04d941fd6b54a5de6c641b38ada83f31f93af5fec",
+      "started_utc": "2026-11-02T13:17:14Z",
+      "ended_utc": "2026-11-02T13:18:46Z",
+      "exit_code": 0,
+      "expectations_passed": 14,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-q-nonlogit-sd-20261027-m26-97cb32/test-console-test-binomial-phylo-relmat-q-nonlogit-sd.log",
+      "console_log_sha256": "2828777c9390d8bd1e937f4e8c0621c8e687919c6420d15de14d0b55af7a29bc"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-q-nonlogit-sd-20261027-m26-97cb32/source-manifest.json",
+  "source_manifest_sha256": "277e535ba166ecef8e44c323b4c640307b09f1f74d867e69add58380dafd824a",
+  "review_status": "unreviewed"
+}

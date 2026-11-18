@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "8449397c21b9f00ad91e183f0bc57e2ee07d1369b1939e0559b5965fb9da87d5",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the complete report against the exact test output, source manifest, reconciler, lane lease, and after-task checker; ran slop_check.py.",
+  "genre": "Technical after-task evidence report",
+  "coverage": "Entire report, all sections",
+  "score": 3,
+  "style_status": "rated",
+  "score_reason": "The prose names exact models, assertions, runtime, hashes, and evidence limits. The required section structure makes the report somewhat regular, but details remain concrete.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and technically anchored; this is an uncertain style judgment rather than a calibrated measure.",
+  "examples": [
+    {
+      "location": "paragraph line 40",
+      "line": 40,
+      "quote": "Both tests independently reconstruct the latent group effect and family-specific response draw using the same random seed, then compare the result with the simulator output.",
+      "cue": "Describes the independent seeded oracle.",
+      "impact": "Readers can see the checks test simulator behavior rather than only callability.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "paragraph line 56",
+      "line": 56,
+      "quote": "They do not prove native TMB parity, additional effect types, calibrated intervals, or support across the 19,118-row universe.",
+      "cue": "States the scope boundary.",
+      "impact": "Prevents two workflow tests from being read as broad parity or calibration evidence.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Claims are restricted to seeded simulation and bootstrap workflow checks, with calibration explicitly excluded.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test counts, timings, candidate HEAD, and ledger counts match command outputs and hash checks.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature claims or citations appear.",
+  "date": "2026-10-23",
+  "calibration_status": "Prior project report forms were seen; no held-out style controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

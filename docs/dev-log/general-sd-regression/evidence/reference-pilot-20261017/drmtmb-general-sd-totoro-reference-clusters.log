@@ -1,0 +1,12 @@
+Test passed with 13 successes 🌈.
+Test passed with 12 successes 🥇.
+SCALAR_BINOMIAL_REFERENCE_PASS
+             point absolute_difference relative_error tighter_relative_error
+1     adaptive_mle        2.788880e-13   9.970262e-09           8.654687e-11
+2 generating_truth        3.126388e-13   9.974048e-09           9.793649e-11
+3       native_mle        7.993606e-14   9.919072e-09           9.210694e-11
+  subdivisions tighter_subdivisions
+1            6                    7
+2            6                    7
+3            6                    7
+CLUSTER_REFERENCE_CHECKS_PASS

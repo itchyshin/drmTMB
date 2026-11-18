@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "88a9e6f78124f8917090bedcca49ea85f9d9f1b44dce6ceef163ab39cb309f81",
+  "draft_version": "v5",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft review against writing-naturalness.md and the drmTMB prose-style-review checklist; factual change checked against the focused test exit code and assertions.",
+  "genre": "Software after-task report",
+  "coverage": "Updated whole after-task report after the conditional sigma-output follow-up; all required task sections retained.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report states the tested conditional output identity and preserves explicit limits on new-data prediction, bootstrap refits, Julia parity, and interval coverage.",
+  "confidence": "medium",
+  "confidence_reason": "The native fit and interval values were read from command output. One fit at each size cannot support a coverage judgment; the prose rating remains an editorial assessment.",
+  "examples": [
+    {
+      "location": "Checks Run",
+      "cue": "The paragraph reports both finite intervals, including the small-design miss, then limits the claim to workflow execution.",
+      "impact": "The reader can see the observed failure as well as the passing workflow without mistaking either for a coverage estimate.",
+      "repair": "No change needed.",
+      "line": 57,
+      "quote": "design can miss the truth; they do not estimate interval coverage."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report accurately describes the model target and labels the two intervals as smoke evidence rather than coverage evidence.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The focused native test exited 0 and checked the conditional link decomposition and response-scale transformation. No live Julia test ran.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external citation claims appear in this report.",
+  "date": "2026-10-22",
+  "calibration_status": "No human-labelled calibration control was reviewed; this is an informal self-assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

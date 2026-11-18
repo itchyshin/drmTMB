@@ -94,12 +94,18 @@ test_that("drm_formula() reserves explicit random-effect scale targets", {
   expect_equal(target$target_block, "p")
   expect_equal(target$explicit, TRUE)
 
-  expect_error(
-    drm_formula(sd(id, dpar = "sigma") ~ z),
-    "reserved for location"
-  )
+  # dpar = "sigma" is an admitted scale-side SD target: the grammar records it
+  # and the family builders decide which routes can fit it.
+  sigma_entry <- drm_formula(sd(id, dpar = "sigma") ~ z)$entries[[1L]]
+  sigma_target <- drmTMB:::parse_sd_lhs(sigma_entry$lhs)
+  expect_equal(sigma_target$target_dpar, "sigma")
+  expect_equal(sigma_target$explicit, TRUE)
   expect_error(
     drm_formula(sd1(id, dpar = "mu1") ~ z),
+    "does not accept explicit target"
+  )
+  expect_error(
+    drm_formula(sd2(id, dpar = "sigma2") ~ z),
     "does not accept explicit target"
   )
 })
@@ -384,12 +390,12 @@ test_that("structured-effect markers validate planned and fitted grammar", {
     drm_formula(
       y ~ x +
         phylo_interaction(
-          1 + x | plant:pollinator,
+          1 + x + z | plant:pollinator,
           tree1 = plant_tree,
           tree2 = pollinator_tree
         )
     ),
-    "intercept-only"
+    "intercept and one-slope"
   )
   expect_error(
     drm_formula(

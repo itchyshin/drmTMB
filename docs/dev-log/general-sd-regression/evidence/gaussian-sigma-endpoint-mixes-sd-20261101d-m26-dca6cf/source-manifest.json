@@ -1,0 +1,24 @@
+{
+  "scope": "Source identity for native-gaussian-sigma-endpoint-mixes-sd-20261101d, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-sigma-endpoint-mixes-sd.R",
+      "sha256": "058ffba20cd6f0dcf4abce6b9da432fe0be560ad56827d5f093147b29bc62f87"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'src/drmTMB.cpp']"
+}

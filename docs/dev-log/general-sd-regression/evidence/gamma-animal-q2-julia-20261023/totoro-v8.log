@@ -1,0 +1,13 @@
+candidate.tar.gz: OK
+36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9  Project.toml
+14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20  Manifest.toml
+56578564ead901429f5033f42645369e0a373a995a192fb0220a79394536071d  src/gaussian_core.jl
+fca1c3c49b12a6090a23fbf8209865ff3989a2701ad33d9a610ee9ceb58efb11  src/gaussian_ranef.jl
+a3065b51bdaae48cd6862274145052c3700829cd1c4ae208dde91b95f88ace19  src/gamma.jl
+34b0cb20358214c4346c8a44cae3e2f08abfe3f5445ee4e2085d61db0ee4490e  src/inference.jl
+7478193def06713970cdf76580196bb7f7233b7909a738042533ccb05038cb45  src/bridge.jl
+1f7bd590b37dd46b79b9426a5f8dd9931731b480df8c913bc4e5c92b94b5b12b  test/test_gamma_animal_intercept_slope_sd.jl
+START 2026-10-23T17:59:14-06:00
+Test Summary:                                              | Pass  Total   Time
+Gamma animal independent intercept and slope SD regression |   35     35  31.7s
+END 2026-10-23T17:59:52-06:00

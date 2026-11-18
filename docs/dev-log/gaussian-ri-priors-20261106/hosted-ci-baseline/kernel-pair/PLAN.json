@@ -1,0 +1,28 @@
+{
+  "recorded_before_execution": "2026-11-07T04:26:59.352582+00:00",
+  "purpose": "Controlled arithmetic sensitivity of unchanged unpenalized binomial slope convergence test",
+  "sources": {
+    "baseline": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+    "candidate": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82"
+  },
+  "kernels": [
+    "Cooperlake",
+    "Haswell"
+  ],
+  "attempts": 4,
+  "runtime": "Existing Totoro officialJulia1.13.3 and frozen paired environments",
+  "caps": {
+    "Julia_threads": 1,
+    "BLAS_threads": 1,
+    "OMP_threads": 1,
+    "per_attempt_seconds": 600
+  },
+  "invariants": [
+    "Verify actual loaded OpenBLAS core name",
+    "Original44 assertions unchanged",
+    "Original data seed and fixture hash unchanged",
+    "Parent restoration and process-group timeout cleanup",
+    "No prior added; no production code or convergence threshold changes",
+    "Retain all attempts; no baseline-defect attribution solely from passes"
+  ]
+}

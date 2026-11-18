@@ -1,0 +1,6 @@
+2efb0af059a7b9488f0a4769f4bb5191be3e2ec71119a1cd96b7a555bb344908  R/drmTMB.R
+601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6  src/drmTMB.cpp
+f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f  R/random-effect-targets.R
+7055f4f113f1b688d72399bdf65b51e76412c24387dfa577d049145d3ddebd1d  R/random-effect-scale-formulas.R
+e1a30947c4be08c1fc0d473785532b90c3edcae19afa92958d7bca6b2cc3b17d  tests/testthat/test-nbinom2-sigma-sd-regression.R
+96bac36d9c4d4968b176ae4155c365f8409c77d9f6e4a83d86d68665aec13c33  tests/testthat/test-nbinom2-sigma-slope-sd-regression.R

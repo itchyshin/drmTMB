@@ -37,7 +37,10 @@ test_that("refusal hints retain the existing structured route boundaries", {
     expect_s3_class(condition, "error")
     gsub("[[:space:]]+", " ", conditionMessage(condition))
   }
-  binomial <- message_for(drmTMB:::validate_binomial_mu_random_terms(bad))
+  # Binomial now admits a labelled scalar intercept, so the refusal is pinned
+  # on a labelled slope, which is still refused.
+  bad_binomial <- list(list(type = "slope", covariance_label = "p", label = "x | p | id"))
+  binomial <- message_for(drmTMB:::validate_binomial_mu_random_terms(bad_binomial))
   expect_match(binomial, "phylo", fixed = TRUE)
   expect_match(binomial, "relmat", fixed = TRUE)
   expect_match(binomial, "remain unsupported", fixed = TRUE)
@@ -148,4 +151,21 @@ test_that("the actual pkgdown build aborts if installation fails", {
   call[[2L]] <- quote({ warning("unrelated warning"); continued <- TRUE })
   expect_warning(eval(call, env), "unrelated warning", fixed = TRUE)
   expect_true(env$continued)
+})
+
+test_that("Julia same-target tolerances cite the tested DRModels source", {
+  roxygen <- paste(readLines(drm_pkg_path("R/drmTMB.R"), warn = FALSE),
+    collapse = "\n")
+  help <- paste(readLines(drm_pkg_path("man/drmTMB.Rd"), warn = FALSE),
+    collapse = "\n")
+  news <- paste(readLines(drm_pkg_path("NEWS.md"), warn = FALSE),
+    collapse = "\n")
+
+  expect_match(roxygen, "Measured gaps at DRModels\\.jl source pin 19e5e2fe")
+  expect_match(help, "Measured gaps at DRModels\\.jl source pin 19e5e2fe")
+  expect_true(grepl(
+    "same-target receipts at DRModels\\.jl\\s+source pin 19e5e2fe",
+    news,
+    perl = TRUE
+  ))
 })

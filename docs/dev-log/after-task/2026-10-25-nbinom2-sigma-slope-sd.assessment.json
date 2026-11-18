@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "abccc48c732fe4f87e113f36e621a56a41ac6cae39a5d4d7106c2997b1637ce4",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete report and compare its formula, model scope, test status, render/pkgdown results, source-manifest result and ledger status with the source files, exact logs and current reconciler output.",
+  "genre": "software after-task report",
+  "coverage": "Complete report, all 12 sections.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete implementation and test details; the required template creates some checklist rhythm.",
+  "confidence": "medium",
+  "confidence_reason": "Evidence is linked to exact logs and code, though the style rating is an editorial self-judgment.",
+  "examples": [
+    {
+      "location": "Section 2, paragraph 1",
+      "cue": "The route names the precise response, parameter, random-effect shape and predictor condition.",
+      "impact": "Readers can see the supported formula boundary before the mechanics.",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "Native, complete-data, non-inflated NB2 now admits one unlabelled numeric random slope on `sigma`, with fixed-effect-only `mu` and a group-constant SD predictor:"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The equation and formula target were checked against the data generator, public extraction target, and the native per-term sigma SD-row path. The report limits the claim to this fixture and does not claim calibrated uncertainty.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The exact test output and exit code, source manifest stability, vignette render, pkgdown result and evidence reconciliation were checked against saved outputs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations.",
+  "date": "2026-10-25",
+  "calibration_status": "Previously seen examples; this self-review is not a held-out evaluation.",
+  "interpretation": "perceived_style_not_authorship"
+}

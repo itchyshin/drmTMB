@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Library/Frameworks/R.framework/Resources/bin/Rscript",
+    "-e",
+    "pkgbuild::compile_dll(path=\".\", force=TRUE, debug=FALSE, quiet=FALSE)"
+  ],
+  "returncode": 0,
+  "elapsed_seconds": 41.725605166,
+  "timed_out": false,
+  "deadline_seconds": 480,
+  "source_cpp_sha256": "4f35929293a90d92fa792aa9ffe4e6b669795ae7919b7a9703b7458716fd575f",
+  "flags": "CXXFLAGS = -O0 -g0\nCXX11FLAGS = -O0 -g0\nCXX14FLAGS = -O0 -g0\nCXX17FLAGS = -O0 -g0\nCXX20FLAGS = -O0 -g0\nCFLAGS = -O0 -g0\n"
+}

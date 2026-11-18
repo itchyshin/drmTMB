@@ -1,0 +1,9 @@
+binomial-phylo-interaction-oracle-b31nb: ...............B31NB phylo_interaction slope logit | agree 1.92e-11 | min gap 1.132 (K_times_2) | n gaps 5
+...............B31NB phylo_interaction slope probit | agree 1.71e-12 | min gap 1.430 (K_times_2) | n gaps 5
+...............B31NB phylo_interaction slope cloglog | agree 1.36e-12 | min gap 1.123 (K_times_2) | n gaps 5
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+🧿 Your tests look perfect 🧿
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+COUNTS expectations=45 failed=0 skipped=0 errors=0 warnings=0 secs=19.2

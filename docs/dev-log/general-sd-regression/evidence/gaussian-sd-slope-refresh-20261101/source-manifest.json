@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-gaussian-sd-slope-regression.R",
+      "sha256": "a4a6f0d08c6cff902aa23cdadff35c47229b3eecbdb15e9c29a015ac9e1626b8"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "741e1fa779ee7f9ed22b184dc8acaa8180527edf28c047d30114367a802707c0"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101/test-console.log",
+      "sha256": "3788e47d4d8d8c6481afe7a8c3f2f3f29648285892803f4d3a0b96d568f0a064"
+    }
+  ],
+  "note": "dirty shared candidate; hashes identify test-time files at HEAD 425bee81572c625a634b2b083050c5c57c1dc1f1 plus uncommitted edits"
+}

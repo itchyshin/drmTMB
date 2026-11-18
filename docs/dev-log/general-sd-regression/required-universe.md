@@ -1,0 +1,24 @@
+# Required SD-regression denominator
+
+Generated from the pinned `family-endpoints.tsv`, `mechanism-templates.tsv`, and `family-links.tsv`. Each row names the canonical response/location link obligation for that family route; the link table distinguishes engine-admitted routes from union obligations whose base link is blocked. Internal links on scale/shape dpars remain family-specific. These rows define required scope, not current SD admission.
+
+- Endpoint source rows: 54 across 20 family routes.
+- Explicit family/link rows: 44 (42 base-admitted engine-link rows plus 2 blocked Julia union obligations; no implicit default-link rows).
+- Finite mechanism templates: 31.
+- Machine-readable source block rule rows: 156 across 34 named rules; rows also carry target_member, member_coefs, q_domain, q_value, and partition_rule.
+- Old-to-new mapping: the prior 5,438-row snapshot comprised 4,950 non-block rows and 488 block-related rows. This revision retains 5600 non-block rows and has 15646 block rows (8896 source-shaped/fallback rows plus 6750 explicit unresolved candidate rows), for 21246 total rows (+15808 versus that snapshot). The 1,440 Julia tagged-q4 rows have 1440 exact native union counterparts marked blocked.
+- Required rows: 21246.
+- By engine: Julia=10695, native=10551.
+- By initial status: blocked_base_plumbing=3525, required=4893, structural_inapplicable=90, unresolved=12738.
+- Direct-SD support promotions: 0; every row has `direct_sd_claim=none`.
+- Explicit input-level simultaneous provider pairs: 21; the separate phylo+OU temporal layout is one additional named pair template.
+
+## Explicit expansions
+
+Animal rows distinguish pedigree, A covariance, and Ainv precision inputs. Related-matrix rows distinguish K covariance and Q precision. Spatial rows distinguish coordinate and mesh inputs. Phylogenetic intercept rows distinguish tree input from covariance/precision matrix candidates; native grammar calls matrix-input phylo a planned sibling (drmTMB `docs/design/01-formula-grammar.md:1100`), while Julia's pinned `_structured_group_index` requires a tree and its resolver calls `_phylo_correlation(tree)` (DRM.jl `src/gaussian_structured.jl:196-220`). No separate public Julia matrix-input phylo route was found; those required rows remain `blocked_base_plumbing`. Animal A/Ainv and phylo matrix inputs are separate providers and are never conflated. Matrix-input phylo is only expanded for the explicitly named intercept sibling.
+
+Additive iid terms are split into crossed and nested layouts. Simultaneous provider rows list explicit source-named or implemented pair labels; they do not generate arbitrary provider combinations. The native Binomial animal+coordinate-spatial pair was added to this finite candidate set when its fitted route and recovery checks were implemented; matching Julia rows remain obligations and do not imply Julia admission. The `block-rules.tsv` source table enumerates source-shaped endpoint tuples, finite q classes, symbolic coefficient-count domains, and Julia tagged q4 partitions; Julia tagged partitions are mirrored into the native denominator as `blocked_base_plumbing`. In addition, each actual family endpoint set is expanded into finite canonical size-two-or-larger member subsets for cross-endpoint block mechanisms. Exact source-shaped rows retain their source rule ID; other member sets use a `candidate-` rule ID and remain unresolved (or blocked where a provider input is absent). This includes special endpoint candidates such as nu/zi/hu/zoi/coi/rho12 where declared; it makes no compatibility or identifiability claim. Single-endpoint families have no cross-endpoint block. The q1-only native mesh limit is recorded as blocked base plumbing, not structural inapplicability.
+
+## Review limits
+
+The initial statuses remain `required`, `unresolved`, `blocked_base_plumbing`, or explicit single-endpoint `structural_inapplicable`; no code path assigns `supported`. The 34 named block rules (156 engine/mechanism/domain rows) are expanded by provider into finite q anchors plus symbolic domains where the contract admits arbitrary numeric slopes. Cross-endpoint candidate rows are finite over each family's actual endpoint set and remain unresolved absent source admission. Base plumbing is still not fully classified per family/endpoint/provider/layout; native combined-provider fitted routes, estimator prerequisites, and source disagreements remain open. Julia's two-structured-provider fitter is Gaussian and supports phylo/animal/relmat pairs (DRM.jl `src/gaussian_structured.jl:203-224,236-260`); spatial pairings are refused (`src/gaussian_structured.jl:217-219,510-514`). Native temporal rows lack fitted base plumbing at the pinned snapshot (drmTMB `docs/design/01-formula-grammar.md:1226-1230`); Julia has AR1, OU, homogeneous Toeplitz, and one phylo+OU layout (DRM.jl `src/temporal.jl:1-20,53-78`). G0 remains open.

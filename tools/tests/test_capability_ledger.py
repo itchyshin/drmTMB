@@ -1629,7 +1629,7 @@ class CapabilityLedgerTests(unittest.TestCase):
     def test_unsupported_fit_errors_name_reader_compatible_fallbacks(self):
         source = (ROOT / "R" / "drmTMB.R").read_text()
         self.assertIn(
-            "Use an unlabelled intercept with {.fn phylo} or {.fn relmat}, "
+            "Use an unlabelled intercept with an admitted structured provider, "
             "or remove the structured term.",
             source,
         )

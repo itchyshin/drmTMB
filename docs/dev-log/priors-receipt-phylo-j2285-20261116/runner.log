@@ -1,0 +1,15 @@
+ℹ `engine = "julia"` is experimental: it fits only the families and routes
+  listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a
+  drop-in replacement for the default `engine = "tmb"`.
+ℹ This notice is shown once per R session.
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.12.6 at location /home/snakagaw/.julia/juliaup/julia-1.12.6+0.x64.linux.gnu/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+PHYLO_LABEL_PUBLIC_PASS elapsed=73.528
+Julia exit.
+  Activating project at `~/codex-phylo-prior-receipt-e25-j2285-20261116/julia`
+Precompiling packages...
+   9278.9 ms  ✓ DRModels
+  1 dependency successfully precompiled in 9 seconds. 100 already precompiled.

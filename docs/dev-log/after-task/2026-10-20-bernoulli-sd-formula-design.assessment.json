@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "fa6f7cadf1a0059f2be5411976d6adcea5fe597f9ec1f9b4f64d13c471659de7",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Self-review using protocols/writing-naturalness.md; factual claims checked against the paired test source and final test outputs.",
+  "genre": "Internal technical after-task report",
+  "coverage": "Entire report, sections 1-12",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The short report names concrete files, formulas, checks, and limits with little generic framing.",
+  "confidence": "medium",
+  "confidence_reason": "The factual claims were checked against test code and final output; style scoring remains a subjective editorial judgment.",
+  "examples": [
+    {
+      "location": "Section 10",
+      "cue": "This slice does NOT establish model fitting, parameter recovery, interval calibration, same-data estimate parity, or support for structured random effects.",
+      "impact": "Keeps the test-only result boundary explicit.",
+      "repair": "no change needed",
+      "line": 47,
+      "quote": "This slice does NOT establish model fitting, parameter recovery, interval calibration, same-data estimate parity, or support for structured random effects."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report claims only design-matrix coding and a within-group validation rule, which are the behaviors asserted by the tests.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The test commands and results match the final outputs and the assertion structure in both test files.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references.",
+  "date": "2026-10-20",
+  "calibration_status": "Other after-task reports were seen; this is not a held-out style calibration.",
+  "interpretation": "perceived_style_not_authorship"
+}

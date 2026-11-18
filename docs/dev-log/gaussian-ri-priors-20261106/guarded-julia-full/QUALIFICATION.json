@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "source": "ff10a2f9adb23c0e315d50e8c2094d6d27ed1d82",
+  "runtime": "1.10.12",
+  "threads": 4,
+  "BLAS_threads": 1,
+  "files": 561,
+  "partition": "root reverified disjoint exact union from original harness lists",
+  "receipts": [
+    {
+      "shard": 1,
+      "files": 71,
+      "exit": 0,
+      "seconds": 1039,
+      "JET": "2/2 passed",
+      "sha256": "ac6d9997b03e62227bd5d66900f17f8a7b0d5a987b41e2972f26338e49a404de"
+    },
+    {
+      "shard": 2,
+      "files": 70,
+      "exit": 0,
+      "seconds": 1168,
+      "JET": "2/2 passed",
+      "sha256": "733dd0937109b38dda2cb8d1ddcfd53c03d4150c737fd9da5a41a55e43cbef49"
+    },
+    {
+      "shard": 3,
+      "files": 70,
+      "exit": 0,
+      "seconds": 1209,
+      "JET": "2/2 passed",
+      "sha256": "cbc29d4ed698bd2456ff5355e6d6f38525b9eca97bef94e8c0ed1b26a64f2d90"
+    },
+    {
+      "shard": 4,
+      "files": 70,
+      "exit": 0,
+      "seconds": 1377,
+      "JET": "2/2 passed",
+      "sha256": "998095d4d88ccb6c11072dcf2426d4c903955fa66596bb6c6722d64fa6f88929"
+    },
+    {
+      "shard": 5,
+      "files": 70,
+      "exit": 0,
+      "seconds": 1410,
+      "JET": "2/2 passed",
+      "sha256": "8e9bce6224940fc18edfee42f47b64765250b0edf399733b7054af27b1fdfa52"
+    },
+    {
+      "shard": 6,
+      "files": 70,
+      "exit": 0,
+      "seconds": 1259,
+      "JET": "2/2 passed",
+      "sha256": "9b8ded64c13b5f429169b50312ece05b2d50da0e57f31a3e83744564b4aa4cf5"
+    },
+    {
+      "shard": 7,
+      "files": 70,
+      "exit": 0,
+      "seconds": 1140,
+      "JET": "2/2 passed",
+      "sha256": "3c5b04c91db135271cb6fd77a52735b3601ef46873ad306c65af814d114986a2"
+    },
+    {
+      "shard": 8,
+      "files": 70,
+      "exit": 0,
+      "seconds": 8367,
+      "JET": "2/2 passed",
+      "sha256": "9eebacea3869fa4637b3b51852854dfdb37b395238a0852374e7fd3104dc89ec"
+    }
+  ],
+  "slowest_seconds": 8367,
+  "limitations": [
+    "DRM_PARITY_TESTS=0; separate frozen numerical oracle and live bridge evidence cover the approved prior slice.",
+    "This local suite pass does not adjudicate the hosted Julia1.13.3 binomial SD convergence failure."
+  ]
+}

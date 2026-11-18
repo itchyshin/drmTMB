@@ -1,0 +1,10 @@
+base <- "/home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b"
+.libPaths(c(file.path(base, "r-final899-lib"), .libPaths()))
+Sys.setenv(R_LIBS_USER = paste(.libPaths(), collapse = .Platform$path.sep))
+library(drmTMB)
+cat("loaded package:", find.package("drmTMB"), "\n")
+r <- testthat::test_local(file.path(base, "r-final899-clean-src"), load_package = "installed", filter = "^(fixed-effect-priors|fixed-priors-workflow|predict-mean|dinnage-audit.*|drmTMB-unused-dots)$", reporter = "summary", stop_on_failure = FALSE)
+saveRDS(r, file.path(base, "evidence/r-final899-targeted.rds"))
+s <- as.data.frame(r)
+print(s[, intersect(c("file", "test", "failed", "error", "warning", "skipped", "passed"), names(s))])
+stopifnot(sum(s$failed) == 0L, !any(s$error))

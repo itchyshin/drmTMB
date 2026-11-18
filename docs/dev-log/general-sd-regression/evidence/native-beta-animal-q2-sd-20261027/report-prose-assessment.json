@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "608d95c5737c5c75b4570889a2a52355e27311799abfe7981b452aa6efc949f1",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex GPT-6.1 Sol",
+  "method": "Separate saved-draft review against compile/test/example/boundary logs and independent mathematical review.",
+  "genre": "technical after-task report",
+  "coverage": "whole saved report",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Required numbered structure is visible; model, counts, matrix conventions and exclusions are concrete.",
+  "confidence": "medium",
+  "confidence_reason": "Editorial self-review, with no human naturalness rating.",
+  "examples": [
+    {
+      "location": "line 5",
+      "cue": "concrete scope",
+      "impact": "Gives the bounded purpose and matrix representations before mechanics.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Fit separate predictor-dependent SDs for independent animal intercept and slope fields in a Beta response model, using supplied covariance or precision matrices. Preserve the complete-response boundary and keep `sigma` regression free of random effects."
+    },
+    {
+      "location": "line 61",
+      "cue": "concrete scope",
+      "impact": "States the evidence denominator and its statistical limits.",
+      "repair": "no change needed",
+      "line": 61,
+      "quote": "The recovery checks use one ordinary-condition synthetic seed with 64 groups and 20 observations per group. They support a bounded point-fit smoke check and numerical correctness. General bias and recovery properties remain unassessed. The identifiability guard catches the specified zero-loading and constant-design degeneracies; it is not a general identifiability proof. Interval coverage remains deferred."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Scoped covariance, Beta derivatives and Laplace normalization agree with independent review/oracle; general bias, coverage and parity remain unassessed.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Counts162/new58 and timing135.625/41.726/15.806 checked against saved logs; no publication/current-main claim.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature claims; local artifact references and rows are recorded.",
+  "date": "2026-10-27",
+  "calibration_status": "House protocol examples seen; no independent calibration study performed.",
+  "interpretation": "perceived_style_not_authorship"
+}

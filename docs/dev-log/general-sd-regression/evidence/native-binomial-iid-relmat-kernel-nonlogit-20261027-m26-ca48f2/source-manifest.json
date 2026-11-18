@@ -1,0 +1,19 @@
+{
+  "scope": "Source identity for native-binomial-iid-relmat-cloglog-q-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-iid-relmat-kernel-nonlogit-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R",
+      "sha256": "609361036aac7f6a27a8f43523dace1c1150e24bc39d78db49f10d0afc45cb34"
+    }
+  ]
+}

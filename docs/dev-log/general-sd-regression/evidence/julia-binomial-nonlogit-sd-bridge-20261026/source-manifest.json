@@ -1,0 +1,716 @@
+{
+  "claim": "Current candidate source snapshot for focused non-logit Binomial q1 bridge rerun",
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "DRModels_jl_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "file_count": 177,
+  "files": [
+    {
+      "file": "drmTMB:R/adequacy-plots.R",
+      "sha256": "50d41a04d8305b034c0e2dfbe4209591c992ee6d4cde800f71678d742b487d16"
+    },
+    {
+      "file": "drmTMB:R/adequacy.R",
+      "sha256": "7a88ca078c0931f257b5bf5a1c9d5315448f7d8e907921e1418d2f6584163d9a"
+    },
+    {
+      "file": "drmTMB:R/aghq-coxreid.R",
+      "sha256": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200"
+    },
+    {
+      "file": "drmTMB:R/associate-pairs-sandwich-bernoulli-bernoulli.R",
+      "sha256": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3"
+    },
+    {
+      "file": "drmTMB:R/associate-pairs-sandwich-gaussian-bernoulli.R",
+      "sha256": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860"
+    },
+    {
+      "file": "drmTMB:R/associate-pairs-sandwich-gaussian-nbinom2.R",
+      "sha256": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd"
+    },
+    {
+      "file": "drmTMB:R/associate-pairs-sandwich-nbinom2-nbinom2.R",
+      "sha256": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43"
+    },
+    {
+      "file": "drmTMB:R/associate-pairs-sandwich.R",
+      "sha256": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c"
+    },
+    {
+      "file": "drmTMB:R/associate-pairs.R",
+      "sha256": "6bca237180ad59297343db612b260b5f3b461efa0f54485b359cede58fd3f732"
+    },
+    {
+      "file": "drmTMB:R/bf.R",
+      "sha256": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd"
+    },
+    {
+      "file": "drmTMB:R/bootstrap-shards.R",
+      "sha256": "fcc55e070cc14b5162495194a519c0144f41b464af942f341662fe73942103ff"
+    },
+    {
+      "file": "drmTMB:R/check.R",
+      "sha256": "0c4acbf8c48c5f03b8d869140dd428d4d56670a24097b7610b4558eeae12e1cf"
+    },
+    {
+      "file": "drmTMB:R/coevolution-accessors.R",
+      "sha256": "2d0c55c4babb77188329dbfa8b936519a698317ea2c891d3a709255412e44c54"
+    },
+    {
+      "file": "drmTMB:R/control.R",
+      "sha256": "2c11368f73afbd671c1862130c265719ed2762fad208bceb1a28d2157865f3c8"
+    },
+    {
+      "file": "drmTMB:R/distributional-outputs.R",
+      "sha256": "45f6731f6c73dec88a5700d79345de928d37e31cdc6349ceb0fb01ad2c364450"
+    },
+    {
+      "file": "drmTMB:R/drmTMB-package.R",
+      "sha256": "80ef3b42460050466b12c3bb50c97e6b5e6cd32a28b29021e2c5585cc1a37dc3"
+    },
+    {
+      "file": "drmTMB:R/drmTMB.R",
+      "sha256": "b6fba800bbb7f41ee4f3ab6ec44e8dc0cfe7bd51ebbac78b4afa2f2ea1299db1"
+    },
+    {
+      "file": "drmTMB:R/emmeans-preflight.R",
+      "sha256": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3"
+    },
+    {
+      "file": "drmTMB:R/family-dpq.R",
+      "sha256": "e6822789bc7dac07ec2903bd08cf2be5f79c4db034248606c3d7ba0e830497d7"
+    },
+    {
+      "file": "drmTMB:R/family.R",
+      "sha256": "9784beb7357b0a4c236772ae0bba9ac38a73a118586136f7fc2300c34357c17c"
+    },
+    {
+      "file": "drmTMB:R/formula-markers.R",
+      "sha256": "67241fe56d282b68e20cc17ae90e61dfa022b65fce63761f7da7356664cc4e4b"
+    },
+    {
+      "file": "drmTMB:R/gaussian-aggregation.R",
+      "sha256": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629"
+    },
+    {
+      "file": "drmTMB:R/heritability.R",
+      "sha256": "8043f4e37614fe8f6bbba35d9ff685d9de497985badb2d4466e15bdb510119a3"
+    },
+    {
+      "file": "drmTMB:R/julia-bridge.R",
+      "sha256": "d3240442ad139222bfe84e2cff055349b820d09f4d45071f62ab783de627c967"
+    },
+    {
+      "file": "drmTMB:R/julia-coefficient-labels.R",
+      "sha256": "9c03370c199b08a1a993c51db79638e9e7a630aa8e7d8ceb438af46811bdb925"
+    },
+    {
+      "file": "drmTMB:R/julia-diagnostics.R",
+      "sha256": "dac463467855116479ea622029d1677246c0bff95dd47dd85000080065af7799"
+    },
+    {
+      "file": "drmTMB:R/julia-family-cumulative_logit.R",
+      "sha256": "710d63606946196a81f111fd1d609a19aa54a494b564ee68e2f7aba1587d27dd"
+    },
+    {
+      "file": "drmTMB:R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "file": "drmTMB:R/julia-joint-call.R",
+      "sha256": "1d892525aebbe7fffbf6314ded055312ef8f11119186b7fd43a996a42c623422"
+    },
+    {
+      "file": "drmTMB:R/julia-joint-finite.R",
+      "sha256": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d"
+    },
+    {
+      "file": "drmTMB:R/julia-joint-methods.R",
+      "sha256": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8"
+    },
+    {
+      "file": "drmTMB:R/julia-joint-missing.R",
+      "sha256": "a5abe5f84f9776ee552436e9cc03648e150426123b3ab89130f75724d3b48539"
+    },
+    {
+      "file": "drmTMB:R/julia-simulate.R",
+      "sha256": "cfa4b4ccd71fbf8b9cfe1bf3a314fe0ee617072356a0a8276e641e3d92632864"
+    },
+    {
+      "file": "drmTMB:R/lrt-boundary.R",
+      "sha256": "bddf0f4cb35a44904ba3d78bc922c418669c51429d69f996504e929ef5877a9a"
+    },
+    {
+      "file": "drmTMB:R/marginal-parameters.R",
+      "sha256": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea"
+    },
+    {
+      "file": "drmTMB:R/mesh.R",
+      "sha256": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb"
+    },
+    {
+      "file": "drmTMB:R/meta-vcov.R",
+      "sha256": "48cbbcd5ad03689404beda6129e13bac2e80ab5394364b9aca5c982f4a5fb29a"
+    },
+    {
+      "file": "drmTMB:R/methods.R",
+      "sha256": "d5b79fd2087ebc163da7aab03b9e584ca7396c4a0e13449039d22716a832d447"
+    },
+    {
+      "file": "drmTMB:R/missing-data.R",
+      "sha256": "3b61a7d3baf34c8e3983820b5684eeb6f537141a23f84aa5bf17861bee7d1e28"
+    },
+    {
+      "file": "drmTMB:R/model-comparison.R",
+      "sha256": "e610916641f3b3b28fc99bcd807b02d81544fb9d6dd7fc70aa44c29adbed03db"
+    },
+    {
+      "file": "drmTMB:R/mspl-estimator.R",
+      "sha256": "389633693e357910d3ecf0d23472e29dc7310df922e2f150f197dc9f149d40d5"
+    },
+    {
+      "file": "drmTMB:R/mspl.R",
+      "sha256": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e"
+    },
+    {
+      "file": "drmTMB:R/objective-at.R",
+      "sha256": "a1311ffe4f121316f4c730dcc74ffa419df12ef9c17f9d6710ff53013c6b7ea1"
+    },
+    {
+      "file": "drmTMB:R/parallel-docs.R",
+      "sha256": "555a9ce271c8e57c0fd6b79dd561b7ce4fbdf377c75f721f91bb53e2f6279dd5"
+    },
+    {
+      "file": "drmTMB:R/parse-formula.R",
+      "sha256": "9b7a6fc9c1f9ee84e2fc3b42ec9bcd21ac66688c7bf90d90ae89341d1ea8c370"
+    },
+    {
+      "file": "drmTMB:R/penalty.R",
+      "sha256": "de5dae88497da26e0ba46eaa1b580a12bb5ce288b6534e72f88a8b9df6f43615"
+    },
+    {
+      "file": "drmTMB:R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "file": "drmTMB:R/plot-corpairs.R",
+      "sha256": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c"
+    },
+    {
+      "file": "drmTMB:R/plot-parameter-surface.R",
+      "sha256": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421"
+    },
+    {
+      "file": "drmTMB:R/predict-parameters.R",
+      "sha256": "646bb79de06de281a9e522182465c1eb96f9b08489386abb1ed10ceb87b41014"
+    },
+    {
+      "file": "drmTMB:R/prediction-grid.R",
+      "sha256": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647"
+    },
+    {
+      "file": "drmTMB:R/profile.R",
+      "sha256": "9eb278c04950986f194fa793dbaf5baff60715b46b75e4f3b7e7d4614cefd837"
+    },
+    {
+      "file": "drmTMB:R/provenance.R",
+      "sha256": "4fd84081607f8873f92f0b9a714f532a4c79c638370f22e7533f2b7b76aa747a"
+    },
+    {
+      "file": "drmTMB:R/random-effect-scale-formulas.R",
+      "sha256": "62898da2777008c0470919916a2fdb7dea9e6fef7fbdc6f469429827fb3c1e9e"
+    },
+    {
+      "file": "drmTMB:R/random-effect-targets.R",
+      "sha256": "f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f"
+    },
+    {
+      "file": "drmTMB:R/reader-contracts.R",
+      "sha256": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f"
+    },
+    {
+      "file": "drmTMB:R/sparse-fixed.R",
+      "sha256": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd"
+    },
+    {
+      "file": "drmTMB:R/zzz.R",
+      "sha256": "091766cfe3940fc6d1c460884e733619121f9fd6afa6002ae437fb1a05a9432b"
+    },
+    {
+      "file": "drmTMB:src/drmTMB.cpp",
+      "sha256": "71ed10ab4f632d5e03afee3226fc2a322c7965c204023fdc0f381de29cea9ed3"
+    },
+    {
+      "file": "drmTMB:src/drmTMB.o",
+      "sha256": "5a93e81f728c54efd9cac73b91eb413be9edecfe6bf1d81079f4f129d02a170b"
+    },
+    {
+      "file": "drmTMB:src/drmTMB.so",
+      "sha256": "89dd2a69eea1175c805d2d1eab7938a8afeb2d2a25d42099c107489ab18123a4"
+    },
+    {
+      "file": "drmTMB:src/drm_count_kernels.h",
+      "sha256": "ccc6faa0f61e391770ca9611646ea694189a7588a50fe31f437cf1c511fc8047"
+    },
+    {
+      "file": "drmTMB:src/drm_numeric.h",
+      "sha256": "089b5b084eae9ab276a3e3746fdd220a5ce3a20ea2cc1c791157cc4828f6600f"
+    },
+    {
+      "file": "drmTMB:src/drm_response_kernels.h",
+      "sha256": "d7d75fe2346b7b0ff51ec5d9a77eacc4bf18e2aae06091501e3f52e83a02884d"
+    },
+    {
+      "file": "drmTMB:src/graft/.cache/telemetry-repo-id.json",
+      "sha256": "7aa53d8ed635cee3499ebaf0ddc1a68814206e0cb3631e78375b23d9224b48bc"
+    },
+    {
+      "file": "drmTMB:src/init.c",
+      "sha256": "4ce218bc4d080bc2f0d179aa96f248c5d99dc7dc3ea542d848e1782673c913c3"
+    },
+    {
+      "file": "drmTMB:src/init.o",
+      "sha256": "27322ddc5a48bb67d489d1008a61f361e595f94a9ee662912090e473faf28b27"
+    },
+    {
+      "file": "drmTMB:src/meuwissen_luo.c",
+      "sha256": "75c46ada4abebc419e019bf1d6e64d5a04cde120c9c0ed6d7072691afa5aa487"
+    },
+    {
+      "file": "drmTMB:src/meuwissen_luo.o",
+      "sha256": "28dcc006ba4f5b23c6ff1d955b9b7265e3644bd18f08abc60463a29272fec2e9"
+    },
+    {
+      "file": "DRModels.jl:src/DRModels.jl",
+      "sha256": "0cbdfd45584d60ed6489accef52481acb8a350685946bd7e4ed71f8e9d54d0f0"
+    },
+    {
+      "file": "DRModels.jl:src/adaptive_ghq.jl",
+      "sha256": "54391c732eb738170ab9acbe3043522ee5a4d08fdaf4f593effc932d3d0cc795"
+    },
+    {
+      "file": "DRModels.jl:src/aghq_1d.jl",
+      "sha256": "f45ca1aba61fb31a8f8bb007536244ed6b7ff11d2d18e1062a42215b4e7603d1"
+    },
+    {
+      "file": "DRModels.jl:src/associate_pairs.jl",
+      "sha256": "b9f4b1b17252f197a742016943537e6ecc1026c60cdefb73f8617dd56b385dae"
+    },
+    {
+      "file": "DRModels.jl:src/beta.jl",
+      "sha256": "d73b75672ad0e470d83fcc8c2bbdaac5dfb2909047976d8b39b0bfc597059004"
+    },
+    {
+      "file": "DRModels.jl:src/betabinomial.jl",
+      "sha256": "e3f20c6b42bafaa1175a1722651c30d157d64e590a9cd2e826818e3c2178ecc0"
+    },
+    {
+      "file": "DRModels.jl:src/bias_correct.jl",
+      "sha256": "a5d1c7cb2a93a98fff2ddd90e515353b1d5b740a66cb180ca22e3b36defa1509"
+    },
+    {
+      "file": "DRModels.jl:src/binomial.jl",
+      "sha256": "41bf229ad8ae1e56477b589e104ea60fc7cc861942bd30c5a9f5cb5bdd312a9d"
+    },
+    {
+      "file": "DRModels.jl:src/binomial_sd_regression.jl",
+      "sha256": "aa25e8175f883681f8eeb583f1f4d169f5b25af0ca104abce5ef61f85e960766"
+    },
+    {
+      "file": "DRModels.jl:src/bivariate_lognormal.jl",
+      "sha256": "4b34f5d9f3906ded7438dd81c473cac5e1f31826cb4b40acac4c3c353ce1e610"
+    },
+    {
+      "file": "DRModels.jl:src/bivariate_student.jl",
+      "sha256": "b080630f96ac59e9d649fde179be3616ad96dc144ed3b10d74dbbc121e506441"
+    },
+    {
+      "file": "DRModels.jl:src/bootstrap_q4_phylo.jl",
+      "sha256": "1a273cd13533b2c61d09070901d4d20c3eb4838ab40de3e48d9ca188d7753012"
+    },
+    {
+      "file": "DRModels.jl:src/boundary_diagnostics.jl",
+      "sha256": "80272ce81b2ffa2d997c2845bd0da64836a90a73433a97b49d7ae6a6fa9e5feb"
+    },
+    {
+      "file": "DRModels.jl:src/bridge.jl",
+      "sha256": "5dce57b711cabd3b21b836f74d1affa247f2ed8d40b4320b5966491051a9ef60"
+    },
+    {
+      "file": "DRModels.jl:src/chibar.jl",
+      "sha256": "701d93ee9e66021fb3dcb82eadbbe44f5474eb5fffc565e3c40f37b7a711d053"
+    },
+    {
+      "file": "DRModels.jl:src/coevo_accessors.jl",
+      "sha256": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c"
+    },
+    {
+      "file": "DRModels.jl:src/coevolution_q.jl",
+      "sha256": "67dd92b80d224f5db7465d6f3c7ac3087ae816c42cd637a0c6ed0ac43bd36e41"
+    },
+    {
+      "file": "DRModels.jl:src/comparison.jl",
+      "sha256": "f0d119d8f2badc9599f3005734c8cde1d573cb3f77eb62af8b0098d314d848a7"
+    },
+    {
+      "file": "DRModels.jl:src/cumulative.jl",
+      "sha256": "b9b1181d13cc2ceeed68db25a4f59493fbe8a21a1339c81e31880e4cfeaf375c"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/README.md",
+      "sha256": "01088ff0f8dc601b449687e66cdf8a0af07940764133b63b5a3cab6a01653eb5"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/em_squarem_fit.jl",
+      "sha256": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/estep_armijoguard.jl",
+      "sha256": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/estep_initprior.jl",
+      "sha256": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/estep_lm.jl",
+      "sha256": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/estep_trustregion.jl",
+      "sha256": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_em_closed.jl",
+      "sha256": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_em_natgrad.jl",
+      "sha256": "5bd1212a764ad8f3025bf8297745ed3c92b8a2f3cc9bd2e2235d1cc453ec518e"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_ml_q4.jl",
+      "sha256": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_ml_warm.jl",
+      "sha256": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_q4_p100_tmb.jl",
+      "sha256": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_q4_tmbgrad.jl",
+      "sha256": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/fit_sparse_direct.jl",
+      "sha256": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/location_only.jl",
+      "sha256": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646"
+    },
+    {
+      "file": "DRModels.jl:src/experimental/q4_em_dense.jl",
+      "sha256": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7"
+    },
+    {
+      "file": "DRModels.jl:src/fisherz_q4.jl",
+      "sha256": "4ca0e4db63eefe507c32325033fabc79ee2fd5b15bfc08102fdb0b86ec081d08"
+    },
+    {
+      "file": "DRModels.jl:src/fit_ml_q4.jl",
+      "sha256": "18a1b114a6e97aec907ce3535531f45635b774bc70ed0cfc57152af4ae4d4115"
+    },
+    {
+      "file": "DRModels.jl:src/fit_q4_sparse_tmb.jl",
+      "sha256": "fe3839fc3469ebfa725c9aab98239ec216a560aa5d65fd73eb27bce386d90734"
+    },
+    {
+      "file": "DRModels.jl:src/gamma.jl",
+      "sha256": "589b9c83edf798bd92381002ca53c337984b543317f783d4a55ab2e78d5e6f84"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_bivariate.jl",
+      "sha256": "52c32a1bb2bac9223e5eafd43d1d612672c2a079fcc29d9bc16a8226b712672a"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_core.jl",
+      "sha256": "e06cf2a73c431b8db905dac51f89223a43da6f08d3e78ac34e651c22084ba5fd"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_locscale_phylo.jl",
+      "sha256": "6a17ea10a4f90bb4d8778e51adbc9ed6c309ccdb1a38ce338cf6f97723826b47"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_lss.jl",
+      "sha256": "2554a900a2765451dda04efc3d3859a806eae2bf2644cb943c9e371493763907"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_meta.jl",
+      "sha256": "2b012cb4f73561c4b15049d624b922e9ce853ac67601a19ca0652b0d4a60d145"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_multi_re_sparse.jl",
+      "sha256": "c539e31aca65c551c234c8483046102ed5bdcf5157b2f2d2bd46cd0d98111f02"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_ranef.jl",
+      "sha256": "52df84667d817a78778339594c877b3b44eb71fcbf6e5cee1780ea4149a6f0ad"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_sparse_lss.jl",
+      "sha256": "e40e1e18d4e26fb5b86537cf2cfab54335af29cfc0d4ae2d286693c611156215"
+    },
+    {
+      "file": "DRModels.jl:src/gaussian_structured.jl",
+      "sha256": "fe98e708f353873a9ed1e688657dc75cf1813061df0fb61f6e8aa43041c61e1d"
+    },
+    {
+      "file": "DRModels.jl:src/heritability.jl",
+      "sha256": "7ce81837ccc5a9bc5855b7fcf80eb8e7552faef2f916c4eddbc0b11ee5082d7c"
+    },
+    {
+      "file": "DRModels.jl:src/inference.jl",
+      "sha256": "58113c646166fbfc9360b8a104e8d7432ad3808bfb8084fa3e7af34226097e88"
+    },
+    {
+      "file": "DRModels.jl:src/introspection.jl",
+      "sha256": "951713d478aeff837bc10818f00908c3f986fe18ee8297820f30d663eded3bae"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_bridge.jl",
+      "sha256": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_finite.jl",
+      "sha256": "4f5a7a9399b2acf7a586aa48852424246bb1209dfbe436235e53ba814b7f2405"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_finite_bridge.jl",
+      "sha256": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_frontend.jl",
+      "sha256": "34e715491f4b967ed119a22bd2abce5a76095d69ebfaeca99910d0585fcd4964"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_predictor.jl",
+      "sha256": "8c4f4e9c1da5c919aea428c9b29ffb41cf516fc77dee3503f71d047eaf592808"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_two_predictor.jl",
+      "sha256": "f39c17f2af6dc25667a7fb35686a148e95abf4939afd4adb79e921a10cf795eb"
+    },
+    {
+      "file": "DRModels.jl:src/joint_missing_uncertainty.jl",
+      "sha256": "2da147052c184cda46e9569290fa4c5e7b722021849c45652845882aa4097e96"
+    },
+    {
+      "file": "DRModels.jl:src/lc_metric.jl",
+      "sha256": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f"
+    },
+    {
+      "file": "DRModels.jl:src/link_residual.jl",
+      "sha256": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2"
+    },
+    {
+      "file": "DRModels.jl:src/location_only.jl",
+      "sha256": "ea1fee0136031d38c327e4793c5833a01699290793e0c1eb51c662c0751f0bf1"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_corr.jl",
+      "sha256": "5cbd6756ffde3991c407eaa8095fa54b697ad9e3adcf358219f5c5b1990dd452"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_fit.jl",
+      "sha256": "3e226e9536150e1742d59c9acb8aefd8cd69b722f71f2bc5b34a85dafa5dc92b"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_frontend.jl",
+      "sha256": "3133d1132a4fd1ed26950e1d87d4aea4d47873a92bb49edbc4717e2d2e76b1a4"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_grad.jl",
+      "sha256": "823af6134a9cc49a0aa230ff02d24a36b4e8bb3d75312de43592670b3613fb5a"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_infer.jl",
+      "sha256": "bbac33c832882e9e73a3a43b0b2f2757e29663ba32bc1cb2ea3d11cecd0d1b9f"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_inner.jl",
+      "sha256": "4868acd8193f86ded324403bca634adb381d42e15ffec8beb800e0e638638c03"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_kernels.jl",
+      "sha256": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_marginal.jl",
+      "sha256": "58f345ca2a8ae1d15645f1ca8a3ec614f05953aae336e11e872393842d424f5d"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_profile.jl",
+      "sha256": "b0556c318f87d412b6584cd40deeeaa97c02300ea357b6bc29ab8f6fa4e5ee8c"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_sigma.jl",
+      "sha256": "21a4c8adc0514aea5dc68ef372d83d33f28d9be6e66c43c8c368e34c11587d1b"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_simulate.jl",
+      "sha256": "3fecf608b5c10dc6ca7706e2b279013ed0c5eaadfe9806b7f49253eb9b2a289d"
+    },
+    {
+      "file": "DRModels.jl:src/locscale_whitened.jl",
+      "sha256": "d921dcda90ee57ba0301c5431eccbda0a2b670fbfab0accdd494afb5306eb8fc"
+    },
+    {
+      "file": "DRModels.jl:src/lognormal.jl",
+      "sha256": "a29447364cd37fb82b892425aa75e02b1d97e2c8e9082ca3ddbc438ce890bc01"
+    },
+    {
+      "file": "DRModels.jl:src/meta_vcov_bivariate.jl",
+      "sha256": "6540ee951038d0e5daf6eb05fa58aa78fe66fcb385a727ced46df485e618e297"
+    },
+    {
+      "file": "DRModels.jl:src/missing_data.jl",
+      "sha256": "cbff7fc220c8a376f16c0b193e0586e3ec8eec23eb4dd5edd02a68214d48abb1"
+    },
+    {
+      "file": "DRModels.jl:src/mixed_family.jl",
+      "sha256": "08b260f5f77ba0f714d81439cfe0d169dac101a7e9380f84018a72586b5e6518"
+    },
+    {
+      "file": "DRModels.jl:src/mixed_family_postfit.jl",
+      "sha256": "d41ae4907b97a3e15db143bcce8116294f9ff49aea4604cb58daaecdfb774d84"
+    },
+    {
+      "file": "DRModels.jl:src/negbinomial.jl",
+      "sha256": "a1a7962634efd6525d41bf60c7d90f9d18bf6b98168b4d9c72400806412a2460"
+    },
+    {
+      "file": "DRModels.jl:src/optim_minimum_guard.jl",
+      "sha256": "51664505621813b22bc411ab034e88ad1eeff6629741a4260abaf1d38332773c"
+    },
+    {
+      "file": "DRModels.jl:src/ordinary_laplace.jl",
+      "sha256": "cceb461455504c97a9968ddf9310db426d9cad7fa34af3176175db192d1f96d2"
+    },
+    {
+      "file": "DRModels.jl:src/phylo_interaction.jl",
+      "sha256": "441f8785b77351459be8f47e9ec0e4adfe59a84f6626f8bf3b93165ef4521873"
+    },
+    {
+      "file": "DRModels.jl:src/phylo_penalty.jl",
+      "sha256": "8ef33d7b7721ada36c6f48d0c1778d9cbbe75f1a0509d974073747029345eea1"
+    },
+    {
+      "file": "DRModels.jl:src/plotting_ext.jl",
+      "sha256": "f526f5e8d2007da20c0f05435d58ad9ad951c1c8a74d90dcbec8b96d6bc53e01"
+    },
+    {
+      "file": "DRModels.jl:src/poisson.jl",
+      "sha256": "181247b0622d3d2f66730b2e687bdabf31113c5d543501e2e22e1c07366f9377"
+    },
+    {
+      "file": "DRModels.jl:src/profile_q4_phylo.jl",
+      "sha256": "e7eb4f493bfc77ccdc6b92de0008379f361415a21c961fa42dbc21e160803930"
+    },
+    {
+      "file": "DRModels.jl:src/quantile_residuals.jl",
+      "sha256": "03f633a108084214c9e62faa35530c1cb5e52688bf7f236c962279fb66643ceb"
+    },
+    {
+      "file": "DRModels.jl:src/r2.jl",
+      "sha256": "873343aa9982d54d604e09b22147a5621aba3860c927d7fd92e50931101bd133"
+    },
+    {
+      "file": "DRModels.jl:src/reml_q2.jl",
+      "sha256": "6f70498c445c7b08bd99b457aad765a1ae57249bb463e5eb144ec86f8c1c02ea"
+    },
+    {
+      "file": "DRModels.jl:src/reml_q4.jl",
+      "sha256": "d132207bd34dd46082ca96bd7ff11065c958e351d6127e31f9c1617adb560383"
+    },
+    {
+      "file": "DRModels.jl:src/separation.jl",
+      "sha256": "d3bcc5d50776c6061ad95e9065d061ff008ef69b8d58c22999335cdd19c0de1c"
+    },
+    {
+      "file": "DRModels.jl:src/skewnormal.jl",
+      "sha256": "a18f953c32400f8395b54ae22906896cd4d278f4504075643877d6775e2aebbd"
+    },
+    {
+      "file": "DRModels.jl:src/sparse_aug_plsm.jl",
+      "sha256": "096ea2d7dac0af2412f8c8c0b0119ed6d3d5c69945cebe30e69e6bad5e203cbf"
+    },
+    {
+      "file": "DRModels.jl:src/sparse_em_fit.jl",
+      "sha256": "774219f9c6fef12fdcc2fff88b247c590ede57e3060346024d84eb1ed6a84453"
+    },
+    {
+      "file": "DRModels.jl:src/sparse_laplace_glmm.jl",
+      "sha256": "ee3b7618403436f6c32bedc22049e95455e5637bac5357141b1ea301da8b47ac"
+    },
+    {
+      "file": "DRModels.jl:src/sparse_phy.jl",
+      "sha256": "7baeea615092f57e9c0d28818eaab02003abebfaf59ae13630ac13db42fcdf48"
+    },
+    {
+      "file": "DRModels.jl:src/student.jl",
+      "sha256": "c3b53bc58acc7c1e593aa29810453db69cee492f663b1519f319ab37af4f255f"
+    },
+    {
+      "file": "DRModels.jl:src/summary.jl",
+      "sha256": "89d73f8b3678b88ce3390813a4f8125e3f15077d7580cbfbb43ff5c4276d424f"
+    },
+    {
+      "file": "DRModels.jl:src/takahashi_selinv.jl",
+      "sha256": "1ec53baad46c20c0c93d1f70626be5f39d9237e8f62f587741e8b56122214af1"
+    },
+    {
+      "file": "DRModels.jl:src/temporal.jl",
+      "sha256": "b435a88460ca4f97b3f8d39eb3c167238b6c32fabb05d075da42aa9acbcdddab"
+    },
+    {
+      "file": "DRModels.jl:src/truncated_poisson.jl",
+      "sha256": "aa2dc03dc71de2cca723af40c8ecc20fd5895f03e35d71e4c7fc4dcb1ff3a29a"
+    },
+    {
+      "file": "DRModels.jl:src/tweedie.jl",
+      "sha256": "ae283206bdace657bf60369f400ab6847ffa36f00b09acc4cc8ce6fe9302ed71"
+    },
+    {
+      "file": "DRModels.jl:src/variational.jl",
+      "sha256": "c9967802e4f142d15f5eda09b9504a8348be0246bb5f10d31e4ad69ff7f1f4a3"
+    },
+    {
+      "file": "DRModels.jl:src/vcov_guard.jl",
+      "sha256": "ce17d092a4635cbd405d4d9ce8b67cc93d3d112d22ff433382c70ab461cda38a"
+    },
+    {
+      "file": "DRModels.jl:src/visualization.jl",
+      "sha256": "4571076d13b6b07479496b5ad73f34f0006366594357451d3a710fb173c9fece"
+    },
+    {
+      "file": "DRModels.jl:src/zeroonebeta.jl",
+      "sha256": "13c03d7620ea05593c524fd32fd1681b32523aac54d26918276814cae401d07b"
+    },
+    {
+      "file": "DRModels.jl:Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    },
+    {
+      "file": "DRModels.jl:Manifest.toml",
+      "sha256": "14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-sd-bridge-20261026/test-snapshot/tests/testthat/test-julia-binomial-sd-links-bridge.R",
+      "sha256": "d2cdff1cf2f91c5a3ff175d4d1bc0debdebce694f2f70ee12e3925d839d72d6c"
+    }
+  ]
+}

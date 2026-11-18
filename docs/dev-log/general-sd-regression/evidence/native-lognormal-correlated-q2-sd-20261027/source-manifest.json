@@ -1,0 +1,54 @@
+{
+  "scope": "Native R/TMB complete-data ordinary lognormal, one unlabelled q=2 intercept-slope block with separate predictor-dependent SD formulas. Hashes describe the dirty candidate files at this receipt.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "tests/testthat/test-lognormal-ordinary-correlated-q2.R",
+      "sha256": "8919967132a9f797e38f49138c5b859c6df41e5996e2dca3c921abb609914d49"
+    },
+    {
+      "file": "NEWS.md",
+      "sha256": "e7cce6337bc91005fe800a5d3897989282ffb6157bb695fcc807ba70cb168691"
+    },
+    {
+      "file": "README.md",
+      "sha256": "8dc806fd11289367449dc211fe233de1c3864f8a324987a382ad52604e7617cb"
+    },
+    {
+      "file": "docs/design/01-formula-grammar.md",
+      "sha256": "43b0a384b2a612c7dc187b85a764ff6c9312bfdfc822fdbfe6cab5fb81d9ee2d"
+    },
+    {
+      "file": "docs/design/03-likelihoods.md",
+      "sha256": "56e39c6377f49b0d942f746fe5564e5ff06b672cd6eb56a89a4ffec0953f012b"
+    },
+    {
+      "file": "docs/design/59-structural-slope-and-non-gaussian-map.md",
+      "sha256": "5d77d873ef19712d292f81e2e655331ec3e153b4d4a3e8795d953bcb89f40cab"
+    },
+    {
+      "file": "docs/dev-log/internal-roadmap.md",
+      "sha256": "f27acce460fb37362eb2db90dd88cf0371c895266eda169e9f46c733897043da"
+    },
+    {
+      "file": "docs/dev-log/known-limitations.md",
+      "sha256": "11cf6fd1813e05f8dadfce4a23e45d5ef489cde7ceef9d1154db6c555a082ce3"
+    },
+    {
+      "file": "vignettes/formula-grammar.Rmd",
+      "sha256": "5e3d6353caaf7776b67ce0670978556b5eed067d7201513b0a46b74ebb8e2535"
+    },
+    {
+      "file": "vignettes/model-map.Rmd",
+      "sha256": "58da4f428b8c572dcc4a9c6b145e5d16e7e6a68482f0f36d12718f657025a81b"
+    },
+    {
+      "file": "vignettes/predictor-dependent-random-sd.Rmd",
+      "sha256": "179b4f58abb96d6966c07de049ed6f285b0802371cff5cbfea63dc3fc58a7be4"
+    }
+  ],
+  "re_recorded": "2026-11-03 on 91a56224f plus uncommitted batch 34 changes, after a test rerun at 91a56224f-b34; entries that differed: ['docs/dev-log/known-limitations.md']"
+}

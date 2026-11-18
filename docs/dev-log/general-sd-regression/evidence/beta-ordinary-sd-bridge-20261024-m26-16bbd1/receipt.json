@@ -1,0 +1,26 @@
+{
+  "evidence_id": "beta-native-ordinary-intercept-sd-bridge-20261024-m26",
+  "rerecord_of_evidence_id": "beta-native-ordinary-intercept-sd-bridge-20261024",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/beta-ordinary-sd-bridge-20261024/console.log",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true DRMODELS_JL_PATH=<paired candidate> DRM_JL_PATH=<paired candidate> JULIA_HOME=<Julia 1.10.0> Rscript -e devtools::test(filter=\"\"julia-beta-sd\"\", reporter=\"\"summary\"\", stop_on_failure=TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-beta-sd.R",
+      "test_sha256": "b7e6de85153ffdcc6e2f2d40e47ad6a40e5b694ce249aab16b7c59b416ad0699",
+      "started_utc": "2026-11-02T13:14:16Z",
+      "ended_utc": "2026-11-02T13:15:49Z",
+      "exit_code": 0,
+      "expectations_passed": 26,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/beta-ordinary-sd-bridge-20261024-m26-16bbd1/test-console-test-julia-beta-sd.log",
+      "console_log_sha256": "ef51ad6ae7203e44c8b3db90ebdaef965e741dc1978ef2df2bece2ee1c6688ec"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/beta-ordinary-sd-bridge-20261024-m26-16bbd1/source-manifest.json",
+  "source_manifest_sha256": "e548864faa441899e751de5a631b8033fd6c0198248abf40ea4820f78b4517fb",
+  "review_status": "unreviewed"
+}

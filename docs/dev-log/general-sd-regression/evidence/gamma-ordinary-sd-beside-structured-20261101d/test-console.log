@@ -1,0 +1,6 @@
+ℹ Loading drmTMB
+gamma-ordinary-sd-beside-structured: .......................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e   68.10s user 0.52s system 97% cpu 1:10.71 total

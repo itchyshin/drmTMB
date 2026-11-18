@@ -1,0 +1,46 @@
+{
+  "r_source": "b86709e16b477c4d232eaec16e9567ec12e136fa",
+  "julia_source": "f940fc4042ee2832c3343f7d334e830a96942f1b",
+  "scope": "one 12-label, 72-row Gaussian phylogenetic location-scale-scale fixture; native R, R-to-Julia bridge, and direct Julia",
+  "direct_order": "tree",
+  "status": "PASS",
+  "checks": {
+    "names": true,
+    "covariance": true,
+    "likelihood": true,
+    "native_parity": true,
+    "bridge_parity": true,
+    "rows": true,
+    "converged": true,
+    "source": true
+  },
+  "native_differences": {
+    "mu": 4.675704268208847e-13,
+    "sigma": 2.2440591052053094e-12,
+    "sd_phylo": 7.73558994637824e-12,
+    "loglik": 2.1316282072803006e-14
+  },
+  "bridge_differences": {
+    "mu": 0,
+    "sigma": 0,
+    "sd_phylo": 0,
+    "loglik": 0
+  },
+  "oracle_errors": {
+    "native": 7.105427357601002e-15,
+    "bridge": 1.4210854715202004e-14,
+    "direct": 1.4210854715202004e-14
+  },
+  "checker": "--current --self-test passed on generating host, rejecting 12 mutations",
+  "historical_fixture_comparison": "labels, rows, order, permutation, tree and data matched prior receipt",
+  "historical_receipt_sha256": "4c310d365902d6977f51a168b715f699fd5b222e37784d7980e6c05c2a9cfded",
+  "source_blobs_verified_before_after": {
+    "R_and_runner": 76,
+    "julia": 117
+  },
+  "native_dll_sha256": "307fd3155d5a61f1b322766679c0e702d743b0918b87801f8d5ab58199ab6fdc",
+  "generator_elapsed_seconds": 72.183,
+  "host": "Totoro, one Julia thread and one BLAS thread",
+  "juliacall_launch": "LD_PRELOAD=Julia-1.10.10 bundled libunwind, confined to generator process",
+  "limitations": "One fixture only; this does not establish broader parity. The GitHub CI audit verifies Julia-side source hashes only when DRM_JL_PATH is set. Historical receipt retained unchanged."
+}

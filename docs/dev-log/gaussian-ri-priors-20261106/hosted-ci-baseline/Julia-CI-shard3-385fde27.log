@@ -1,0 +1,1094 @@
+﻿2026-11-06T23:50:40.1011031Z Current runner version: '2.338.2'
+2026-11-06T23:50:40.1038093Z ##[group]Runner Image Provisioner
+2026-11-06T23:50:40.1038989Z Hosted Compute Agent
+2026-11-06T23:50:40.1039652Z Version: 20261028.624
+2026-11-06T23:50:40.1040373Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+2026-11-06T23:50:40.1041136Z Build Date: 2026-10-28T21:51:42Z
+2026-11-06T23:50:40.1041945Z Worker ID: {ae3644b4-94ba-40ce-99b6-41f5380feefb}
+2026-11-06T23:50:40.1042709Z Region: eastus
+2026-11-06T23:50:40.1043328Z Cloud: Azure
+2026-11-06T23:50:40.1043893Z ##[endgroup]
+2026-11-06T23:50:40.1045749Z ##[group]Operating System
+2026-11-06T23:50:40.1046508Z Ubuntu
+2026-11-06T23:50:40.1047020Z 26.04.1
+2026-11-06T23:50:40.1047568Z LTS
+2026-11-06T23:50:40.1048127Z ##[endgroup]
+2026-11-06T23:50:40.1048712Z ##[group]Runner Image
+2026-11-06T23:50:40.1049456Z Image: ubuntu-26.04
+2026-11-06T23:50:40.1050024Z Version: 20261101.186.1
+2026-11-06T23:50:40.1051397Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261101.186/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-06T23:50:40.1053015Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261101.186
+2026-11-06T23:50:40.1054289Z ##[endgroup]
+2026-11-06T23:50:40.1055587Z ##[group]GITHUB_TOKEN Permissions
+2026-11-06T23:50:40.1057805Z Contents: read
+2026-11-06T23:50:40.1058447Z Metadata: read
+2026-11-06T23:50:40.1059082Z Packages: read
+2026-11-06T23:50:40.1059885Z ##[endgroup]
+2026-11-06T23:50:40.1061942Z Secret source: Actions
+2026-11-06T23:50:40.1062982Z Cache mode: write
+2026-11-06T23:50:40.1063690Z Prepare workflow directory
+2026-11-06T23:50:40.1406829Z Prepare all required actions
+2026-11-06T23:50:40.1454886Z Getting action download info
+2026-11-06T23:50:40.3382562Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+2026-11-06T23:50:40.4613369Z Download action repository 'julia-actions/setup-julia@v3' (SHA:da908477b5db94c10ffce8cfea9f2b3b9d5db687)
+2026-11-06T23:50:40.5796529Z Download action repository 'julia-actions/cache@v2' (SHA:d10a6fd8f31b12404a54613ebad242900567f2b9)
+2026-11-06T23:50:40.6578630Z Download action repository 'julia-actions/julia-buildpkg@v1' (SHA:e3eb439fad4f9aba7da2667e7510e4a46ebc46e1)
+2026-11-06T23:50:40.7503240Z Download action repository 'julia-actions/julia-runtest@v1' (SHA:6e050c8013b833b1195105ff2fce9cd802f53271)
+2026-11-06T23:50:40.9884227Z Getting action download info
+2026-11-06T23:50:41.0747613Z Download action repository 'dcarbone/install-jq-action@f0e10f46ff84f4d32178b4b76e1ef180b16f82c3' (SHA:f0e10f46ff84f4d32178b4b76e1ef180b16f82c3)
+2026-11-06T23:50:41.1651965Z Download action repository 'actions/cache@5a3ec84eff668545956fd18022155c47e93e2684' (SHA:5a3ec84eff668545956fd18022155c47e93e2684)
+2026-11-06T23:50:41.3216285Z Download action repository 'pyTooling/Actions@42e17fae05f224e5ac3d79d021a4e3577878efe5' (SHA:42e17fae05f224e5ac3d79d021a4e3577878efe5)
+2026-11-06T23:50:41.5979545Z Complete job name: Julia 1 - shard 3/4
+2026-11-06T23:50:41.7084880Z ##[group]Run actions/checkout@v6
+2026-11-06T23:50:41.7086329Z with:
+2026-11-06T23:50:41.7087211Z   repository: itchyshin/DRModels.jl
+2026-11-06T23:50:41.7095669Z   token: ***
+2026-11-06T23:50:41.7096536Z   ssh-strict: true
+2026-11-06T23:50:41.7097405Z   ssh-user: git
+2026-11-06T23:50:41.7098304Z   persist-credentials: true
+2026-11-06T23:50:41.7099280Z   clean: true
+2026-11-06T23:50:41.7100185Z   sparse-checkout-cone-mode: true
+2026-11-06T23:50:41.7101246Z   fetch-depth: 1
+2026-11-06T23:50:41.7102130Z   fetch-tags: false
+2026-11-06T23:50:41.7103025Z   show-progress: true
+2026-11-06T23:50:41.7103931Z   lfs: false
+2026-11-06T23:50:41.7104876Z   submodules: false
+2026-11-06T23:50:41.7105791Z   set-safe-directory: true
+2026-11-06T23:50:41.7106828Z   allow-unsafe-pr-checkout: false
+2026-11-06T23:50:41.7108137Z ##[endgroup]
+2026-11-06T23:50:42.0113761Z Syncing repository: itchyshin/DRModels.jl
+2026-11-06T23:50:42.0116154Z ##[group]Getting Git version info
+2026-11-06T23:50:42.0116775Z Working directory is '/home/runner/work/DRModels.jl/DRModels.jl'
+2026-11-06T23:50:42.0117985Z [command]/usr/bin/git version
+2026-11-06T23:50:42.0127312Z git version 2.56.0
+2026-11-06T23:50:42.0151710Z ##[endgroup]
+2026-11-06T23:50:42.0166902Z Temporarily overriding HOME='/home/runner/work/_temp/d70618a9-7305-4f90-960a-0ba5ef649f47' before making global git config changes
+2026-11-06T23:50:42.0168262Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-06T23:50:42.0172501Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/DRModels.jl/DRModels.jl
+2026-11-06T23:50:42.0246554Z Deleting the contents of '/home/runner/work/DRModels.jl/DRModels.jl'
+2026-11-06T23:50:42.0250669Z ##[group]Determining repository object format
+2026-11-06T23:50:42.0253302Z ##[endgroup]
+2026-11-06T23:50:42.0254271Z ##[group]Initializing the repository
+2026-11-06T23:50:42.0259186Z [command]/usr/bin/git init /home/runner/work/DRModels.jl/DRModels.jl
+2026-11-06T23:50:42.0397680Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-06T23:50:42.0398392Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-06T23:50:42.0399112Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-06T23:50:42.0399837Z hint: call:
+2026-11-06T23:50:42.0400095Z hint:
+2026-11-06T23:50:42.0400473Z hint: 	git config --global init.defaultBranch <name>
+2026-11-06T23:50:42.0401040Z hint:
+2026-11-06T23:50:42.0401714Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-06T23:50:42.0402329Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-06T23:50:42.0402769Z hint:
+2026-11-06T23:50:42.0403039Z hint: 	git branch -m <name>
+2026-11-06T23:50:42.0403326Z hint:
+2026-11-06T23:50:42.0416866Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-06T23:50:42.0418030Z Initialized empty Git repository in /home/runner/work/DRModels.jl/DRModels.jl/.git/
+2026-11-06T23:50:42.0430419Z [command]/usr/bin/git remote add origin https://github.com/itchyshin/DRModels.jl
+2026-11-06T23:50:42.0486369Z ##[endgroup]
+2026-11-06T23:50:42.0487152Z ##[group]Disabling automatic garbage collection
+2026-11-06T23:50:42.0489853Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-06T23:50:42.0524029Z ##[endgroup]
+2026-11-06T23:50:42.0525213Z ##[group]Setting up auth
+2026-11-06T23:50:42.0533174Z Removing SSH command configuration
+2026-11-06T23:50:42.0535464Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-06T23:50:42.0569284Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-06T23:50:42.1109890Z Removing HTTP extra header
+2026-11-06T23:50:42.1119997Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-06T23:50:42.1161373Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-06T23:50:42.1454799Z Removing includeIf entries pointing to credentials config files
+2026-11-06T23:50:42.1463921Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-06T23:50:42.1506555Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-06T23:50:42.1855528Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-06T23:50:42.1885443Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git.path /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-06T23:50:42.1925469Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-06T23:50:42.1967812Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-06T23:50:42.2014419Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-06T23:50:42.2043213Z ##[endgroup]
+2026-11-06T23:50:42.2043751Z ##[group]Fetching the repository
+2026-11-06T23:50:42.2053096Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d291fcf1f18d5e20c255527cbf8539eff21e0bba:refs/remotes/pull/1258/merge
+2026-11-06T23:50:43.3791400Z From https://github.com/itchyshin/DRModels.jl
+2026-11-06T23:50:43.3793317Z  * [new ref]         d291fcf1f18d5e20c255527cbf8539eff21e0bba -> pull/1258/merge
+2026-11-06T23:50:43.3798109Z ##[endgroup]
+2026-11-06T23:50:43.3798905Z ##[group]Determining the checkout info
+2026-11-06T23:50:43.3799824Z ##[endgroup]
+2026-11-06T23:50:43.3805255Z [command]/usr/bin/git sparse-checkout disable
+2026-11-06T23:50:43.3860091Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-06T23:50:43.3890342Z ##[group]Checking out the ref
+2026-11-06T23:50:43.3895144Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/1258/merge
+2026-11-06T23:50:43.7378892Z Note: switching to 'refs/remotes/pull/1258/merge'.
+2026-11-06T23:50:43.7379440Z 
+2026-11-06T23:50:43.7379802Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-06T23:50:43.7380629Z changes and commit them, and you can discard any commits you make in this
+2026-11-06T23:50:43.7381320Z state without impacting any branches by switching back to a branch.
+2026-11-06T23:50:43.7381677Z 
+2026-11-06T23:50:43.7381906Z If you want to create a new branch to retain commits you create, you may
+2026-11-06T23:50:43.7382410Z do so (now or later) by using -c with the switch command. Example:
+2026-11-06T23:50:43.7382685Z 
+2026-11-06T23:50:43.7382808Z   git switch -c <new-branch-name>
+2026-11-06T23:50:43.7382993Z 
+2026-11-06T23:50:43.7383118Z Or undo this operation with:
+2026-11-06T23:50:43.7383291Z 
+2026-11-06T23:50:43.7383398Z   git switch -
+2026-11-06T23:50:43.7383554Z 
+2026-11-06T23:50:43.7383902Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-06T23:50:43.7384625Z 
+2026-11-06T23:50:43.7385055Z HEAD is now at d291fcf Merge 385fde27d369270afb2353ddf1fbd9f301f2b4ce into 86ee1c2a38cd79c55dbbd71afd7374a3095aad3c
+2026-11-06T23:50:43.7407946Z ##[endgroup]
+2026-11-06T23:50:43.7459353Z [command]/usr/bin/git log -1 --format=%H
+2026-11-06T23:50:43.7485726Z d291fcf1f18d5e20c255527cbf8539eff21e0bba
+2026-11-06T23:50:43.7770779Z ##[group]Run julia-actions/setup-julia@v3
+2026-11-06T23:50:43.7771103Z with:
+2026-11-06T23:50:43.7771301Z   version: 1
+2026-11-06T23:50:43.7771547Z   include-all-prereleases: false
+2026-11-06T23:50:43.7771804Z   arch: default
+2026-11-06T23:50:43.7772005Z   force-arch: false
+2026-11-06T23:50:43.7772217Z   show-versioninfo: false
+2026-11-06T23:50:43.7772473Z ##[endgroup]
+2026-11-06T23:50:45.4072494Z [command]/usr/bin/tar xf /home/runner/work/_temp/2c866ac7-3be4-4284-8bba-3de8e630780d --strip-components=1 -C /opt/hostedtoolcache/julia/1.13.3/x64
+2026-11-06T23:50:49.2251775Z [command]/opt/hostedtoolcache/julia/1.13.3/x64/bin/julia --version
+2026-11-06T23:50:49.2390028Z julia version 1.13.3
+2026-11-06T23:50:49.2718866Z ##[group]Run julia-actions/cache@v2
+2026-11-06T23:50:49.2719161Z with:
+2026-11-06T23:50:49.2719392Z   cache-name: julia-cache;workflow=CI;job=test
+2026-11-06T23:50:49.2719682Z   include-matrix: true
+2026-11-06T23:50:49.2719903Z   cache-artifacts: true
+2026-11-06T23:50:49.2720122Z   cache-packages: true
+2026-11-06T23:50:49.2720342Z   cache-registries: true
+2026-11-06T23:50:49.2720563Z   cache-compiled: true
+2026-11-06T23:50:49.2720975Z   cache-scratchspaces: true
+2026-11-06T23:50:49.2721208Z   cache-logs: true
+2026-11-06T23:50:49.2721416Z   delete-old-caches: true
+2026-11-06T23:50:49.2723807Z   token: ***
+2026-11-06T23:50:49.2724012Z ##[endgroup]
+2026-11-06T23:50:49.2781798Z ##[start-action display=Install jq;id=__julia-actions_cache.__dcarbone_install-jq-action]
+2026-11-06T23:50:49.2869126Z ##[group]Run dcarbone/install-jq-action@f0e10f46ff84f4d32178b4b76e1ef180b16f82c3
+2026-11-06T23:50:49.2869526Z with:
+2026-11-06T23:50:49.2869713Z   force: false
+2026-11-06T23:50:49.2869937Z   version: 1.7.1
+2026-11-06T23:50:49.2870133Z ##[endgroup]
+2026-11-06T23:50:49.2875672Z ##[start-action display=Check for jq - Unix-ish;id=__julia-actions_cache.__dcarbone_install-jq-action.jq-check-unix]
+2026-11-06T23:50:49.2912455Z ##[group]Run _jq_bin="$(which jq)"
+2026-11-06T23:50:49.2912778Z [36;1m_jq_bin="$(which jq)"[0m
+2026-11-06T23:50:49.2913043Z [36;1mif [ -f "${_jq_bin}" ]; then[0m
+2026-11-06T23:50:49.2913345Z [36;1m  echo "found=true" >> $GITHUB_OUTPUT[0m
+2026-11-06T23:50:49.2913646Z [36;1melse[0m
+2026-11-06T23:50:49.2913868Z [36;1m  echo "found=false" >> $GITHUB_OUTPUT[0m
+2026-11-06T23:50:49.2914367Z [36;1mfi[0m
+2026-11-06T23:50:49.2997089Z shell: /usr/bin/sh +e {0}
+2026-11-06T23:50:49.2997347Z ##[endgroup]
+2026-11-06T23:50:49.3125954Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action.jq-check-unix;outcome=success;conclusion=success;duration_ms=24]
+2026-11-06T23:50:49.3135492Z ##[start-action display=Install jq - Unix-ish non-1.7;id=__julia-actions_cache.__dcarbone_install-jq-action.__run]
+2026-11-06T23:50:49.3146128Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:49.3149015Z ##[start-action display=Install jq - Unix-ish 1.7;id=__julia-actions_cache.__dcarbone_install-jq-action.__run_2]
+2026-11-06T23:50:49.3157884Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action.__run_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:49.3160022Z ##[start-action display=Check for jq - Windows-ish;id=__julia-actions_cache.__dcarbone_install-jq-action.jq-check-windows]
+2026-11-06T23:50:49.3163685Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action.jq-check-windows;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:49.3166796Z ##[start-action display=Install jq - Windows-ish non-1.7;id=__julia-actions_cache.__dcarbone_install-jq-action.__run_3]
+2026-11-06T23:50:49.3195439Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:49.3198482Z ##[start-action display=Install jq - Windows-ish 1.7;id=__julia-actions_cache.__dcarbone_install-jq-action.__run_4]
+2026-11-06T23:50:49.3203363Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action.__run_4;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:49.3244616Z ##[end-action id=__julia-actions_cache.__dcarbone_install-jq-action;outcome=success;conclusion=success;duration_ms=46]
+2026-11-06T23:50:49.3257834Z ##[start-action display=Run if [ -n "" %5D%3B then;id=__julia-actions_cache.paths]
+2026-11-06T23:50:49.3278767Z ##[group]Run if [ -n "" ]; then
+2026-11-06T23:50:49.3279060Z [36;1mif [ -n "" ]; then[0m
+2026-11-06T23:50:49.3279285Z [36;1m    depot=""[0m
+2026-11-06T23:50:49.3279528Z [36;1melif [ -n "$JULIA_DEPOT_PATH" ]; then[0m
+2026-11-06T23:50:49.3279833Z [36;1m    # Use the first depot path[0m
+2026-11-06T23:50:49.3280399Z [36;1m    depot=$(echo $JULIA_DEPOT_PATH | cut -d$PATH_DELIMITER -f1)[0m
+2026-11-06T23:50:49.3280765Z [36;1melse[0m
+2026-11-06T23:50:49.3280958Z [36;1m    depot="~/.julia"[0m
+2026-11-06T23:50:49.3281178Z [36;1mfi[0m
+2026-11-06T23:50:49.3281432Z [36;1mif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then[0m
+2026-11-06T23:50:49.3281812Z [36;1m  depot="${depot/#\~/$USERPROFILE}"  # Windows paths[0m
+2026-11-06T23:50:49.3282238Z [36;1m  depot="${depot//\\//}"             # Replace backslashes with forward slashes[0m
+2026-11-06T23:50:49.3282875Z [36;1melse[0m
+2026-11-06T23:50:49.3283115Z [36;1m  depot="${depot/#\~/$HOME}"  # Unix-like paths[0m
+2026-11-06T23:50:49.3283400Z [36;1mfi[0m
+2026-11-06T23:50:49.3283635Z [36;1mecho "depot=$depot" | tee -a "$GITHUB_OUTPUT"[0m
+2026-11-06T23:50:49.3283924Z [36;1m[0m
+2026-11-06T23:50:49.3284249Z [36;1mcache_paths=()[0m
+2026-11-06T23:50:49.3284502Z [36;1martifacts_path="${depot}/artifacts"[0m
+2026-11-06T23:50:49.3284834Z [36;1m[ "true" = "true" ] && cache_paths+=("$artifacts_path")[0m
+2026-11-06T23:50:49.3285172Z [36;1mpackages_path="${depot}/packages"[0m
+2026-11-06T23:50:49.3285496Z [36;1m[ "true" = "true" ] && cache_paths+=("$packages_path")[0m
+2026-11-06T23:50:49.3285838Z [36;1mregistries_path="${depot}/registries"[0m
+2026-11-06T23:50:49.3286125Z [36;1mif [ "true" = "true" ]; then[0m
+2026-11-06T23:50:49.3286412Z [36;1m    if [ ! -d "${registries_path}" ]; then[0m
+2026-11-06T23:50:49.3286717Z [36;1m        cache_paths+=("$registries_path")[0m
+2026-11-06T23:50:49.3286990Z [36;1m    else[0m
+2026-11-06T23:50:49.3287879Z [36;1m        echo "::warning::Julia depot registries already exist. Skipping restoring of cached registries to avoid potential merge conflicts when updating. Please ensure that \`julia-actions/cache\` precedes any workflow steps which add registries."[0m
+2026-11-06T23:50:49.3288822Z [36;1m    fi[0m
+2026-11-06T23:50:49.3289017Z [36;1mfi[0m
+2026-11-06T23:50:49.3289222Z [36;1mcompiled_path="${depot}/compiled"[0m
+2026-11-06T23:50:49.3289556Z [36;1m[ "true" = "true" ] && cache_paths+=("$compiled_path")[0m
+2026-11-06T23:50:49.3289913Z [36;1mscratchspaces_path="${depot}/scratchspaces"[0m
+2026-11-06T23:50:49.3290263Z [36;1m[ "true" = "true" ] && cache_paths+=("$scratchspaces_path")[0m
+2026-11-06T23:50:49.3290589Z [36;1mlogs_path="${depot}/logs"[0m
+2026-11-06T23:50:49.3290874Z [36;1m[ "true" = "true" ] && cache_paths+=("$logs_path")[0m
+2026-11-06T23:50:49.3291151Z [36;1m{[0m
+2026-11-06T23:50:49.3291348Z [36;1m    echo "cache-paths<<EOF"[0m
+2026-11-06T23:50:49.3291619Z [36;1m    printf "%s\n" "${cache_paths[@]}"[0m
+2026-11-06T23:50:49.3291887Z [36;1m    echo "EOF"[0m
+2026-11-06T23:50:49.3292112Z [36;1m} | tee -a "$GITHUB_OUTPUT"[0m
+2026-11-06T23:50:49.3336659Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:49.3336993Z env:
+2026-11-06T23:50:49.3337179Z   PATH_DELIMITER: :
+2026-11-06T23:50:49.3337381Z ##[endgroup]
+2026-11-06T23:50:49.3434031Z depot=/home/runner/.julia
+2026-11-06T23:50:49.3463517Z cache-paths<<EOF
+2026-11-06T23:50:49.3463926Z /home/runner/.julia/artifacts
+2026-11-06T23:50:49.3464540Z /home/runner/.julia/packages
+2026-11-06T23:50:49.3464838Z /home/runner/.julia/registries
+2026-11-06T23:50:49.3465089Z /home/runner/.julia/compiled
+2026-11-06T23:50:49.3465340Z /home/runner/.julia/scratchspaces
+2026-11-06T23:50:49.3465601Z /home/runner/.julia/logs
+2026-11-06T23:50:49.3465810Z EOF
+2026-11-06T23:50:49.3474445Z ##[end-action id=__julia-actions_cache.paths;outcome=success;conclusion=success;duration_ms=21]
+2026-11-06T23:50:49.3499475Z ##[start-action display=Generate Keys;id=__julia-actions_cache.keys]
+2026-11-06T23:50:49.3519388Z ##[group]Run # `matrix_key` joins all of matrix keys/values (including nested objects) to ensure that concurrent runs each use a unique cache key.
+2026-11-06T23:50:49.3520314Z [36;1m# `matrix_key` joins all of matrix keys/values (including nested objects) to ensure that concurrent runs each use a unique cache key.[0m
+2026-11-06T23:50:49.3521127Z [36;1m# When `matrix` isn't set for the job then `MATRIX_JSON=null`.[0m
+2026-11-06T23:50:49.3521563Z [36;1mif [ "true" == "true" ] && [ "$MATRIX_JSON" != "null" ]; then[0m
+2026-11-06T23:50:49.3522214Z [36;1m  matrix_key=$(echo "$MATRIX_JSON" | jq 'paths(type != "object") as $p | ($p | join("-")) + "=" + (getpath($p) | tostring)' | jq -rs 'join(";") | . + ";"')[0m
+2026-11-06T23:50:49.3522780Z [36;1mfi[0m
+2026-11-06T23:50:49.3523114Z [36;1mrestore_key="julia-cache;workflow=CI;job=test;os=Linux;${matrix_key}"[0m
+2026-11-06T23:50:49.3523681Z [36;1m# URL encode any restricted characters:[0m
+2026-11-06T23:50:49.3524600Z [36;1m# https://github.com/actions/toolkit/blob/5430c5d84832076372990c7c27f900878ff66dc9/packages/cache/src/cache.ts#L38-L43[0m
+2026-11-06T23:50:49.3525272Z [36;1mrestore_key=$(sed 's/,/%2C/g' <<<"${restore_key}")[0m
+2026-11-06T23:50:49.3525658Z [36;1mkey="${restore_key}run_id=42311551066;run_attempt=1"[0m
+2026-11-06T23:50:49.3526044Z [36;1mecho "restore-key=${restore_key}" >> $GITHUB_OUTPUT[0m
+2026-11-06T23:50:49.3526400Z [36;1mecho "key=${key}" >> $GITHUB_OUTPUT[0m
+2026-11-06T23:50:49.3571508Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:49.3571849Z env:
+2026-11-06T23:50:49.3572082Z   MATRIX_JSON: {
+  "version": "1",
+  "shard": 3
+}
+2026-11-06T23:50:49.3572373Z ##[endgroup]
+2026-11-06T23:50:49.3693904Z ##[end-action id=__julia-actions_cache.keys;outcome=success;conclusion=success;duration_ms=19]
+2026-11-06T23:50:49.3696340Z ##[start-action display=Run actions/cache@5a3ec84eff668545956fd18022155c47e93e2684;id=__julia-actions_cache.cache]
+2026-11-06T23:50:49.3739042Z ##[group]Run actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+2026-11-06T23:50:49.3739404Z with:
+2026-11-06T23:50:49.3740089Z   path: /home/runner/.julia/artifacts
+/home/runner/.julia/packages
+/home/runner/.julia/registries
+/home/runner/.julia/compiled
+/home/runner/.julia/scratchspaces
+/home/runner/.julia/logs
+
+2026-11-06T23:50:49.3741023Z   key: julia-cache;workflow=CI;job=test;os=Linux;version=1;shard=3;run_id=42311551066;run_attempt=1
+2026-11-06T23:50:49.3741570Z   restore-keys: julia-cache;workflow=CI;job=test;os=Linux;version=1;shard=3;
+2026-11-06T23:50:49.3741960Z   enableCrossOsArchive: false
+2026-11-06T23:50:49.3742211Z   fail-on-cache-miss: false
+2026-11-06T23:50:49.3742440Z   lookup-only: false
+2026-11-06T23:50:49.3742645Z   save-always: false
+2026-11-06T23:50:49.3742844Z ##[endgroup]
+2026-11-06T23:50:49.4821666Z (node:2448) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-06T23:50:49.4822660Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-06T23:50:49.5410661Z Cache hit for: julia-cache;workflow=CI;job=test;os=Linux;version=1;shard=3;run_id=42311551066;run_attempt=1
+2026-11-06T23:50:49.5514306Z (node:2448) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-06T23:50:49.9816340Z Received 63160910 of 63160910 (100.0%), 154.4 MBs/sec
+2026-11-06T23:50:49.9816942Z Cache Size: ~60 MB (63160910 B)
+2026-11-06T23:50:49.9923743Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8919aa81-7d69-4c8c-9e44-7a8cd8959974/cache.tzst -P -C /home/runner/work/DRModels.jl/DRModels.jl --use-compress-program unzstd
+2026-11-06T23:50:50.5251603Z Cache restored successfully
+2026-11-06T23:50:50.6779052Z Cache restored from key: julia-cache;workflow=CI;job=test;os=Linux;version=1;shard=3;run_id=42182085681;run_attempt=1
+2026-11-06T23:50:50.6901931Z ##[end-action id=__julia-actions_cache.cache;outcome=success;conclusion=success;duration_ms=1320]
+2026-11-06T23:50:50.6905329Z ##[start-action display=make depot if not restored, then list depot directory sizes;id=__julia-actions_cache.__run]
+2026-11-06T23:50:50.6927859Z ##[group]Run mkdir -p /home/runner/.julia
+2026-11-06T23:50:50.6928195Z [36;1mmkdir -p /home/runner/.julia[0m
+2026-11-06T23:50:50.6928685Z [36;1mdu -shc /home/runner/.julia/* || true[0m
+2026-11-06T23:50:50.6978136Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:50.6978484Z ##[endgroup]
+2026-11-06T23:50:50.7104844Z 880K	/home/runner/.julia/artifacts
+2026-11-06T23:50:50.7131566Z 238M	/home/runner/.julia/compiled
+2026-11-06T23:50:50.7132056Z 12K	/home/runner/.julia/logs
+2026-11-06T23:50:50.7359531Z 27M	/home/runner/.julia/packages
+2026-11-06T23:50:50.7360166Z 7.5M	/home/runner/.julia/registries
+2026-11-06T23:50:50.7360879Z 16K	/home/runner/.julia/scratchspaces
+2026-11-06T23:50:50.7361185Z 273M	total
+2026-11-06T23:50:50.7372166Z ##[end-action id=__julia-actions_cache.__run;outcome=success;conclusion=success;duration_ms=46]
+2026-11-06T23:50:50.7374676Z ##[start-action display=Update any cached registries;id=__julia-actions_cache.__run_2]
+2026-11-06T23:50:50.7396108Z ##[group]Run if [ -d "/home/runner/.julia/registries" ] && [ -n "$(ls -A "/home/runner/.julia/registries")" ]; then
+2026-11-06T23:50:50.7396826Z [36;1mif [ -d "/home/runner/.julia/registries" ] && [ -n "$(ls -A "/home/runner/.julia/registries")" ]; then[0m
+2026-11-06T23:50:50.7397440Z [36;1m  echo "Registries directory exists and is non-empty. Updating any registries"[0m
+2026-11-06T23:50:50.7397999Z [36;1m  julia -e "import Pkg; isdefined(Pkg, :Registry) && Pkg.Registry.update();"[0m
+2026-11-06T23:50:50.7398408Z [36;1melse[0m
+2026-11-06T23:50:50.7398776Z [36;1m  echo "Registries directory does not exist or is empty. Skipping registry update"[0m
+2026-11-06T23:50:50.7399216Z [36;1mfi[0m
+2026-11-06T23:50:50.7443343Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:50.7443706Z ##[endgroup]
+2026-11-06T23:50:50.7538363Z Registries directory exists and is non-empty. Updating any registries
+2026-11-06T23:50:51.8996359Z     Updating registry at `~/.julia/registries/General.toml`
+2026-11-06T23:50:52.5779137Z ##[end-action id=__julia-actions_cache.__run_2;outcome=success;conclusion=success;duration_ms=1840]
+2026-11-06T23:50:52.5783497Z ##[start-action display=Run pyTooling/Actions/with-post-step@42e17fae05f224e5ac3d79d021a4e3577878efe5;id=__julia-actions_cache.__pyTooling_Actions]
+2026-11-06T23:50:52.5843136Z ##[group]Run pyTooling/Actions/with-post-step@42e17fae05f224e5ac3d79d021a4e3577878efe5
+2026-11-06T23:50:52.5843561Z with:
+2026-11-06T23:50:52.5843758Z   main: echo ""
+2026-11-06T23:50:52.5844742Z   post: julia $GITHUB_ACTION_PATH/handle_caches.jl rm "itchyshin/DRModels.jl" "julia-cache;workflow=CI;job=test;os=Linux;version=1;shard=3;" "refs/pull/1258/merge" "true"
+2026-11-06T23:50:52.5845452Z   key: POST
+2026-11-06T23:50:52.5845646Z env:
+2026-11-06T23:50:52.5848225Z   GH_TOKEN: ***
+2026-11-06T23:50:52.5848457Z ##[endgroup]
+2026-11-06T23:50:52.6119826Z 
+2026-11-06T23:50:52.6163043Z ##[end-action id=__julia-actions_cache.__pyTooling_Actions;outcome=success;conclusion=success;duration_ms=37]
+2026-11-06T23:50:52.6166770Z ##[start-action display=Run pyTooling/Actions/with-post-step@42e17fae05f224e5ac3d79d021a4e3577878efe5;id=__julia-actions_cache.__pyTooling_Actions_2]
+2026-11-06T23:50:52.6175123Z ##[end-action id=__julia-actions_cache.__pyTooling_Actions_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:52.6177713Z ##[start-action display=Run echo "cache-hit=$CACHE_HIT" >> $GITHUB_OUTPUT;id=__julia-actions_cache.hit]
+2026-11-06T23:50:52.6195637Z ##[group]Run echo "cache-hit=$CACHE_HIT" >> $GITHUB_OUTPUT
+2026-11-06T23:50:52.6196026Z [36;1mecho "cache-hit=$CACHE_HIT" >> $GITHUB_OUTPUT[0m
+2026-11-06T23:50:52.6243760Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:52.6244286Z env:
+2026-11-06T23:50:52.6244489Z   CACHE_HIT: false
+2026-11-06T23:50:52.6244698Z ##[endgroup]
+2026-11-06T23:50:52.6313882Z ##[end-action id=__julia-actions_cache.hit;outcome=success;conclusion=success;duration_ms=13]
+2026-11-06T23:50:52.6379196Z ##[group]Run julia-actions/julia-buildpkg@v1
+2026-11-06T23:50:52.6379505Z with:
+2026-11-06T23:50:52.6379698Z   project: @.
+2026-11-06T23:50:52.6379899Z   precompile: no
+2026-11-06T23:50:52.6380099Z   git_cli: false
+2026-11-06T23:50:52.6380307Z   ignore-no-cache: false
+2026-11-06T23:50:52.6380531Z ##[endgroup]
+2026-11-06T23:50:52.6383920Z ##[start-action display=Set and export registry flavor preference;id=__julia-actions_julia-buildpkg.__run]
+2026-11-06T23:50:52.6400560Z ##[group]Run echo "JULIA_PKG_SERVER_REGISTRY_PREFERENCE=${JULIA_PKG_SERVER_REGISTRY_PREFERENCE:-eager}" >> ${GITHUB_ENV}
+2026-11-06T23:50:52.6401335Z [36;1mecho "JULIA_PKG_SERVER_REGISTRY_PREFERENCE=${JULIA_PKG_SERVER_REGISTRY_PREFERENCE:-eager}" >> ${GITHUB_ENV}[0m
+2026-11-06T23:50:52.6443762Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:52.6444215Z ##[endgroup]
+2026-11-06T23:50:52.6516353Z ##[end-action id=__julia-actions_julia-buildpkg.__run;outcome=success;conclusion=success;duration_ms=13]
+2026-11-06T23:50:52.6520378Z ##[start-action display=Run if "false" == "false" && !isdir(DEPOT_PATH[1%5D);id=__julia-actions_julia-buildpkg.__run_2]
+2026-11-06T23:50:52.6538815Z ##[group]Run if "false" == "false" && !isdir(DEPOT_PATH[1])
+2026-11-06T23:50:52.6539241Z [36;1mif "false" == "false" && !isdir(DEPOT_PATH[1])[0m
+2026-11-06T23:50:52.6540231Z [36;1m    println("::notice title=[julia-buildpkg] Caching of the julia depot was not detected ::Consider using `julia-actions/cache` to speed up runs https://github.com/julia-actions/cache To ignore, set input `ignore-no-cache: true` ")[0m
+2026-11-06T23:50:52.6541158Z [36;1mend[0m
+2026-11-06T23:50:52.6541371Z [36;1mimport Pkg[0m
+2026-11-06T23:50:52.6541589Z [36;1m[0m
+2026-11-06T23:50:52.6541882Z [36;1m# Determine if Pkg uses git-cli executable instead of LibGit2[0m
+2026-11-06T23:50:52.6542337Z [36;1mVERSION >= v"1.7-" && (ENV["JULIA_PKG_USE_CLI_GIT"] = false)[0m
+2026-11-06T23:50:52.6542676Z [36;1m[0m
+2026-11-06T23:50:52.6542896Z [36;1mif VERSION < v"1.7-" && false == true[0m
+2026-11-06T23:50:52.6543506Z [36;1m  printstyled("::notice::JULIA_PKG_USE_CLI_GIT requires Julia >= 1.7. Using default LibGit2 git-interface instead! \n"; color = :yellow)[0m
+2026-11-06T23:50:52.6544304Z [36;1mend[0m
+2026-11-06T23:50:52.6544506Z [36;1m[0m
+2026-11-06T23:50:52.6544687Z [36;1m[0m
+2026-11-06T23:50:52.6544881Z [36;1mif VERSION >= v"1.5-"[0m
+2026-11-06T23:50:52.6545147Z [36;1m    if VERSION >= v"1.8-"[0m
+2026-11-06T23:50:52.6545431Z [36;1m        # Install the default registries[0m
+2026-11-06T23:50:52.6545738Z [36;1m        Pkg.Registry.add()[0m
+2026-11-06T23:50:52.6545986Z [36;1m    else[0m
+2026-11-06T23:50:52.6546223Z [36;1m        Pkg.Registry.add("General")[0m
+2026-11-06T23:50:52.6546498Z [36;1m    end[0m
+2026-11-06T23:50:52.6546696Z [36;1m[0m
+2026-11-06T23:50:52.6546920Z [36;1m    # If provided add local registries[0m
+2026-11-06T23:50:52.6547220Z [36;1m    if !isempty("")[0m
+2026-11-06T23:50:52.6547517Z [36;1m      local_repos = split("", "\n") .|> string[0m
+2026-11-06T23:50:52.6547839Z [36;1m      for repo_url in local_repos[0m
+2026-11-06T23:50:52.6548137Z [36;1m        isempty(repo_url) && continue[0m
+2026-11-06T23:50:52.6548502Z [36;1m        Pkg.Registry.add(Pkg.RegistrySpec(; url = repo_url))[0m
+2026-11-06T23:50:52.6548842Z [36;1m      end[0m
+2026-11-06T23:50:52.6549045Z [36;1m    end[0m
+2026-11-06T23:50:52.6549238Z [36;1mend[0m
+2026-11-06T23:50:52.6549422Z [36;1m[0m
+2026-11-06T23:50:52.6549749Z [36;1mVERSION >= v"1.1.0-rc1" ? retry(Pkg.build)(verbose=true) : retry(Pkg.build)()[0m
+2026-11-06T23:50:52.6551171Z shell: /opt/hostedtoolcache/julia/1.13.3/x64/bin/julia --color=yes --project=@. {0}
+2026-11-06T23:50:52.6551590Z env:
+2026-11-06T23:50:52.6551817Z   JULIA_PKG_SERVER_REGISTRY_PREFERENCE: eager
+2026-11-06T23:50:52.6552129Z   JULIA_PKG_PRECOMPILE_AUTO: no
+2026-11-06T23:50:52.6554869Z   GITHUB_TOKEN: ***
+2026-11-06T23:50:52.6555101Z ##[endgroup]
+2026-11-06T23:50:53.1966400Z [32m[1m  Installing[22m[39m known registries into `~/.julia`
+2026-11-06T23:50:54.1885713Z [32m[1m    Updating[22m[39m registry at `~/.julia/registries/General.toml`
+2026-11-06T23:50:55.9173614Z [32m[1m   Installed[22m[39m DifferentiationInterface ─ v0.7.22
+2026-11-06T23:50:56.5082017Z [32m[1m    Updating[22m[39m `~/work/DRModels.jl/DRModels.jl/Project.toml`
+2026-11-06T23:50:56.5123488Z   [90m[31c24e10] [39m[92m+ Distributions v0.25.134[39m
+2026-11-06T23:50:56.5124492Z   [90m[f6369f11] [39m[92m+ ForwardDiff v1.4.7[39m
+2026-11-06T23:50:56.5125543Z [33m⌅[39m [90m[429524aa] [39m[92m+ Optim v1.13.3[39m
+2026-11-06T23:50:56.5126292Z   [90m[1fd47b50] [39m[92m+ QuadGK v2.11.3[39m
+2026-11-06T23:50:56.5127389Z   [90m[276daf66] [39m[92m+ SpecialFunctions v2.9.1[39m
+2026-11-06T23:50:56.5128078Z   [90m[10745b16] [39m[92m+ Statistics v1.11.5[39m
+2026-11-06T23:50:56.5128731Z   [90m[82ae8749] [39m[92m+ StatsAPI v1.8.0[39m
+2026-11-06T23:50:56.5129376Z   [90m[3eaba693] [39m[92m+ StatsModels v0.7.10[39m
+2026-11-06T23:50:56.5130044Z   [90m[bd369af6] [39m[92m+ Tables v1.14.0[39m
+2026-11-06T23:50:56.5134539Z   [90m[37e2e46d] [39m[93m~ LinearAlgebra ⇒ v1.13.0[39m
+2026-11-06T23:50:56.5135973Z   [90m[de0858da] [39m[93m~ Printf ⇒ v1.11.0[39m
+2026-11-06T23:50:56.5138316Z   [90m[9a3f8284] [39m[93m~ Random ⇒ v1.11.0[39m
+2026-11-06T23:50:56.5138936Z   [90m[2f01184e] [39m[93m~ SparseArrays ⇒ v1.13.0[39m
+2026-11-06T23:50:56.5140866Z [32m[1m    Updating[22m[39m `~/work/DRModels.jl/DRModels.jl/Manifest.toml`
+2026-11-06T23:50:56.5302142Z   [90m[47edcb42] [39m[92m+ ADTypes v1.24.0[39m
+2026-11-06T23:50:56.5302957Z   [90m[7d9f7c33] [39m[92m+ Accessors v0.1.46[39m
+2026-11-06T23:50:56.5303690Z   [90m[79e6a3ab] [39m[92m+ Adapt v4.8.0[39m
+2026-11-06T23:50:56.5304700Z   [90m[66dad0bd] [39m[92m+ AliasTables v1.1.3[39m
+2026-11-06T23:50:56.5305592Z   [90m[4fba245c] [39m[92m+ ArrayInterface v7.30.2[39m
+2026-11-06T23:50:56.5306467Z   [90m[38540f10] [39m[92m+ CommonSolve v0.2.14[39m
+2026-11-06T23:50:56.5307435Z   [90m[bbf7d656] [39m[92m+ CommonSubexpressions v0.3.1[39m
+2026-11-06T23:50:56.5308416Z   [90m[34da2185] [39m[92m+ Compat v4.18.1[39m
+2026-11-06T23:50:56.5309373Z   [90m[a33af91c] [39m[92m+ CompositionsBase v0.1.2[39m
+2026-11-06T23:50:56.5310313Z   [90m[187b0558] [39m[92m+ ConstructionBase v1.6.0[39m
+2026-11-06T23:50:56.5311258Z   [90m[9a962f9c] [39m[92m+ DataAPI v1.16.0[39m
+2026-11-06T23:50:56.5312169Z   [90m[864edb3b] [39m[92m+ DataStructures v0.19.6[39m
+2026-11-06T23:50:56.5313219Z   [90m[e2d170a0] [39m[92m+ DataValueInterfaces v1.0.0[39m
+2026-11-06T23:50:56.5314293Z   [90m[163ba53b] [39m[92m+ DiffResults v1.1.0[39m
+2026-11-06T23:50:56.5315034Z   [90m[b552c78f] [39m[92m+ DiffRules v1.16.0[39m
+2026-11-06T23:50:56.5315913Z   [90m[a0c0ee7d] [39m[92m+ DifferentiationInterface v0.7.22[39m
+2026-11-06T23:50:56.5316663Z   [90m[31c24e10] [39m[92m+ Distributions v0.25.134[39m
+2026-11-06T23:50:56.5317094Z   [90m[ffbed154] [39m[92m+ DocStringExtensions v0.10.2[39m
+2026-11-06T23:50:56.5317494Z   [90m[4e289a0a] [39m[92m+ EnumX v1.0.7[39m
+2026-11-06T23:50:56.5317858Z   [90m[1a297f60] [39m[92m+ FillArrays v1.18.2[39m
+2026-11-06T23:50:56.5318236Z   [90m[6a86dc24] [39m[92m+ FiniteDiff v2.33.0[39m
+2026-11-06T23:50:56.5318827Z   [90m[f6369f11] [39m[92m+ ForwardDiff v1.4.7[39m
+2026-11-06T23:50:56.5319188Z   [90m[a0844989] [39m[92m+ Gamma v1.2.0[39m
+2026-11-06T23:50:56.5319601Z   [90m[34004b35] [39m[92m+ HypergeometricFunctions v0.3.31[39m
+2026-11-06T23:50:56.5320046Z   [90m[3587e190] [39m[92m+ InverseFunctions v0.1.18[39m
+2026-11-06T23:50:56.5320649Z   [90m[92d709cd] [39m[92m+ IrrationalConstants v0.2.7[39m
+2026-11-06T23:50:56.5321133Z   [90m[82899510] [39m[92m+ IteratorInterfaceExtensions v1.0.0[39m
+2026-11-06T23:50:56.5321605Z   [90m[692b3bcd] [39m[92m+ JLLWrappers v1.8.0[39m
+2026-11-06T23:50:56.5322155Z [32m⌃[39m [90m[d3d80556] [39m[92m+ LineSearches v7.5.1[39m
+2026-11-06T23:50:56.5323145Z   [90m[2ab3a3ac] [39m[92m+ LogExpFunctions v1.0.3[39m
+2026-11-06T23:50:56.5323570Z   [90m[1914dd2f] [39m[92m+ MacroTools v0.5.16[39m
+2026-11-06T23:50:56.5323947Z   [90m[e1d29d7a] [39m[92m+ Missings v1.2.1[39m
+2026-11-06T23:50:56.5325055Z [33m⌅[39m [90m[d41bc354] [39m[92m+ NLSolversBase v7.10.0[39m
+2026-11-06T23:50:56.5325584Z   [90m[77ba4419] [39m[92m+ NaNMath v1.1.5[39m
+2026-11-06T23:50:56.5325955Z [33m⌅[39m [90m[429524aa] [39m[92m+ Optim v1.13.3[39m
+2026-11-06T23:50:56.5326692Z   [90m[bac558e1] [39m[92m+ OrderedCollections v2.0.3[39m
+2026-11-06T23:50:56.5327284Z   [90m[90014a1f] [39m[92m+ PDMats v0.11.41[39m
+2026-11-06T23:50:56.5327692Z   [90m[85a6dd25] [39m[92m+ PositiveFactorizations v0.2.4[39m
+2026-11-06T23:50:56.5328443Z   [90m[aea7be01] [39m[92m+ PrecompileTools v1.3.4[39m
+2026-11-06T23:50:56.5328818Z   [90m[21216c6a] [39m[92m+ Preferences v1.6.1[39m
+2026-11-06T23:50:56.5329419Z   [90m[43287f4e] [39m[92m+ PtrArrays v1.4.0[39m
+2026-11-06T23:50:56.5329775Z   [90m[1fd47b50] [39m[92m+ QuadGK v2.11.3[39m
+2026-11-06T23:50:56.5330110Z   [90m[189a3867] [39m[92m+ Reexport v1.2.2[39m
+2026-11-06T23:50:56.5330447Z   [90m[79098fc4] [39m[92m+ Rmath v0.9.0[39m
+2026-11-06T23:50:56.5330888Z   [90m[f2b01f46] [39m[92m+ Roots v3.0.13[39m
+2026-11-06T23:50:56.5331366Z   [90m[efcf1570] [39m[92m+ Setfield v1.2.0[39m
+2026-11-06T23:50:56.5331724Z   [90m[1277b4bf] [39m[92m+ ShiftedArrays v2.0.0[39m
+2026-11-06T23:50:56.5332113Z   [90m[a2af1166] [39m[92m+ SortingAlgorithms v1.2.3[39m
+2026-11-06T23:50:56.5332513Z   [90m[276daf66] [39m[92m+ SpecialFunctions v2.9.1[39m
+2026-11-06T23:50:56.5333135Z   [90m[1e83bf80] [39m[92m+ StaticArraysCore v1.4.4[39m
+2026-11-06T23:50:56.5333520Z   [90m[10745b16] [39m[92m+ Statistics v1.11.5[39m
+2026-11-06T23:50:56.5333876Z   [90m[82ae8749] [39m[92m+ StatsAPI v1.8.0[39m
+2026-11-06T23:50:56.5334489Z   [90m[2913bbd2] [39m[92m+ StatsBase v0.34.13[39m
+2026-11-06T23:50:56.5335172Z   [90m[4c63d2b9] [39m[92m+ StatsFuns v2.2.1[39m
+2026-11-06T23:50:56.5335553Z   [90m[3eaba693] [39m[92m+ StatsModels v0.7.10[39m
+2026-11-06T23:50:56.5335923Z   [90m[3783bdb8] [39m[92m+ TableTraits v1.0.1[39m
+2026-11-06T23:50:56.5336268Z   [90m[bd369af6] [39m[92m+ Tables v1.14.0[39m
+2026-11-06T23:50:56.5336730Z   [90m[efe28fd5] [39m[92m+ OpenSpecFun_jll v0.5.6+0[39m
+2026-11-06T23:50:56.5337231Z   [90m[f50d1b31] [39m[92m+ Rmath_jll v0.5.2+0[39m
+2026-11-06T23:50:56.5337588Z   [90m[56f22d72] [39m[92m+ Artifacts v1.11.0[39m
+2026-11-06T23:50:56.5337930Z   [90m[2a0f44e3] [39m[92m+ Base64 v1.11.0[39m
+2026-11-06T23:50:56.5338281Z   [90m[ade2ca70] [39m[92m+ Dates v1.11.0[39m
+2026-11-06T23:50:56.5338709Z   [90m[8ba89e20] [39m[92m+ Distributed v1.11.0[39m
+2026-11-06T23:50:56.5339356Z   [90m[7b1f6079] [39m[92m+ FileWatching v1.11.0[39m
+2026-11-06T23:50:56.5339709Z   [90m[9fa8497b] [39m[92m+ Future v1.11.0[39m
+2026-11-06T23:50:56.5340078Z   [90m[b77e0a4c] [39m[92m+ InteractiveUtils v1.11.0[39m
+2026-11-06T23:50:56.5340514Z   [90m[ac6e5ff7] [39m[92m+ JuliaSyntaxHighlighting v1.12.0[39m
+2026-11-06T23:50:56.5340984Z   [90m[8f399da3] [39m[92m+ Libdl v1.11.0[39m
+2026-11-06T23:50:56.5341646Z   [90m[37e2e46d] [39m[93m~ LinearAlgebra ⇒ v1.13.0[39m
+2026-11-06T23:50:56.5342025Z   [90m[d6f4376e] [39m[92m+ Markdown v1.11.0[39m
+2026-11-06T23:50:56.5342376Z   [90m[de0858da] [39m[93m~ Printf ⇒ v1.11.0[39m
+2026-11-06T23:50:56.5342729Z   [90m[3fa0cd96] [39m[92m+ REPL v1.11.0[39m
+2026-11-06T23:50:56.5343185Z   [90m[9a3f8284] [39m[93m~ Random ⇒ v1.11.0[39m
+2026-11-06T23:50:56.5343749Z   [90m[ea8e919c] [39m[92m+ SHA v1.0.0[39m
+2026-11-06T23:50:56.5344325Z   [90m[9e88b42a] [39m[92m+ Serialization v1.11.0[39m
+2026-11-06T23:50:56.5344722Z   [90m[6462fe0b] [39m[92m+ Sockets v1.11.0[39m
+2026-11-06T23:50:56.5345090Z   [90m[2f01184e] [39m[93m~ SparseArrays ⇒ v1.13.0[39m
+2026-11-06T23:50:56.5345640Z   [90m[f489334b] [39m[92m+ StyledStrings v1.11.0[39m
+2026-11-06T23:50:56.5346157Z   [90m[4607b0f0] [39m[92m+ SuiteSparse[39m
+2026-11-06T23:50:56.5346507Z   [90m[fa267f1f] [39m[92m+ TOML v1.0.3[39m
+2026-11-06T23:50:56.5347416Z   [90m[cf7118a7] [39m[92m+ UUIDs v1.11.0[39m
+2026-11-06T23:50:56.5347977Z   [90m[4ec0a83e] [39m[92m+ Unicode v1.11.0[39m
+2026-11-06T23:50:56.5348401Z   [90m[e66e0078] [39m[92m+ CompilerSupportLibraries_jll v1.5.5+2[39m
+2026-11-06T23:50:56.5350203Z   [90m[4536629a] [39m[92m+ OpenBLAS_jll v0.3.30+0[39m
+2026-11-06T23:50:56.5351121Z   [90m[05823500] [39m[92m+ OpenLibm_jll v0.8.7+0[39m
+2026-11-06T23:50:56.5351960Z   [90m[bea87d4a] [39m[92m+ SuiteSparse_jll v7.10.1+0[39m
+2026-11-06T23:50:56.5352828Z   [90m[8e850b90] [39m[92m+ libblastrampoline_jll v5.15.0+0[39m
+2026-11-06T23:50:56.5355668Z [36m[1m        Info[22m[39m Packages marked with [32m⌃[39m and [33m⌅[39m have new versions available. Those with [32m⌃[39m may be upgradable, but those with [33m⌅[39m are restricted by compatibility constraints from upgrading. To see why use `status --outdated -m`
+2026-11-06T23:50:56.6639861Z ##[end-action id=__julia-actions_julia-buildpkg.__run_2;outcome=success;conclusion=success;duration_ms=4011]
+2026-11-06T23:50:56.6742550Z ##[group]Run julia-actions/julia-runtest@v1
+2026-11-06T23:50:56.6742863Z with:
+2026-11-06T23:50:56.6743063Z   check_bounds: yes
+2026-11-06T23:50:56.6743270Z   coverage: true
+2026-11-06T23:50:56.6743471Z   depwarn: yes
+2026-11-06T23:50:56.6743686Z   force_latest_compatible_version: auto
+2026-11-06T23:50:56.6743954Z   inline: yes
+2026-11-06T23:50:56.6744346Z   project: @.
+2026-11-06T23:50:56.6744553Z   annotate: false
+2026-11-06T23:50:56.6744769Z   compiled_modules: yes
+2026-11-06T23:50:56.6744992Z   allow_reresolve: true
+2026-11-06T23:50:56.6745222Z env:
+2026-11-06T23:50:56.6745437Z   JULIA_PKG_SERVER_REGISTRY_PREFERENCE: eager
+2026-11-06T23:50:56.6745732Z   DRM_TEST_SHARD: 3/4
+2026-11-06T23:50:56.6745943Z ##[endgroup]
+2026-11-06T23:50:56.6750195Z ##[start-action display=Set and export registry flavor preference;id=__julia-actions_julia-runtest.__run]
+2026-11-06T23:50:56.6767319Z ##[group]Run # Set and export registry flavor preference
+2026-11-06T23:50:56.6767739Z [36;1m# Set and export registry flavor preference[0m
+2026-11-06T23:50:56.6768280Z [36;1mecho "JULIA_PKG_SERVER_REGISTRY_PREFERENCE=${JULIA_PKG_SERVER_REGISTRY_PREFERENCE:-eager}" >> ${GITHUB_ENV}[0m
+2026-11-06T23:50:56.6816621Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:56.6816963Z env:
+2026-11-06T23:50:56.6817193Z   JULIA_PKG_SERVER_REGISTRY_PREFERENCE: eager
+2026-11-06T23:50:56.6817503Z   DRM_TEST_SHARD: 3/4
+2026-11-06T23:50:56.6817717Z ##[endgroup]
+2026-11-06T23:50:56.6889768Z ##[end-action id=__julia-actions_julia-runtest.__run;outcome=success;conclusion=success;duration_ms=13]
+2026-11-06T23:50:56.6891874Z ##[start-action display=Install dependencies in their own (shared) environment;id=__julia-actions_julia-runtest.__run_2]
+2026-11-06T23:50:56.6895800Z ##[end-action id=__julia-actions_julia-runtest.__run_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-06T23:50:56.6898907Z ##[start-action display=Run the package tests;id=__julia-actions_julia-runtest.__run_3]
+2026-11-06T23:50:56.6916607Z ##[group]Run # Run the package tests
+2026-11-06T23:50:56.6916917Z [36;1m# Run the package tests[0m
+2026-11-06T23:50:56.6917169Z [36;1m[0m
+2026-11-06T23:50:56.6917462Z [36;1m# On Windows the executable is julia.exe, elsewhere it is julia[0m
+2026-11-06T23:50:56.6917829Z [36;1mjulia_bin=julia[0m
+2026-11-06T23:50:56.6918099Z [36;1m[[ "Linux" == "Windows" ]] && julia_bin=julia.exe[0m
+2026-11-06T23:50:56.6918388Z [36;1m[0m
+2026-11-06T23:50:56.6918724Z [36;1m# Optionally set the optimization level (empty means use the Julia default)[0m
+2026-11-06T23:50:56.6919140Z [36;1mopt_flag=()[0m
+2026-11-06T23:50:56.6919447Z [36;1m[[ -n "${OPTIMIZE}" ]] && opt_flag=( "--optimize=${OPTIMIZE}" )[0m
+2026-11-06T23:50:56.6919787Z [36;1m[0m
+2026-11-06T23:50:56.6920013Z [36;1m# The Julia command that will be executed[0m
+2026-11-06T23:50:56.6920699Z [36;1mjulia_cmd=( "${julia_bin:?}" --color=yes --inline=yes "${opt_flag[@]}" --project=@. -e 'include(joinpath(ENV["GITHUB_ACTION_PATH"], "test_harness.jl"))' --  )[0m
+2026-11-06T23:50:56.6921318Z [36;1m[0m
+2026-11-06T23:50:56.6921591Z [36;1m# Add the prefix in front of the command if there is one[0m
+2026-11-06T23:50:56.6921923Z [36;1mprefix=(  )[0m
+2026-11-06T23:50:56.6922229Z [36;1m[[ -n ${prefix[*]} ]] && julia_cmd=( "${prefix[@]}" "${julia_cmd[@]}" )[0m
+2026-11-06T23:50:56.6922571Z [36;1m[0m
+2026-11-06T23:50:56.6922776Z [36;1m# Run the Julia command[0m
+2026-11-06T23:50:56.6923080Z [36;1mecho "::debug::Executing Julia: ${julia_cmd[*]}"[0m
+2026-11-06T23:50:56.6923392Z [36;1m"${julia_cmd[@]}"[0m
+2026-11-06T23:50:56.6966059Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-06T23:50:56.6966453Z env:
+2026-11-06T23:50:56.6966686Z   JULIA_PKG_SERVER_REGISTRY_PREFERENCE: eager
+2026-11-06T23:50:56.6966984Z   DRM_TEST_SHARD: 3/4
+2026-11-06T23:50:56.6967195Z   ANNOTATE: false
+2026-11-06T23:50:56.6967407Z   COVERAGE: true
+2026-11-06T23:50:56.6967623Z   FORCE_LATEST_COMPATIBLE_VERSION: auto
+2026-11-06T23:50:56.6968069Z   CHECK_BOUNDS: yes
+2026-11-06T23:50:56.6968290Z   COMPILED_MODULES: yes
+2026-11-06T23:50:56.6968515Z   ALLOW_RERESOLVE: true
+2026-11-06T23:50:56.6968725Z   DEPWARN: yes
+2026-11-06T23:50:56.6968918Z   OPTIMIZE: 
+2026-11-06T23:50:56.6969104Z ##[endgroup]
+2026-11-06T23:50:57.6955070Z │
+2026-11-06T23:50:57.6956027Z │ To reproduce this CI run locally run the following from the same repository state on julia version 1.13.3:
+2026-11-06T23:50:57.6956890Z │
+2026-11-06T23:50:57.6958216Z │ `import Pkg; Pkg.test(;coverage=true, julia_args=["--check-bounds=yes", "--compiled-modules=yes", "--depwarn=yes"], force_latest_compatible_version=false, allow_reresolve=true)`
+2026-11-06T23:50:57.6959516Z │
+2026-11-06T23:50:59.3308279Z [32m[1m     Testing[22m[39m DRModels
+2026-11-06T23:51:01.8074965Z [32m[1m      Status[22m[39m `/tmp/jl_bqa0c0/Project.toml`
+2026-11-06T23:51:01.8120638Z   [90m[4c88cf16] [39mAqua v0.8.18
+2026-11-06T23:51:01.8121257Z   [90m[6c755ef2] [39mDRModels v0.8.0 `~/work/DRModels.jl/DRModels.jl`
+2026-11-06T23:51:01.8121952Z   [90m[8bb1440f] [39mDelimitedFiles v1.9.1
+2026-11-06T23:51:01.8122677Z   [90m[31c24e10] [39mDistributions v0.25.134
+2026-11-06T23:51:01.8123334Z   [90m[f6369f11] [39mForwardDiff v1.4.7
+2026-11-06T23:51:01.8124221Z   [90m[c3a54625] [39mJET v0.13.1
+2026-11-06T23:51:01.8124995Z   [90m[1fd47b50] [39mQuadGK v2.11.3
+2026-11-06T23:51:01.8125930Z   [90m[276daf66] [39mSpecialFunctions v2.9.1
+2026-11-06T23:51:01.8126775Z   [90m[860ef19b] [39mStableRNGs v1.1.0
+2026-11-06T23:51:01.8127535Z   [90m[10745b16] [39mStatistics v1.11.5
+2026-11-06T23:51:01.8128338Z   [90m[82ae8749] [39mStatsAPI v1.8.0
+2026-11-06T23:51:01.8129075Z   [90m[3eaba693] [39mStatsModels v0.7.10
+2026-11-06T23:51:01.8131799Z   [90m[37e2e46d] [39mLinearAlgebra v1.13.0
+2026-11-06T23:51:01.8134197Z   [90m[56ddb016] [39mLogging v1.11.0
+2026-11-06T23:51:01.8135877Z   [90m[d6f4376e] [39mMarkdown v1.11.0
+2026-11-06T23:51:01.8137292Z   [90m[de0858da] [39mPrintf v1.11.0
+2026-11-06T23:51:01.8139019Z   [90m[9a3f8284] [39mRandom v1.11.0
+2026-11-06T23:51:01.8139708Z   [90m[9e88b42a] [39mSerialization v1.11.0
+2026-11-06T23:51:01.8140355Z   [90m[2f01184e] [39mSparseArrays v1.13.0
+2026-11-06T23:51:01.8141100Z   [90m[fa267f1f] [39mTOML v1.0.3
+2026-11-06T23:51:01.8141685Z   [90m[8dfed614] [39mTest v1.11.0
+2026-11-06T23:51:01.8143136Z [32m[1m      Status[22m[39m `/tmp/jl_bqa0c0/Manifest.toml`
+2026-11-06T23:51:01.8345827Z   [90m[47edcb42] [39mADTypes v1.24.0
+2026-11-06T23:51:01.8346598Z   [90m[7d9f7c33] [39mAccessors v0.1.46
+2026-11-06T23:51:01.8347200Z   [90m[79e6a3ab] [39mAdapt v4.8.0
+2026-11-06T23:51:01.8347846Z   [90m[66dad0bd] [39mAliasTables v1.1.3
+2026-11-06T23:51:01.8348449Z   [90m[4c88cf16] [39mAqua v0.8.18
+2026-11-06T23:51:01.8349054Z   [90m[4fba245c] [39mArrayInterface v7.30.2
+2026-11-06T23:51:01.8349698Z   [90m[da1fd8a2] [39mCodeTracking v3.0.2
+2026-11-06T23:51:01.8350321Z   [90m[38540f10] [39mCommonSolve v0.2.14
+2026-11-06T23:51:01.8350994Z   [90m[bbf7d656] [39mCommonSubexpressions v0.3.1
+2026-11-06T23:51:01.8351607Z   [90m[34da2185] [39mCompat v4.18.1
+2026-11-06T23:51:01.8351978Z   [90m[807dbc54] [39mCompiler v0.1.1
+2026-11-06T23:51:01.8352313Z   [90m[a33af91c] [39mCompositionsBase v0.1.2
+2026-11-06T23:51:01.8352716Z   [90m[187b0558] [39mConstructionBase v1.6.0
+2026-11-06T23:51:01.8353503Z   [90m[6c755ef2] [39mDRModels v0.8.0 `~/work/DRModels.jl/DRModels.jl`
+2026-11-06T23:51:01.8354539Z   [90m[9a962f9c] [39mDataAPI v1.16.0
+2026-11-06T23:51:01.8355164Z   [90m[864edb3b] [39mDataStructures v0.19.6
+2026-11-06T23:51:01.8356262Z   [90m[e2d170a0] [39mDataValueInterfaces v1.0.0
+2026-11-06T23:51:01.8356948Z   [90m[8bb1440f] [39mDelimitedFiles v1.9.1
+2026-11-06T23:51:01.8357571Z   [90m[163ba53b] [39mDiffResults v1.1.0
+2026-11-06T23:51:01.8358174Z   [90m[b552c78f] [39mDiffRules v1.16.0
+2026-11-06T23:51:01.8358853Z   [90m[a0c0ee7d] [39mDifferentiationInterface v0.7.22
+2026-11-06T23:51:01.8359563Z   [90m[31c24e10] [39mDistributions v0.25.134
+2026-11-06T23:51:01.8360479Z   [90m[ffbed154] [39mDocStringExtensions v0.10.2
+2026-11-06T23:51:01.8361162Z   [90m[4e289a0a] [39mEnumX v1.0.7
+2026-11-06T23:51:01.8361750Z   [90m[1a297f60] [39mFillArrays v1.18.2
+2026-11-06T23:51:01.8362346Z   [90m[6a86dc24] [39mFiniteDiff v2.33.0
+2026-11-06T23:51:01.8362947Z   [90m[f6369f11] [39mForwardDiff v1.4.7
+2026-11-06T23:51:01.8363533Z   [90m[a0844989] [39mGamma v1.2.0
+2026-11-06T23:51:01.8364325Z   [90m[34004b35] [39mHypergeometricFunctions v0.3.31
+2026-11-06T23:51:01.8365031Z   [90m[3587e190] [39mInverseFunctions v0.1.18
+2026-11-06T23:51:01.8365850Z   [90m[92d709cd] [39mIrrationalConstants v0.2.7
+2026-11-06T23:51:01.8366610Z   [90m[82899510] [39mIteratorInterfaceExtensions v1.0.0
+2026-11-06T23:51:01.8367288Z   [90m[c3a54625] [39mJET v0.13.1
+2026-11-06T23:51:01.8367894Z   [90m[692b3bcd] [39mJLLWrappers v1.8.0
+2026-11-06T23:51:01.8368353Z   [90m[aa1ae85d] [39mJuliaInterpreter v0.12.2
+2026-11-06T23:51:01.8368735Z   [90m[70703baa] [39mJuliaSyntax v1.0.2
+2026-11-06T23:51:01.8369191Z [32m⌃[39m [90m[d3d80556] [39mLineSearches v7.5.1
+2026-11-06T23:51:01.8369795Z   [90m[2ab3a3ac] [39mLogExpFunctions v1.0.3
+2026-11-06T23:51:01.8370500Z   [90m[6f1432cf] [39mLoweredCodeUtils v3.10.2
+2026-11-06T23:51:01.8371143Z   [90m[1914dd2f] [39mMacroTools v0.5.16
+2026-11-06T23:51:01.8371735Z   [90m[e1d29d7a] [39mMissings v1.2.1
+2026-11-06T23:51:01.8372405Z [33m⌅[39m [90m[d41bc354] [39mNLSolversBase v7.10.0
+2026-11-06T23:51:01.8373064Z   [90m[77ba4419] [39mNaNMath v1.1.5
+2026-11-06T23:51:01.8373683Z [32m⌃[39m [90m[429524aa] [39mOptim v1.13.3
+2026-11-06T23:51:01.8374891Z   [90m[bac558e1] [39mOrderedCollections v2.0.3
+2026-11-06T23:51:01.8375460Z   [90m[90014a1f] [39mPDMats v0.11.41
+2026-11-06T23:51:01.8376056Z   [90m[85a6dd25] [39mPositiveFactorizations v0.2.4
+2026-11-06T23:51:01.8376670Z   [90m[aea7be01] [39mPrecompileTools v1.3.4
+2026-11-06T23:51:01.8377216Z   [90m[21216c6a] [39mPreferences v1.6.1
+2026-11-06T23:51:01.8377726Z   [90m[43287f4e] [39mPtrArrays v1.4.0
+2026-11-06T23:51:01.8378240Z   [90m[1fd47b50] [39mQuadGK v2.11.3
+2026-11-06T23:51:01.8378733Z   [90m[189a3867] [39mReexport v1.2.2
+2026-11-06T23:51:01.8379331Z   [90m[295af30f] [39mRevise v3.18.0
+2026-11-06T23:51:01.8379853Z   [90m[79098fc4] [39mRmath v0.9.0
+2026-11-06T23:51:01.8380331Z   [90m[f2b01f46] [39mRoots v3.0.13
+2026-11-06T23:51:01.8380823Z   [90m[efcf1570] [39mSetfield v1.2.0
+2026-11-06T23:51:01.8381411Z   [90m[1277b4bf] [39mShiftedArrays v2.0.0
+2026-11-06T23:51:01.8381980Z   [90m[a2af1166] [39mSortingAlgorithms v1.2.3
+2026-11-06T23:51:01.8382571Z   [90m[276daf66] [39mSpecialFunctions v2.9.1
+2026-11-06T23:51:01.8383118Z   [90m[860ef19b] [39mStableRNGs v1.1.0
+2026-11-06T23:51:01.8383657Z   [90m[1e83bf80] [39mStaticArraysCore v1.4.4
+2026-11-06T23:51:01.8384364Z   [90m[10745b16] [39mStatistics v1.11.5
+2026-11-06T23:51:01.8384918Z   [90m[82ae8749] [39mStatsAPI v1.8.0
+2026-11-06T23:51:01.8385234Z   [90m[2913bbd2] [39mStatsBase v0.34.13
+2026-11-06T23:51:01.8385539Z   [90m[4c63d2b9] [39mStatsFuns v2.2.1
+2026-11-06T23:51:01.8385846Z   [90m[3eaba693] [39mStatsModels v0.7.10
+2026-11-06T23:51:01.8386243Z   [90m[3783bdb8] [39mTableTraits v1.0.1
+2026-11-06T23:51:01.8386777Z   [90m[bd369af6] [39mTables v1.14.0
+2026-11-06T23:51:01.8387307Z   [90m[efe28fd5] [39mOpenSpecFun_jll v0.5.6+0
+2026-11-06T23:51:01.8387871Z   [90m[f50d1b31] [39mRmath_jll v0.5.2+0
+2026-11-06T23:51:01.8388387Z   [90m[0dad84c5] [39mArgTools v1.1.2
+2026-11-06T23:51:01.8388894Z   [90m[56f22d72] [39mArtifacts v1.11.0
+2026-11-06T23:51:01.8389400Z   [90m[2a0f44e3] [39mBase64 v1.11.0
+2026-11-06T23:51:01.8390149Z   [90m[8bf52ea8] [39mCRC32c v1.11.0
+2026-11-06T23:51:01.8390636Z   [90m[ade2ca70] [39mDates v1.11.0
+2026-11-06T23:51:01.8391136Z   [90m[8ba89e20] [39mDistributed v1.11.0
+2026-11-06T23:51:01.8391655Z   [90m[f43a241f] [39mDownloads v1.7.0
+2026-11-06T23:51:01.8392179Z   [90m[7b1f6079] [39mFileWatching v1.11.0
+2026-11-06T23:51:01.8392704Z   [90m[9fa8497b] [39mFuture v1.11.0
+2026-11-06T23:51:01.8393423Z   [90m[b77e0a4c] [39mInteractiveUtils v1.11.0
+2026-11-06T23:51:01.8394237Z   [90m[ac6e5ff7] [39mJuliaSyntaxHighlighting v1.12.0
+2026-11-06T23:51:01.8394832Z   [90m[b27032c2] [39mLibCURL v1.0.0
+2026-11-06T23:51:01.8395335Z   [90m[76f85450] [39mLibGit2 v1.11.0
+2026-11-06T23:51:01.8395818Z   [90m[8f399da3] [39mLibdl v1.11.0
+2026-11-06T23:51:01.8399495Z   [90m[37e2e46d] [39mLinearAlgebra v1.13.0
+2026-11-06T23:51:01.8425013Z   [90m[56ddb016] [39mLogging v1.11.0
+2026-11-06T23:51:01.8441688Z   [90m[d6f4376e] [39mMarkdown v1.11.0
+2026-11-06T23:51:01.8454923Z   [90m[a63ad114] [39mMmap v1.11.0
+2026-11-06T23:51:01.8485113Z   [90m[ca575930] [39mNetworkOptions v1.3.0
+2026-11-06T23:51:01.8486002Z   [90m[44cfe95a] [39mPkg v1.13.0
+2026-11-06T23:51:01.8486758Z   [90m[de0858da] [39mPrintf v1.11.0
+2026-11-06T23:51:01.8487524Z   [90m[3fa0cd96] [39mREPL v1.11.0
+2026-11-06T23:51:01.8488245Z   [90m[9a3f8284] [39mRandom v1.11.0
+2026-11-06T23:51:01.8488940Z   [90m[ea8e919c] [39mSHA v1.0.0
+2026-11-06T23:51:01.8489912Z   [90m[9e88b42a] [39mSerialization v1.11.0
+2026-11-06T23:51:01.8490754Z   [90m[6462fe0b] [39mSockets v1.11.0
+2026-11-06T23:51:01.8491495Z   [90m[2f01184e] [39mSparseArrays v1.13.0
+2026-11-06T23:51:01.8492258Z   [90m[f489334b] [39mStyledStrings v1.11.0
+2026-11-06T23:51:01.8492987Z   [90m[4607b0f0] [39mSuiteSparse
+2026-11-06T23:51:01.8493654Z   [90m[fa267f1f] [39mTOML v1.0.3
+2026-11-06T23:51:01.8494522Z   [90m[a4e569a6] [39mTar v1.10.0
+2026-11-06T23:51:01.8495229Z   [90m[8dfed614] [39mTest v1.11.0
+2026-11-06T23:51:01.8495956Z   [90m[cf7118a7] [39mUUIDs v1.11.0
+2026-11-06T23:51:01.8496667Z   [90m[4ec0a83e] [39mUnicode v1.11.0
+2026-11-06T23:51:01.8497540Z   [90m[e66e0078] [39mCompilerSupportLibraries_jll v1.5.5+2
+2026-11-06T23:51:01.8498397Z   [90m[deac9b47] [39mLibCURL_jll v8.22.0+0
+2026-11-06T23:51:01.8499167Z   [90m[e37daf67] [39mLibGit2_jll v1.9.7+0
+2026-11-06T23:51:01.8499931Z   [90m[29816b5a] [39mLibSSH2_jll v1.11.104+0
+2026-11-06T23:51:01.8500728Z   [90m[14a3606d] [39mMozillaCACerts_jll v2026.10.20
+2026-11-06T23:51:01.8501518Z   [90m[4536629a] [39mOpenBLAS_jll v0.3.30+0
+2026-11-06T23:51:01.8502244Z   [90m[05823500] [39mOpenLibm_jll v0.8.7+0
+2026-11-06T23:51:01.8502924Z   [90m[458c3c95] [39mOpenSSL_jll v3.5.8+0
+2026-11-06T23:51:01.8503579Z   [90m[efcefdf7] [39mPCRE2_jll v10.47.0+0
+2026-11-06T23:51:01.8504682Z   [90m[bea87d4a] [39mSuiteSparse_jll v7.10.1+0
+2026-11-06T23:51:01.8505391Z   [90m[83775a58] [39mZlib_jll v1.3.2+0
+2026-11-06T23:51:01.8506054Z   [90m[3161d3a3] [39mZstd_jll v1.5.7+1
+2026-11-06T23:51:01.8506893Z   [90m[8e850b90] [39mlibblastrampoline_jll v5.15.0+0
+2026-11-06T23:51:01.8507733Z   [90m[8e850ede] [39mnghttp2_jll v1.70.0+0
+2026-11-06T23:51:01.8508497Z   [90m[3f19e933] [39mp7zip_jll v17.8.3+0
+2026-11-06T23:51:01.8510490Z [36m[1m        Info[22m[39m Packages marked with [32m⌃[39m and [33m⌅[39m have new versions available. Those with [32m⌃[39m may be upgradable, but those with [33m⌅[39m are restricted by compatibility constraints from upgrading.
+2026-11-06T23:51:02.2264305Z [32m[1mPrecompiling[22m[39m for configuration --code-coverage=@/home/runner/work/DRModels.jl/DRModels.jl --color=yes --warn-overwrite=yes --depwarn=yes --inline=yes --startup-file=no --track-allocation=none --check-bounds=yes --compiled-modules=yes --depwarn=yes
+2026-11-06T23:51:02.6775931Z    0.4 s[32m  ✓ [39m[90mReexport[39m
+2026-11-06T23:51:02.8815403Z    0.6 s[32m  ✓ [39m[90mAdapt[39m
+2026-11-06T23:51:02.9875180Z    0.7 s[32m  ✓ [39m[90mDataAPI[39m
+2026-11-06T23:51:03.1294941Z    0.9 s[32m  ✓ [39mStatistics
+2026-11-06T23:51:03.1805881Z    0.5 s[32m  ✓ [39m[90mPositiveFactorizations[39m
+2026-11-06T23:51:03.5055590Z    0.4 s[32m  ✓ [39m[90mDataValueInterfaces[39m
+2026-11-06T23:51:03.7905546Z    0.9 s[32m  ✓ [39m[90mConstructionBase[39m
+2026-11-06T23:51:03.8905625Z    0.7 s[32m  ✓ [39m[90mStaticArraysCore[39m
+2026-11-06T23:51:04.1725481Z    0.7 s[32m  ✓ [39mStatsAPI
+2026-11-06T23:51:04.5425755Z    0.7 s[32m  ✓ [39mStableRNGs
+2026-11-06T23:51:04.7665856Z    1.0 s[32m  ✓ [39m[90mOrderedCollections[39m
+2026-11-06T23:51:05.2625616Z    1.1 s[32m  ✓ [39m[90mInverseFunctions[39m
+2026-11-06T23:51:05.4466182Z    0.9 s[32m  ✓ [39m[90mCompositionsBase[39m
+2026-11-06T23:51:05.4905531Z    0.7 s[32m  ✓ [39m[90mShiftedArrays[39m
+2026-11-06T23:51:05.5285381Z    2.5 s[32m  ✓ [39m[90mIrrationalConstants[39m
+2026-11-06T23:51:05.8815442Z    3.6 s[32m  ✓ [39m[90mMacroTools[39m
+2026-11-06T23:51:05.9675345Z    0.5 s[32m  ✓ [39m[90mEnumX[39m
+2026-11-06T23:51:06.6565292Z    0.7 s[32m  ✓ [39m[90mPtrArrays[39m
+2026-11-06T23:51:06.9605493Z    1.7 s[32m  ✓ [39m[90mDocStringExtensions[39m
+2026-11-06T23:51:07.1695421Z    0.5 s[32m  ✓ [39m[90mIteratorInterfaceExtensions[39m
+2026-11-06T23:51:07.2936462Z    1.8 s[32m  ✓ [39m[90mFillArrays[39m
+2026-11-06T23:51:07.5121498Z    1.6 s[32m  ✓ [39m[90mCompiler[39m
+2026-11-06T23:51:07.9335299Z    0.9 s[32m  ✓ [39m[90mSuiteSparse[39m
+2026-11-06T23:51:08.0405337Z    0.9 s[32m  ✓ [39m[90mNaNMath[39m
+2026-11-06T23:51:08.0805295Z    0.6 s[32m  ✓ [39m[90mCompat[39m
+2026-11-06T23:51:08.3345804Z    1.0 s[32m  ✓ [39mDelimitedFiles
+2026-11-06T23:51:09.0985548Z    1.0 s[32m  ✓ [39m[90mArrayInterface[39m
+2026-11-06T23:51:09.2225865Z    0.9 s[32m  ✓ [39m[90mAdapt → AdaptSparseArraysExt[39m
+2026-11-06T23:51:09.2915598Z    1.4 s[32m  ✓ [39m[90mPreferences[39m
+2026-11-06T23:51:09.5255487Z    1.5 s[32m  ✓ [39m[90mCodeTracking[39m
+2026-11-06T23:51:09.9495670Z    0.7 s[32m  ✓ [39m[90mConstructionBase → ConstructionBaseLinearAlgebraExt[39m
+2026-11-06T23:51:10.0365970Z    0.5 s[32m  ✓ [39m[90mDiffResults[39m
+2026-11-06T23:51:10.0825756Z    1.0 s[32m  ✓ [39m[90mMissings[39m
+2026-11-06T23:51:10.2695527Z    1.0 s[32m  ✓ [39mStatistics → SparseArraysExt
+2026-11-06T23:51:10.6795735Z    0.4 s[32m  ✓ [39m[90mCompositionsBase → CompositionsBaseInverseFunctionsExt[39m
+2026-11-06T23:51:10.9965592Z    0.9 s[32m  ✓ [39m[90mInverseFunctions → InverseFunctionsDatesExt[39m
+2026-11-06T23:51:11.2055566Z    1.2 s[32m  ✓ [39m[90mInverseFunctions → InverseFunctionsTestExt[39m
+2026-11-06T23:51:11.3525577Z    0.7 s[32m  ✓ [39m[90mCommonSubexpressions[39m
+2026-11-06T23:51:11.8118816Z    0.5 s[32m  ✓ [39m[90mTableTraits[39m
+2026-11-06T23:51:11.8825169Z    0.9 s[32m  ✓ [39m[90mAliasTables[39m
+2026-11-06T23:51:12.0486753Z    0.8 s[32m  ✓ [39m[90mLogExpFunctions[39m
+2026-11-06T23:51:12.8795698Z    1.0 s[32m  ✓ [39m[90mFillArrays → FillArraysStatisticsExt[39m
+2026-11-06T23:51:12.9345479Z    1.1 s[32m  ✓ [39m[90mFillArrays → FillArraysSparseArraysExt[39m
+2026-11-06T23:51:13.3235427Z    1.3 s[32m  ✓ [39m[90mPDMats[39m
+2026-11-06T23:51:13.4445454Z    0.6 s[32m  ✓ [39m[90mCompat → CompatLinearAlgebraExt[39m
+2026-11-06T23:51:13.7335237Z    0.8 s[32m  ✓ [39m[90mArrayInterface → ArrayInterfaceFillArraysExt[39m
+2026-11-06T23:51:13.7855871Z    3.8 s[32m  ✓ [39m[90mDataStructures[39m
+2026-11-06T23:51:13.7915415Z    0.5 s[32m  ✓ [39m[90mArrayInterface → ArrayInterfaceStaticArraysCoreExt[39m
+2026-11-06T23:51:14.4269522Z    1.0 s[32m  ✓ [39m[90mArrayInterface → ArrayInterfaceSparseArraysExt[39m
+2026-11-06T23:51:14.6585200Z    0.9 s[32m  ✓ [39m[90mJLLWrappers[39m
+2026-11-06T23:51:14.7155551Z    0.9 s[32m  ✓ [39m[90mPrecompileTools[39m
+2026-11-06T23:51:15.6465376Z    1.2 s[32m  ✓ [39m[90mSetfield[39m
+2026-11-06T23:51:16.1775527Z    0.5 s[32m  ✓ [39m[90mLogExpFunctions → LogExpFunctionsInverseFunctionsExt[39m
+2026-11-06T23:51:16.9145303Z    2.2 s[32m  ✓ [39m[90mTables[39m
+2026-11-06T23:51:17.6125339Z    1.4 s[32m  ✓ [39m[90mGamma[39m
+2026-11-06T23:51:18.1915243Z    3.5 s[32m  ✓ [39m[90mAccessors[39m
+2026-11-06T23:51:18.4836097Z    1.6 s[32m  ✓ [39m[90mFillArrays → FillArraysPDMatsExt[39m
+2026-11-06T23:51:19.1725485Z    1.0 s[32m  ✓ [39m[90mSortingAlgorithms[39m
+2026-11-06T23:51:20.5965245Z    2.1 s[32m  ✓ [39mQuadGK
+2026-11-06T23:51:20.6515867Z    1.5 s[32m  ✓ [39m[90mRmath_jll[39m
+2026-11-06T23:51:21.0795650Z    3.5 s[32m  ✓ [39mAqua
+2026-11-06T23:51:21.7265310Z    1.1 s[32m  ✓ [39m[90mOpenSpecFun_jll[39m
+2026-11-06T23:51:22.3595234Z    1.7 s[32m  ✓ [39m[90mADTypes[39m
+2026-11-06T23:51:22.6009357Z    1.5 s[32m  ✓ [39m[90mCommonSolve[39m
+2026-11-06T23:51:23.2165339Z    1.5 s[32m  ✓ [39m[90mFiniteDiff[39m
+2026-11-06T23:51:24.0035412Z    1.4 s[32m  ✓ [39m[90mAccessors → LinearAlgebraExt[39m
+2026-11-06T23:51:24.3780945Z    2.0 s[32m  ✓ [39m[90mHypergeometricFunctions[39m
+2026-11-06T23:51:24.8716476Z    1.7 s[32m  ✓ [39m[90mAccessors → TestExt[39m
+2026-11-06T23:51:26.1555323Z    1.8 s[32m  ✓ [39m[90mRmath[39m
+2026-11-06T23:51:29.3165663Z    5.3 s[32m  ✓ [39m[90mStatsBase[39m
+2026-11-06T23:51:29.3166929Z    3.2 s[32m  ✓ [39m[90mDifferentiationInterface[39m
+2026-11-06T23:51:30.0545401Z    0.7 s[32m  ✓ [39m[90mADTypes → ADTypesConstructionBaseExt[39m
+2026-11-06T23:51:30.5122624Z    5.6 s[32m  ✓ [39mSpecialFunctions
+2026-11-06T23:51:30.5244914Z    1.2 s[32m  ✓ [39m[90mFiniteDiff → FiniteDiffSparseArraysExt[39m
+2026-11-06T23:51:32.3715987Z    1.8 s[32m  ✓ [39m[90mDifferentiationInterface → DifferentiationInterfaceSparseArraysExt[39m
+2026-11-06T23:51:32.4619860Z    1.9 s[32m  ✓ [39m[90mPDMats → StatsBaseExt[39m
+2026-11-06T23:51:33.7565631Z    1.4 s[32m  ✓ [39m[90mDifferentiationInterface → DifferentiationInterfaceFiniteDiffExt[39m
+2026-11-06T23:51:34.1335358Z    1.7 s[32m  ✓ [39m[90mDiffRules[39m
+2026-11-06T23:51:36.1545406Z    2.4 s[32m  ✓ [39m[90mStatsFuns[39m
+2026-11-06T23:51:37.2755951Z    1.1 s[32m  ✓ [39m[90mStatsFuns → StatsFunsInverseFunctionsExt[39m
+2026-11-06T23:51:37.8655471Z   24.1 s[32m  ✓ [39m[90mJuliaInterpreter[39m
+2026-11-06T23:51:37.9126004Z    7.9 s[32m  ✓ [39m[90mRoots[39m
+2026-11-06T23:51:38.8755600Z   33.4 s[32m  ✓ [39m[90mJuliaSyntax[39m
+2026-11-06T23:51:39.9571205Z    2.7 s[32m  ✓ [39mStatsModels
+2026-11-06T23:51:40.7134769Z    6.6 s[32m  ✓ [39mForwardDiff
+2026-11-06T23:51:41.5105732Z    0.8 s[32m  ✓ [39m[90mRoots → RootsForwardDiffExt[39m
+2026-11-06T23:51:41.6724777Z    1.0 s[32m  ✓ [39m[90mDifferentiationInterface → DifferentiationInterfaceForwardDiffExt[39m
+2026-11-06T23:51:42.7897238Z    1.1 s[32m  ✓ [39m[90mNLSolversBase[39m
+2026-11-06T23:51:44.0039064Z    1.2 s[32m  ✓ [39m[90mLineSearches[39m
+2026-11-06T23:51:44.0778059Z    6.2 s[32m  ✓ [39mDistributions
+2026-11-06T23:51:45.8105703Z    1.7 s[32m  ✓ [39mDistributions → DistributionsTestExt
+2026-11-06T23:51:47.1157291Z    3.1 s[32m  ✓ [39m[90mOptim[39m
+2026-11-06T23:51:51.3018189Z   13.4 s[32m  ✓ [39m[90mLoweredCodeUtils[39m
+2026-11-06T23:52:00.9997695Z   13.9 s[32m  ✓ [39mDRModels
+2026-11-06T23:52:05.3590531Z   14.1 s[32m  ✓ [39m[90mRevise[39m
+2026-11-06T23:52:06.0603472Z    0.7 s[32m  ✓ [39m[90mRevise → DistributedExt[39m
+2026-11-06T23:53:01.7779412Z   56.4 s[32m  ✓ [39mJET
+2026-11-06T23:53:01.7785309Z   97 dependencies successfully precompiled in 120 seconds. 40 already precompiled.
+2026-11-06T23:53:01.7786297Z [32m[1m     Testing[22m[39m Running tests...
+2026-11-06T23:53:03.4350451Z DRModels tests: shard 3/4 - 140 of 561 files
+2026-11-06T23:53:08.2037126Z [0m[1mTest Summary:                                 | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:53:08.2038156Z DRModels.jl — engine loads + phylo foundation | [32m  15  [39m[36m   15  [39m[0m3.8s
+2026-11-06T23:53:09.4989938Z [0m[1mTest Summary:                                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:53:09.4991187Z canonical import is quiet and keeps the DRM alias | [32m   2  [39m[36m    2  [39m[0m1.2s
+2026-11-06T23:53:18.1409421Z [0m[1mTest Summary:                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:53:18.1410465Z Q-gate: JET type-stability (lc_to_Λ / Λ_to_lc) | [32m   2  [39m[36m    2  [39m[0m8.6s
+2026-11-06T23:53:36.5126175Z [0m[1mTest Summary:                           | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:53:36.5127640Z #1051 fit_mixed_family bootstrap status | [32m  10  [39m[36m   10  [39m[0m18.2s
+2026-11-06T23:54:36.7617812Z [0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:54:36.7620137Z #1092 simulate draws fresh random effects by default | [32m  16  [39m[36m   16  [39m[0m59.5s
+2026-11-06T23:54:41.8257238Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+2026-11-06T23:54:41.8257889Z [36m[1m│ [22m[39m  convergence_status = :degenerate
+2026-11-06T23:54:41.8258346Z [36m[1m│ [22m[39m  converged = false
+2026-11-06T23:54:41.8258808Z [36m[1m│ [22m[39m  max_abs_grad = 1.4797496561413936e-10
+2026-11-06T23:54:41.8259254Z [36m[1m│ [22m[39m  grad_source = :forward
+2026-11-06T23:54:41.8259788Z [36m[1m│ [22m[39m  vcov_complete = false
+2026-11-06T23:54:41.8260235Z [36m[1m│ [22m[39m  vcov_posdef = false
+2026-11-06T23:54:41.8260623Z [36m[1m│ [22m[39m  min_eigval = NaN
+2026-11-06T23:54:41.8260997Z [36m[1m│ [22m[39m  cond = Inf
+2026-11-06T23:54:41.8261373Z [36m[1m│ [22m[39m  penalized_map = false
+2026-11-06T23:54:41.8261750Z [36m[1m└ [22m[39m  ok = false
+2026-11-06T23:54:41.8383096Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+2026-11-06T23:54:41.8385978Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/inference.jl:4457[39m
+2026-11-06T23:54:44.9262226Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+2026-11-06T23:54:44.9263196Z [36m[1m│ [22m[39m  convergence_status = :degenerate
+2026-11-06T23:54:44.9263748Z [36m[1m│ [22m[39m  converged = false
+2026-11-06T23:54:44.9264744Z [36m[1m│ [22m[39m  max_abs_grad = 6.117328865684613e-14
+2026-11-06T23:54:44.9265526Z [36m[1m│ [22m[39m  grad_source = :forward
+2026-11-06T23:54:44.9266185Z [36m[1m│ [22m[39m  vcov_complete = false
+2026-11-06T23:54:44.9266744Z [36m[1m│ [22m[39m  vcov_posdef = false
+2026-11-06T23:54:44.9267271Z [36m[1m│ [22m[39m  min_eigval = NaN
+2026-11-06T23:54:44.9267789Z [36m[1m│ [22m[39m  cond = Inf
+2026-11-06T23:54:44.9268331Z [36m[1m│ [22m[39m  penalized_map = false
+2026-11-06T23:54:44.9268863Z [36m[1m└ [22m[39m  ok = false
+2026-11-06T23:54:44.9270978Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `mu` block: x2 (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+2026-11-06T23:54:44.9272871Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/inference.jl:4457[39m
+2026-11-06T23:54:44.9948085Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+2026-11-06T23:54:44.9948714Z [36m[1m│ [22m[39m  convergence_status = :converged
+2026-11-06T23:54:44.9949172Z [36m[1m│ [22m[39m  converged = true
+2026-11-06T23:54:44.9949636Z [36m[1m│ [22m[39m  max_abs_grad = 1.5672130260213635e-11
+2026-11-06T23:54:44.9950689Z [36m[1m│ [22m[39m  grad_source = :forward
+2026-11-06T23:54:44.9951110Z [36m[1m│ [22m[39m  vcov_complete = true
+2026-11-06T23:54:44.9951516Z [36m[1m│ [22m[39m  vcov_posdef = true
+2026-11-06T23:54:44.9951963Z [36m[1m│ [22m[39m  min_eigval = 0.0016829861906817874
+2026-11-06T23:54:44.9952424Z [36m[1m│ [22m[39m  cond = 2.358969968463276
+2026-11-06T23:54:44.9953046Z [36m[1m│ [22m[39m  penalized_map = false
+2026-11-06T23:54:44.9953462Z [36m[1m└ [22m[39m  ok = true
+2026-11-06T23:54:45.4278215Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+2026-11-06T23:54:45.4278952Z [36m[1m│ [22m[39m  convergence_status = :converged
+2026-11-06T23:54:45.4279579Z [36m[1m│ [22m[39m  converged = true
+2026-11-06T23:54:45.4280155Z [36m[1m│ [22m[39m  max_abs_grad = 9.972744852149162e-12
+2026-11-06T23:54:45.4280731Z [36m[1m│ [22m[39m  grad_source = :forward
+2026-11-06T23:54:45.4281265Z [36m[1m│ [22m[39m  vcov_complete = true
+2026-11-06T23:54:45.4281864Z [36m[1m│ [22m[39m  vcov_posdef = true
+2026-11-06T23:54:45.4282452Z [36m[1m│ [22m[39m  min_eigval = 0.0012189206571434352
+2026-11-06T23:54:45.4283062Z [36m[1m│ [22m[39m  cond = 3.5248330276520643e6
+2026-11-06T23:54:45.4283609Z [36m[1m│ [22m[39m  penalized_map = false
+2026-11-06T23:54:45.4284485Z [36m[1m└ [22m[39m  ok = true
+2026-11-06T23:54:45.5763632Z [0m[1mTest Summary:                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:54:45.5764976Z #1110 aliased fixed-effect design | [32m  28  [39m[36m   28  [39m[0m8.7s
+2026-11-06T23:54:54.0442194Z [0m[1mTest Summary:                                                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:54:54.0446166Z #1142: crossed Beta fit ending on the 1e18 sentinel warns and is not converged | [32m   7  [39m[36m    7  [39m[0m8.4s
+2026-11-06T23:55:03.0750657Z [0m[1mTest Summary:                                                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:55:03.0752054Z #1142: the committed Julia 1.10 seed-3 Beta draws end on the sentinel and warn | [32m   8  [39m[36m    8  [39m[0m9.0s
+2026-11-06T23:55:03.4129618Z [0m[1mTest Summary:                                                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:55:03.4131087Z #1142: a healthy crossed Beta fit does not emit the failed-fit warning | [32m   2  [39m[36m    2  [39m[0m0.3s
+2026-11-06T23:55:12.0832083Z [0m[1mTest Summary:                                       | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:55:12.0833071Z #1220 non-finite Hessian gives an informative error | [32m  10  [39m[36m   10  [39m[0m8.7s
+2026-11-06T23:55:56.7701014Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mexact-vs-FD REML gradient
+2026-11-06T23:55:56.7701645Z [36m[1m│ [22m[39m  point = "ML-scale start"
+2026-11-06T23:55:56.7702124Z [36m[1m│ [22m[39m  max_abs_err = 3.213332533391622e-8
+2026-11-06T23:55:56.7702573Z [36m[1m└ [22m[39m  rel = 2.7470852010206606e-9
+2026-11-06T23:56:05.4398190Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mexact-vs-FD REML gradient
+2026-11-06T23:56:05.4399017Z [36m[1m│ [22m[39m  point = "DRModels.jl optimum"
+2026-11-06T23:56:05.4399754Z [36m[1m│ [22m[39m  max_abs_err = 1.7024394505346825e-8
+2026-11-06T23:56:05.4400465Z [36m[1m└ [22m[39m  rel = 1.7024394505346825e-8
+2026-11-06T23:56:13.9262611Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mexact-vs-FD REML gradient
+2026-11-06T23:56:13.9263272Z [36m[1m│ [22m[39m  point = "TMB fitted point"
+2026-11-06T23:56:13.9263795Z [36m[1m│ [22m[39m  max_abs_err = 1.966552809831712e-8
+2026-11-06T23:56:13.9264686Z [36m[1m└ [22m[39m  rel = 1.966552809831712e-8
+2026-11-06T23:56:13.9265392Z [0m[1mTest Summary:                                                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:56:13.9266728Z issue #575: exact q4 REML gradient matches a tight central difference | [32m  12  [39m[36m   12  [39m[0m59.0s
+2026-11-06T23:56:14.6401075Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+2026-11-06T23:56:14.6401677Z [36m[1m│ [22m[39m  convergence_status = :degenerate
+2026-11-06T23:56:14.6403115Z [36m[1m│ [22m[39m  converged = false
+2026-11-06T23:56:14.6404012Z [36m[1m│ [22m[39m  max_abs_grad = 1.4797496561413936e-10
+2026-11-06T23:56:14.6405154Z [36m[1m│ [22m[39m  grad_source = :forward
+2026-11-06T23:56:14.6405906Z [36m[1m│ [22m[39m  vcov_complete = false
+2026-11-06T23:56:14.6406610Z [36m[1m│ [22m[39m  vcov_posdef = false
+2026-11-06T23:56:14.6407270Z [36m[1m│ [22m[39m  min_eigval = NaN
+2026-11-06T23:56:14.6407889Z [36m[1m│ [22m[39m  cond = Inf
+2026-11-06T23:56:14.6408407Z [36m[1m│ [22m[39m  penalized_map = false
+2026-11-06T23:56:14.6408974Z [36m[1m└ [22m[39m  ok = false
+2026-11-06T23:56:14.6411174Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+2026-11-06T23:56:14.6413149Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/inference.jl:4457[39m
+2026-11-06T23:56:14.6413690Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mcheck_drm
+2026-11-06T23:56:14.6414277Z [36m[1m│ [22m[39m  convergence_status = :degenerate
+2026-11-06T23:56:14.6414739Z [36m[1m│ [22m[39m  converged = false
+2026-11-06T23:56:14.6415108Z [36m[1m│ [22m[39m  max_abs_grad = 1.4797496561413936e-10
+2026-11-06T23:56:14.6415477Z [36m[1m│ [22m[39m  grad_source = :forward
+2026-11-06T23:56:14.6415829Z [36m[1m│ [22m[39m  vcov_complete = false
+2026-11-06T23:56:14.6416170Z [36m[1m│ [22m[39m  vcov_posdef = false
+2026-11-06T23:56:14.6416486Z [36m[1m│ [22m[39m  min_eigval = NaN
+2026-11-06T23:56:14.6416783Z [36m[1m│ [22m[39m  cond = Inf
+2026-11-06T23:56:14.6417086Z [36m[1m│ [22m[39m  penalized_map = false
+2026-11-06T23:56:14.6417403Z [36m[1m└ [22m[39m  ok = false
+2026-11-06T23:56:14.6419244Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mcheck_drm: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `sigma` block: z (design rank 2 of 3 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+2026-11-06T23:56:14.6420976Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/inference.jl:4457[39m
+2026-11-06T23:56:17.4149775Z [0m[1mTest Summary:                                   | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:17.4150792Z #949 converged surfaces agree with is_converged | [32m  12  [39m[36m   12  [39m[0m3.4s
+2026-11-06T23:56:47.0902635Z [0m[1mTest Summary:                                                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:56:47.0904334Z #979: sparse sigma ~ 1 route reports sd_phylo on the correlation scale | [32m  16  [39m[36m   16  [39m[0m29.6s
+2026-11-06T23:56:47.4725292Z [0m[1mTest Summary:                                                                 | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:47.4726771Z #979: the EM and REML variants of the sparse route follow the same convention | [32m   3  [39m[36m    3  [39m[0m0.4s
+2026-11-06T23:56:47.4937410Z [0m[1mTest Summary:                                                    | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:47.4939333Z #979: a non-ultrametric tree keeps the raw scale and its warning | [32m   4  [39m[36m    4  [39m[0m0.0s
+2026-11-06T23:56:47.9919210Z [0m[1mTest Summary:                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:47.9920534Z #995 tip variance C_ii: exact per row | [32m   4  [39m[36m    4  [39m[0m0.4s
+2026-11-06T23:56:48.2318329Z [0m[1mTest Summary:                                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:48.2319676Z #995 tip variance C_ii: linear, not quadratic, in the number of tips | [32m   2  [39m[36m    2  [39m[0m0.2s
+2026-11-06T23:56:50.9082681Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm: this tree's maximum tip height is 7.05, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.655184 = sqrt(7.05) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/7.05 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+2026-11-06T23:56:50.9086289Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/sparse_phy.jl:751[39m
+2026-11-06T23:56:51.1680266Z [0m[1mTest Summary:                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:51.1681290Z #995 phylo PIT on a tree with tip-varying C_ii | [32m   4  [39m[36m    4  [39m[0m2.9s
+2026-11-06T23:56:52.1225600Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mAGHQ k=5 vs GHQ-32 nll agreement
+2026-11-06T23:56:52.1226586Z [36m[1m│ [22m[39m  nll_aghq5 = 83.2693783207749
+2026-11-06T23:56:52.1227457Z [36m[1m│ [22m[39m  nll_ghq32 = 83.27318230501388
+2026-11-06T23:56:52.1228330Z [36m[1m└ [22m[39m  absdiff = 0.00380398423897077
+2026-11-06T23:56:52.1229502Z [0m[1mTest Summary:                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:56:52.1230797Z 1-D Liu–Pierce AGHQ kernel (#448) | [32m   9  [39m[36m    9  [39m[0m0.8s
+2026-11-06T23:56:58.2786145Z [36m[1m┌ [22m[39m[36m[1mInfo: [22m[39mAGHQ vs LA fitted loglik
+2026-11-06T23:56:58.2786791Z [36m[1m│ [22m[39m  ll_aghq = -105.643773771554
+2026-11-06T23:56:58.2787243Z [36m[1m│ [22m[39m  ll_la = -105.64377377155401
+2026-11-06T23:56:58.2787693Z [36m[1m└ [22m[39m  absdiff = 1.4210854715202004e-14
+2026-11-06T23:57:07.1054799Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm (sparse Laplace): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.338 to -0.2126). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+2026-11-06T23:57:07.1057306Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/boundary_diagnostics.jl:175[39m
+2026-11-06T23:57:33.6865584Z [0m[1mTest Summary:                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:57:33.6866597Z Poisson (1|g) public AGHQ surface (#448) | [32m  37  [39m[36m   37  [39m[0m41.4s
+2026-11-06T23:57:34.3978606Z [0m[1mTest Summary:               | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:57:34.3979387Z API freeze gate (v0.7 line) | [32m 204  [39m[36m  204  [39m[0m0.2s
+2026-11-06T23:57:42.8759308Z [0m[1mTest Summary:                                                | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:57:42.8760354Z Beta animal-intercept predictor-dependent SD with supplied A | [32m   2  [39m[36m    2  [39m[0m8.5s
+2026-11-06T23:57:43.2911139Z [0m[1mTest Summary:                                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:57:43.2912100Z Beta animal SD objective varies with the SD predictor | [32m   2  [39m[36m    2  [39m[0m0.4s
+2026-11-06T23:57:44.1762110Z [0m[1mTest Summary:                                                   | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:57:44.1763677Z Beta animal SD rejects invalid covariance and design dimensions | [32m   4  [39m[36m    4  [39m[0m0.9s
+2026-11-06T23:57:46.4690835Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm: `A` has no labels, so its rows and columns are taken to be the levels of `group` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+2026-11-06T23:57:46.4693354Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/input_validation.jl:396[39m
+2026-11-06T23:58:15.7059108Z [0m[1mTest Summary:                                             | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:58:15.7060645Z Public Beta animal SD fit, predictions, and serialization | [32m  23  [39m[36m   23  [39m[0m31.5s
+2026-11-06T23:58:19.3625765Z [0m[1mTest Summary:                                                  | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:58:19.3627191Z Concentrated Beta data start animal SD fit within sigma bounds | [32m   4  [39m[36m    4  [39m[0m3.6s
+2026-11-06T23:58:42.3931492Z [0m[1mTest Summary:                                   | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:58:42.3932792Z Beta correlated random slope (1+x|g) — recovery | [32m   4  [39m[36m    4  [39m[0m23.0s
+2026-11-06T23:58:52.0091390Z [0m[1mTest Summary:                                              | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:58:52.0092401Z BetaBinomial phylo random intercept - sparse Laplace route | [32m   8  [39m[36m    8  [39m[0m9.6s
+2026-11-06T23:58:52.0498757Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mdrm: this tree's maximum tip height is 0.75, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.866025 = sqrt(0.75) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.75 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+2026-11-06T23:58:52.0500768Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/sparse_phy.jl:751[39m
+2026-11-06T23:58:52.1272763Z [0m[1mTest Summary:                              | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:58:52.1273805Z BetaBinomial phylo sparse Laplace gradient | [32m   1  [39m[36m    1  [39m[0m0.1s
+2026-11-06T23:59:21.7984675Z [0m[1mTest Summary:                                     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:59:21.7986309Z BetaBinomial sigma random-intercept SD regression | [32m  21  [39m[36m   21  [39m[0m29.6s
+2026-11-06T23:59:22.0457883Z [0m[1mTest Summary:                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:59:22.0458783Z bf() grammar: valid forms still build | [32m   8  [39m[36m    8  [39m[0m0.2s
+2026-11-06T23:59:22.0563130Z [0m[1mTest Summary:                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:59:22.0564772Z bf() grammar: reserved-syntax rejections | [32m   7  [39m[36m    7  [39m[0m0.0s
+2026-11-06T23:59:22.2220819Z [0m[1mTest Summary:                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:59:22.2222180Z bf() grammar: bivariate keyword form | [32m   7  [39m[36m    7  [39m[0m0.2s
+2026-11-06T23:59:22.2302546Z [0m[1mTest Summary:                               | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-06T23:59:22.2303587Z bf() grammar: error messages are actionable | [32m   3  [39m[36m    3  [39m[0m0.0s
+2026-11-06T23:59:44.6257169Z [0m[1mTest Summary:                                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-06T23:59:44.6257984Z Binomial animal SD regression accepts direct precision | [32m  17  [39m[36m   17  [39m[0m22.4s
+2026-11-07T00:00:12.5277355Z [0m[1mTest Summary:                                | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-07T00:00:12.5278663Z Binomial animal-slope and IID SD regressions | [32m  19  [39m[36m   19  [39m[0m27.8s
+2026-11-07T00:00:32.7799508Z [0m[1mTest Summary:     | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-07T00:00:32.7800266Z Binomial contract | [32m  84  [39m[36m   84  [39m[0m20.0s
+2026-11-07T00:00:48.3706258Z [0m[1mTest Summary:                           | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-07T00:00:48.3707568Z Binomial (1|g) default nodes = 5 (#908) | [32m  11  [39m[36m   11  [39m[0m15.6s
+2026-11-07T00:00:56.1652414Z [0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:00:56.1653330Z Binomial probit and cloglog animal-slope SD recovery | [32m  40  [39m[36m   40  [39m[0m7.8s
+2026-11-07T00:01:05.2076955Z [0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:05.2078394Z Binomial non-logit nested independent SD regressions | [32m  40  [39m[36m   40  [39m[0m9.0s
+2026-11-07T00:01:13.1126592Z [0m[1mTest Summary:                                        | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:13.1127869Z Binomial phylo cbind response - sparse Laplace route | [32m   6  [39m[36m    6  [39m[0m7.9s
+2026-11-07T00:01:16.5243473Z [0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:16.5245030Z Binomial phylo Bernoulli response - sparse Laplace route | [32m   5  [39m[36m    5  [39m[0m3.4s
+2026-11-07T00:01:16.5709948Z [0m[1mTest Summary:                          | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:16.5711124Z Binomial phylo sparse Laplace gradient | [32m   1  [39m[36m    1  [39m[0m0.0s
+2026-11-07T00:01:25.2195387Z [0m[1mTest Summary:                              | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:25.2196372Z Binomial probit phylogenetic SD regression | [32m  12  [39m[36m   12  [39m[0m8.6s
+2026-11-07T00:01:25.3486783Z [0m[1mTest Summary:                      | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:25.3488087Z Binomial probit latent derivatives | [32m  30  [39m[36m   30  [39m[0m0.1s
+2026-11-07T00:01:40.0065037Z [0m[1mTest Summary:                         | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m Time[22m
+2026-11-07T00:01:40.0066215Z Binomial related-matrix SD regression | [32m  20  [39m[36m   20  [39m[0m14.6s
+2026-11-07T00:01:48.8472465Z [0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1mTime[22m
+2026-11-07T00:01:48.8473439Z Binomial probit and cloglog related-matrix SD regression | [32m  14  [39m[36m   14  [39m[0m8.8s
+2026-11-07T00:03:04.3971401Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+2026-11-07T00:03:04.3973024Z [33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+2026-11-07T00:03:04.3974580Z [33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+2026-11-07T00:03:04.3975641Z [33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+2026-11-07T00:03:04.3976066Z [33m[1m│ [22m[39m  context = ""
+2026-11-07T00:03:04.3976403Z [33m[1m│ [22m[39m  flat_coordinates = Int64[]
+2026-11-07T00:03:04.3977055Z [33m[1m│ [22m[39m  rcond = 5.752216336949239e-17
+2026-11-07T00:03:04.3977923Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/vcov_guard.jl:122[39m
+2026-11-07T00:03:04.3978560Z 
+2026-11-07T00:03:04.8281275Z public Bernoulli/binomial random-intercept SD regression: [91m[1mTest Failed[22m[39m at [39m[1m/home/runner/work/DRModels.jl/DRModels.jl/test/test_binomial_sd_public.jl:92[22m
+2026-11-07T00:03:05.9715787Z   Expression: slope_fit.converged
+2026-11-07T00:03:05.9716382Z   Stacktrace:
+2026-11-07T00:03:05.9716797Z    [1] top-level scope
+2026-11-07T00:03:05.9718117Z    [90m  @[39m [90m~/work/DRModels.jl/DRModels.jl/test/[39m[90m[4mtest_binomial_sd_public.jl:5[24m[39m
+2026-11-07T00:03:05.9719257Z    [2] [0m[1mmacro expansion[22m
+2026-11-07T00:03:05.9720810Z    [90m  @[39m [90m/opt/hostedtoolcache/julia/1.13.3/x64/share/julia/stdlib/v1.13/Test/src/[39m[90m[4mTest.jl:1967[24m[39m[90m [inlined][39m
+2026-11-07T00:03:05.9722229Z    [3] [0m[1mmacro expansion[22m
+2026-11-07T00:03:05.9723517Z    [90m  @[39m [90m~/work/DRModels.jl/DRModels.jl/test/[39m[90m[4mtest_binomial_sd_public.jl:92[24m[39m[90m [inlined][39m
+2026-11-07T00:03:05.9724701Z    [4] [0m[1mmacro expansion[22m
+2026-11-07T00:03:05.9725459Z    [90m  @[39m [90m/opt/hostedtoolcache/julia/1.13.3/x64/share/julia/stdlib/v1.13/Test/src/[39m[90m[4mTest.jl:758[24m[39m[90m [inlined][39m
+2026-11-07T00:03:11.7401708Z [33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+2026-11-07T00:03:11.7403094Z [33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+2026-11-07T00:03:11.7404694Z [33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+2026-11-07T00:03:11.7405883Z [33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+2026-11-07T00:03:11.7406562Z [33m[1m│ [22m[39m  context = ""
+2026-11-07T00:03:11.7407133Z [33m[1m│ [22m[39m  flat_coordinates = Int64[]
+2026-11-07T00:03:11.7407725Z [33m[1m│ [22m[39m  rcond = 5.752216336949239e-17
+2026-11-07T00:03:11.7408524Z [33m[1m└ [22m[39m[90m@ DRModels ~/work/DRModels.jl/DRModels.jl/src/vcov_guard.jl:122[39m
+2026-11-07T00:03:32.1457432Z [0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[91m[1mFail  [22m[39m[36m[1mTotal  [22m[39m[0m[1m   Time[22m
+2026-11-07T00:03:32.1459148Z public Bernoulli/binomial random-intercept SD regression | [32m  43  [39m[91m   1  [39m[36m   44  [39m[0m1m43.2s
+2026-11-07T00:03:32.6428138Z RNG of the outermost testset: Xoshiro(0xb83e11c99fffa6be, 0x4e1b7d99422d744e, 0x10920e5eef9dec96, 0x453eca50276ba2b9, 0xda225aa1288f15a5)
+2026-11-07T00:03:33.0503084Z [91m[1mERROR: [22m[39mLoadError: [91mSome tests did not pass: 43 passed, 1 failed, 0 errored, 0 broken.[39m
+2026-11-07T00:03:33.0503888Z in expression starting at /home/runner/work/DRModels.jl/DRModels.jl/test/test_binomial_sd_public.jl:4
+2026-11-07T00:03:33.0504908Z in expression starting at /home/runner/work/DRModels.jl/DRModels.jl/test/runtests.jl:173
+2026-11-07T00:03:33.4226169Z Package DRModels errored during testing
+2026-11-07T00:03:33.4238939Z ##[error]Process completed with exit code 1.
+2026-11-07T00:03:33.4246517Z ##[end-action id=__julia-actions_julia-runtest.__run_3;outcome=failure;conclusion=failure;duration_ms=756734]
+2026-11-07T00:03:33.4453259Z Post job cleanup.
+2026-11-07T00:03:33.4458642Z ##[start-action display=Run pyTooling/Actions/with-post-step@42e17fae05f224e5ac3d79d021a4e3577878efe5;id=__a4a9d10c-ca8a-46aa-859b-16dda6c123dc.__pyTooling_Actions]
+2026-11-07T00:03:33.4485966Z Post job cleanup.
+2026-11-07T00:03:34.3145108Z       Active manifest files: 1 found
+2026-11-07T00:03:34.3381751Z       Active artifact files: 2 found
+2026-11-07T00:03:34.3388672Z       Active scratchspaces: 0 found
+2026-11-07T00:03:34.4123312Z      Deleted 12 package installations (4.869 MiB)
+2026-11-07T00:03:35.1018846Z No existing caches found on ref `refs/pull/1258/merge` matching restore key `julia-cache;workflow=CI;job=test;os=Linux;version=1;shard=3;`
+2026-11-07T00:03:35.1295836Z ##[end-action id=__a4a9d10c-ca8a-46aa-859b-16dda6c123dc.__pyTooling_Actions;outcome=success;conclusion=success;duration_ms=1683]
+2026-11-07T00:03:35.1298485Z ##[start-action display=Run actions/cache@5a3ec84eff668545956fd18022155c47e93e2684;id=__a4a9d10c-ca8a-46aa-859b-16dda6c123dc.cache]
+2026-11-07T00:03:35.1300980Z ##[end-action id=__a4a9d10c-ca8a-46aa-859b-16dda6c123dc.cache;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-07T00:03:35.1368311Z Post job cleanup.
+2026-11-07T00:03:35.2243656Z [command]/usr/bin/git version
+2026-11-07T00:03:35.2288650Z git version 2.56.0
+2026-11-07T00:03:35.2335385Z Temporarily overriding HOME='/home/runner/work/_temp/cc9d2937-635d-46c3-a748-ee26f2a0be54' before making global git config changes
+2026-11-07T00:03:35.2336995Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-07T00:03:35.2342079Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/DRModels.jl/DRModels.jl
+2026-11-07T00:03:35.2385376Z Removing SSH command configuration
+2026-11-07T00:03:35.2393211Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-07T00:03:35.2432088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-07T00:03:35.2729662Z Removing HTTP extra header
+2026-11-07T00:03:35.2735641Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-07T00:03:35.2776194Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-07T00:03:35.3069397Z Removing includeIf entries pointing to credentials config files
+2026-11-07T00:03:35.3079629Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-07T00:03:35.3119464Z includeif.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git.path
+2026-11-07T00:03:35.3120235Z includeif.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git/worktrees/*.path
+2026-11-07T00:03:35.3121430Z includeif.gitdir:/github/workspace/.git.path
+2026-11-07T00:03:35.3122401Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-07T00:03:35.3136809Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git.path
+2026-11-07T00:03:35.3157246Z /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3168738Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git.path /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3206929Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git/worktrees/*.path
+2026-11-07T00:03:35.3246491Z /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3250298Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/DRModels.jl/DRModels.jl/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3289660Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-07T00:03:35.3314490Z /github/runner_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3326266Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3365360Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-07T00:03:35.3390301Z /github/runner_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3400920Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config
+2026-11-07T00:03:35.3451476Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-07T00:03:35.3734793Z Removing credentials config '/home/runner/work/_temp/git-credentials-b282ba83-18fa-4c3a-844a-6e1c70eaf900.config'
+2026-11-07T00:03:35.3880958Z Cleaning up orphan processes
+2026-11-07T00:03:35.4168196Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684, pyTooling/Actions/with-post-step@42e17fae05f224e5ac3d79d021a4e3577878efe5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,16 @@
+animal-count-gamma-slope-oracle-b31no: .W.....................GAP poisson A Ix | ll-ref -5.34e-12 | min gap 0.923 (cov2cor_K_slope)
+......................GAP poisson Ainv Ix | ll-ref 1.71e-12 | min gap 0.189 (cov2cor_K_slope)
+......................GAP nbinom2 Ainv Ix | ll-ref 1.82e-10 | min gap 0.392 (cov2cor_K_intercept)
+......................GAP nbinom2 pedigree Ix | ll-ref -1.55e-09 | min gap 1.120 (cov2cor_K_slope)
+.W...........GAP gamma pedigree I | ll-ref -1.68e-11 | min gap 3.796 (cov2cor_K_intercept)
+......................GAP gamma pedigree Ix | ll-ref 7.75e-11 | min gap 1.809 (cov2cor_K_slope)
+
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Poisson animal slope shape, A provider: dense Laplace oracle and bug sensitivity ('test-animal-count-gamma-slope-oracle-b31no.R:91:3') - NA/NaN function evaluation
+
+2. Gamma animal intercept, pedigree provider: dense Laplace oracle and bug sensitivity ('test-animal-count-gamma-slope-oracle-b31no.R:107:3') - NA/NaN function evaluation
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+COUNTS tests=6 expectations=124 failed=0 errors=0 skipped=0 warnings=2

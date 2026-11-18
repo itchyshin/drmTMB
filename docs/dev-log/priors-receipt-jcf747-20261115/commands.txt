@@ -1,0 +1,4 @@
+Recorded from the execution command in this session; run on Totoro from the R source checkout at /home/snakagaw/codex-release-receipt-def-jcf747-v2-20261115/r:
+
+timeout 1200 Rscript --no-init-file tools/run-julia-phylo-labels-public.R /home/snakagaw/codex-release-receipt-def-jcf747-v2-20261115/julia /home/snakagaw/codex-release-receipt-def-jcf747-v2-20261115/feature-receipt.json tree
+timeout 1200 Rscript --no-init-file tools/check-julia-phylo-labels-receipt.R /home/snakagaw/codex-release-receipt-def-jcf747-v2-20261115/feature-receipt.json --current --self-test

@@ -1,0 +1,52 @@
+{
+  "evidence_id": "nbinom2-iid-phylo-interaction-oracle-b31no-20261102e",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 236-241 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-nbinom2-iid-phylo-interaction-oracle-b31no.R', reporter='summary'))\" (Totoro, ~/hsq_work/exp-9d229de68; B31NO_SHOW_GAPS=1)",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68, cores 236-241",
+  "git_head": "4f2d9ba01172657766a25b62f0dd98835f0a28ab",
+  "tree_state": "HEAD 4f2d9ba01; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes; new untracked b31no test files and helper; R/ and src/ unchanged; unreviewed",
+  "counts": {
+    "test_blocks": 5,
+    "expectations": 68,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "warnings": 0
+  },
+  "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-iid-phylo-interaction-oracle-b31no-20261102e/test-console.log",
+  "console_log_sha256": "60ec55b6e391784073d6f689184f243dbee27b45fcc68ae25059695ae85d8285",
+  "test_path": "tests/testthat/test-nbinom2-iid-phylo-interaction-oracle-b31no.R",
+  "test_sha256": "b2ceca6636c91499d36a5680e8b6e12ad18623202cd72513e80fd9cd73f4ad68",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-iid-phylo-interaction-oracle-b31no-20261102e/source-manifest.json",
+  "source_manifest_sha256": "61a708237535ce520c85f433ccf9bbf60f63f8943c4eb91eda0f608a00841e4b",
+  "rows_claimed": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_additive_terms\",\"O1\",\"iid\",\"multiple independent intercept/slope fields\",\"group_factors\",\"crossed\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_interaction_intercept\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured intercept\",\"tree_pair\",\"phylogenetic interaction field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_interaction_numeric_slope\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured numeric slope\",\"tree_pair\",\"independent phylogenetic interaction slope field\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": "No calibration, coverage, recovery or broad parity claim; likelihood assembly, selector and kernel alignment at one seed per route only. Warnings (if any) are optimiser NA/NaN function evaluations.",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helpers line by line. iid_additive_terms row: two crossed independent fields fitted as (1 | g1) + (1 | g2) with sd(g1) ~ z1, sd(g2) ~ z2 and also (1 | g1) + (0 + x | g2); dense Laplace over a stacked block-diagonal field with per-term reversed-SD, flipped-selector and swapped-coefficient bugs, each > 0.1 (min gap 0.21 on the intercept+slope case, 10.7 on the two-intercept case). phylo_interaction rows (intercept and 0 + x): the pair kernel is hand-built as kronecker(cov2cor(vcv(tree2)), cov2cor(vcv(tree1))) with unequal tree sizes (8 and 4 tips), shuffled tip labels, pair order plant fastest, supplied in reverse order, and the package tip covariance is compared with cov2cor(ape::vcv) by label; ape::vcv is a package-independent construction of the kernel (the oracle itself is hand-written base R). Bugs asserted: reversed SD, flipped selector, K by position, K x2, raw-vcv Kronecker (min gaps 0.82 and 1.7). Agreement ~1e-10 to 1e-13 vs 1e-4. Hashes recompute; log 5 blocks (including the density self-check), 68 expectations, 0 failures, 0 skips, 0 warnings; Totoro rerun reproduced 5/68/0/0/0. All 3 linked rows are fitted by the route they name. Does NOT establish: correlated or labelled blocks, three or more crossed iid terms, tree_pair layouts other than one tree pair, calibration, coverage, recovery, parity, or behaviour beyond one seed per route; the oracle pair kernel and the package kernel share ape::vcv as their tree-to-covariance step.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-iid-phylo-interaction-oracle-b31no.R",
+    "test_sha256": "b2ceca6636c91499d36a5680e8b6e12ad18623202cd72513e80fd9cd73f4ad68",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:31Z",
+    "ended_utc": "2026-11-03T01:10:58Z",
+    "expectations_passed": 68,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-iid-phylo-interaction-oracle-b31no-20261102e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "639412652f57ffbf3a1f24d77dad3205f8e522f405f12e0773f80af640389200",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

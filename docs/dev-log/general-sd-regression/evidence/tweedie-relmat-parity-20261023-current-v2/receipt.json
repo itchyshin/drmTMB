@@ -1,0 +1,28 @@
+{
+  "evidence_id": "tweedie-relmat-tmb-julia-current-source-parity-20261023-v2",
+  "row_key": "[\"Julia\",\"tweedie\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "One synthetic Tweedie q1 related-matrix mean-intercept SD fit compared by the public R-to-Julia bridge against native TMB on identical data, including non-unit kernel diagonal and permuted matrix labels.",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "5c09e5cb6793998a4ed12fcf7d3bce5eb79ec70dce879bb97bad99a3be42d876",
+  "source_file_count": 199,
+  "test_path": "tests/testthat/test-julia-tweedie-relmat-sd.R",
+  "test_sha256": "e870bc909c4ea7fd4a05385fcb8948751a33503c12fbf86430aae5b9c161c36a",
+  "test_command": "PATH=\"/Users/z3437171/.juliaup/bin:$PATH\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"julia-tweedie-relmat-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "result": "24/24 expectations passed; one live Julia bridge test completed with exit status 0. JuliaCall emitted the known non-fatal LogExpFunctionsInverseFunctionsExt warning (loglogistic undefined).",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-recheck-v2.log",
+  "console_log_sha256": "779c15ddd2698ae5153e2dbfe4dd2c768a8856c5c0d51273269c9750e18aa0a6",
+  "other_attempts": [
+    {
+      "log": "docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-recheck.log",
+      "outcome": "did not reach Julia because Julia was not on PATH"
+    },
+    {
+      "log": "docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-recheck-with-path.log",
+      "outcome": "interrupted before assertions completed; retained as incomplete attempt"
+    }
+  ],
+  "scope": "One complete-response Tweedie relmat q1 intercept comparison, same synthetic data, native TMB and paired Julia; coefficient estimates, named group SD output, and log likelihood. Does not establish broad provider/family parity, recovery distributions, all output/refit workflows, or interval calibration.",
+  "review_status": "unreviewed"
+}

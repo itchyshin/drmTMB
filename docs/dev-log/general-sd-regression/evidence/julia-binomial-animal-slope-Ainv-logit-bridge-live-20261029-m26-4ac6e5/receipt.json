@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-animal-slope-ainv-logit-20261029-m26",
+  "rerecord_of_evidence_id": "julia-binomial-animal-slope-ainv-logit-20261029",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-Ainv-logit-bridge-live-20261029/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"PATH=\"\"/Users/z3437171/.juliaup/bin:$PATH\"\" DRMTMB_JULIA_TESTS=true DRM_JL_PATH=<paired candidate> JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 R_PROFILE_USER=/dev/null Rscript -e devtools::test(filter=julia-binomial-animal-slope-Ainv-logit, reporter=summary, stop_on_failure=TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-animal-slope-Ainv-logit-sd-bridge.R",
+      "test_sha256": "948b28fdca7f539bd7962f64fd3153d172cebffd816ba5e5a46512486fbaedd8",
+      "started_utc": "2026-11-02T13:18:24Z",
+      "ended_utc": "2026-11-02T13:18:30Z",
+      "exit_code": 0,
+      "expectations_passed": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-Ainv-logit-bridge-live-20261029-m26-4ac6e5/test-console-test-julia-binomial-animal-slope-Ainv-logit-sd-bridge.log",
+      "console_log_sha256": "dbd11e5994cbd8df5a017b3e40799bcf2b6be8f556d63e894ada7749ac3131d2"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-slope-Ainv-logit-bridge-live-20261029-m26-4ac6e5/source-manifest.json",
+  "source_manifest_sha256": "17c0d97e4f41bebad27aa5c4453435963870a2bfc61adb10ecc547bd85c1082b",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_08",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 3.7471320033321e-16,
+        "point_data_nll": 4.107160128469281e-16,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6378400009818443e-16,
+        "point_hessian": 6.971688304180681e-10,
+        "fit_objective_at_returned_point": 5.2322802438557934e-15,
+        "fit_data_nll": 3.664223643425503e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 5.370993806476651e-11,
+        "fit_coefficients": 2.6314315742000004e-12
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.0503958512081196e-06
+      }
+    },
+    {
+      "id": "ri_08",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.2666917400991906e-16,
+        "point_hessian": 1.4652761053573728e-16,
+        "fit_objective_at_returned_point": 1.661041347166593e-15,
+        "fit_data_nll": 1.1450698885427928e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.305206735832965e-17,
+        "fit_coefficients": 2.796075045982135e-10
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 2.830251456671974e-10
+      }
+    },
+    {
+      "id": "ri_08",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 1.661041347166593e-15,
+        "fit_data_nll": 1.1450698885427928e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 8.305206735832965e-17,
+        "fit_coefficients": 2.796075045982135e-10
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 2.830251456671974e-10
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS
