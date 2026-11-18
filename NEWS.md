@@ -1,5 +1,6 @@
 # drmTMB 0.8.2
 
+<<<<<<< HEAD
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
@@ -12,6 +13,13 @@
   Julia route fitted such a model, reported convergence, and gave a precise
   residual SD although only the sum of the group and residual variances is
   identified (#1776).
+=======
+* Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, cumulative
+  logit, Poisson, NB2, and truncated NB2 models now abort before the
+  optimizer when a fixed-effect design value is non-finite. The message
+  names the family, the distributional parameter, and the column. `NA`
+  predictors are still dropped by the existing complete-case rule (#1730).
+>>>>>>> 41c118959 (fix: abort non-Gaussian fits on non-finite fixed designs)
 
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
