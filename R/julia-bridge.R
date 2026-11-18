@@ -951,7 +951,8 @@ drmTMB_julia_bridge <- function(
 ## design and fitted modes can be checked against the training rows.  This is a
 ## deliberately small ordinary-RE adapter: scalar intercept/slope components,
 ## one correlated intercept+slope component, or distinct-group scalar components.
-drm_julia_conditional_gaussian_components_spec <- function(formula, family_type) {
+drm_julia_conditional_gaussian_components_spec <- function(formula, family_type,
+                                                           allow_same_group = FALSE) {
   if (!identical(family_type, "gaussian")) {
     return(NULL)
   }
@@ -1009,7 +1010,7 @@ drm_julia_conditional_gaussian_components_spec <- function(formula, family_type)
   }
   groups <- vapply(components, `[[`, character(1L), "group")
   kinds <- vapply(components, `[[`, character(1L), "kind")
-  if (anyDuplicated(groups) || sum(kinds == "correlated") > 1L ||
+  if ((!allow_same_group && anyDuplicated(groups)) || sum(kinds == "correlated") > 1L ||
       (any(kinds == "correlated") && length(components) != 1L)) {
     return(NULL)
   }
@@ -4250,6 +4251,11 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   if (length(ordinary_resd) > 0L) {
     labels[["resd"]] <- names(ordinary_resd)[[1L]]
   }
+  # #1756: Gaussian `(1 | g) + (0 + x | g)` (same group, independent slope)
+  # reaches DRM.jl's multi-component route, which reports two SD coordinates,
+  # `resd_g` and `resd_g:x`. Echo them so the label check does not abort.
+  same_group_ind <- drm_julia_gaussian_same_group_ind_resd_labels(formula, family_type)
+  if (!is.null(same_group_ind)) labels[["resd"]] <- same_group_ind
   ordinary_binomial_recov <- drm_julia_ordinary_binomial_recov_label(
     formula = formula,
     family_type = family_type
@@ -4280,6 +4286,24 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
 # (`R/drmTMB.R`), the SAME name the native TMB engine's `sdpars$sigma` uses
 # for this construct, so a Julia fit's `sdpars` names the same random-effect
 # term identically to a TMB fit of the same formula.
+# #1756: SD labels DRM.jl uses for a Gaussian mu `(1 | g) + (0 + x | g)`:
+# the intercept component is `g`, the slope component `g:x`. NULL otherwise.
+drm_julia_gaussian_same_group_ind_resd_labels <- function(formula, family_type) {
+  spec <- drm_julia_conditional_gaussian_components_spec(
+    formula, family_type, allow_same_group = TRUE
+  )
+  if (is.null(spec) || length(spec$components) < 2L) return(NULL)
+  comps <- spec$components
+  groups <- vapply(comps, `[[`, character(1L), "group")
+  if (!anyDuplicated(groups)) return(NULL)
+  # DRM.jl qualifies only slope components on a repeated group.
+  vapply(comps, function(cmp) {
+    if (identical(cmp$loading_source, "(Intercept)") || sum(groups == cmp$group) == 1L) {
+      cmp$group
+    } else paste0(cmp$group, ":", cmp$loading_source)
+  }, character(1L))
+}
+
 drm_julia_ordinary_nonmu_resd_map <- function(formula) {
   ordinary_nonmu_dpar_names <- c(sigma = "logsigma")
   map <- list()
