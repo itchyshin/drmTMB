@@ -1,5 +1,16 @@
 # drmTMB 0.8.2
 
+* `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
+  `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
+  `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
+  likelihood). The bridge asks DRM.jl for its Laplace route, the approximation
+  native drmTMB uses, instead of DRM.jl's default adaptive quadrature, so
+  switching `engine` no longer shifts the log-likelihood by about 0.01 to 0.05.
+  DRM.jl's own default is unchanged. Routes with no Julia Laplace option
+  (`beta_binomial()`, `cumulative_logit()` and the other families), REML fits
+  and models with an offset or other random-effect shapes keep their current
+  behaviour.
+
 * The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.
 
 * Add an opt-in prior table for supported fixed effects and Gaussian random-intercept standard deviations.
