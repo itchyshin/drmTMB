@@ -1,0 +1,9 @@
+# Native R numerical qualification policy
+
+The default single-start attempt is retained as a failed validation result for ri_10. Independent analysis established a genuine inferior local boundary minimum, with positive one-sided variance score and positive free-coordinate curvature. The likelihood and prior expressions agree at the returned point. No engine change is proposed for this diagnosis.
+
+Before the formal configured rerun, freeze the native R fit recipe for every fixture: call `RNGkind("Mersenne-Twister", "Inversion", "Rejection")`, then `set.seed(777)` immediately before fitting, and use the existing public `drm_control(se = FALSE, logsigma_clamp = NULL, multi_start = 5)`. Reset the same caller RNG recipe independently for each fixture. The existing perturbation helper internally saves the caller RNG state, uses seed `20260616L`, then restores it; that internal seed generates the starts. Caller seed 777 does not generate the perturbations. The ordinary route does not expose individual attempt tables, so mark those unavailable and retain the actual selected convergence status. No fixture-specific seed, starting value, oracle optimum or threshold adjustment is allowed. Preserve all available attempt diagnostics, the chosen fit, convergence status, source pins and runtime.
+
+Run all twelve fixtures against the unchanged independent oracle and acceptance limits. Keep this configured qualification separate from the failed default run. A pass supports native R with this recorded solver configuration on these fixtures. It does not establish successful default single-start fitting or globally reliable optimization. Julia and bridge results remain qualified under their separately recorded configurations.
+
+The independent mathematical reviewer accepted this policy conditional on the complete rerun. Existing exploratory multistart attempts remain diagnostic evidence. The formal configured run has not started at policy freeze.

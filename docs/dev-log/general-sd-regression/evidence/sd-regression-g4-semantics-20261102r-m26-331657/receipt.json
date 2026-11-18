@@ -1,0 +1,33 @@
+{
+  "evidence_id": "native-sd-regression-g4-semantics-20261102r-m26",
+  "rerecord_of_evidence_id": "native-sd-regression-g4-semantics-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/sd-regression-g4-semantics-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-sd-regression-g4-semantics.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-sd-regression-g4-semantics.R",
+      "test_sha256": "a45e12a2e2d0acf608516cae1adb691b884fc0517b639bbdb587e6a667510466",
+      "started_utc": "2026-11-02T13:18:42Z",
+      "ended_utc": "2026-11-02T13:20:36Z",
+      "exit_code": 0,
+      "expectations_passed": 210,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/sd-regression-g4-semantics-20261102r-m26-331657/test-console-test-sd-regression-g4-semantics.log",
+      "console_log_sha256": "a488be1aeb425295a807fe095a7385de0bf7a71e0387c43b0aa3278ad6443796"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/sd-regression-g4-semantics-20261102r-m26-331657/source-manifest.json",
+  "source_manifest_sha256": "73dba908202947cc5eb78e5793b4521c3eed1c3a3af397169ea33b6311874a30",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "only one representative fit per family; no other route or link is exercised"
+  ]
+}

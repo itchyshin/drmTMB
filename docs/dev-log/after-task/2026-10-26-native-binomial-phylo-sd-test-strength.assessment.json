@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "162f74b9f77c6271f81f838f4840167730e17a4426c51a0d2f90b74274e241da",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "writing-naturalness protocol and drmTMB prose-style-review checklist",
+  "genre": "technical after-task report",
+  "coverage": "entire saved report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report gives concrete formulas, exact checks, and specific limits for this test-only change.",
+  "confidence": "medium",
+  "confidence_reason": "The report was checked against the focused test receipt and current worktree. This score is an editorial judgment, not calibrated human evidence.",
+  "examples": [
+    {
+      "location": "Section 10",
+      "cue": "The report clearly limits this evidence to one seeded recovery check per link.",
+      "impact": "Readers are less likely to mistake this test improvement for calibration or cross-engine parity.",
+      "repair": "No change needed.",
+      "line": 48,
+      "quote": "This is one fixed-seed recovery check per link. It does NOT establish interval coverage, Julia direct-API parity, R-to-Julia bridge parity, or other Binomial random-effect types. The after-task structure validator passed; its acceptance-ledger subcheck remains unknown because the system Node runtime is unavailable and the detected ledgers concern earlier hurdle and Tweedie slices."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report describes only the test bounds and prediction-order check; it does not claim interval calibration or broad recovery evidence.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The focused 25-expectation result and test changes were verified against the current receipt and worktree state.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims.",
+  "date": "2026-10-26",
+  "calibration_status": "Project prose examples were seen; no human-labelled calibration control was used.",
+  "interpretation": "perceived_style_not_authorship"
+}

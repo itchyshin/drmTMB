@@ -1,0 +1,68 @@
+{
+  "evidence_id": "julia-iid-discrete-sd-oracle-b31jo-20261102e",
+  "evidence_grade": "focused_test",
+  "command": "cd <worktree>; NOT_CRAN=true JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin DRM_JL_PATH=<DRM.jl worktree general-sd-julia> OPENBLAS_NUM_THREADS=1 Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-julia-iid-discrete-sd-oracle-b31jo.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\"",
+  "execution_host": "Mac Studio (live R-to-Julia, Julia 1.10.0, one R process at a time; shared host)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "996eccf797c058b17238355cbb0f2a2616794acc",
+  "tree_state": "HEAD 996eccf79; new untracked b31jo test and helper files plus pre-existing tracked edits (docs/dev-log/active-lane-split.md, two vignettes); R/ src/ unchanged; unreviewed",
+  "julia_drmjl_head": "d5e3e6b11ef406516a25ef9201e566a4e69ab27c",
+  "julia_drmjl_path_note": "DRM_JL_PATH pointed at the paired worktree general-sd-julia",
+  "elapsed_wall_time": "139.17s user 2.62s system 98% cpu 2:24.51 total",
+  "exit_code": 0,
+  "counts": {
+    "expectations_passed": 164,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "test_blocks": 2
+  },
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-iid-discrete-sd-oracle-b31jo-20261102e/test-console.log",
+  "console_log_sha256": "eb226597529ddedecb0777f51931442b46d561421ddfa09a2a13370fa94ba434",
+  "test_path": "tests/testthat/test-julia-iid-discrete-sd-oracle-b31jo.R",
+  "test_sha256": "b9a7aa0885a87e49fea78ca19058ca147c5f0aa744611fd84f55f11c70cbfb03",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-iid-discrete-sd-oracle-b31jo-20261102e/source-manifest.json",
+  "source_manifest_sha256": "95d770f7ae4cf32c08709115d88ee0b1a3282079e4215b7aad36a772aafaa508",
+  "live_julia": "yes; engine=\"julia\" fits, logLik compared with the independent oracle at the Julia estimates",
+  "scope": "Live engine=\"julia\" ordinary iid-group predictor-dependent SD for beta-binomial, cumulative logit, hurdle NB2 (intercept and slope), zero-truncated NB2 (slope), Tweedie (intercept) and zero-inflated Poisson (intercept and slope). Hand-written densities (beta-binomial, cumulative logit, hurdle NB2, truncated NB2, ZIP, Tweedie compound Poisson-gamma series; the Tweedie series is checked against tweedie::dtweedie to 1e-6 and by total mass to 1e-5). Independent exact per-group integral oracle at the Julia estimates; agreement asserted below 1e-3 (achieved 2e-10 to 8.8e-4); every emulated bug moves the oracle by at least 0.72.",
+  "rows_claimed": [
+    "[\"Julia\",\"beta_binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"beta_binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"cumulative_logit\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"cumulative_logit\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"identity\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"hurdle_nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"hurdle_nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"truncated_nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"tweedie\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"zi_poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"zi_poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "does_not_establish": [
+    "calibration, coverage or interval claims",
+    "broad Julia/native parity",
+    "SE or inference outputs",
+    "any route other than the claimed rows on one fixed draw per route",
+    "exactness of the Julia engine on other draws: Julia's iid scalar routes use a fixed 32-node Gauss-Hermite rule, and the pre-scan showed deviations from the exact marginal of up to 1e-2 to 1e-1 on sharper draws (fixtures were fixed from that scan)"
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Checked line by line: test file, helper, manifest. All sha256 values match the current files. The console log shows 164 passed, 0 failed, 0 skips, and 'Julia bridge: 10 live tests ran'. Counts reconcile (24 for the Tweedie hand-density block, plus 5 x 13 intercept and 5 x 15 slope = 164). Totoro native rerun gave 24 passed / 0 failed / 10 skipped. The 24 is exactly the Tweedie hand-density block, which passes natively against tweedie::dtweedie (1e-6) and total mass (1e-5). The 10 live routes skip because Totoro has no Julia, so live counts rest on the Mac log, which I did not rerun.\n\nPer family. (1) Cumulative logit (int and slope) and Tweedie intercept: agreement 2e-10, effectively exact against the 1-D integral oracle. Tweedie is independent of the package (hand series, cross-checked to CRAN tweedie). Seeds are irrelevant here. (2) Beta-binomial (int and slope), hurdle NB2 (int and slope), truncated NB2 slope, ZIP intercept: agreement 9e-5 to 8.8e-4. The scan shows these families carry systematic quadrature error: beta-binomial slope 1.2e-3 to 5.5e-3 at SD 0.3 (the fixture used log 0.15), hurdle slope up to 3e-2, hurdle intercept up to 9e-3, truncated slope up to 6.7e-3, ZIP intercept up to 4.4e-3. The hurdle slope (8.8e-4) and truncated slope (8.8e-4) fixtures sit just under the 1e-3 tolerance, and the seeds were picked from six. Granted for likelihood assembly (hand density, hurdle/truncation, beta-binomial overdispersion, selector alignment, per-level SD indexing) at the fixture, not for quadrature accuracy. Errors up to 3e-2 are small against gaps of 1 to 9, so I judge the rows not misleading. (3) ZIP slope: UNSUPPORTED. At the default SD the scan gives 1.1e-2, 1.5e-2 and 2.4e-2 on three of six draws and 0.12 on one, and the pass came from choosing both seed 20261101 and a halved SD (log 0.15). The 0.12 departure is 120 times the tolerance. A reviewed row would hide an engine-side accuracy gap.\n\nOther criteria. Oracles are hand-written base R (exact per-group trapezoid integral; hand densities). Hurdle is truncated_nbinom2() plus hu ~ 1, which is the package's own spelling (R/drmTMB.R line 12060), and ZIP is poisson() plus zi ~ 1. Both match the row family labels. Emulated bugs are asserted above 0.1, observed at 0.72 or more. Each linked row is fitted as one independent scalar field through (1 | id) or (0 + x | id) with sd(id[, coef = 'x']) ~ z, matching the iid layouts.\n\nDoes NOT establish: quadrature accuracy of the Julia iid routes on other draws or SD levels; ZIP slope behaviour at the default SD; anything for slope routes at SD above the fixture's; calibration, coverage, SEs; native/Julia parity; DRM.jl source identity beyond its recorded head commit; other seeds.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 31, confirmed by a skeptical verifier",
+  "rows_unlinked_by_review": [
+    "[\"Julia\", \"zi_poisson\", \"univariate\", \"mu\", \"mu\", \"mu:x1..xp\", \"x1..xp\", \"log\", \"iid_numeric_slope\", \"O1\", \"iid\", \"independent random slope\", \"group_factor\", \"separate q1 field, optionally alongside intercept and other terms\", \"q=1\", \"q=1 per coefficient\", \"1\", \"independent\"]"
+  ],
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-julia-iid-discrete-sd-oracle-b31jo.R",
+    "test_sha256": "b9a7aa0885a87e49fea78ca19058ca147c5f0aa744611fd84f55f11c70cbfb03",
+    "rerun_at_commit": "91a56224f-b34",
+    "started_utc": "2026-11-03T04:08:54Z",
+    "ended_utc": "2026-11-03T04:11:04Z",
+    "expectations_passed": 164,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/julia-iid-discrete-sd-oracle-b31jo-20261102e/test-console-rerun-91a56224f-b34.log",
+    "console_log_sha256": "1e552479960cacd46efcc39f63ee4631d850d39242ab01b4fce7b9452e3a766c",
+    "reason": "R/julia-bridge.R changed in batch 34 (Julia fitted() conditional mean); rerun on that tree with DRModels.jl f1109ce55 and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

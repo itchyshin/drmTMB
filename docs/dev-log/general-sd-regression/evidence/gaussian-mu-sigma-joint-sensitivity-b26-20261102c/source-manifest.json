@@ -1,0 +1,34 @@
+{
+  "scope": "Source identity for tests/testthat/test-gaussian-mu-sigma-joint-sensitivity-b26.R, receipt gaussian-mu-sigma-joint-sensitivity-b26-20261102c (HEAD 7fd8acec3; hashes identify run-time files)",
+  "files": [
+    {
+      "file": "tests/testthat/test-gaussian-mu-sigma-joint-sensitivity-b26.R",
+      "sha256": "8c0a0844a18241dfdf2bb828501e585c4bfb0de51c422e538ba58a6142208b11"
+    },
+    {
+      "file": "tests/testthat/helper-b26sa-oracles.R",
+      "sha256": "86297736404a5f49f9e8c498b1513919bc9ddf9b3adf143a76625fe0e16fde5b"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-mu-sigma-joint-sensitivity-b26-20261102c/test-console.log",
+      "sha256": "366c8d60af9253958252e8e46a59ccc8711dea09c8fe7642b7832f4745e001ae"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
+}

@@ -1,0 +1,9 @@
+# General-SD vignette render check — 2026-10-17
+
+**Result: render not run; the requested vignette source is absent.** The current package checkout is at native checkpoint `47262cd45` (branch `codex/general-sd-regression`). The approved Totoro library `/home/snakagaw/hsq_work/drmtmb-general-sd-poisson-20261017-03/library` was confirmed present over the existing Totoro control socket. No render was launched and no remote job directory or package library was changed.
+
+The current vignette inventory does not contain a vignette with synthetic Bernoulli and Poisson `sd(group) ~ ...` examples. `vignettes/location-scale-scale.Rmd` contains Gaussian `sd(individual) ~ sex` examples and a phylogenetic Gaussian example, but no Bernoulli or Poisson sections. `vignettes/formula-grammar.Rmd` contains a single setup chunk and a capability table; it now states that native Bernoulli/binomial and non-zero-inflated Poisson ordinary-intercept SD slices are point-checked, with interval calibration and Julia integration still open. It has no synthetic fitting examples. The synthetic Bernoulli examples are in tests and the Poisson examples are in source/integration tests, not a vignette.
+
+Static consistency check: the formula-grammar capability wording matches `native-bernoulli-status.md` (synthetic ordinary-intercept slice; finite profile interval is plumbing only, not calibration) and `poisson-and-selectors-review.md` (bounded ordinary-intercept scope, no calibration claim). The documentation does not imply programme-wide support or calibrated intervals. This is a source-level consistency read, not a rendered-page review.
+
+**Exact limit:** no HTML/PDF was generated, so layout, figures, and rendered-page accessibility were not assessed. A follow-up render requires a vignette that actually contains the new Bernoulli/Poisson examples or an explicit choice to render the existing Gaussian-only `location-scale-scale.Rmd` as a regression check.

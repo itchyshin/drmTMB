@@ -1,0 +1,25 @@
+ℹ Testing drmTMB
+nbinom2-sigma-sd-regression: ..............
+nbinom2-sigma-slope-sd-regression: .......1.
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-nbinom2-sigma-slope-sd-regression.R:66:3'): constant NB2 sigm
+Error in `validate_nbinom2_sigma_random_terms(sigma_re$terms, mu_terms = mu_re$terms, structured_term = mu_structured_term, has_zi = !is.null(zi_entry), zi_is_intercept_only = zi_is_intercept_only, sigma_is_intercept_only = sigma_is_intercept_only, allow_independent_slope = length(sd_sigma_entries) > 0L && is.null(zi_entry))`: Only independent NB2 `sigma` random intercepts are implemented in this slice unless a matching direct-SD formula selects one numeric slope.
+x Unsupported random-effect term: `(0 + z | id)`.
+i Use syntax like `bf(count ~ x, sigma ~ z + (1 | id))`.
+i NB2 `sigma` random slopes require one numeric coefficient and a matching `sd(group, dpar = "sigma", coef = "x")` formula; labelled covariance blocks and cross-parameter covariance remain planned.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-nbinom2-sigma-slope-sd-regression.R:66:3
+ 2.   └─drmTMB:::drm_build_nbinom2_spec(...) at general-sd-regression/R/drmTMB.R:484:3
+ 3.     └─drmTMB:::validate_nbinom2_sigma_random_terms(...) at general-sd-regression/R/drmTMB.R:9733:3
+ 4.       └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:12361:5
+ 5.         └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted
+
+TEST_EXIT_CODE=1

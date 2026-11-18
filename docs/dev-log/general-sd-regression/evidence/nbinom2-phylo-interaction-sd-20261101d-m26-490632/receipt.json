@@ -1,0 +1,32 @@
+{
+  "evidence_id": "native-nbinom2-phylo-interaction-sd-20261101d-m26",
+  "rerecord_of_evidence_id": "native-nbinom2-phylo-interaction-sd-20261101d",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-phylo-interaction-sd-20261101d/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-nbinom2-phylo-interaction-sd.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-nbinom2-phylo-interaction-sd.R",
+      "test_sha256": "e77ea7d1a222c8dcc478747321efd01e381e713642da677cc7b1ad548f5e14bf",
+      "started_utc": "2026-11-02T13:18:14Z",
+      "ended_utc": "2026-11-02T13:18:26Z",
+      "exit_code": 0,
+      "expectations_passed": 55,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-phylo-interaction-sd-20261101d-m26-490632/test-console-test-nbinom2-phylo-interaction-sd.log",
+      "console_log_sha256": "6d9d049cbdf9099543aa0c265381daeab15b0af5ff47a87deddf751c9d7285ba"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-phylo-interaction-sd-20261101d-m26-490632/source-manifest.json",
+  "source_manifest_sha256": "ec9df0521c4f07c020b79760d82b044481e544bf69d81e1bbd5f4ddf1699106f",
+  "review_status": "unreviewed",
+  "claim": "NB2 native phylo_interaction intercept and slope-only pair-level SD regression (sd(pair, level = phylogenetic_interaction) ~ z_pair), dense Kronecker Laplace oracle 1e-4, constant-SD equivalence, row-order invariance, save/reload/simulate",
+  "not_covered": [
+    "sigma endpoint",
+    "zi, ordinary RE beside the field (refused)",
+    "recovery beyond a 0.5 SD-slope band, calibration, Julia parity"
+  ]
+}

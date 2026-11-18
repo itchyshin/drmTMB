@@ -1,0 +1,1 @@
+Fixed-effect normal priors and ridge penalties now support Gaussian mean formulas with one independent random intercept. The prior acts on fixed coefficients; the group SD is estimated without a prior. Active-prior fits retain the existing inference restrictions. Closes #1680.

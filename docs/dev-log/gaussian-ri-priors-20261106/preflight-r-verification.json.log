@@ -1,0 +1,88 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_01",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 2.198593916508107e-16,
+        "point_data_nll": 3.446720557197394e-16,
+        "point_prior": 2.6157544104905e-16,
+        "point_decomposition": 0.0,
+        "fit_objective_at_returned_point": 1.8740160756162483e-16,
+        "fit_data_nll": 2.2285771408620823e-16,
+        "fit_prior": 6.329545159291882e-17,
+        "fit_optimum_objective": 0.0,
+        "fit_coefficients": 3.401830498383017e-10,
+        "fit_interior_group_sd": 8.073893441062199e-10
+      },
+      "unavailable": [
+        "log-SD derivatives at exact zero; separate boundary-model value checked"
+      ]
+    },
+    {
+      "id": "ri_02",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 1.394210315402096e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 2.0319211975233398e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 7.16777597954715e-16,
+        "point_hessian": 1.6966966399949687e-10,
+        "fit_objective_at_returned_point": 2.7978777018915453e-15,
+        "fit_data_nll": 1.4033159471984944e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 6.697940153706815e-11,
+        "fit_coefficients": 6.646652300450029e-12
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.0725216600453488e-06
+      }
+    },
+    {
+      "id": "ri_03",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 2.722669183716123e-16,
+        "point_prior": 6.45619973456123e-17,
+        "point_decomposition": 0.0,
+        "point_gradient": 7.004338828605178e-16,
+        "point_hessian": 2.1420482811411865e-10,
+        "fit_objective_at_returned_point": 3.5426041926716033e-15,
+        "fit_data_nll": 2.5749309694079603e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 7.50877099856569e-11,
+        "fit_coefficients": 6.207116205196545e-09
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 1.2965458568004765e-06
+      }
+    },
+    {
+      "id": "ri_04",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 0.0,
+        "point_data_nll": 0.0,
+        "point_prior": 7.515293078968372e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 2.0583741070851772e-16,
+        "point_hessian": 2.2227138453806511e-10,
+        "fit_objective_at_returned_point": 1.2339167617501663e-15,
+        "fit_data_nll": 1.2433826437128178e-15,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 1.1390000877693845e-15,
+        "fit_coefficients": 6.853706742011549e-11,
+        "fit_interior_group_sd": 2.8425119260149723e-11
+      },
+      "unavailable": []
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

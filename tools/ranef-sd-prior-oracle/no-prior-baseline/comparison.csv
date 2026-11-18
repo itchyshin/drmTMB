@@ -1,0 +1,3 @@
+case,relative_objective,relative_logLik,absolute_theta,absolute_score,scaled_hessian,point_objective,point_gradient,point_hessian,base_score,candidate_score,base_convergence,candidate_convergence,estimator
+none,0,0,0,0,0,0,0,0,7.71435404718163e-11,7.71435404718163e-11,0,0,ML
+normal,0,0,0,0,0,0,0,0,2.25936501151118e-09,2.25936501151118e-09,0,0,MAP

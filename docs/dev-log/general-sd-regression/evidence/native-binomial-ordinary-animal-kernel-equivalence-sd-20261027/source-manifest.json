@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial logit ordinary iid intercept plus animal SD regression; A covariance compared against equivalent A-inverse precision and pedigree input",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-sd.R",
+      "sha256": "5b6b2e169e89423485c8c4418fd52d221f51f75a895df99a41c6ec3ed3a7aed2"
+    }
+  ]
+}

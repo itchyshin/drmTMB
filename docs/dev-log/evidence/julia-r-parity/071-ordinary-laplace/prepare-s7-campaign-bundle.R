@@ -3,18 +3,54 @@
 # This deliberately stays pure: it neither loads drmTMB nor invokes Julia or
 # Slurm.  The compute preflight adds runtime and source-bundle provenance.
 
-r071_s7_sha256 <- function(path) {
-  path <- normalizePath(path, mustWork = TRUE)
-  tool <- Sys.which("shasum")
-  if (!nzchar(tool)) {
-    stop("S7 bundle requires shasum for SHA-256 provenance", call. = FALSE)
+r071_ordinary_laplace_script <- function(frame, name) {
+  value <- tryCatch(get(name, envir = frame, inherits = FALSE), error = function(e) NULL)
+  if (is.character(value) && length(value) == 1L && !is.na(value) && nzchar(value)) {
+    return(chartr("\\", "/", value))
   }
-  output <- suppressWarnings(system2(tool, c("-a", "256", path), stdout = TRUE, stderr = TRUE))
-  if (!identical(attr(output, "status"), NULL) || length(output) != 1L ||
-      !grepl("^[0-9a-fA-F]{64}[[:space:]]", output[[1L]])) {
-    stop("could not compute S7 SHA-256 for ", path, call. = FALSE)
+  NULL
+}
+
+# source() records the script in ofile. sys.source() records it in file and
+# never sets ofile. Real callers use sys.source(), so both names are accepted.
+# DRMTMB_ROOT is the next resort; a cwd-relative path is only the last one.
+r071_ordinary_laplace_dir <- function() {
+  n <- sys.nframe()
+  if (n > 0L) {
+    for (fr in rev(seq_len(n))) {
+      frame <- sys.frames()[[fr]]
+      for (name in c("ofile", "file")) {
+        path <- r071_ordinary_laplace_script(frame, name)
+        if (is.null(path) || !grepl("071-ordinary-laplace/[^/]+$", path)) next
+        hit <- tryCatch(dirname(normalizePath(path, mustWork = TRUE)), error = function(e) NULL)
+        if (!is.null(hit)) return(hit)
+      }
+    }
   }
-  tolower(sub("[[:space:]].*$", "", output[[1L]]))
+  rel <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace"
+  root <- Sys.getenv("DRMTMB_ROOT", unset = "")
+  candidates <- if (nzchar(root)) c(file.path(root, rel), rel) else rel
+  for (candidate in candidates) {
+    if (dir.exists(candidate)) return(normalizePath(candidate, mustWork = TRUE))
+  }
+  stop("cannot locate 071 ordinary-Laplace evidence directory", call. = FALSE)
+}
+
+if (!exists("r071_s7_sha256", mode = "function", inherits = FALSE)) {
+  laplace_dir <- r071_ordinary_laplace_dir()
+  helper <- file.path(laplace_dir, "r071-file-sha256.R")
+  if (!file.exists(helper)) {
+    stop("missing 071 SHA-256 helper: ", helper, call. = FALSE)
+  }
+  load_env <- environment()
+  if (!requireNamespace("drmTMB", quietly = TRUE) &&
+      !nzchar(Sys.getenv("DRMTMB_ROOT", unset = ""))) {
+    Sys.setenv(DRMTMB_ROOT = normalizePath(
+      file.path(laplace_dir, "..", "..", "..", "..", ".."),
+      mustWork = TRUE
+    ))
+  }
+  sys.source(helper, envir = load_env, keep.source = FALSE)
 }
 
 r071_s7_atomic_write <- function(path, write_fun) {

@@ -1,0 +1,10 @@
+ℹ Loading drmTMB
+poisson-correlated-q2-sd-oracle: ...W.......W....
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Poisson correlated q2 SD: Laplace oracle agrees, seed 20261027 ('test-poisson-correlated-q2-sd-oracle.R:99:5') - Unused arguments (scale = 1)
+
+2. Poisson correlated q2 SD: Laplace oracle agrees, seed 20261101 ('test-poisson-correlated-q2-sd-oracle.R:99:5') - Unused arguments (scale = 1)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

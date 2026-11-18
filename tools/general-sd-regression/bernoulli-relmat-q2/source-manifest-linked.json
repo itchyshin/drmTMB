@@ -1,0 +1,12 @@
+{
+  "note": "Derived binding file. Lists the receipted test bytes recovered from source-capsule.tar.gz in this directory; the digest equals the digest in source-manifest.json (a path-to-digest map). The tests/testthat copy has since changed.",
+  "original_manifest": "tools/general-sd-regression/bernoulli-relmat-q2/source-manifest.json",
+  "original_manifest_sha256": "ab99ea281f22012e08f600363aceb849ac2db1f587ea3346d48d20e8eeda375b",
+  "files": [
+    {
+      "path": "tools/general-sd-regression/bernoulli-relmat-q2/test-snapshot/tests/testthat/test-binomial-relmat-q2-sd.R",
+      "sha256": "0f4a73467e2792268a74b5cb529fcee705c0dbe9f68d51a53af06d44a3a383c0",
+      "bytes": 18060
+    }
+  ]
+}

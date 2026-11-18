@@ -1,0 +1,14 @@
+date=2026-10-19
+campaign_role=corrected campaign-level operating-characteristic run; no model fits
+command=Rscript tools/general-sd-regression/campaign-oc.R 1000 20261022
+elapsed_seconds=160.852
+R_version=Rscript (R) version 4.6.0 (2026-04-24)
+campaigns_per_scenario=1000
+scenario_count=11
+seed=20261022
+OPENBLAS_NUM_THREADS=1
+OMP_NUM_THREADS=1
+MKL_NUM_THREADS=1
+campaign_script_sha256=c08a152ef339112b6fc02cb3bf8be3e58d0b4136dbb38c07f32e1421021d85f0
+decision_helper_sha256=c4aeff17732529febbf6a00ca8ba963c188a1b5e935c6be76cecb49c680ba3c9
+stdout_sha256=f23dd12cec74d35c566f02d0186ee781ff801883ed458a12713940fce052b889

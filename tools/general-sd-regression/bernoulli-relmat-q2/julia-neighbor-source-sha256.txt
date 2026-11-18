@@ -1,0 +1,3 @@
+c595db76da3397ae4d068d5c6bc6cbe7636babfc722cd8becc261781ed15278a  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial.jl
+8fc3807a3000c857ec4c117dec89cf09c9bf6762aa689705417804fc61054bd9  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial_sd_regression.jl
+fc3dfd2c414782fdd884616cdc516cb54343240a0c21123b3e89e221b53dc161  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/bridge.jl

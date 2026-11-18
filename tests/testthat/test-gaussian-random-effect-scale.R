@@ -350,8 +350,11 @@ test_that("Gaussian sd(id) variables participate in missingness", {
   expect_false(anyNA(fit$data[c("y", "x", "z", "w", "id")]))
 })
 
-test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
+test_that("Gaussian sd(id) resolves and rejects random-effect scale targets", {
   dat <- new_gaussian_re_scale_data(n_id = 8, n_each = 4, seed = 20260555)$data
+  # Keep `site` available so this assertion reaches target resolution rather
+  # than failing earlier while the formula's variables are being collected.
+  dat$site <- dat$id
 
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ z, sd(id) ~ w), family = gaussian(), data = dat),
@@ -363,7 +366,7 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       family = gaussian(),
       data = dat
     ),
-    "No random-effect term matches"
+    "No ordinary random-effect SD target matches"
   )
   expect_error(
     drmTMB(
@@ -371,7 +374,7 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       family = gaussian(),
       data = dat
     ),
-    "Ambiguous random-effect scale target"
+    "Ambiguous ordinary random-effect SD target"
   )
   expect_error(
     drmTMB(
@@ -379,15 +382,14 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       family = gaussian(),
       data = dat
     ),
-    "Ambiguous random-effect scale target"
+    "Ambiguous ordinary random-effect SD target"
   )
-  expect_error(
+  expect_no_error(
     drmTMB(
       bf(y ~ x + (1 | p | id), sigma ~ z, sd(id) ~ w),
       family = gaussian(),
       data = dat
-    ),
-    "Labelled random-effect scale targets"
+    )
   )
   expect_error(
     drmTMB(
@@ -407,7 +409,7 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
     ),
     "varies within"
   )
-  expect_error(
+  expect_no_error(
     drmTMB(
       bf(
         y ~ x + (1 | id),
@@ -416,8 +418,7 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       ),
       family = gaussian(),
       data = dat
-    ),
-    "reserved but not implemented"
+    )
   )
   expect_error(
     bf(y ~ x + (1 | id), sd(id + site) ~ w),
@@ -444,6 +445,6 @@ test_that("Gaussian sd(id) rejects unsupported and ambiguous targets", {
       family = stats::poisson(),
       data = dat
     ),
-    "Random-effect scale"
+    "non-negative integer count response"
   )
 })

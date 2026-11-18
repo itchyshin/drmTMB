@@ -1,0 +1,19 @@
+{
+  "archive": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/r-check3-input/drmTMB_0.7.1.tar.gz",
+  "sha256": "49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e",
+  "source_members_match": [
+    "R/julia-bridge.R",
+    "tests/testthat/test-fixef-imported-generic-dispatch.R",
+    "tests/testthat/test-julia-structured-stored-prediction.R",
+    "tests/testthat/test-julia-b34-structured-fitted-bridge.R",
+    "vignettes/predictor-dependent-random-sd.Rmd",
+    "man/predict.drmTMB_julia.Rd",
+    "NAMESPACE"
+  ],
+  "estimate_minutes": [
+    80,
+    120
+  ],
+  "target": "Totoro check3",
+  "reason": "Installed-package harness repair; R/src model source unchanged"
+}

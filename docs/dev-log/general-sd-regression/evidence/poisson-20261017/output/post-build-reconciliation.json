@@ -1,0 +1,11 @@
+{
+  "post_build_documentation_changes": [
+    "R/random-effect-scale-formulas.R",
+    "man/random_effect_scale_formulas.Rd"
+  ],
+  "separate_source_test": "tests/testthat/test-poisson-sd-assembly.R",
+  "separate_source_test_sha256": "188771fe3b112ea6b2fe4b4fe29614a90b70b783d0a152d2e282b3e3a5138c9c",
+  "reason": "Qualified labelled Poisson base fence in reference prose and added its source-only rejection test; fitted R/C++ code unchanged.",
+  "source_passed": 120,
+  "compiled_passed": 305
+}

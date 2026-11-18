@@ -1,0 +1,89 @@
+{
+  "evidence_id": "native-beta-animal-q2-sd-20261027",
+  "observed_at_utc": "2026-10-28T05:07:09.957790+00:00",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "status": "bounded_native_candidate_implemented_reviewed; broader_goal_open",
+  "scope": "Native complete-response Beta, one unlabelled independent animal intercept and numeric slope, separate group SDs, supplied A or Ainv, sigma~1, no other random effects; unit-weight recovery fixture.",
+  "model": "u_k~N(0,A); b_k=diag(exp(W_k alpha_k))u_k; eta=X beta+b0+x*b1; adjusted-logit mean; phi=sigma^-2.",
+  "tests": {
+    "passed": 162,
+    "new_file_checks": 58,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "elapsed_seconds": 135.625
+  },
+  "compile": {
+    "returncode": 0,
+    "elapsed_seconds": 41.725605166,
+    "warnings": 15,
+    "flags": "temporary -O0 -g0, one compiler",
+    "scope": "untouched warning locations and headers; no release/performance claim"
+  },
+  "example": {
+    "convergence": 0,
+    "elapsed_seconds": 15.806,
+    "log_sd_slope_estimates": {
+      "intercept_field_z0": 0.6989572,
+      "slope_field_z1": -0.2533642
+    },
+    "truth": {
+      "intercept_field_z0": 0.5,
+      "slope_field_z1": -0.5
+    },
+    "qualification": "One fixed-seed point-fit smoke; log-SD errors below predeclared0.4; no general bias or recovery guarantee; subsequent edits only comments."
+  },
+  "numerical_oracle": "Independent dense Beta density, analytic score/Hessian with finite differences, two independently initialized modes, absolute Laplace NLL/eta tolerances; nonunit/permuted A and full named inverse Ainv.",
+  "julia_boundary": "Public R interface refused exact two-field/two-SD route before mocked setup. No Julia process or parity tested.",
+  "candidate_row_keys": [
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "One numeric slope plus independent intercept only; candidate-row links are not whole-domain admissions.",
+  "shared_evidence_ledger_modified": false,
+  "review": "Read-only GPT-6.1 Terra high; no remaining P0/P1 identified; reviewer ran no fits and did not independently verify pass counts.",
+  "limitations": [
+    "Pedigree two-field SD remains unimplemented",
+    "No interval workflow or coverage claim",
+    "No live Julia parity",
+    "No fresh q2 marginal simulation",
+    "No other random layers, labelled covariance or multiple slopes tested",
+    "No weighted/missing-response validation",
+    "Identifiability guard covers named degeneracies only",
+    "Public status-map/global row integration remains separate",
+    "Dirty candidate; no commit/push/merge/release"
+  ],
+  "next_candidate": "Native Beta animal numeric-slope direct SD with pedigree and unobserved ancestors",
+  "test_log_path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/test-summary.log",
+  "test_log_sha256": "1fe3c3dfd205e64239299fa7495c165497f54492e8c4b81cc527a41190145dc1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "8e1ed8cb1e099ca2873cce2fdb7a348fc1f2c76d629e80274f4b8d225393ff5d",
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/Makevars": "37b7f52542f52eab1ea860203b610d87d6fec5759ed8bbf52cefe396b9eab85b",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/R-implementation.patch": "36ccf800c07c15a65d0676c76ec85704ecf8cb8231b7bf34f28ce54fca3641d2",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/before-admission.log": "2412a3dd8d6833fb4a256e71c44ba434aea352335d87b42fdf75ec6a42739f30",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/candidate-rows.tsv": "c0cd9f8e2fe1937abe0de2594dd57685b271949b832e6e9011aae751fcb89053",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/compile-result.json": "068a0aad8f17abd85a4b0a0c76b9da14a24a0699d2ec6b51e015ea6728fd552c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/compile.log": "c328677845e9866a96af19108ce019ae122e3c141777438513d8751c46d8d614",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/dgp-and-base-probe.log": "32ce6f3ab34c58e9bc5199d2c2e64a1c43749fd775b2a02efc855ee075eaf50b",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/draft-parser.log": "5c03ff093693b521d8153e508aa025d318ec44ef4cde1e08abb3aed6d8d3153a",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/environment.log": "59e9b9e3679c31b47e2838b57738a5a2c7ac56b7c87db691fa2b9c7a6a82daef",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/example.log": "452ffafbd0734b1606f505bcd9b7ef5b27aa6c227cc647001080dbe7e931a3a1",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/file-preflight.log": "3c0efa9e1ee5d0f4edf7087bff578db3d9e92da40a4a3c23925d82881fb69bfe",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/independent-review.md": "7055afec585a20707a8a9675e58f71f9dc035f9b297860a6af77f7f90743e17f",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/initial-focus.log": "83c2612acfb31c9e01ce639eb6a805ce0a90f87238524d91f8021f6528384f64",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/issues.json": "41851be9642157d89aefbe724513e47580bc77e1229f298df4580b2abf5f7b8c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/julia-boundary.R": "2acefb29a5ef3d05e0f15b2b4957aa3dfa878d4ed790f51f57b613a0e03afe44",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/julia-boundary.log": "cc7d9fbcc0b4341dd9a654a6918c4a19d95ddf619cc34963113351b52a564e74",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/lease.log": "851518439e27da32abc6cd5957ca895916884ad2339fe3254e769cfac8580506",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/native-implementation.patch": "16ebd43c701a448687af3d64b967075a4f9c3498a3a5ab8a964212b9ff14382b",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/pre-fit-alignment.md": "f34edbdf0953f89c7b4156aeabc0aa27d220b3058b2209e2a229fa6e74c6fb1c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/report-prose-assessment.json": "29d1f3f7066715676d0608715fbc7fe4fa5d8cb2e682f9febe5b9efdcb146512",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/source-capsule.tar.gz": "7265291ec109e87d3f982cb29f2312233e9203c9690fb6f88840c2afa984c61b",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/source-manifest.json": "8e1ed8cb1e099ca2873cce2fdb7a348fc1f2c76d629e80274f4b8d225393ff5d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/test-runner.R": "a076d2de09092e9993e773a6770a0d83fc9447b8c85e799eb096231276c49924",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/test-runtime.json": "656dbe6032ce8b4ba76579ddbaa5f8fd4d1fe2efb669e3cce4e54a5bd30070db",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-q2-sd-20261027/test-summary.log": "1fe3c3dfd205e64239299fa7495c165497f54492e8c4b81cc527a41190145dc1"
+  }
+}

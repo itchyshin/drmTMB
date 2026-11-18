@@ -1,0 +1,37 @@
+{
+  "evidence_id": "betabinomial-intercept_julia-ordinary-sd-parity-20261024-v1-relink27",
+  "relink_of_evidence_id": "betabinomial-intercept_julia-ordinary-sd-parity-20261024-v1",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1/betabinomial-intercept_julia-ordinary-sd-parity-20261024-v1.json",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1/test-snapshot/tests/testthat/test-julia-beta-binomial-sd-parity.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Mac Studio",
+  "command": "NOT_CRAN=true DRMTMB_JULIA_TESTS=true JULIA_HOME=<Julia 1.10.0> DRM_JL_PATH=<general-sd-julia worktree at 87a371a66> OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-julia-beta-binomial-sd-parity.R\", reporter = \"summary\")' (Mac Studio, one test at a time)",
+  "live_test_path": "tests/testthat/test-julia-beta-binomial-sd-parity.R",
+  "live_test_origin": "tests/testthat/test-julia-beta-binomial-sd-parity.R",
+  "row_key_support": "live test is byte-identical to the frozen snapshot",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-beta-binomial-sd-parity.R",
+      "test_sha256": "ba6107fdd42972b7844991d800b24bc7f6eabf760498145ec4c5191f786cbb96",
+      "started_utc": "2026-11-02T13:59:53Z",
+      "ended_utc": "2026-11-02T14:01:32Z",
+      "exit_code": 0,
+      "expectations_passed": 38,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1-relink27-171e44/test-console.log",
+      "console_log_sha256": "e9a8b683ff80798240c88f24c53af105c7836fb6766b6e575fba527d1633f999"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1-relink27-171e44/source-manifest.json",
+  "source_manifest_sha256": "e961fff5f5162e73fbdf9b4edeb6da258c7cad8dedbdf259f3bbfc103932a839",
+  "review_status": "unreviewed",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ]
+}

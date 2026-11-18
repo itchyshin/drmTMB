@@ -1,0 +1,31 @@
+{
+  "scope": "Source identity for cumlogit-julia-iid_numeric_slope-sd-bridge-20261025-rerun, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/cumulative-logit-sd-bridge-20261025/pass-restored-tests/source-pair-after.sha256",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "472d9de4db223c925df61a683bfd06448e8b9891f32ae2bc386191c6f6098be5"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-julia-cumulative-logit-sd-intercept-parity.R",
+      "sha256": "b120d0311b365efcbc5d9580086bd73580402e87fbfacbacc80dbbd5d66572df"
+    },
+    {
+      "file": "tests/testthat/test-julia-cumulative-logit-sd-slope-parity.R",
+      "sha256": "7290adee483903aa85ed764aad3f5b46fcdfbc12c0d92c16936a9ab9da88d290"
+    },
+    {
+      "file": "tests/testthat/test-julia-cumulative-logit-sd-target-labels.R",
+      "sha256": "ea877a15bbc7ada2e9ef00d664ef32ddf9c81263f2da3b170f32fdd811ec4d27"
+    }
+  ]
+}

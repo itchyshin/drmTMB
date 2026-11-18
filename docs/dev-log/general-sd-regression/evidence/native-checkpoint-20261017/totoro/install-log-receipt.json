@@ -1,0 +1,9 @@
+{
+  "raw_file": "install.log",
+  "raw_sha256": "7cf0fb5422642fafd4fce69c3a628879dcfded8a3450290e4dcdc2d722207b3a",
+  "raw_bytes": 1818299,
+  "archive_file": "install.log.gz",
+  "archive_sha256": "8c7ae0f3aafbcaff3806c7279783445534b94e1f8984ffc6d8a0f98c60b95b81",
+  "archive_bytes": 75135,
+  "method": "gzip, mtime=0; decompression restores exact compiler log bytes"
+}

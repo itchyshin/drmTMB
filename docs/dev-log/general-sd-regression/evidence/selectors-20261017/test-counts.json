@@ -1,0 +1,111 @@
+[
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-sd-target-selectors-integration",
+    "passing_expectations": 22,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-random-effect-scale",
+    "passing_expectations": 21,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-sd-integration",
+    "passing_expectations": 18,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-sd-links",
+    "passing_expectations": 15,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-sd-profile",
+    "passing_expectations": 16,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-sd-simulation",
+    "passing_expectations": 15,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "binomial-sd-clamp",
+    "passing_expectations": 32,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "gaussian-random-effect-scale",
+    "passing_expectations": 89,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "totoro-02/tests.log",
+    "suite": "clamp-active-guard",
+    "passing_expectations": 19,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": [
+      "1",
+      "2",
+      "3",
+      "4"
+    ]
+  },
+  {
+    "log": "drmtmb-general-sd-selector-regressions.log",
+    "suite": "clamp-active-guard",
+    "passing_expectations": 26,
+    "warnings": 1,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "drmtmb-general-sd-selector-regressions.log",
+    "suite": "binomial-links",
+    "passing_expectations": 66,
+    "warnings": 0,
+    "skips": 1,
+    "failure_digits": []
+  },
+  {
+    "log": "drmtmb-general-sd-selector-regressions.log",
+    "suite": "binomial-response",
+    "passing_expectations": 60,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  },
+  {
+    "log": "drmtmb-general-sd-selector-workflows.log",
+    "suite": "binomial-sd-target-workflows",
+    "passing_expectations": 12,
+    "warnings": 0,
+    "skips": 0,
+    "failure_digits": []
+  }
+]

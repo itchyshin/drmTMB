@@ -1,0 +1,1051 @@
+source-tree test manifest agrees with .Rbuildignore: 49 files
+running 49 source-tree test files
+✔ | F W  S  OK | Context
+
+⠏ |          0 | 071-four-fixture-summary                                       
+⠼ |          5 | 071-four-fixture-summary                                       
+⠋ |         31 | 071-four-fixture-summary                                       
+⠇ |         49 | 071-four-fixture-summary                                       
+⠏ |         50 | 071-four-fixture-summary                                       
+⠋ |         51 | 071-four-fixture-summary                                       
+⠹ |         53 | 071-four-fixture-summary                                       
+⠧ |         58 | 071-four-fixture-summary                                       
+⠙ |         72 | 071-four-fixture-summary                                       
+⠼ |         75 | 071-four-fixture-summary                                       
+⠙ |         82 | 071-four-fixture-summary                                       
+⠏ |        100 | 071-four-fixture-summary                                       
+⠹ |        163 | 071-four-fixture-summary                                       
+⠼ |        165 | 071-four-fixture-summary                                       
+⠋ |        171 | 071-four-fixture-summary                                       
+⠏ |        180 | 071-four-fixture-summary                                       
+⠋ |        181 | 071-four-fixture-summary                                       
+✔ |        182 | 071-four-fixture-summary [16.0s]
+
+⠏ |          0 | arc1b-s2r-relmat-q2-recovery-runner                            
+⠋ |          1 | arc1b-s2r-relmat-q2-recovery-runner                            
+✔ |         20 | arc1b-s2r-relmat-q2-recovery-runner [3.4s]
+
+⠏ |          0 | arc1b-spatial-q2-reml-recovery                                 
+⠋ |          1 | arc1b-spatial-q2-reml-recovery                                 
+✔ |         10 | arc1b-spatial-q2-reml-recovery
+
+⠏ |          0 | arc4c-drac-dispatch                                            
+⠋ |         41 | arc4c-drac-dispatch                                            
+⠹ |        103 | arc4c-drac-dispatch                                            
+✔ |        159 | arc4c-drac-dispatch
+
+⠏ |          0 | arc4c-mu-slope-coverage-runner                                 
+⠴ |         26 | arc4c-mu-slope-coverage-runner                                 
+⠏ |         50 | arc4c-mu-slope-coverage-runner                                 
+⠼ |         65 | arc4c-mu-slope-coverage-runner                                 
+⠏ |         80 | arc4c-mu-slope-coverage-runner                                 
+⠹ |         83 | arc4c-mu-slope-coverage-runner                                 
+⠼ |         85 | arc4c-mu-slope-coverage-runner                                 
+✔ |         86 | arc4c-mu-slope-coverage-runner [5.8s]
+
+⠏ |          0 | arc6-f3-provenance-smoke-runner                                
+⠼ |         45 | arc6-f3-provenance-smoke-runner                                
+✔ |         47 | arc6-f3-provenance-smoke-runner
+
+⠏ |          0 | b1-breadth-adapters                                            
+⠧ |          8 | b1-breadth-adapters                                            
+✔ |         18 | b1-breadth-adapters
+
+⠏ |          0 | b1-breadth-contract                                            
+⠧ |          8 | b1-breadth-contract                                            
+⠸ |         14 | b1-breadth-contract                                            
+✔ |         15 | b1-breadth-contract
+
+⠏ |          0 | b1-breadth-dispatch                                            
+⠋ |          1 | b1-breadth-dispatch                                            
+⠸ |          4 | b1-breadth-dispatch                                            
+✔ |          4 | b1-breadth-dispatch
+
+⠏ |          0 | b1-dispatch-self-location                                      
+✔ |          2 | b1-dispatch-self-location
+
+⠏ |          0 | b2-q6-serial-proof-receipt-audit                               
+⠴ |      1  65 | b2-q6-serial-proof-receipt-audit                               
+✔ |      1  66 | b2-q6-serial-proof-receipt-audit
+
+⠏ |          0 | beta-phylo-q1-recovery-runner                                  
+⠦ |         17 | beta-phylo-q1-recovery-runner                                  
+⠏ |         30 | beta-phylo-q1-recovery-runner                                  
+⠦ |         47 | beta-phylo-q1-recovery-runner                                  
+✔ |         54 | beta-phylo-q1-recovery-runner
+
+⠏ |          0 | beta-phylo-q1-sd-coverage-runner                               
+⠹ |         23 | beta-phylo-q1-sd-coverage-runner                               
+⠦ |         47 | beta-phylo-q1-sd-coverage-runner                               
+✔ |         75 | beta-phylo-q1-sd-coverage-runner
+
+⠏ |          0 | beta-phylo-q1-sd-interior-recovery-runner                      
+⠸ |         24 | beta-phylo-q1-sd-interior-recovery-runner                      
+✔ |         33 | beta-phylo-q1-sd-interior-recovery-runner
+
+⠏ |          0 | beta-phylo-q1-sd-regression-runner                             
+⠹ |         13 | beta-phylo-q1-sd-regression-runner                             
+⠦ |         17 | beta-phylo-q1-sd-regression-runner                             
+⠹ |         33 | beta-phylo-q1-sd-regression-runner                             
+⠧ |         38 | beta-phylo-q1-sd-regression-runner                             
+⠙ |         52 | beta-phylo-q1-sd-regression-runner                             
+⠹ |         53 | beta-phylo-q1-sd-regression-runner                             
+⠹ |         63 | beta-phylo-q1-sd-regression-runner                             
+⠴ |         66 | beta-phylo-q1-sd-regression-runner                             
+⠇ |         69 | beta-phylo-q1-sd-regression-runner                             
+✔ |         80 | beta-phylo-q1-sd-regression-runner [1.2s]
+
+⠏ |          0 | beta-phylo-q1-successor-runners                                
+⠧ |         28 | beta-phylo-q1-successor-runners                                
+⠸ |         34 | beta-phylo-q1-successor-runners                                
+⠴ |         36 | beta-phylo-q1-successor-runners                                
+⠦ |         37 | beta-phylo-q1-successor-runners                                
+⠧ |         38 | beta-phylo-q1-successor-runners                                
+⠏ |         40 | beta-phylo-q1-successor-runners                                
+✔ |         76 | beta-phylo-q1-successor-runners [1.1s]
+
+⠏ |          0 | biv-lognormal-rho12-coverage-docs                              
+✔ |          4 | biv-lognormal-rho12-coverage-docs
+
+⠏ |          0 | dinnage-audit-wave1                                            
+⠧ |         18 | dinnage-audit-wave1                                            
+⠋ |         21 | dinnage-audit-wave1                                            Dropped 1 unused factor level from g: "c".
+i Call `droplevels()` on the data before fitting to silence this message.
+
+⠙ |         22 | dinnage-audit-wave1                                            
+⠹ |         23 | dinnage-audit-wave1                                            
+⠸ |         24 | dinnage-audit-wave1                                            
+⠇ |         29 | dinnage-audit-wave1                                            
+✔ |         31 | dinnage-audit-wave1 [1.7s]
+
+⠏ |          0 | docs-audit-semantics                                           
+⠸ |         14 | docs-audit-semantics                                           
+⠏ |         60 | docs-audit-semantics                                           
+⠹ |         93 | docs-audit-semantics                                           
+✔ |        144 | docs-audit-semantics
+
+⠏ |          0 | estimator-surface-conformance                                  
+⠹ |         33 | estimator-surface-conformance                                  
+⠴ |         36 | estimator-surface-conformance                                  
+⠏ |         40 | estimator-surface-conformance                                  
+⠼ |         45 | estimator-surface-conformance                                  
+⠼ |         55 | estimator-surface-conformance                                  
+⠙ |         62 | estimator-surface-conformance                                  
+⠴ |         66 | estimator-surface-conformance                                  
+⠧ |         68 | estimator-surface-conformance                                  
+⠙ |         72 | estimator-surface-conformance                                  
+⠧ |         78 | estimator-surface-conformance                                  
+⠙ |         92 | estimator-surface-conformance                                  
+⠴ |         96 | estimator-surface-conformance                                  
+⠇ |        109 | estimator-surface-conformance                                  
+⠹ |        113 | estimator-surface-conformance                                  
+⠇ |        119 | estimator-surface-conformance                                  
+✔ |        125 | estimator-surface-conformance [3.0s]
+
+⠏ |          0 | function-map-cheatsheet                                        
+✔ |         88 | function-map-cheatsheet
+
+⠏ |          0 | julia-admission-census                                         i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+
+⠋ |   1      0 | julia-admission-census                                         
+⠙ |   1      1 | julia-admission-census                                         
+✔ |   1     48 | julia-admission-census [5.6s]
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-julia-admission-census.R:41:3'): admission census has the pinned columns and only the four decisions
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. └─drmTMB (local) census_admission_census() at test-julia-admission-census.R:41:3
+  2.   └─env$census_run(root = root, out_path = NULL, progress = NULL) at test-julia-admission-census.R:31:5
+  3.     ├─base::paste(...)
+  4.     └─census_ledger_row(mt, tsv, g$family, g$structure, g$dpar)
+  5.       └─mt$pm_tsv_rows_for_family(tsv, family, modifier = NULL)
+  6.         ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  7.         │ └─base::.set_ops_need_as_vector(x, y)
+  8.         └─pm_intrinsic_modifier_dpars(family)
+  9.           └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+ 10.             ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 11.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 12.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 13.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 14.             └─drmTMB (local) ctor()
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | julia-gate-vs-engine                                           
+⠧ |         58 | julia-gate-vs-engine                                           
+⠇ |         79 | julia-gate-vs-engine                                           
+⠙ |        102 | julia-gate-vs-engine                                           
+⠧ |        128 | julia-gate-vs-engine                                           
+⠦ |        147 | julia-gate-vs-engine                                           
+⠸ |        164 | julia-gate-vs-engine                                           
+✔ |        166 | julia-gate-vs-engine
+
+⠏ |          0 | mesh-recovery-v3-contract                                      
+✔ |         22 | mesh-recovery-v3-contract
+
+⠏ |          0 | missing-predictor-prediction                                   
+⠹ |         13 | missing-predictor-prediction                                   
+⠋ |         31 | missing-predictor-prediction                                   
+⠦ |         37 | missing-predictor-prediction                                   
+✔ |         40 | missing-predictor-prediction
+
+⠏ |          0 | nongaussian-structured-boundary                                
+⠙ |          2 | nongaussian-structured-boundary                                
+⠴ |          6 | nongaussian-structured-boundary                                
+⠸ |         14 | nongaussian-structured-boundary                                
+⠹ |         23 | nongaussian-structured-boundary                                
+⠧ |         28 | nongaussian-structured-boundary                                
+⠙ |         32 | nongaussian-structured-boundary                                
+⠴ |         36 | nongaussian-structured-boundary                                
+⠴ |         46 | nongaussian-structured-boundary                                
+⠋ |         51 | nongaussian-structured-boundary                                
+⠦ |         57 | nongaussian-structured-boundary                                
+⠧ |         58 | nongaussian-structured-boundary                                
+⠹ |         63 | nongaussian-structured-boundary                                
+⠼ |         75 | nongaussian-structured-boundary                                
+✔ |         81 | nongaussian-structured-boundary [10.4s]
+
+⠏ |          0 | parity-fenced-boundaries                                       
+✔ |         22 | parity-fenced-boundaries
+
+⠏ |          0 | parity-honesty                                                 
+✔ |         18 | parity-honesty
+
+⠏ |          0 | parity-matrix                                                  
+⠇ |   2  1  46 | parity-matrix                                                  
+⠏ |   6  1  83 | parity-matrix                                                  
+⠸ |   13  1 110 | parity-matrix                                                 
+⠙ |   13  1 168 | parity-matrix                                                 
+✔ |   13  1 180 | parity-matrix
+────────────────────────────────────────────────────────────────────────────────
+Warning ('test-parity-matrix.R:154:3'): every route the bridge admits has a TSV row
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. └─drmTMB (local) pm_test_routes_without_row(routes, tsv) at test-parity-matrix.R:154:3
+  2.   └─base::vapply(...) at test-parity-matrix.R:99:3
+  3.     └─drmTMB (local) FUN(X[[i]], ...)
+  4.       └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, routes$family[[i]], mod) at test-parity-matrix.R:101:5
+  5.         ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  6.         │ └─base::.set_ops_need_as_vector(x, y)
+  7.         └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+  8.           └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+  9.             ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.             └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:281:3'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:281:3
+  2. │ └─testthat::quasi_label(enquo(object), label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─env$pm_routes_without_row(routes, tsv)
+  5.   └─base::vapply(...)
+  6.     └─FUN(X[[i]], ...)
+  7.       └─pm_tsv_rows_for_family(tsv, routes$family[[i]], mod)
+  8.         ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  9.         │ └─base::.set_ops_need_as_vector(x, y)
+ 10.         └─pm_intrinsic_modifier_dpars(family)
+ 11.           └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+ 12.             ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 13.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 14.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 15.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 16.             └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:281:3'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:281:3
+  2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─drmTMB (local) pm_test_routes_without_row(routes, tsv)
+  5.   └─base::vapply(...) at test-parity-matrix.R:99:3
+  6.     └─drmTMB (local) FUN(X[[i]], ...)
+  7.       └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, routes$family[[i]], mod) at test-parity-matrix.R:101:5
+  8.         ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  9.         │ └─base::.set_ops_need_as_vector(x, y)
+ 10.         └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+ 11.           └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+ 12.             ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 13.             │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 14.             │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 15.             │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 16.             └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:284:5'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:284:5
+  2. │ └─testthat::quasi_label(enquo(object), label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─env$pm_tsv_rows_for_family(tsv, f)
+  5.   ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─pm_intrinsic_modifier_dpars(family)
+  8.     └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:284:5'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:284:5
+  2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, f)
+  5.   ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+  8.     └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(object), label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─env$pm_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─pm_intrinsic_modifier_dpars(family)
+  8.     └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+  8.     └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(object), label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─env$pm_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─pm_intrinsic_modifier_dpars(family)
+  8.     └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+  8.     └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(object), label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─env$pm_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─pm_intrinsic_modifier_dpars(family)
+  8.     └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+  8.     └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(object), label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─env$pm_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_modifier_dpars(), pm_intrinsic_modifier_dpars(family))
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─pm_intrinsic_modifier_dpars(family)
+  8.     └─asNamespace("drmTMB")$drm_julia_registry_family_object(family)
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+
+Warning ('test-parity-matrix.R:286:7'): the test's matcher twin agrees with the tool's matcher
+`beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_identical(...) at test-parity-matrix.R:286:7
+  2. │ └─testthat::quasi_label(enquo(expected), expected.label)
+  3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+  4. └─drmTMB (local) pm_test_tsv_rows_for_family(tsv, f, m)
+  5.   ├─base::setdiff(pm_test_modifier_dpars(), pm_test_intrinsic_modifier_dpars(family)) at test-parity-matrix.R:60:3
+  6.   │ └─base::.set_ops_need_as_vector(x, y)
+  7.   └─drmTMB (local) pm_test_intrinsic_modifier_dpars(family) at test-parity-matrix.R:60:3
+  8.     └─drmTMB:::drm_julia_registry_family_object(family) at test-parity-matrix.R:43:3
+  9.       ├─base::tryCatch(ctor(), error = function(e) NULL) at drmtmb-ri-priors-guard-final-5d0f1596-20261106/R/julia-family-registry.R:315:3
+ 10.       │ └─base (local) tryCatchList(expr, classes, parentenv, handlers)
+ 11.       │   └─base (local) tryCatchOne(expr, names, parentenv, handlers[[1L]])
+ 12.       │     └─base (local) doTryCatch(return(expr), name, parentenv, handler)
+ 13.       └─drmTMB (local) ctor()
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | parity-pin                                                     PARITY_PIN_CONTRACT_PASS
+
+✔ |          8 | parity-pin
+
+⠏ |          0 | parity-scoreboard                                              
+⠇ |         19 | parity-scoreboard                                              SCOREBOARD_CELLMAP_CONTRACT_PASS
+
+✔ |      2  32 | parity-scoreboard
+
+⠏ |          0 | phase18-actions-runner                                         
+⠙ |          2 | phase18-actions-runner                                         
+⠏ |         10 | phase18-actions-runner                                         
+⠹ |         13 | phase18-actions-runner                                         
+⠴ |         16 | phase18-actions-runner                                         
+⠇ |         19 | phase18-actions-runner                                         
+⠙ |         22 | phase18-actions-runner                                         
+⠼ |         25 | phase18-actions-runner                                         
+⠧ |         28 | phase18-actions-runner                                         
+⠏ |         40 | phase18-actions-runner                                         
+⠙ |         52 | phase18-actions-runner                                         
+⠼ |         55 | phase18-actions-runner                                         
+⠧ |         58 | phase18-actions-runner                                         
+⠋ |         61 | phase18-actions-runner                                         
+⠸ |         64 | phase18-actions-runner                                         
+⠴ |         76 | phase18-actions-runner                                         
+⠧ |         88 | phase18-actions-runner                                         
+⠏ |        100 | phase18-actions-runner                                         
+⠙ |        102 | phase18-actions-runner                                         
+⠸ |        104 | phase18-actions-runner                                         
+⠹ |        133 | phase18-actions-runner                                         
+⠸ |        154 | phase18-actions-runner                                         
+⠴ |        166 | phase18-actions-runner                                         
+⠧ |        168 | phase18-actions-runner                                         
+⠏ |        170 | phase18-actions-runner                                         
+⠇ |        199 | phase18-actions-runner                                         
+⠙ |        212 | phase18-actions-runner                                         
+⠼ |        215 | phase18-actions-runner                                         
+⠧ |        218 | phase18-actions-runner                                         
+⠹ |        313 | phase18-actions-runner                                         
+⠴ |        316 | phase18-actions-runner                                         
+⠏ |      1 319 | phase18-actions-runner                                         
+⠙ |      1 321 | phase18-actions-runner                                         
+⠸ |      1 323 | phase18-actions-runner                                         
+✔ |      1 328 | phase18-actions-runner [9.2s]
+
+⠏ |          0 | phylo-temporal-ou-gate-runner                                  
+⠋ |          1 | phylo-temporal-ou-gate-runner                                  
+⠙ |          2 | phylo-temporal-ou-gate-runner                                  
+⠹ |          3 | phylo-temporal-ou-gate-runner                                  
+⠸ |          4 | phylo-temporal-ou-gate-runner                                  
+⠼ |          5 | phylo-temporal-ou-gate-runner                                  
+⠴ |          6 | phylo-temporal-ou-gate-runner                                  
+⠧ |          8 | phylo-temporal-ou-gate-runner                                  [WARNING] Deprecated: --mathjax. Use --math-method=mathjax[:URL] instead.
+[WARNING] Deprecated: --mathjax. Use --math-method=mathjax[:URL] instead.
+[WARNING] Deprecated: --mathjax. Use --math-method=mathjax[:URL] instead.
+[WARNING] Deprecated: --mathjax. Use --math-method=mathjax[:URL] instead.
+
+⠇ |          9 | phylo-temporal-ou-gate-runner                                  
+✔ |          9 | phylo-temporal-ou-gate-runner [8.3s]
+
+⠏ |          0 | pkgdown-public-surface                                         
+⠴ |          6 | pkgdown-public-surface                                         
+⠋ |         21 | pkgdown-public-surface                                         
+✔ |         22 | pkgdown-public-surface
+
+⠏ |          0 | pkgdown-reference-index                                        
+✔ |          2 | pkgdown-reference-index
+
+⠏ |          0 | positive-continuous-structured-mu                              
+⠹ |          3 | positive-continuous-structured-mu                              
+⠴ |          6 | positive-continuous-structured-mu                              
+⠧ |          8 | positive-continuous-structured-mu                              
+⠏ |         10 | positive-continuous-structured-mu                              
+⠴ |         16 | positive-continuous-structured-mu                              
+⠸ |         54 | positive-continuous-structured-mu                              
+⠸ |         64 | positive-continuous-structured-mu                              
+⠙ |        102 | positive-continuous-structured-mu                              
+⠴ |        136 | positive-continuous-structured-mu                              
+⠏ |        140 | positive-continuous-structured-mu                              
+⠋ |        161 | positive-continuous-structured-mu                              
+⠧ |        168 | positive-continuous-structured-mu                              
+⠸ |        174 | positive-continuous-structured-mu                              
+⠏ |        180 | positive-continuous-structured-mu                              
+⠴ |        186 | positive-continuous-structured-mu                              
+⠹ |        193 | positive-continuous-structured-mu                              
+✔ |        198 | positive-continuous-structured-mu [2.0s]
+
+⠏ |          0 | profile-shape-boundary                                         
+⠸ |          4 | profile-shape-boundary                                         
+⠋ |         21 | profile-shape-boundary                                         
+✔ |         25 | profile-shape-boundary
+
+⠏ |          0 | provenance                                                     
+⠴ |      1  25 | provenance                                                     
+✔ |      1  37 | provenance
+
+⠏ |          0 | reader-journeys                                                
+Setting initial dates...
+Fitting in progress... get a first set of estimates
+         (Penalised) log-lik = -20.93548 
+Optimising rates... dates... -20.93548 
+Optimising rates... dates... -20.9352 
+
+log-Lik = -20.79115 
+PHIIC = 129.96 
+                  workflow
+ continuous_location_scale
+         count_with_effort
+    denominator_proportion
+         ordinal_condition
+       boundary_proportion
+        phylogenetic_trait
+       spatial_site_effect
+          bivariate_traits
+             meta_analysis
+          missing_response
+                                                                                           question
+                                     Does growth and its residual variation differ across habitats?
+                         Do restored sites have a higher springtail capture rate after trap effort?
+                       Does treatment change germination while trays vary beyond binomial sampling?
+                                            Does habitat shift an ordered breeding-condition score?
+                     Does grazing affect plant cover when absence and saturation are real outcomes?
+                      Does an environmental gradient predict a trait after phylogenetic dependence?
+                        Does depth predict a response after smooth coordinate-based site variation?
+               Do food and disturbance jointly change activity, boldness, and residual correlation?
+                  What is the pooled effect after known study sampling variances and heterogeneity?
+ Can a growth analysis retain rows with response values missing under the documented masking route?
+                                                                                    exact_model
+                                            Gaussian: bf(growth ~ habitat + x, sigma ~ habitat)
+                            NB2: bf(count ~ habitat + x + offset(log(effort)), sigma ~ habitat)
+                        beta-binomial: bf(cbind(germinated, failed) ~ treatment + x, sigma ~ 1)
+                                                      cumulative-logit: bf(score ~ habitat + x)
+                          zero-one beta: bf(cover ~ grazing, sigma ~ 1, zoi ~ grazing, coi ~ 1)
+                       Gaussian: bf(trait ~ x_phy + phylo(1 | species, tree = tree), sigma ~ 1)
+                        Gaussian: bf(y ~ depth + spatial(1 | site, coords = coords), sigma ~ 1)
+                               bivariate Gaussian: drm_formula(mu1, mu2, sigma1, sigma2, rho12)
+                               Gaussian meta-regression: bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1)
+ Gaussian response mask: bf(growth ~ temperature, sigma ~ 1) + miss_control(response = include)
+                                                            estimand
+                                mean growth and residual SD contrast
+                      log count rate and NB2 extra-Poisson variation
+                germination probability and beta-binomial dispersion
+                fixed-effect shift in ordered-category probabilities
+            unconditional cover and the interior/boundary components
+    fixed gradient and phylogenetically structured species deviation
+                         depth effect and spatial location deviation
+         two response means, two residual scales, and residual rho12
+ pooled Gaussian effect and between-study sigma (conventionally tau)
+        fixed temperature effect with response rows marginalised out
+                                                                         uncertainty_route
+                             ordinary fixed-effect Wald output (not a structured-SD claim)
+                                ordinary fixed-effect Wald output; no zero-inflation claim
+                                                         ordinary fixed-effect Wald output
+ fixed-effect output plus opt-in pointwise cutpoint profiles; calibration remains deferred
+                                   ordinary fixed-effect Wald output for stated components
+            point estimate; read target status before reporting a phylogenetic SD interval
+                           point estimate/status-led interpretation for the spatial target
+                          fixed-effect Wald output; rho12 coverage remains target-specific
+                               ordinary model output; meta_V is supplied sampling variance
+         ordinary fixed-effect output; missingness mechanism is not identified by this fit
+ diagnostic_route                              report_artifact
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+      check_drm() generic post-fit smoke: summary() + fitted()
+                                evidence_tier  fit diagnostics report_output
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+ smoke only; no recovery or calibration claim pass        pass          pass
+                                  unsupported_request unsupported_response
+ profile target unsupported:continuous_location_scale                 pass
+         profile target unsupported:count_with_effort                 pass
+    profile target unsupported:denominator_proportion                 pass
+         profile target unsupported:ordinal_condition                 pass
+       profile target unsupported:boundary_proportion                 pass
+        profile target unsupported:phylogenetic_trait                 pass
+       profile target unsupported:spatial_site_effect                 pass
+          profile target unsupported:bivariate_traits                 pass
+             profile target unsupported:meta_analysis                 pass
+          profile target unsupported:missing_response                 pass
+                                                                                                                                                                                                                                                                                                                                                     unsupported_message
+                                                                        Unknown confidence-interval target: "profile target unsupported:continuous_location_scale". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:habitatgrassland, fixef:mu:x, fixef:sigma:(Intercept), fixef:sigma:habitatgrassland.
+                                                                                  Unknown confidence-interval target: "profile target unsupported:count_with_effort". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:habitatrestored, fixef:mu:x, fixef:sigma:(Intercept), fixef:sigma:habitatrestored.
+                                                                                                     Unknown confidence-interval target: "profile target unsupported:denominator_proportion". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:treatmentwarm, fixef:mu:x, fixef:sigma:(Intercept), sigma.
+                                          Unknown confidence-interval target: "profile target unsupported:ordinal_condition". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:habitatpoor, fixef:mu:x, ordinal:theta_ord:low|medium, ordinal:theta_ord:medium|high, ordinal:cutpoint:low|medium, ordinal:cutpoint:medium|high.
+                                                   Unknown confidence-interval target: "profile target unsupported:boundary_proportion". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:grazinglow, fixef:sigma:(Intercept), fixef:zoi:(Intercept), fixef:zoi:grazinglow, fixef:coi:(Intercept), sigma.
+                                                      Unknown confidence-interval target: "profile target unsupported:phylogenetic_trait". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:x_phy, fixef:sigma:(Intercept), sigma, sd:mu:phylo(1 | species), derived:phylo_total_variance_share(species).
+                                                                                                   Unknown confidence-interval target: "profile target unsupported:spatial_site_effect". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:depth, fixef:sigma:(Intercept), sigma, sd:mu:spatial(1 | site).
+ Unknown confidence-interval target: "profile target unsupported:bivariate_traits". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu1:(Intercept), fixef:mu1:food, fixef:mu2:(Intercept), fixef:mu2:food, fixef:sigma1:(Intercept), fixef:sigma2:(Intercept), fixef:rho12:(Intercept), fixef:rho12:disturbance, sigma1, sigma2.
+                                                                                                                                                  Unknown confidence-interval target: "profile target unsupported:meta_analysis". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:sigma:(Intercept), sigma.
+                                                                                                                         Unknown confidence-interval target: "profile target unsupported:missing_response". i Use full profile target names such as "fixef:mu:x". i First available targets: fixef:mu:(Intercept), fixef:mu:temperature, fixef:sigma:(Intercept), sigma.
+                                                                                        limitation
+                                                       sigma is residual SD, not a group-level SD.
+                     The offset makes this a rate model; sigma is NB2 dispersion, not residual SD.
+                                Use counts plus trials; this is not a continuous-proportion model.
+                     Expected category is a plotting aid, not a continuous biological measurement.
+                       coi is conditional on a boundary outcome, not an unconditional probability.
+        This needs a dated, ultrametric tree and should use public diagnostics, not fit internals.
+ Coordinates must be projected metric coordinates; this does not estimate a generic spatial range.
+        rho12 is within-observation residual correlation, not a group or phylogenetic correlation.
+             This is Gaussian regression with known sampling variance, not a separate meta family.
+             This is response masking, not general multiple imputation and not response-plus-mi().
+ seconds fit_warnings first_blocker
+    0.10                       none
+    0.16                       none
+    0.11                       none
+    0.14                       none
+    0.12                       none
+    0.13                       none
+    0.10                       none
+    0.13                       none
+    0.07                       none
+    0.07                       none
+
+Wrote /tmp/Rtmpo5eSFv/file2c43cf6532a6c8.tsv
+
+⠋ |          1 | reader-journeys                                                
+⠇ |         49 | reader-journeys                                                
+✔ |         54 | reader-journeys [1.3s]
+
+⠏ |          0 | reader-vignette-contracts                                      
+⠙ |          2 | reader-vignette-contracts                                      
+⠧ |         18 | reader-vignette-contracts                                      
+⠸ |         24 | reader-vignette-contracts                                      
+⠋ |         31 | reader-vignette-contracts                                      
+⠴ |         36 | reader-vignette-contracts                                      
+✔ |         36 | reader-vignette-contracts [11.7s]
+
+⠏ |          0 | release-identity                                               
+✔ |         20 | release-identity
+
+⠏ |          0 | reml-route-table                                               
+✔ |          5 | reml-route-table
+
+⠏ |          0 | spatial-q2-confidence-eye-contract                             
+⠸ |         24 | spatial-q2-confidence-eye-contract                             
+⠹ |         33 | spatial-q2-confidence-eye-contract                             
+✔ |         36 | spatial-q2-confidence-eye-contract
+
+⠏ |          0 | structured-re-ademp-scaffold                                   
+⠴ |          6 | structured-re-ademp-scaffold                                   
+⠙ |         52 | structured-re-ademp-scaffold                                   
+✔ |         95 | structured-re-ademp-scaffold
+
+⠏ |          0 | structured-re-conversion-contracts                             
+⠋ |          1 | structured-re-conversion-contracts                             
+⠦ |         87 | structured-re-conversion-contracts                             
+⠸ |        154 | structured-re-conversion-contracts                             
+⠋ |        241 | structured-re-conversion-contracts                             
+⠏ |        320 | structured-re-conversion-contracts                             
+⠋ |        531 | structured-re-conversion-contracts                             
+⠼ |        605 | structured-re-conversion-contracts                             
+⠸ |        674 | structured-re-conversion-contracts                             
+⠏ |        750 | structured-re-conversion-contracts                             
+⠇ |        839 | structured-re-conversion-contracts                             
+⠴ |        916 | structured-re-conversion-contracts                             
+⠼ |        995 | structured-re-conversion-contracts                             
+⠹ |        1003 | structured-re-conversion-contracts                            
+⠦ |        1017 | structured-re-conversion-contracts                            
+⠏ |        1090 | structured-re-conversion-contracts                            
+⠋ |        1171 | structured-re-conversion-contracts                            
+⠇ |        1249 | structured-re-conversion-contracts                            
+⠴ |        1326 | structured-re-conversion-contracts                            
+⠧ |        1408 | structured-re-conversion-contracts                            
+⠸ |        1484 | structured-re-conversion-contracts                            
+⠦ |        1557 | structured-re-conversion-contracts                            
+⠹ |        1643 | structured-re-conversion-contracts                            
+⠧ |        1738 | structured-re-conversion-contracts                            
+⠋ |        1821 | structured-re-conversion-contracts                            
+⠹ |        1913 | structured-re-conversion-contracts                            
+⠇ |        1999 | structured-re-conversion-contracts                            
+⠦ |        2077 | structured-re-conversion-contracts                            
+⠧ |        2178 | structured-re-conversion-contracts                            
+⠧ |        2258 | structured-re-conversion-contracts                            
+⠼ |        2345 | structured-re-conversion-contracts                            
+⠋ |        2431 | structured-re-conversion-contracts                            
+⠦ |        2517 | structured-re-conversion-contracts                            
+⠙ |        2582 | structured-re-conversion-contracts                            
+⠹ |        2663 | structured-re-conversion-contracts                            
+⠸ |        2744 | structured-re-conversion-contracts                            
+⠇ |        2809 | structured-re-conversion-contracts                            
+⠴ |        2896 | structured-re-conversion-contracts                            
+⠏ |        2990 | structured-re-conversion-contracts                            
+⠇ |        3039 | structured-re-conversion-contracts                            
+⠋ |        3121 | structured-re-conversion-contracts                            
+⠏ |        3220 | structured-re-conversion-contracts                            
+⠼ |        3295 | structured-re-conversion-contracts                            
+⠼ |        3375 | structured-re-conversion-contracts                            
+⠹ |        3453 | structured-re-conversion-contracts                            
+⠙ |        3552 | structured-re-conversion-contracts                            
+⠴ |        3636 | structured-re-conversion-contracts                            
+⠇ |        3729 | structured-re-conversion-contracts                            
+⠧ |        3818 | structured-re-conversion-contracts                            
+⠴ |        3916 | structured-re-conversion-contracts                            
+⠏ |        4010 | structured-re-conversion-contracts                            
+⠧ |        4108 | structured-re-conversion-contracts                            
+⠋ |        4211 | structured-re-conversion-contracts                            
+⠇ |        4309 | structured-re-conversion-contracts                            
+⠸ |        4414 | structured-re-conversion-contracts                            
+⠋ |        4521 | structured-re-conversion-contracts                            
+⠼ |        4635 | structured-re-conversion-contracts                            
+⠦ |        4737 | structured-re-conversion-contracts                            
+⠋ |        4841 | structured-re-conversion-contracts                            
+⠏ |        4940 | structured-re-conversion-contracts                            
+⠦ |        5037 | structured-re-conversion-contracts                            
+⠼ |        5145 | structured-re-conversion-contracts                            
+⠋ |        5251 | structured-re-conversion-contracts                            
+⠋ |        5351 | structured-re-conversion-contracts                            
+⠹ |        5453 | structured-re-conversion-contracts                            
+⠼ |        5565 | structured-re-conversion-contracts                            
+⠏ |        5670 | structured-re-conversion-contracts                            
+⠧ |        5758 | structured-re-conversion-contracts                            
+⠏ |        5880 | structured-re-conversion-contracts                            
+⠼ |        5965 | structured-re-conversion-contracts                            
+⠦ |        6077 | structured-re-conversion-contracts                            
+⠏ |        6170 | structured-re-conversion-contracts                            
+⠙ |        6262 | structured-re-conversion-contracts                            
+⠦ |        6367 | structured-re-conversion-contracts                            
+⠴ |        6456 | structured-re-conversion-contracts                            
+⠋ |        6541 | structured-re-conversion-contracts                            
+⠋ |        6621 | structured-re-conversion-contracts                            
+⠧ |        6718 | structured-re-conversion-contracts                            
+⠧ |        6818 | structured-re-conversion-contracts                            
+⠹ |        6923 | structured-re-conversion-contracts                            
+⠙ |        7032 | structured-re-conversion-contracts                            
+⠦ |        7117 | structured-re-conversion-contracts                            
+⠏ |        7200 | structured-re-conversion-contracts                            
+⠼ |        7285 | structured-re-conversion-contracts                            
+⠼ |        7365 | structured-re-conversion-contracts                            
+⠴ |        7446 | structured-re-conversion-contracts                            
+⠇ |        7529 | structured-re-conversion-contracts                            
+⠋ |        7621 | structured-re-conversion-contracts                            
+⠋ |        7701 | structured-re-conversion-contracts                            
+⠦ |        7797 | structured-re-conversion-contracts                            
+⠸ |        7884 | structured-re-conversion-contracts                            
+⠏ |        7970 | structured-re-conversion-contracts                            
+⠴ |        8046 | structured-re-conversion-contracts                            
+⠙ |        8132 | structured-re-conversion-contracts                            
+⠇ |        8219 | structured-re-conversion-contracts                            
+⠙ |        8312 | structured-re-conversion-contracts                            
+⠹ |        8383 | structured-re-conversion-contracts                            
+⠦ |        8447 | structured-re-conversion-contracts                            
+⠧ |        8508 | structured-re-conversion-contracts                            
+⠏ |        8580 | structured-re-conversion-contracts                            
+⠴ |        8686 | structured-re-conversion-contracts                            
+⠧ |        8758 | structured-re-conversion-contracts                            
+⠇ |        8849 | structured-re-conversion-contracts                            
+⠏ |        8930 | structured-re-conversion-contracts                            
+⠙ |        9012 | structured-re-conversion-contracts                            
+⠼ |        9095 | structured-re-conversion-contracts                            
+⠼ |        9175 | structured-re-conversion-contracts                            
+⠸ |        9264 | structured-re-conversion-contracts                            
+⠴ |        9356 | structured-re-conversion-contracts                            
+⠴ |        9446 | structured-re-conversion-contracts                            
+⠋ |        9541 | structured-re-conversion-contracts                            
+⠧ |        9638 | structured-re-conversion-contracts                            
+⠋ |        9741 | structured-re-conversion-contracts                            
+⠧ |        9838 | structured-re-conversion-contracts                            
+⠸ |        9934 | structured-re-conversion-contracts                            
+⠇ |        10029 | structured-re-conversion-contracts                           
+⠸ |        10124 | structured-re-conversion-contracts                           
+⠸ |        10224 | structured-re-conversion-contracts                           
+⠼ |        10305 | structured-re-conversion-contracts                           
+⠙ |        10382 | structured-re-conversion-contracts                           
+⠼ |        10465 | structured-re-conversion-contracts                           
+⠦ |        10547 | structured-re-conversion-contracts                           
+⠴ |        10626 | structured-re-conversion-contracts                           
+⠧ |        10708 | structured-re-conversion-contracts                           
+⠹ |        10793 | structured-re-conversion-contracts                           
+⠼ |        10865 | structured-re-conversion-contracts                           
+⠇ |        10919 | structured-re-conversion-contracts                           
+⠸ |        11014 | structured-re-conversion-contracts                           
+⠹ |        11103 | structured-re-conversion-contracts                           
+⠇ |        11189 | structured-re-conversion-contracts                           
+⠴ |        11276 | structured-re-conversion-contracts                           
+⠴ |        11366 | structured-re-conversion-contracts                           
+⠸ |        11444 | structured-re-conversion-contracts                           
+⠧ |        11518 | structured-re-conversion-contracts                           
+⠴ |        11526 | structured-re-conversion-contracts                           
+⠙ |        11592 | structured-re-conversion-contracts                           
+⠴ |        11686 | structured-re-conversion-contracts                           
+⠧ |        11768 | structured-re-conversion-contracts                           
+⠋ |        11861 | structured-re-conversion-contracts                           
+⠴ |        11946 | structured-re-conversion-contracts                           
+⠦ |        12017 | structured-re-conversion-contracts                           
+⠧ |        12098 | structured-re-conversion-contracts                           
+⠏ |        12190 | structured-re-conversion-contracts                           
+⠸ |        12274 | structured-re-conversion-contracts                           
+⠸ |        12354 | structured-re-conversion-contracts                           
+⠹ |        12433 | structured-re-conversion-contracts                           
+⠧ |        12528 | structured-re-conversion-contracts                           
+⠹ |        12613 | structured-re-conversion-contracts                           
+⠏ |        12690 | structured-re-conversion-contracts                           
+⠸ |        12774 | structured-re-conversion-contracts                           
+⠼ |        12865 | structured-re-conversion-contracts                           
+⠋ |        12951 | structured-re-conversion-contracts                           
+⠙ |        13032 | structured-re-conversion-contracts                           
+⠋ |        13121 | structured-re-conversion-contracts                           
+⠦ |        13217 | structured-re-conversion-contracts                           
+⠧ |        13308 | structured-re-conversion-contracts                           
+⠹ |        13383 | structured-re-conversion-contracts                           
+⠴ |        13466 | structured-re-conversion-contracts                           
+⠏ |        13550 | structured-re-conversion-contracts                           
+⠼ |        13635 | structured-re-conversion-contracts                           
+⠙ |        13722 | structured-re-conversion-contracts                           
+⠇ |        13799 | structured-re-conversion-contracts                           
+⠴ |        13876 | structured-re-conversion-contracts                           
+⠙ |        13972 | structured-re-conversion-contracts                           
+⠹ |        14053 | structured-re-conversion-contracts                           
+⠹ |        14133 | structured-re-conversion-contracts                           
+⠙ |        14212 | structured-re-conversion-contracts                           
+⠴ |        14296 | structured-re-conversion-contracts                           
+⠇ |        14379 | structured-re-conversion-contracts                           
+⠙ |        14462 | structured-re-conversion-contracts                           
+⠙ |        14542 | structured-re-conversion-contracts                           
+⠋ |        14631 | structured-re-conversion-contracts                           
+⠧ |        14718 | structured-re-conversion-contracts                           
+⠼ |        14805 | structured-re-conversion-contracts                           
+⠋ |        14891 | structured-re-conversion-contracts                           
+⠋ |        14981 | structured-re-conversion-contracts                           
+⠧ |        15068 | structured-re-conversion-contracts                           
+⠹ |        15153 | structured-re-conversion-contracts                           
+⠧ |        15238 | structured-re-conversion-contracts                           
+⠹ |        15323 | structured-re-conversion-contracts                           
+⠦ |        15417 | structured-re-conversion-contracts                           
+⠹ |        15503 | structured-re-conversion-contracts                           
+⠹ |        15603 | structured-re-conversion-contracts                           
+⠴ |        15686 | structured-re-conversion-contracts                           
+⠹ |        15773 | structured-re-conversion-contracts                           
+⠹ |        15853 | structured-re-conversion-contracts                           
+⠧ |        15938 | structured-re-conversion-contracts                           
+⠇ |        16019 | structured-re-conversion-contracts                           
+⠼ |        16135 | structured-re-conversion-contracts                           
+⠋ |        16211 | structured-re-conversion-contracts                           
+⠴ |        16286 | structured-re-conversion-contracts                           
+⠋ |        16361 | structured-re-conversion-contracts                           
+⠼ |        16445 | structured-re-conversion-contracts                           
+⠸ |        16514 | structured-re-conversion-contracts                           
+⠙ |        16592 | structured-re-conversion-contracts                           
+⠧ |        16678 | structured-re-conversion-contracts                           
+⠏ |        16760 | structured-re-conversion-contracts                           
+⠏ |        16840 | structured-re-conversion-contracts                           
+⠸ |        16924 | structured-re-conversion-contracts                           
+⠇ |        17009 | structured-re-conversion-contracts                           
+⠴ |        17086 | structured-re-conversion-contracts                           
+⠴ |        17146 | structured-re-conversion-contracts                           
+⠸ |        17224 | structured-re-conversion-contracts                           
+⠦ |        17317 | structured-re-conversion-contracts                           
+⠼ |        17395 | structured-re-conversion-contracts                           
+⠏ |        17470 | structured-re-conversion-contracts                           
+⠴ |        17546 | structured-re-conversion-contracts                           
+⠏ |        17640 | structured-re-conversion-contracts                           
+⠧ |        17718 | structured-re-conversion-contracts                           
+⠙ |        17802 | structured-re-conversion-contracts                           
+⠏ |        17880 | structured-re-conversion-contracts                           
+⠹ |        17973 | structured-re-conversion-contracts                           
+⠸ |        18044 | structured-re-conversion-contracts                           
+⠏ |        18120 | structured-re-conversion-contracts                           
+⠋ |        18201 | structured-re-conversion-contracts                           
+⠴ |        18286 | structured-re-conversion-contracts                           
+⠹ |        18363 | structured-re-conversion-contracts                           
+⠙ |        18412 | structured-re-conversion-contracts                           
+⠼ |        18415 | structured-re-conversion-contracts                           
+⠇ |        18419 | structured-re-conversion-contracts                           
+⠋ |        18421 | structured-re-conversion-contracts                           
+⠏ |        18500 | structured-re-conversion-contracts                           
+⠹ |        18583 | structured-re-conversion-contracts                           
+⠦ |        18667 | structured-re-conversion-contracts                           
+⠦ |        18747 | structured-re-conversion-contracts                           
+⠹ |        18833 | structured-re-conversion-contracts                           
+⠏ |        18920 | structured-re-conversion-contracts                           
+⠸ |        19004 | structured-re-conversion-contracts                           
+⠋ |        19081 | structured-re-conversion-contracts                           
+⠧ |        19138 | structured-re-conversion-contracts                           
+⠸ |        19194 | structured-re-conversion-contracts                           
+⠙ |        19262 | structured-re-conversion-contracts                           
+⠙ |        19342 | structured-re-conversion-contracts                           
+⠙ |        19422 | structured-re-conversion-contracts                           
+⠧ |        19498 | structured-re-conversion-contracts                           
+⠦ |        19577 | structured-re-conversion-contracts                           
+⠴ |        19666 | structured-re-conversion-contracts                           
+⠦ |        19747 | structured-re-conversion-contracts                           
+⠦ |        19827 | structured-re-conversion-contracts                           
+⠹ |        19903 | structured-re-conversion-contracts                           
+⠴ |        19986 | structured-re-conversion-contracts                           
+⠴ |        20066 | structured-re-conversion-contracts                           
+⠴ |        20146 | structured-re-conversion-contracts                           
+⠦ |        20217 | structured-re-conversion-contracts                           
+⠧ |        20308 | structured-re-conversion-contracts                           
+⠧ |        20398 | structured-re-conversion-contracts                           
+⠇ |        20479 | structured-re-conversion-contracts                           
+⠇ |        20559 | structured-re-conversion-contracts                           
+⠹ |        20653 | structured-re-conversion-contracts                           
+⠋ |        20741 | structured-re-conversion-contracts                           
+⠧ |        20798 | structured-re-conversion-contracts                           
+⠼ |        20805 | structured-re-conversion-contracts                           
+⠏ |        20890 | structured-re-conversion-contracts                           
+⠙ |        20922 | structured-re-conversion-contracts                           
+⠦ |        21007 | structured-re-conversion-contracts                           
+⠸ |        21094 | structured-re-conversion-contracts                           
+⠼ |        21185 | structured-re-conversion-contracts                           
+⠏ |        21280 | structured-re-conversion-contracts                           
+⠇ |        21369 | structured-re-conversion-contracts                           
+⠸ |        21454 | structured-re-conversion-contracts                           
+⠴ |        21536 | structured-re-conversion-contracts                           
+⠴ |        21626 | structured-re-conversion-contracts                           
+⠇ |        21719 | structured-re-conversion-contracts                           
+⠙ |        21802 | structured-re-conversion-contracts                           
+⠹ |        21883 | structured-re-conversion-contracts                           
+⠸ |        21964 | structured-re-conversion-contracts                           
+⠧ |        22068 | structured-re-conversion-contracts                           
+⠋ |        22161 | structured-re-conversion-contracts                           
+✔ |        22234 | structured-re-conversion-contracts [28.2s]
+
+⠏ |          0 | temporal-homtoep-identifiability                               
+✔ |          4 | temporal-homtoep-identifiability
+
+⠏ |          0 | temporal-homtoep-map                                           
+⠹ |         83 | temporal-homtoep-map                                           
+⠇ |        179 | temporal-homtoep-map                                           
+⠙ |        292 | temporal-homtoep-map                                           
+⠧ |        378 | temporal-homtoep-map                                           
+⠙ |        472 | temporal-homtoep-map                                           
+⠴ |        566 | temporal-homtoep-map                                           
+⠦ |        677 | temporal-homtoep-map                                           
+⠸ |        774 | temporal-homtoep-map                                           
+⠧ |        868 | temporal-homtoep-map                                           
+⠋ |        961 | temporal-homtoep-map                                           
+⠇ |        1069 | temporal-homtoep-map                                          
+⠼ |        1165 | temporal-homtoep-map                                          
+⠧ |        1258 | temporal-homtoep-map                                          
+⠋ |        1351 | temporal-homtoep-map                                          
+⠦ |        1447 | temporal-homtoep-map                                          
+✔ |        1448 | temporal-homtoep-map [1.5s]
+
+⠏ |          0 | temporal-homtoep-parser                                        
+⠙ |         12 | temporal-homtoep-parser                                        
+⠴ |         16 | temporal-homtoep-parser                                        
+✔ |         16 | temporal-homtoep-parser
+
+⠏ |          0 | temporal-ou-profile-campaign-assessment                        
+⠏ |         10 | temporal-ou-profile-campaign-assessment                        
+✔ |         11 | temporal-ou-profile-campaign-assessment
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 118.5 s
+
+── Skipped tests (6) ───────────────────────────────────────────────────────────
+• a baked file exists in this install; degraded path not exercised (1):
+  'test-provenance.R:41:3'
+• DRM_JL_PATH is not set to a DRM.jl clone (1): 'test-parity-matrix.R:243:3'
+• DRM_JL_PATH must name the DRModels checkout at the pin (2):
+  'test-parity-scoreboard.R:292:3', 'test-parity-scoreboard.R:318:3'
+• frozen runner source commit a8d068e64 is absent from this clone: it was never
+  pushed to the remote, so the audit's git-history provenance premise cannot be
+  reconstructed here (receipt integrity is asserted unconditionally below) (1):
+  'test-b2-q6-serial-proof-receipt-audit.R:55:5'
+• phase18 workflow is a D-50 disabled stub; no dispatch surface to couple (1):
+  'test-phase18-actions-runner.R:1550:3'
+
+[ FAIL 0 | WARN 14 | SKIP 6 | PASS 26516 ]
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

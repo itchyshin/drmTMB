@@ -1,0 +1,59 @@
+beta-animal-q2-sd-regression: 123
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-animal-q2-sd-regression.R:106:3'): Beta animal intercept
+Error in `FUN(X[[i]], ...)`: Structured random-effect scale formulas currently require one structured
+coefficient.
+✖ `sd_animal(id)` targets `animal(1 + x | id)`, which has multiple structured
+  coefficients.
+ℹ Use one intercept or slope coefficient per structured term;
+  predictor-dependent scales for multi-coefficient structured blocks remain
+  unsupported.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(beta_animal_q2_sd_form(A), fx$data) at test-beta-animal-q2-sd-regression.R:106:3
+ 2.   └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, beta_structured_term) at general-sd-regression/R/drmTMB.R:6948:3
+ 3.     └─base::lapply(...) at general-sd-regression/R/drmTMB.R:16843:3
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:16775:5
+ 6.           └─rlang::abort(...)
+
+── 2. Error ('test-beta-animal-q2-sd-regression.R:149:3'): Beta animal coefficie
+Error in `FUN(X[[i]], ...)`: Structured random-effect scale formulas currently require one structured
+coefficient.
+✖ `sd_animal(id)` targets `animal(1 + x | id)`, which has multiple structured
+  coefficients.
+ℹ Use one intercept or slope coefficient per structured term;
+  predictor-dependent scales for multi-coefficient structured blocks remain
+  unsupported.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(beta_animal_q2_sd_form(A), dat) at test-beta-animal-q2-sd-regression.R:149:3
+ 2.   └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, beta_structured_term) at general-sd-regression/R/drmTMB.R:6948:3
+ 3.     └─base::lapply(...) at general-sd-regression/R/drmTMB.R:16843:3
+ 4.       └─drmTMB (local) FUN(X[[i]], ...)
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:16775:5
+ 6.           └─rlang::abort(...)
+
+── 3. Error ('test-beta-animal-q2-sd-regression.R:167:3'): Beta animal coefficie
+Error in `FUN(X[[i]], ...)`: Structured random-effect scale formulas currently require one structured
+coefficient.
+✖ `sd_animal(id)` targets `animal(1 + x | id)`, which has multiple structured
+  coefficients.
+ℹ Use one intercept or slope coefficient per structured term;
+  predictor-dependent scales for multi-coefficient structured blocks remain
+  unsupported.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-beta-animal-q2-sd-regression.R:167:3
+ 2.   └─drmTMB:::drm_build_beta_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─drmTMB:::parse_sd_phylo_entries(sd_phylo_entries, beta_structured_term) at general-sd-regression/R/drmTMB.R:6948:3
+ 4.       └─base::lapply(...) at general-sd-regression/R/drmTMB.R:16843:3
+ 5.         └─drmTMB (local) FUN(X[[i]], ...)
+ 6.           └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:16775:5
+ 7.             └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Execution halted

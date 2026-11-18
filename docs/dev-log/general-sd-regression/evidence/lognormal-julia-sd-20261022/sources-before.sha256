@@ -1,0 +1,11 @@
+25a1b4bf188c1c0d453599bdceccd91714d19f890342521be6c8cff6537513c5  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/drmTMB.R
+8330af9e9e53833ecb65f730fe83a859e3a937d55b1248e940a418c2fcfba324  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/julia-bridge.R
+f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/random-effect-targets.R
+123d5d1827befdead9e1b94962393dea5f8574e869080a9f2071ea7f8202b0cc  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/random-effect-scale-formulas.R
+3e2f5f7a970f13e2241db38259166b130b71f751b09cfc5a92b15014f537c821  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/src/drmTMB.cpp
+32df2531ad9f64f177d2b81ebc1e64d2277cae0118396a8d78681ab2cfbc2cb2  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/NAMESPACE
+987868523c2be09e4e88e2001cdfedcae449915c86ed312f5b79ad7f30315ae6  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/tests/testthat/test-julia-lognormal-sd-gate.R
+26b21486f3bb5129c90fbe9ff7e5e480f33c6c9735f8c8ed6d6eec811a04b37d  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/tests/testthat/test-julia-lognormal-sd-parity.R
+a29447364cd37fb82b892425aa75e02b1d97e2c8e9082ca3ddbc438ce890bc01  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/lognormal.jl
+9029461bfe0548090135eb704c398739f2cecbb90627f155037289d12455f742  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_lognormal_sd_regression.jl
+2f7443b3c1ad52c1006b0f24942224d75358df12a049aff149a6310cb95ed50a  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_lognormal_sd_slope.jl

@@ -1,0 +1,7 @@
+b7799d024d6baa91ee74327dbe4c6566d40812dbfa14814460635e51ab5255ba  R/julia-bridge.R
+b120d0311b365efcbc5d9580086bd73580402e87fbfacbacc80dbbd5d66572df  tests/testthat/test-julia-cumulative-logit-sd-intercept-parity.R
+7290adee483903aa85ed764aad3f5b46fcdfbc12c0d92c16936a9ab9da88d290  tests/testthat/test-julia-cumulative-logit-sd-slope-parity.R
+ea877a15bbc7ada2e9ef00d664ef32ddf9c81263f2da3b170f32fdd811ec4d27  tests/testthat/test-julia-cumulative-logit-sd-target-labels.R
+b9b1181d13cc2ceeed68db25a4f59493fbe8a21a1339c81e31880e4cfeaf375c  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/cumulative.jl
+9a1700c0ec204d0dbdaede1571158b1741a9654b5793180d3c3d16c9d11ac15a  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_cumlogit_sd_regression.jl
+36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/Project.toml

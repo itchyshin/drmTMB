@@ -94,8 +94,12 @@ families.
   slopes, and one q1 structured `mu` intercept or unlabelled intercept-plus-one-
   slope route from the exact admitted provider set when `zi` is absent. The
   exact `zi ~ spatial(1 | id, coords = coords)` q1 intercept is a separate
-  diagnostic-only gate; other zero-inflated Poisson random effects remain
-  blocked. The `mu` formula supports standard R exposure offsets such as
+  diagnostic-only gate. Complete-data zero-inflated Poisson also admits one
+  ordinary `mu` intercept or one independent numeric `mu` slope when the
+  corresponding direct-SD formula selects that coefficient; `zi` remains
+  fixed-effect only. The intercept and slope SD routes have targeted synthetic
+  recovery and independent groupwise integration checks. Other zero-inflated
+  Poisson random-effect structures remain blocked. The `mu` formula supports standard R exposure offsets such as
   `offset(log(trap_nights))`. The `mu` parameter is the conditional Poisson
   mean when `zi` is present.
 - `nbinom2()`: `mu`, `sigma`; implemented path with
@@ -106,8 +110,9 @@ families.
   structured `mu` intercept or unlabelled intercept-plus-one-slope route, the
   first ordinary `sigma` random intercept, and exact q1 structured `sigma`
   recovery gates. Adding `zi ~ predictors` fits zero-inflated NB2; one exact
-  fixed-`zi` local-fit gate admits `mu ~ spatial(1 | id, coords = coords)`, while
-  other zero-inflated NB2 random effects remain blocked.
+  fixed-`zi` local-fit gate admits `mu ~ spatial(1 | id, coords = coords)`. A
+  separate complete-response ordinary `mu` intercept gate admits
+  `sd(group) ~ predictors` with fixed-intercept `sigma` and `zi`. Complete-response zero-inflated NB2 also supports one ordinary independent numeric `mu` slope with a selected SD formula such as `sd(group, coef = "x") ~ z` in native TMB. The recovery test uses `sigma ~ 1` and `zi ~ 1`; it checks synthetic point recovery, an independent slope-loading Laplace calculation, and group-level SD predictions. Interval calibration, Julia support, correlated or structured effects, and other random-effect targets remain open. Separately, ordinary non-zero-inflated NB2 supports one complete-data independent numeric `mu` slope with `sd(group, coef = "x") ~ z` in native TMB and the development Julia candidate, fixed `sigma ~ 1`, and no interval-calibration claim. The Julia route requires paired local drmTMB and DRM.jl candidate sources and is absent from current shared/released DRM.jl.
 - `truncated_nbinom2()`: `mu`, `sigma`; implemented zero-truncated NB2 path for
   positive counts. The parameters describe the
   untruncated NB2 component, and `fitted()` returns the conditional
@@ -171,7 +176,14 @@ remain consistent with the rest of `drmTMB`.
 - `stats::binomial(link = "logit")`: implemented `drmTMB#569` route for 0/1
   event data and `cbind(successes, failures)` counts, with fixed effects plus
   ordinary recovery-grade `mu` random intercepts and independent numeric
-  slopes; there is no public `sigma` and no Julia bridge claim.
+  slopes; native TMB also has a focused point-fit-only q1 configuration with
+  simultaneous phylogenetic and coordinate-spatial intercepts, each with its
+  own SD regression. This exact pair has no interval-calibration or Julia
+  parity claim. There is no public `sigma`. The current shared/released DRM.jl
+  companion does not provide this family route. Bernoulli SD-regression bridge
+  work exists only in a development candidate and requires matched local R and
+  DRM.jl candidate source checkouts; it does not establish release support,
+  cross-engine parity, or interval calibration.
 
 Recommended user guidance:
 

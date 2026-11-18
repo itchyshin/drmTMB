@@ -1,0 +1,22 @@
+julia-structured-stored-prediction: ............................1....2..........
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-structured-stored-prediction.R:38:7'): binomial probi
+Expected `predict(fit, newdata = fit$data, dpar = "mu")` to equal `fit$fitted`.
+Differences:
+  `actual`: 0.475 0.550 0.690 0.750
+`expected`: 0.460 0.579 0.788 0.864
+
+
+── 2. Failure ('test-julia-structured-stored-prediction.R:38:7'): binomial clogl
+Expected `predict(fit, newdata = fit$data, dpar = "mu")` to equal `fit$fitted`.
+Differences:
+  `actual`: 0.48 0.55 0.69 0.75
+`expected`: 0.60 0.71 0.89 0.95
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

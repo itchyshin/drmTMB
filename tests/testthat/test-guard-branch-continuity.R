@@ -192,6 +192,17 @@ test_that("drm_pkg_path resolves checkout, Rcheck 00_pkg_src, and win-builder si
     drm_pkg_path(rel, start_dir = file.path(rcheck_c, "tests")),
     r_c
   )
+
+  # D: covr::package_coverage(); cwd = <lib>/drmTMB/drmTMB-tests/testthat.
+  # `../..` is the installed package, which has its own DESCRIPTION; the
+  # source tree is planted at <lib>/00_pkg_src/drmTMB.
+  lib_d <- file.path(tmp, "covr", "package")
+  write_pkg_file(file.path(lib_d, "drmTMB", "DESCRIPTION"))
+  write_pkg_file(file.path(lib_d, "drmTMB", "Meta", "package.rds"))
+  desc_d <- write_pkg_file(file.path(lib_d, "00_pkg_src", "drmTMB", "DESCRIPTION"))
+  covr_wd <- file.path(lib_d, "drmTMB", "drmTMB-tests", "testthat")
+  dir.create(covr_wd, recursive = TRUE)
+  expect_equal(drm_pkg_path("DESCRIPTION", start_dir = covr_wd), desc_d)
 })
 
 # ---------------------------------------------------------------------------
@@ -241,11 +252,12 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   #
   # #1476 / #1477 drop the two IS s_floor CondExps and add Newton clamps
   # in drm_gamma_mi_adaptive_quadrature (mu floor, Hessian floor, two
-  # step clamps, and -H floor). Five steps, no data-dependent stop.
+  # step clamps, and -H floor). Twelve steps (five before #1532), no
+  # data-dependent stop.
   # Weight 0 stays a data-level `if (asDouble(weights(i)) > 0)`.
   #
   # #1477 (round 5) replaces the Gauss-Hermite node rule with a sinh-mapped
-  # trapezoid and makes each of the five Newton steps a safeguarded choice
+  # trapezoid and makes each of the Newton steps a safeguarded choice
   # between the clamped log-x step and a Newton step on G(x) = g / x. That
   # adds ten CondExp sites to drm_gamma_mi_adaptive_quadrature: the (H - g)
   # floor, the ratio floor, two log-step clamps, two validity selects, two
@@ -288,7 +300,7 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
 # ---------------------------------------------------------------------------
 # Site: drm_gamma_mi_adaptive_quadrature Newton clamps.
 # Class: C0 floor. Tiny CV would send the posterior Hessian toward 0.
-# Five Newton steps stay on the tape; CondExp clamps the step and -H.
+# The Newton steps stay on the tape; CondExp clamps the step and -H.
 # ---------------------------------------------------------------------------
 test_that("Gamma adaptive GH Newton clamps keep nodes finite at tiny CV", {
   z <- 0

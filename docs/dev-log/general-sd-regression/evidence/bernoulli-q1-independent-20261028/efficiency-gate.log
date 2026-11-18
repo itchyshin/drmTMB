@@ -1,0 +1,14 @@
+date	source	tier	model	effort	sessions	turns	compactions
+2026-10-28	parent	Sol	gpt-6.1-sol	low	1	2	0
+2026-10-28	subagent	Luna	gpt-6-luna	medium	1	2	0
+2026-10-28	subagent	Sol	gpt-6-sol	high	3	4	0
+2026-10-28	subagent	Sol	gpt-6.1-sol	low	2	15	2
+SUMMARY	date=2026-10-28	n_sessions=6	Luna=1	Terra=0	Sol=5	Astra=0	Ceiling_share=83.3%
+TURN_SUMMARY	date=2026-10-28	n_turns=21	Luna=2	Terra=0	Sol=19	Astra=0
+TIER_RECEIPT_SUMMARY	date=2026-10-28	n_receipts=0	Luna=0	Terra=0	Sol=0	Astra=0
+ROUTING_SUMMARY	date=2026-10-28	n_routes=6	Luna=1	Terra=0	Sol=5	Astra=0
+AUTO_REVIEW_SUMMARY	date=2026-10-28	sessions=0	calls=0	input_tokens=0	cached_input_tokens=0	total_tokens=0
+NOTE	Session and turn counts are routing evidence, not billing records.
+NOTE	Auto-review token-event telemetry is not proof of billing calls; cached input is a subset, and the dashboard's usage weighting is not exposed.
+PASS	Requested routing gates passed for every audited date: max-1-compactions-per-session, max-25-auto-review-calls-per-session.
+LANE: CONTINUE HERE — lifecycle gates passed.

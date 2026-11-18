@@ -1,0 +1,14 @@
+Error in `validate_poisson_mu_random_terms()` at general-sd-regression/R/drmTMB.R:8228:3:
+! Only independent Poisson `mu` random intercepts and slopes are
+  implemented in this slice.
+✖ Unsupported random-effect term: `(1 | p | id)`.
+ℹ Use syntax like `count ~ x + (1 | id)` or `count ~ x + (0 + x | id)`.
+ℹ Ordinary Poisson and ordinary NB2 also admit one complete-data unlabelled `(1
+  + x | id)` block; labelled covariance blocks remain planned.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_poisson_spec(...)
+ 2.   └─drmTMB:::validate_poisson_mu_random_terms(mu_re$terms, has_zi = !is.null(zi_entry)) at general-sd-regression/R/drmTMB.R:8228:3
+ 3.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:10848:5
+ 4.       └─rlang::abort(...)
+Execution halted

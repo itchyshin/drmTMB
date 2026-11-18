@@ -1,0 +1,17 @@
+{
+  "observed_at_utc": "2026-10-24T19:13:56.966807+00:00",
+  "result": "PASS",
+  "test_file": "tests/testthat/test-julia-binomial-sd.R",
+  "test_sha256": "721658fe990bd3147fd030572320fc7d60bbe78bed4c87f21b928f8d6e60d23f",
+  "test_command": "DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMODELS_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME='/Users/z3437171/.juliaup/bin' PATH='/Users/z3437171/.juliaup/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"julia-binomial-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "test_exit_code": 0,
+  "live_julia_tests": 5,
+  "failures": 0,
+  "skips": 0,
+  "source_file_count": 167,
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261024-rerun/sources-before.sha256",
+  "source_manifest_sha256": "67740321ec42683d4387ed897fca70e97ec0747d582825cc95f2b457b0e1dfc2",
+  "source_manifest_stable_before_after": true,
+  "warnings": "Two numerically singular Hessian diagnostics occurred at variance/dispersion boundaries; corresponding Wald SEs are not trustworthy.",
+  "scope": "Bernoulli/binomial logit iid intercept, numeric slope, and tested unlabelled correlated q2 bridge rows represented in this focused file. No coverage or broad family/provider claim."
+}

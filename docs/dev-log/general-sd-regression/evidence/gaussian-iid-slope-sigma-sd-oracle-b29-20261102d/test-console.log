@@ -1,0 +1,8 @@
+2026-11-02T18:15:40Z
+gaussian-iid-slope-sigma-sd-oracle-b29: ................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=32 failed=0 errors=0 skipped=0 blocks=3
+exit=0
+2026-11-02T18:15:54Z

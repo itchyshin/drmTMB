@@ -1,0 +1,31 @@
+ℹ Testing drmTMB
+gamma-phylo-q2-sd-regression: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-gamma-phylo-q2-sd-regression.R:92:3'): Gamma phylo q2 maps co
+Error in `validate_positive_continuous_mu_structured_term(mu_structured_term, family_label = "Gamma", preserve_gamma_relmat_slope = TRUE, allow_gamma_animal_slope_only = TRUE, allow_gamma_phylo_slope = TRUE)`: Gamma `phylo()` `mu` effects are intercept-only in this q=1 route.
+x Requested structured coefficients: "(Intercept)" and "x".
+i Use `phylo(1 | id, tree = tree)`; structured slopes remain deferred.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_gamma_ls_spec(...) at test-gamma-phylo-q2-sd-regression.R:92:3
+ 2.   └─drmTMB:::validate_positive_continuous_mu_structured_term(...) at general-sd-regression/R/drmTMB.R:6090:3
+ 3.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13614:5
+ 4.       └─rlang::abort(...)
+
+── 2. Error ('test-gamma-phylo-q2-sd-regression.R:134:3'): Gamma phylo q2 SD fit
+Error in `validate_positive_continuous_mu_structured_term(mu_structured_term, family_label = "Gamma", preserve_gamma_relmat_slope = TRUE, allow_gamma_animal_slope_only = TRUE, allow_gamma_phylo_slope = TRUE)`: Gamma `phylo()` `mu` effects are intercept-only in this q=1 route.
+x Requested structured coefficients: "(Intercept)" and "x".
+i Use `phylo(1 | id, tree = tree)`; structured slopes remain deferred.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-gamma-phylo-q2-sd-regression.R:134:3
+ 2.   └─drmTMB:::drm_build_gamma_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─drmTMB:::validate_positive_continuous_mu_structured_term(...) at general-sd-regression/R/drmTMB.R:6090:3
+ 4.       └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:13614:5
+ 5.         └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+I believe in you!
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 0 FAILED 0 ERRORS 2 SECONDS 2.662 

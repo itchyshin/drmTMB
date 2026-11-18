@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "77b0fe3726d792b0ecc84becf5c3d4f718bc8e68c94760ebfb57d09b8800e117",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual passage-level review against the implementation, hash-bound receipts, and targeted test output, followed by the project prose lint.",
+  "genre": "Technical after-task report",
+  "coverage": "Full report, all 12 required sections",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report uses concrete behavior, counts, hashes, and limits. Its required section structure is somewhat formulaic, but the claims stay tied to this specific adapter repair.",
+  "confidence": "medium",
+  "confidence_reason": "The exact receipt and test outputs were inspected, but this is a self-review rather than an independent reader assessment.",
+  "examples": [
+    {
+      "location": "2. Implemented, paragraph 2",
+      "cue": "The sentence separates adapter qualification from coverage evidence.",
+      "impact": "It prevents readers from treating three successful probes as calibration.",
+      "repair": "No change needed.",
+      "line": 11,
+      "quote": "The sealed receipt replay also passed. This result qualifies the adapter route only; it contributes no coverage evidence."
+    },
+    {
+      "location": "3a. Decisions and Rejected Alternatives",
+      "cue": "The sentence names the receipt invariant and unchanged production contract.",
+      "impact": "It makes the reason for the code change clear without implying a model change.",
+      "repair": "No change needed.",
+      "line": 15,
+      "quote": "Production receipt requirements remain unchanged, and no model likelihood or parameterization changed."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report makes no new statistical conclusion and explicitly limits the result to adapter operation, not recovery or uncertainty calibration.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Counts, runtime, statuses, and hashes were checked against the retained qualification receipt and recorded test outputs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report cites local evidence and uses no external literature references.",
+  "date": "2026-10-20",
+  "calibration_status": "No prose calibration controls assessed. Prior v11 and v13 adapter engineering examples were seen and are not style controls.",
+  "interpretation": "perceived_style_not_authorship"
+}

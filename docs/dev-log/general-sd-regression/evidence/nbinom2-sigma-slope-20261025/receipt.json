@@ -1,0 +1,16 @@
+{
+  "observed_at_utc": "2026-10-25",
+  "result": "PASS",
+  "test_file": "tests/testthat/test-nbinom2-sigma-slope-sd-regression.R",
+  "test_sha256": "96bac36d9c4d4968b176ae4155c365f8409c77d9f6e4a83d86d68665aec13c33",
+  "test_command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"nbinom2-sigma-(sd-regression|slope-sd-regression)\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "test_exit_code": 0,
+  "failures": 0,
+  "skips": 0,
+  "source_file_count": 6,
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-sigma-slope-20261025/sources-after-final.sha256",
+  "source_manifest_sha256": "0f38fb968d808fd7fd1b470e6ba0731ef35236985b1b9b3fcee7e8db4dd37f3f",
+  "source_manifest_stable_before_after": true,
+  "warnings": "No test failures, skips, or model diagnostic warnings were reported in the focused run.",
+  "scope": "Native complete-data non-inflated NB2 with fixed-effect mu and one independent numeric random slope on log(sigma), fitted with a group-constant predictor-dependent SD. The source-bound focused filter checks the existing sigma-intercept route plus slope point recovery, target/group-SD prediction, constant-SD likelihood and scale equivalence to the baseline random-slope model, and refusal when the SD predictor varies within group. No zero-inflated NB2, Julia parity, interval calibration, correlated sigma blocks, or broad NB2 capability claim."
+}

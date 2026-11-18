@@ -253,8 +253,12 @@ test_that("tools/write-parity-matrix.R regenerates byte-identically and matches 
 
   gen <- readLines(out1, warn = FALSE)
   expect_true(any(grepl("^## The matrix$", gen)))
-  n_rows <- sum(grepl("^\\| (GREEN )?`", gen))
-  expect_identical(n_rows, nrow(env$pm_parse_status_table(readLines(file.path(root, "docs", "design", "capability-status.md"), warn = FALSE))))
+  matrix_start <- match("## The matrix", gen)
+  expect_false(is.na(matrix_start))
+  first_row <- matrix_start + 4L
+  last_row <- first_row + match("", gen[first_row:length(gen)]) - 2L
+  expect_identical(last_row - first_row + 1L,
+                   nrow(env$pm_parse_status_table(readLines(file.path(root, "docs", "design", "capability-status.md"), warn = FALSE))))
 
   committed_path <- file.path(root, "docs", "design", "parity-matrix.md")
   expect_true(file.exists(committed_path))
@@ -355,4 +359,35 @@ test_that("every citation anchor in write-parity-matrix.R still resolves in its 
   # that is genuinely absent must be reported absent.
   expect_false(any(grepl("fixef_profile_ready <- !is_biv && !is.null(object$bridge_payload)",
                          cache[["bridge"]], fixed = TRUE)))
+})
+
+test_that("R-only capability rows remain explicit and cannot claim Julia parity", {
+  tool <- pm_test_tool_path()
+  skip_if(!nzchar(tool), "parity generator is not reachable")
+  drmjl <- Sys.getenv("DRM_JL_PATH", unset = "")
+  skip_if(!nzchar(drmjl) || !dir.exists(drmjl), "DRM_JL_PATH must name the pinned checkout")
+  root <- normalizePath(testthat::test_path("..", ".."))
+  pm_test_skip_unless_at_pin(root, drmjl)
+  env <- pm_test_source_tool(tool)
+  ctx <- env$pm_load_context(root, drmjl)
+  mat <- env$pm_build_matrix(ctx)
+  missing_julia <- setdiff(ctx$r_status$capability, ctx$j_status$capability)
+  expect_gt(length(missing_julia), 0L)
+  rows <- mat[match(missing_julia, mat$capability), , drop = FALSE]
+  expect_false(anyNA(rows$capability))
+  expect_false(any(rows$green))
+  expect_true(all(grepl("UNCITED", rows$native_Julia, fixed = TRUE)))
+  expect_false(any(grepl("^covered", rows$claim_status)))
+  rendered <- env$pm_render(ctx, mat)
+  matched <- length(intersect(ctx$r_status$capability, ctx$j_status$capability))
+  expect_true(sprintf("| matched exactly (byte-for-byte row name) | %d |", matched) %in% rendered)
+  expect_true(sprintf("| present only in drmTMB's file | %d |", length(missing_julia)) %in% rendered)
+  strict_ctx <- ctx
+  known_shared <- setdiff(intersect(ctx$r_status$capability, ctx$j_status$capability), env$pm_pending_capabilities())[[1L]]
+  strict_ctx$j_status <- ctx$j_status[ctx$j_status$capability != known_shared, , drop = FALSE]
+  expect_error(env$pm_build_matrix(strict_ctx), "absent from DRM.jl", fixed = TRUE)
+  extra <- ctx$r_status[1L, , drop = FALSE]
+  extra$capability <- "unreviewed synthetic capability"
+  ctx$r_status <- rbind(ctx$r_status, extra)
+  expect_error(env$pm_build_matrix(ctx), "unreviewed synthetic capability", fixed = TRUE)
 })

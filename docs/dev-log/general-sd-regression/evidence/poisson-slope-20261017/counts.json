@@ -1,0 +1,15 @@
+{
+  "suites": {
+    "poisson-slope-sd-integration-corrected": 23,
+    "poisson-slope-sd-reference": 24,
+    "poisson-sd-integration": 43,
+    "binomial-sd-target-selectors-integration": 22,
+    "binomial-sd-integration": 18,
+    "binomial-sd-profile": 16,
+    "gaussian-random-effect-scale": 89
+  },
+  "total_expectations": 235,
+  "includes_pure_reference_expectations": 24,
+  "runtime_changed_since_build": false,
+  "calibration_claim": false
+}

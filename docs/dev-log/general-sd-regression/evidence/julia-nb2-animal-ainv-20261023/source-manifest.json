@@ -1,0 +1,28 @@
+{
+  "repository": "DRModels.jl paired candidate",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "branch": "codex/general-sd-regression",
+  "worktree_state": "dirty shared candidate; per-file hashes identify test-time files; test source snapshot is byte-identical to executed file",
+  "files": [
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/negbinomial.jl",
+      "sha256": "65182c628f805b4943d4abeb4c7fd170a0643e6b348d232b6b42f965bef8d4a7"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "8eae5f3c5757a6bf77988cecb23c7d94bf0127ab7f8b3eb0a00dcc297e5136e7"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/inference.jl",
+      "sha256": "8fcbc65b30019cb5309c633845160ea0d547d50d4bfe4128e0397247edef4286"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_nb2_animal_sd_regression.jl",
+      "sha256": "aecc3454cb860000546e3a980595c29c7d66bc674f5e472835b2787af7fdf236"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023/test_nb2_animal_sd_regression.jl",
+      "sha256": "aecc3454cb860000546e3a980595c29c7d66bc674f5e472835b2787af7fdf236"
+    }
+  ]
+}

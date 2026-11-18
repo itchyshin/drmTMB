@@ -1,0 +1,20 @@
+{
+  "test_name": "live Julia Gamma animal slope SD estimates agree with native TMB",
+  "test_path": "tests/testthat/test-julia-gamma-sd.R",
+  "test_sha256": "e491ba81e5a89f0e7f868cdf543cbad288e4345a06d55aff16597c3262622b02",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023/test-console-current-source-loglik-20261023.log",
+  "console_log_sha256": "2da8581c383d55ac3584cb2724ddabd1735597827c5fd6288fa523132fb675b0",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "native_files": {
+    "R/drmTMB.R": "cd6e1acf38f081c8869f897d24c4a19f06fd4567cc29e0bc8707d9b6a47ac46a",
+    "R/julia-bridge.R": "00cc734af9e843cf57e4ac79bd95ec1f89e6aeeddde70bdfa312fa114e87d7c2",
+    "src/drmTMB.cpp": "e42e51c3050bf3c11e000df7966da9ca0db630e5f193ae35f20bc0b40edd8c79",
+    "tests/testthat/test-julia-gamma-sd.R": "e491ba81e5a89f0e7f868cdf543cbad288e4345a06d55aff16597c3262622b02"
+  },
+  "julia_files": {
+    "src/bridge.jl": "717c5debc0ae3e6dd96d2a84dd7f122f5786625ad278613094b105db4c0b09f4",
+    "src/gamma.jl": "8860be04dae83eea2922d247834ec8fe115f2e0a6c855eb286b7a3169b4c9fd2"
+  },
+  "scope_note": "Focused current-candidate fit/parity evidence only; not a capability-universe completion or interval-calibration claim."
+}

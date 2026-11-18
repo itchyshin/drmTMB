@@ -1,0 +1,29 @@
+{
+  "scope": "Source identity for tests/testthat/test-count-labelled-relmat-q2-sd.R, receipt 20261102r (dirty shared tree; hashes identify test-time files)",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "fb7569afff483bffd4b2dab471e3251e50c67a2bfb9d555feed067053877ffd5"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-count-labelled-relmat-q2-sd.R",
+      "sha256": "cba04a6233881a514a7aa5938d04964d470ac69bdaa63428ba795bcd8c60e733"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/count-labelled-relmat-q2-sd-20261102r/test-console.log",
+      "sha256": "ea5237e3c151501c03ba3135ec4e2b3c279e0bc85da5b8c8c24eae4f1c4e696f"
+    }
+  ]
+}

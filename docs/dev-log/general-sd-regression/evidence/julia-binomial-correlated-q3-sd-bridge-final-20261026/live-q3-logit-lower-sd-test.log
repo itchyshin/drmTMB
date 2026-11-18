@@ -1,0 +1,31 @@
+julia-binomial-correlated-q3-sd-bridge: ...................i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+┌ Warning: Hessian is not positive definite at the optimum. Wald standard errors are withheld.
+│ A negative eigenvalue means this point is not a minimum, so inv(H) is not a covariance.
+│   context = ""
+│   negative_eigenvalue_indices =
+│    3-element Vector{Int64}:
+│     1
+│     2
+│     3
+└ @ DRModels ~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/vcov_guard.jl:90
+.1............
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-binomial-correlated-q3-sd-bridge.R:188:5'): Julia bri
+Expected `is_converged(fit_julia)` to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+logit
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+Execution halted
+Julia exit.

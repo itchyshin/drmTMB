@@ -1,0 +1,26 @@
+{
+  "evidence_id": "gaussian-native-independent-slope-sd-current-20261025-m26",
+  "rerecord_of_evidence_id": "gaussian-native-independent-slope-sd-current-20261025",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRMTMB_JULIA_TESTS=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRM_JL_JULIA_HOME=/Users/z3437171/.juliaup/bin JULIA_DEPOT_PATH=/private/tmp/julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"\"gaussian-sd-slope-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE); devtools::test(filter = \"\"julia-gaussian-sd-parity\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)' 2>&1 | tee docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-current-20261025/test-console.log\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-sd-slope-regression.R",
+      "test_sha256": "a4a6f0d08c6cff902aa23cdadff35c47229b3eecbdb15e9c29a015ac9e1626b8",
+      "started_utc": "2026-11-02T13:17:57Z",
+      "ended_utc": "2026-11-02T13:18:07Z",
+      "exit_code": 0,
+      "expectations_passed": 13,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101-m26-a32eb2/test-console-test-gaussian-sd-slope-regression.log",
+      "console_log_sha256": "bfb2b803cbe8659a08e9fe0aa479465122e5533bf26e5254f24c9499b83f0c8b"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101-m26-a32eb2/source-manifest.json",
+  "source_manifest_sha256": "b851af1f894a7220a78b22736bcfd424418586f68e06f0578d6533bff5b34753",
+  "review_status": "unreviewed"
+}

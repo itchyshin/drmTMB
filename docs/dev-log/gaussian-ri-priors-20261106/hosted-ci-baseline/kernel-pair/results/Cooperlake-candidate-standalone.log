@@ -1,0 +1,62 @@
+EXPECTED_OPENBLAS_CORE=Cooperlake
+ACTUAL_OPENBLAS_CORE=Cooperlake
+OPENBLAS_LIBRARY=/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/julia-1.13.3/bin/../lib/julia/libopenblas64_.so
+DIAGNOSTIC_PROCESS_START ["/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation", "candidate", "standalone"]
+DIAGNOSTIC_PACKAGES_LOADED
+LOADED_PACKAGE_PATH=/home/snakagaw/hsq_work/ri-prior-julia1133-baseline-audit-20261106/hosted-setup-validation/candidate/src/DRModels.jl
+Julia Version 1.13.3
+Commit 67ac47b9cd8 (2026-10-25 15:28 UTC)
+Build Info:
+  Official https://julialang.org release
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+      Ubuntu 24.04.5 LTS
+  uname: Linux 6.8.0-142-generic #142-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:24:27 UTC 2026 x86_64 x86_64
+  CPU: AMD EPYC 9655 96-Core Processor: 
+                  speed         user         nice          sys         idle          irq
+       #1-384  4342 MHz  106364407 s   24029741 s    2071065 s  1141081582 s          0 s  
+  Memory: 1007.2740783691406 GB (279473.55078125 MB free)
+  Uptime: 3.31958658e6 sec
+  Load Avg:  38.59  56.74  61.4
+  WORD_SIZE: 64
+  LLVM: libLLVM-20.1.8 (ORCJIT, znver5)
+  GC: Built with stock GC
+Threads: 1 default, 0 interactive, 1 GC (on 384 virtual cores)
+Environment:
+  JULIA_NUM_THREADS = 1
+  JULIA_PKG_PRECOMPILE_AUTO = 0
+  JULIA_NUM_PRECOMPILE_TASKS = 2
+  HOME = /home/snakagaw
+  PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+CPU_NAME=znver5
+BLAS_CONFIG=LBTConfig([ILP64] libopenblas64_.so) threads=1
+JULIA_THREADS=1
+ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5
+DIAGNOSTIC_FIT_BEGIN
+converged=true iterations=53
+theta=[0.1943639418189246, 0.45234106476909414, -35.316914102114715, 34.17616262509883]
+theta_bits=["0011111111001000111000001110101011101010110100010010010010001101", "0011111111011100111100110010011111101111111101001000110010000111", "1100000001000001101010001001000010100100001011000001110010101001", "0100000001000001000101101000110001111111001101001100100111011011"]
+loglik=-532.9732053643258 control=nothing
+data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe
+objective=532.9732053643258
+gradient=[3.238247003878314e-9, -6.368950922208683e-9, -8.58932369673937e-10, -8.58932369673937e-10] maxabs=6.368950922208683e-9
+DIAGNOSTIC_FIT_END
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+[33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+[33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+[33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+[33m[1m│ [22m[39m  context = ""
+[33m[1m│ [22m[39m  flat_coordinates = Int64[]
+[33m[1m│ [22m[39m  rcond = 6.827653639066237e-17
+[33m[1m└ [22m[39m[90m@ DRModels ~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/candidate/src/vcov_guard.jl:122[39m
+[33m[1m┌ [22m[39m[33m[1mWarning: [22m[39mHessian is numerically singular at the optimum — using a pseudo-inverse.
+[33m[1m│ [22m[39mThe fit is at a variance/dispersion boundary, so standard errors for the
+[33m[1m│ [22m[39mflagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+[33m[1m│ [22m[39mor the bootstrap entry points for those targets.
+[33m[1m│ [22m[39m  context = ""
+[33m[1m│ [22m[39m  flat_coordinates = Int64[]
+[33m[1m│ [22m[39m  rcond = 6.827653639066237e-17
+[33m[1m└ [22m[39m[90m@ DRModels ~/hsq_work/ri-prior-julia1133-baseline-audit-20261106/candidate/src/vcov_guard.jl:122[39m
+[0m[1mTest Summary:                                            | [22m[32m[1mPass  [22m[39m[36m[1mTotal  [22m[39m[0m[1m   Time[22m
+public Bernoulli/binomial random-intercept SD regression | [32m  44  [39m[36m   44  [39m[0m1m31.2s
+DIAGNOSTIC_STANDALONE_COMPLETE

@@ -1,0 +1,17 @@
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels /private/tmp/codex-sd-probit-profile-probe-20261026/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is not positive definite at the optimum. Wald standard errors are withheld.
+│ A negative eigenvalue means this point is not a minimum, so inv(H) is not a covariance.
+│   context = "joint sparse-Laplace Binomial ordinary and phylogenetic SD regression"
+│   negative_eigenvalue_indices =
+│    1-element Vector{Int64}:
+│     1
+└ @ DRModels /private/tmp/codex-sd-probit-profile-probe-20261026/src/vcov_guard.jl:90
+Test Summary:                                             | Pass  Total   Time
+Binomial ordinary and phylogenetic SD regressions jointly |   27     27  18.9s
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels /private/tmp/codex-sd-probit-profile-probe-20261026/src/sparse_phy.jl:713
+Test Summary:                                 | Pass  Total  Time
+Binomial phylogenetic intercept SD regression |   23     23  4.9s
+Test Summary:                                                      | Pass  Total   Time
+Binomial probit phylogenetic SD slope has finite profile endpoints |    5      5  31.9s

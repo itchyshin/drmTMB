@@ -1,0 +1,17 @@
+{
+  "scope": "Native Binomial crossed independent iid intercepts with separate SD regressions under probit and cloglog.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "7d1f4ca356413a07214673a7ba8b6aa79af673c5d4c078d528bf60b08e95c39a"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-crossed-nonlogit-sd.R",
+      "sha256": "24fe5c4b1cfab29c73602ec28541478c0bf9c94e9ff01b2b118908188624d257"
+    }
+  ]
+}

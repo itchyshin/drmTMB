@@ -1,0 +1,78 @@
+{
+  "slice": "native Beta predictor-dependent SD for one relmat K/Q or coordinate-spatial intercept",
+  "date": "2026-10-28",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/source-manifest.json",
+  "source_manifest_sha256": "7e83a3faf3a1bf49406e4e0d471c9117898435e212d08d1b15f78936cc7b4210",
+  "candidate_row_keys": [
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"Q_precision\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+  ],
+  "test": {
+    "focused_seconds": 53.34,
+    "focused_estimate_seconds": 100,
+    "targeted_seconds": 129.8,
+    "targeted_estimate_seconds": 240,
+    "targeted_success_markers": 167,
+    "by_file_success_markers": {
+      "beta-relmat-q2-sd-regression": 64,
+      "beta-spatial-q2-sd-regression": 47,
+      "beta-structured-intercept-q1-sd-regression": 56
+    },
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "count_method": "testthat summary reporter markers and zero failure/error/warning/skip sections; process exit 0",
+    "julia_live_tests": 0
+  },
+  "example": {
+    "convergence": 0,
+    "sd_slope": 0.5086127,
+    "truth_slope": 0.5,
+    "seconds": 10.76,
+    "qualification": "single-seed point-fit smoke"
+  },
+  "numerical_acceptance": {
+    "oracle": "independent scalar Beta score/Hessian and Gaussian/Laplace constants",
+    "nll_eta_absolute_error": "<1e-4 passed",
+    "latent_gradient": "<1e-5 passed",
+    "finite_difference_score_hessian": "<1e-4 and <2e-4 passed",
+    "K_Q_coordinate_order_constant_base": "<1e-4 passed"
+  },
+  "red_provenance": {
+    "reconstructed_before": "reconstructed-before.log: isolated evaluation of verified extracted prior builder; both q1 formulas rejected",
+    "carried_red": "red.log is retrospective narrative, not raw stdout",
+    "prior_builder_sha256": "d050b5801e0a027845e68c5be7049325fc39929b7ea6bb6d2616db6bba91cc16"
+  },
+  "implementation": "two R admission predicate/advice hunks; prior q2 support preserved; no C++ or DLL change",
+  "interval_coverage": "deferred",
+  "julia_parity": "not run",
+  "shared_ledger_modified": false,
+  "row_scope": "three exact native Beta mu q1 rows only",
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/R-implementation.patch": "2a2b8ffc10bbc24b219af06f317f476db1783775196fd9b9c0c9758076f531e2",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/assembly.log": "d2f2d8eacb579ac218b9aa26f5f3e9f44ad7fd66256234dcab88543158736f1c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/assessment-check.log": "ecc7e0882b49b30d05c427d88ab453c389c462cb20c3cff581b4a8c81665145a",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/check-log.md": "5d0dd290782aeecc10dfaacdcfd65b24e7d05b4f814d86992f8e10d441e0dc55",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/environment.log": "4348df662a8638097cdf1d21de5f32c019b1a75aed479ab8a63cb208759464c8",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/example.log": "bbed15f8bce645296da47ebed94b367bd3a335f0f150bf024faf16f3dfc96cff",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/finalize-evidence.py": "4672b2f4112eb0b53a5e2de633cdb6fa7ad61392a8ddcfa3078847696ebaf6a6",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/focused.log": "5e6e0c8a69a1fee2476faf1758f0a899b2cc26484f3480d5d637a4d6b0a8cc20",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/parse.log": "fcd0c325b1979ae7a78d6201aabbb643d976931b0ed6cd0264dc450d7c5e4a90",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/pre-fit-alignment.md": "22ef2cbb26e21b85e84d097e8737e8b3fef368083726e1371e81b3b08f144e8d",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/prose-check.log": "116175c39da3d80b50392efbd77c442b906112b9dbb8093ccb7275703c8c4a63",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/reconstructed-before-check.R": "df3b275d7062b4e4c309a18fd7c334a8211c36f227ed1a4349930ecb583f80b4",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/reconstructed-before.log": "0d9b7ac3d2f8321440755f0ef33cf0585c5157b039614feb80a8672e5db0c20b",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/red.log": "cfa2a9845f58ad91fe2bd4f1c86c3075af93b8816643bc1434b404aa7a82a26f",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/report-assessment-v1.json": "a5ff11c6580698a969e8fcb3374cd9b597b0dbd675debaddc1258c0c75460d77",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/report-assessment-v2.json": "2ea9a350e1788f91751c3c124ee0e8b99def64f8bf0802ebccbaa61c2459e928",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/report-assessment.json": "802a60c75fab1898793e085e690bb8531a10e52bb98185fcc34b2e036807bb5a",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/report-check.log": "1ab6156f29a653ed6e50f82bfa4e3fcb94c1ed235185519b95f27b330659d045",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/source-capsule.tar.gz": "4966c231108f85639e214733b986ce2ba8f4ce44721e3125d7813ceb77ae041a",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/source-manifest.json": "7e83a3faf3a1bf49406e4e0d471c9117898435e212d08d1b15f78936cc7b4210",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-structured-intercept-q1-sd-20261028/targeted.log": "41b5e470889311052693d99d4c686c09fc7b06931b43eaf239ca17b3c143d453"
+  }
+}

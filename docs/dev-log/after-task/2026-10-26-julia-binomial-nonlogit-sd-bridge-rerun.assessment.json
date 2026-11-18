@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "2c805d9cafeae03cf82f057144ad9e1aa1b3e8f1e19076b4eb76d0f555ae05ca",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the full saved report against its retained test log, source manifest, exit code, reconciliation record, and current check-log entry; ran the after-task structure checker and prose lint.",
+  "genre": "Technical after-task evidence report",
+  "coverage": "Entire report, all sections",
+  "score": 3,
+  "style_status": "rated",
+  "score_reason": "The report records the exact route, test outcome, receipts, initial wrapper error, and limits. Its required structure is templated, but the details are specific and restrained.",
+  "confidence": "medium",
+  "confidence_reason": "The claims are anchored to retained local artifacts. The broader gate audit remains unknown because its runtime dependency is unavailable.",
+  "examples": [
+    {
+      "location": "Known Residuals",
+      "line": 57,
+      "quote": "Covers: current-candidate TMB/Julia point-recovery and predicted-SD checks for an ordinary Binomial mean random intercept with a fixed-predictor SD slope, under probit and cloglog links.",
+      "cue": "The report states the main boundaries directly.",
+      "impact": "Readers can distinguish this rerun from the wider implementation and calibration goal.",
+      "repair": "No change needed."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits the result to the focused ordinary intercept bridge test and makes no calibration or broad support claim.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The test count, live test counter, two-link scope, source manifest, exit code, and reconciler result were checked against retained artifacts.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims.",
+  "date": "2026-10-26",
+  "calibration_status": "No human-labelled style calibration control was used.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,54 @@
+ℹ Testing drmTMB
+julia-beta-sd: WWi Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+1WW2
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. public Julia Beta SD outputs retain the fitted group target ('test-julia-beta-sd.R:27:3') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+
+2. public Julia Beta SD outputs retain the fitted group target ('test-julia-beta-sd.R:27:3') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+
+3. live Julia Beta random-slope SD estimates match native TMB ('test-julia-beta-sd.R:87:3') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+
+4. live Julia Beta random-slope SD estimates match native TMB ('test-julia-beta-sd.R:87:3') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-beta-sd.R:27:3'): public Julia Beta SD outputs retain t
+Error in `drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload)`: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling.
+x no payload label was built for fixed-effect dpar(s): sd.
+i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(formula, family = beta_family(), data = dat, engine = "julia") at test-julia-beta-sd.R:27:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::new_drmTMB_julia(...) at general-sd-regression/R/julia-bridge.R:829:3
+ 4.       └─drmTMB:::drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload) at general-sd-regression/R/julia-bridge.R:5860:3
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/julia-coefficient-labels.R:116:3
+ 6.           └─rlang::abort(...)
+
+── 2. Error ('test-julia-beta-sd.R:87:3'): live Julia Beta random-slope SD estim
+Error in `drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload)`: DRM.jl returned coefficient names that do not match drmTMB's base-R `model.matrix()` spelling.
+x no payload label was built for fixed-effect dpar(s): sd.
+i DRM.jl must supply `bridge_formula_labels_v1` (design 258 section 7) for this formula construct, or its raw names must equal drmTMB's own base-R spelling exactly.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(formula, family = beta_family(), data = dat, engine = "julia") at test-julia-beta-sd.R:87:3
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:336:5
+ 3.     └─drmTMB:::new_drmTMB_julia(...) at general-sd-regression/R/julia-bridge.R:829:3
+ 4.       └─drmTMB:::drm_julia_bridge_check_coef_labels(coef_names = coef_names, bridge_payload = bridge_payload) at general-sd-regression/R/julia-bridge.R:5860:3
+ 5.         └─cli::cli_abort(...) at general-sd-regression/R/julia-coefficient-labels.R:116:3
+ 6.           └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 2 live tests ran; bridge glue was exercised in this configuration.
+Execution halted
+Julia exit.

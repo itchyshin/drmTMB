@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>When group variation changes with a predictor</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">When group variation changes with a
+predictor</h1>
+
+
+
+<p>This guide shows how to ask whether groups differ in their typical
+spread, and whether that spread changes with a group-level predictor. It
+uses synthetic Bernoulli and Poisson data so the data-generating values
+are known. The fitted models estimate a random-intercept standard
+deviation; they do not estimate a separate residual <code>sigma</code>
+for either response.</p>
+<div id="the-model" class="section level2">
+<h2>The model</h2>
+<p>For a binary response, the group effect shifts the log odds:</p>
+<p><span class="math display">\[
+Y_{ig} \mid b_g \sim \operatorname{Bernoulli}\!\left[
+  \operatorname{logit}^{-1}(\beta_0 + \beta_1 x_{ig} + b_g)
+\right], \qquad
+b_g \sim \operatorname{Normal}(0, s_g^2), \qquad
+\log(s_g) = \alpha_0 + \alpha_1 w_g.
+\]</span></p>
+<p>For counts, the same random effect shifts the log expected count:</p>
+<p><span class="math display">\[
+Y_{ig} \mid b_g \sim \operatorname{Poisson}\!\left[
+  \exp(\beta_0 + \beta_1 x_{ig} + b_g)
+\right], \qquad
+b_g \sim \operatorname{Normal}(0, s_g^2), \qquad
+\log(s_g) = \alpha_0 + \alpha_1 w_g.
+\]</span></p>
+<p>Here, <code>x</code> varies among observations and <code>w</code> is
+constant within each group. The fixed-effect coefficient for
+<code>x</code> describes a change in the mean predictor. The coefficient
+<code>alpha_1</code> describes how the spread of group effects changes:
+because the log link is used for <code>s_g</code>, a one-unit increase
+in <code>w</code> multiplies the random-intercept SD by
+<code>exp(alpha_1)</code>. It does not multiply the variance by that
+amount; the variance ratio is <code>exp(2 * alpha_1)</code>.</p>
+<p>The R formula keeps those questions separate. For example,
+<code>y ~ x + (1 | group)</code> models the response predictor, while
+<code>sd(group) ~ w</code> models the SD of the latent group intercept.
+The group-level predictor must have one value per group; a within-group
+predictor belongs in the mean formula in this scalar-intercept example.
+More general random- regression models can use within-group predictors
+to define random slopes; that is a different model structure from the
+intercept-only examples here.</p>
+</div>
+<div id="make-two-small-synthetic-data-sets" class="section level2">
+<h2>Make two small synthetic data sets</h2>
+<p>The examples use 60 groups with 10 observations per group. The two
+values of <code>w</code> differ by one unit, so exponentiating its
+fitted coefficient gives the high-<code>w</code> to low-<code>w</code>
+random-intercept SD ratio.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20261017</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>n_group <span class="ot">&lt;-</span> <span class="dv">60</span><span class="dt">L</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>n_per_group <span class="ot">&lt;-</span> <span class="dv">10</span><span class="dt">L</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>group_info <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">seq_len</span>(n_group)),</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">w =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>), <span class="at">each =</span> n_group <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>group_index <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="fu">seq_len</span>(n_group), <span class="at">each =</span> n_per_group)</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>bernoulli_data <span class="ot">&lt;-</span> group_info[group_index, , drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>bernoulli_data<span class="sc">$</span>x <span class="ot">&lt;-</span> stats<span class="sc">::</span><span class="fu">rnorm</span>(<span class="fu">nrow</span>(bernoulli_data))</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>bernoulli_b <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.4</span> <span class="sc">+</span> <span class="fl">0.45</span> <span class="sc">*</span> group_info<span class="sc">$</span>w) <span class="sc">*</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  stats<span class="sc">::</span><span class="fu">rnorm</span>(n_group)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>bernoulli_data<span class="sc">$</span>y <span class="ot">&lt;-</span> stats<span class="sc">::</span><span class="fu">rbinom</span>(</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>  <span class="fu">nrow</span>(bernoulli_data),</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>  <span class="at">size =</span> <span class="dv">1</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>  <span class="at">prob =</span> stats<span class="sc">::</span><span class="fu">plogis</span>(</span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>    <span class="sc">-</span><span class="fl">0.25</span> <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> bernoulli_data<span class="sc">$</span>x <span class="sc">+</span> bernoulli_b[group_index]</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  )</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>)</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>poisson_data <span class="ot">&lt;-</span> group_info[group_index, , drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>poisson_data<span class="sc">$</span>x <span class="ot">&lt;-</span> stats<span class="sc">::</span><span class="fu">rnorm</span>(<span class="fu">nrow</span>(poisson_data))</span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>poisson_b <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.4</span> <span class="sc">+</span> <span class="fl">0.45</span> <span class="sc">*</span> group_info<span class="sc">$</span>w) <span class="sc">*</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>  stats<span class="sc">::</span><span class="fu">rnorm</span>(n_group)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>poisson_data<span class="sc">$</span>y <span class="ot">&lt;-</span> stats<span class="sc">::</span><span class="fu">rpois</span>(</span>
+<span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>  <span class="fu">nrow</span>(poisson_data),</span>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>  <span class="at">lambda =</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.2</span> <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> poisson_data<span class="sc">$</span>x <span class="sc">+</span> poisson_b[group_index])</span>
+<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a>)</span></code></pre></div>
+<p>Each data set has a binary group-level predictor and an
+observation-level predictor. The latent effects are generated with an SD
+that increases with <code>w</code>. The response-specific intercept and
+slope values differ between the two examples, so the Bernoulli and
+Poisson fits are independent illustrations.</p>
+</div>
+<div id="fit-a-bernoulli-model" class="section level2">
+<h2>Fit a Bernoulli model</h2>
+<p>The Bernoulli likelihood has no free residual <code>sigma</code>. The
+fitted random intercept is on the logit scale, and
+<code>sd(group) ~ w</code> describes its group-level standard deviation
+on that same latent scale.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>fit_bernoulli <span class="ot">&lt;-</span> <span class="fu">drmTMB</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">bf</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> group), <span class="fu">sd</span>(group) <span class="sc">~</span> w),</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">family =</span> stats<span class="sc">::</span><span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">data =</span> bernoulli_data</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>bernoulli_checks <span class="ot">&lt;-</span> <span class="fu">check_drm</span>(fit_bernoulli)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">check =</span> bernoulli_checks<span class="sc">$</span>check, <span class="at">status =</span> bernoulli_checks<span class="sc">$</span>status)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt;                           check status</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 1         optimizer_convergence     ok</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 2            convergence_status     ok</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 3              optimizer_budget     ok</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; 4              finite_objective     ok</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; 5         logsigma_clamp_active     ok</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; 6                fixed_gradient     ok</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; 7               sdreport_status     ok</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt; 8     hessian_positive_definite     ok</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; 9          hessian_conditioning     ok</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; 10       standard_errors_finite     ok</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 11     standard_errors_inflated     ok</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt; 12   observations_per_parameter     ok</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt; 13                 dropped_rows     ok</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt; 14               positive_scale     ok</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; 15    random_effect_sd_boundary     ok</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt; 16   interval_reliability_scope   note</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt; 17     fixed_effect_design_size     ok</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt; 18 mu_random_effect_replication     ok</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="fu">coef</span>(fit_bernoulli, <span class="st">&quot;sd(group)&quot;</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt; (Intercept)           w </span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt;  -0.6826388   0.4745828</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(fit_bernoulli, <span class="st">&quot;sd(group)&quot;</span>)[<span class="st">&quot;w&quot;</span>])</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="co">#&gt;        w </span></span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt; 1.607343</span></span></code></pre></div>
+<p>The final value is the estimated ratio of random-intercept SDs
+between the two <code>w</code> groups. It is not a ratio of event
+probabilities. Compare it with the known ratio from the data-generating
+model, <code>exp(0.45)</code>, as a check that the example behaves as
+intended; a single generated data set need not recover the truth
+exactly.</p>
+</div>
+<div id="fit-a-poisson-model" class="section level2">
+<h2>Fit a Poisson model</h2>
+<p>In the Poisson model, the latent intercept is on the log-mean scale.
+The Poisson sampling distribution already determines the
+observation-level variance from its mean; <code>sd(group)</code>
+describes additional variation among group-specific log means.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>fit_poisson <span class="ot">&lt;-</span> <span class="fu">drmTMB</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">bf</span>(y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> group), <span class="fu">sd</span>(group) <span class="sc">~</span> w),</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">family =</span> stats<span class="sc">::</span><span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">data =</span> poisson_data</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>poisson_checks <span class="ot">&lt;-</span> <span class="fu">check_drm</span>(fit_poisson)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">check =</span> poisson_checks<span class="sc">$</span>check, <span class="at">status =</span> poisson_checks<span class="sc">$</span>status)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;                         check status</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; 1       optimizer_convergence     ok</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; 2          convergence_status     ok</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; 3            optimizer_budget     ok</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 4            finite_objective     ok</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 5       logsigma_clamp_active     ok</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 6              fixed_gradient     ok</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 7             sdreport_status     ok</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 8   hessian_positive_definite     ok</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 9        hessian_conditioning     ok</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; 10     standard_errors_finite     ok</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 11   standard_errors_inflated     ok</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; 12 observations_per_parameter     ok</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; 13               dropped_rows     ok</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; 14             positive_scale     ok</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; 15  random_effect_sd_boundary     ok</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; 16 interval_reliability_scope   note</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; 17   fixed_effect_design_size     ok</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="fu">coef</span>(fit_poisson, <span class="st">&quot;sd(group)&quot;</span>)</span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt; (Intercept)           w </span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt;  -0.5027392   0.8930412</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(fit_poisson, <span class="st">&quot;sd(group)&quot;</span>)[<span class="st">&quot;w&quot;</span>])</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt;        w </span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt; 2.442547</span></span></code></pre></div>
+<p>This ratio also targets the change in random-intercept SD between the
+two values of <code>w</code>. It does not describe a change in Poisson
+residual dispersion.</p>
+<p>The fixed seed gives these particular estimates. The table keeps
+their departure from the known ratio visible; it is not a
+parameter-recovery or calibration result.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Response</th>
+<th align="right">True high/low SD ratio</th>
+<th align="right">Estimated ratio in this draw</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Bernoulli</td>
+<td align="right"><code>exp(0.45) = 1.568</code></td>
+<td align="right">1.607</td>
+</tr>
+<tr class="even">
+<td align="left">Poisson</td>
+<td align="right"><code>exp(0.45) = 1.568</code></td>
+<td align="right">2.443</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="predict-the-group-level-standard-deviations" class="section level2">
+<h2>Predict the group-level standard deviations</h2>
+<p>With no <code>newdata</code>, <code>predict()</code> returns one
+predicted SD for each fitted group. <code>type = &quot;link&quot;</code> returns
+the log SD; <code>type = &quot;response&quot;</code> returns the SD after
+exponentiation. These are model-implied group-level scales, not the
+fitted conditional random intercepts themselves.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>bernoulli_log_sd <span class="ot">&lt;-</span> <span class="fu">predict</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  fit_bernoulli, <span class="at">dpar =</span> <span class="st">&quot;sd(group)&quot;</span>, <span class="at">type =</span> <span class="st">&quot;link&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>bernoulli_sd <span class="ot">&lt;-</span> <span class="fu">predict</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  fit_bernoulli, <span class="at">dpar =</span> <span class="st">&quot;sd(group)&quot;</span>, <span class="at">type =</span> <span class="st">&quot;response&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>bernoulli_sd_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">names</span>(bernoulli_sd),</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">log_sd =</span> <span class="fu">unname</span>(bernoulli_log_sd),</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">sd =</span> <span class="fu">unname</span>(bernoulli_sd)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>bernoulli_sd_table<span class="sc">$</span>w <span class="ot">&lt;-</span> group_info<span class="sc">$</span>w[</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="fu">match</span>(bernoulli_sd_table<span class="sc">$</span>group, <span class="fu">as.character</span>(group_info<span class="sc">$</span>group))</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>]</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="fu">head</span>(bernoulli_sd_table)</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt;   group     log_sd        sd    w</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 1     1 -0.9199302 0.3985469 -0.5</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 2     2 -0.9199302 0.3985469 -0.5</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; 3     3 -0.9199302 0.3985469 -0.5</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; 4     4 -0.9199302 0.3985469 -0.5</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt; 5     5 -0.9199302 0.3985469 -0.5</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt; 6     6 -0.9199302 0.3985469 -0.5</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>poisson_sd <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_poisson, <span class="at">dpar =</span> <span class="st">&quot;sd(group)&quot;</span>)</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">data.frame</span>(<span class="at">group =</span> <span class="fu">names</span>(poisson_sd), <span class="at">sd =</span> <span class="fu">unname</span>(poisson_sd)))</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt;   group        sd</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; 1     1 0.3870274</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; 2     2 0.3870274</span></span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a><span class="co">#&gt; 3     3 0.3870274</span></span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a><span class="co">#&gt; 4     4 0.3870274</span></span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a><span class="co">#&gt; 5     5 0.3870274</span></span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a><span class="co">#&gt; 6     6 0.3870274</span></span></code></pre></div>
+<p>The default response-scale predictions are positive SDs. The
+<code>w</code> coefficient summarises their systematic change; the
+group-level values also reflect the observed design matrix and should
+not be read as one estimate of the realised random effect in each
+group.</p>
+</div>
+<div id="check-the-fit-before-interpreting-it" class="section level2">
+<h2>Check the fit before interpreting it</h2>
+<p>The compact tables above show every check name and status without
+printing long diagnostic messages. The complete objects remain available
+as <code>bernoulli_checks</code> and <code>poisson_checks</code>;
+inspect, for example,
+<code>bernoulli_checks[bernoulli_checks$status %in% c(&quot;warning&quot;, &quot;error&quot;), ]</code>
+to read full details for warning and error rows. The checks cover
+optimizer, gradient, Hessian, standard-error, and random-effect boundary
+diagnostics where available. Investigate any warning or error before
+interpreting the coefficients. A clean diagnostic table does not
+establish that the SD coefficient is well identified in every design,
+and it does not assess repeated-sampling interval coverage.</p>
+<p>These are likelihood-based fits. <code>confint()</code> returns
+frequentist confidence intervals; it does not return Bayesian credible
+intervals. This guide shows point estimates and group-level predictions
+only. It makes no calibrated interval claim for these examples, so do
+not report nominal confidence interval coverage as established by
+running this vignette.</p>
+</div>
+<div id="scope-of-this-example" class="section level2">
+<h2>Scope of this example</h2>
+<p>The demonstrated non-Gaussian slice is limited to native TMB
+Bernoulli/binomial and ordinary Poisson models with one unlabelled
+random intercept and a group-constant predictor in
+<code>sd(group)</code>. It does not establish support for other
+distributions, random slopes, structured covariance providers, or the
+Julia engine. Native Bernoulli/binomial also has a narrow explicit
+selector form when a scalar intercept must be named:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">bf</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  y <span class="sc">~</span> x <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> p <span class="sc">|</span> group),</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">sd</span>(group, <span class="at">dpar =</span> <span class="st">&quot;mu&quot;</span>, <span class="at">coef =</span> <span class="st">&quot;(Intercept)&quot;</span>, <span class="at">block =</span> <span class="st">&quot;p&quot;</span>) <span class="sc">~</span> w</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>)</span></code></pre></div>
+<p>That selector names one ordinary mean intercept; it does not extend
+the example to random slopes or structured effects. For current
+family-by-family limits and new evidence, see <a href="capability-and-limits.html">What can I fit today?</a> and <a href="formula-grammar.html">the formula grammar</a>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+drmTMB-unused-dots: ............
+function-map-cheatsheet: ..............................................................................S
+reader-vignette-contracts: ....................................
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. article restores the audited map and original printable downloads ('test-function-map-cheatsheet.R:67:3') - Reason: printable function-map downloads NOT CHECKED -- missing drmTMB-function-map.pdf, drmTMB-function-cheatsheet.pdf, pkgdown/. pkgdown/ is stripped by .Rbuildignore, so a tarball check cannot see this gate; run it from a git checkout to verify the shipped PDFs.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+CLOSEOUT_INTEGRATION_PASS

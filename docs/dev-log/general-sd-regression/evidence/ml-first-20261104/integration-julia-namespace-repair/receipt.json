@@ -1,0 +1,39 @@
+{
+  "scope": "Test-only shared Julia namespace alias correction; not full quadrature qualification",
+  "julia_head": "1cd856f63fa8a2a62a2e181e00790a0d812fb8af",
+  "changed_path": "test/test_iid_sd_quadrature_accuracy.jl",
+  "before_test_sha256": "2e65f5a6ba96b056031a62dd41623694c7f80873c25f64f2e288e5696bcf3473",
+  "after_test_sha256": "73884b13e649c3bdab0f9b51bfdb08da72095dd089a96bcd78cedac059849d04",
+  "repair": "Remove const D=Distributions and qualify29dotted references; assertion/tolerance expressions unchanged",
+  "namespace_red": "Julia1.10 oldfile invalid redefinition of constant Main.D",
+  "namespace_green": {
+    "julia110": "3/3",
+    "julia113": "3/3",
+    "scope": "Actual repaired file loaded with Main.D alreadyDRModels; existing isolated exploratoryguard only; no fullquadraturefits"
+  },
+  "ast_check": "3/3 plus deliberate tolerance-change negative control",
+  "independent_review": "No blocker in alias correction; fullquadratureandnewCI acceptance not granted",
+  "unchanged": {
+    "julia_src": true,
+    "julia_Project": true,
+    "foreign_owned_test_binomial_sd_public": true
+  },
+  "prior_shard3": "Earlier stable PR shard3PASS is historical evidence; not evidence that this namespace repair caused that pass",
+  "external_scripts": [
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-namespace-repro.jl",
+      "sha256": "9ade524d15b7c12ed5f414573f4008477e7831a3b1f46ef4765011f3a2ac9a46"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-namespace-ast-check.jl",
+      "sha256": "a8385609fc92889579a515133f5eb912f9f05d6c099aad23aa65afd245a126ec"
+    }
+  ],
+  "ci_snapshot": {
+    "julia_ci_run": "41917279603 RUNNING",
+    "julia_docs_run": "41917279899 RUNNING",
+    "r_source_head": "6a1b35ea7afd97b96c64b0a68994b4b66b5d61ce",
+    "r_ci_run": "41910728363 RUNNING"
+  },
+  "limits": "No fullpackage/fullquadrature/CI/merge/main/calibration grant"
+}

@@ -1,0 +1,1118 @@
+status	path
+ M	LOOP/lanes/general-sd-regression/GOAL.md
+ M	LOOP/lanes/general-sd-regression/arcs.md
+ M	LOOP/lanes/general-sd-regression/checkpoint.md
+ M	LOOP/lanes/general-sd-regression/ultra-plan.md
+ M	NAMESPACE
+ M	NEWS.md
+ M	R/check.R
+ M	R/drmTMB.R
+ M	R/family-dpq.R
+ M	R/formula-markers.R
+ M	R/julia-bridge.R
+ M	R/julia-family-registry.R
+ M	R/methods.R
+ M	R/parse-formula.R
+ M	R/predict-parameters.R
+ M	R/profile.R
+ M	R/random-effect-scale-formulas.R
+ M	R/random-effect-targets.R
+ M	README.md
+ M	docs/design/01-formula-grammar.md
+ M	docs/design/02-family-registry.md
+ M	docs/design/03-likelihoods.md
+ M	docs/design/06-distribution-roadmap.md
+ M	docs/design/147-phase6c-nongaussian-mu-slope-ademp.md
+ M	docs/design/149-missing-data-design.md
+ M	docs/design/18-random-effect-scale-models.md
+ M	docs/design/34-validation-debt-register.md
+ M	docs/design/37-worked-example-inventory.md
+ M	docs/design/41-phase-18-simulation-programme.md
+ M	docs/design/45-cross-dpar-correlation-gate.md
+ M	docs/design/59-structural-slope-and-non-gaussian-map.md
+ M	docs/design/79-supported-nongaussian-evidence-goal.md
+ M	docs/design/capability-status.md
+ M	docs/dev-log/active-lane-split.md
+ M	docs/dev-log/check-log.md
+ M	docs/dev-log/dashboard/julia-gates.tsv
+ M	docs/dev-log/general-sd-regression/calibration-final-review.md
+ M	docs/dev-log/general-sd-regression/inventory.md
+ M	docs/dev-log/general-sd-regression/julia-output-contract.md
+ M	docs/dev-log/general-sd-regression/mechanism-templates.tsv
+ M	docs/dev-log/general-sd-regression/native-calibration-design.md
+ M	docs/dev-log/general-sd-regression/required-rows.tsv
+ M	docs/dev-log/general-sd-regression/required-universe.md
+ M	docs/dev-log/general-sd-regression/research-sources.tsv
+ M	docs/dev-log/general-sd-regression/research.md
+ M	docs/dev-log/general-sd-regression/staged-calibration-contract.md
+ M	docs/dev-log/general-sd-regression/target-contract.md
+ M	docs/dev-log/general-sd-regression/universe-contract.md
+ M	docs/dev-log/internal-roadmap.md
+ M	docs/dev-log/known-limitations.md
+ M	docs/dev-log/team-improvements.md
+ M	man/animal.Rd
+ M	man/associate_pairs.Rd
+ M	man/beta_binomial.Rd
+ M	man/biv_associate.Rd
+ M	man/biv_student.Rd
+ M	man/categorical.Rd
+ M	man/coevolution-accessors.Rd
+ M	man/confint.drmTMB.Rd
+ M	man/corpair.Rd
+ M	man/cumulative_logit.Rd
+ M	man/drmTMB-package.Rd
+ M	man/drmTMB-parallel.Rd
+ M	man/drmTMB.Rd
+ M	man/drm_control.Rd
+ M	man/drm_family_dpq.Rd
+ M	man/drm_provenance.Rd
+ M	man/drm_quantile_residuals.Rd
+ M	man/exceedance.Rd
+ M	man/fitted_distribution.Rd
+ M	man/heritability.Rd
+ M	man/is_converged.Rd
+ M	man/lognormal.Rd
+ M	man/miss_control.Rd
+ M	man/nbinom2.Rd
+ M	man/phylo_interaction.Rd
+ M	man/predict.drmTMB.Rd
+ M	man/predict_parameters.Rd
+ M	man/profile.drmTMB.Rd
+ M	man/qq_plot.Rd
+ M	man/random_effect_scale_formulas.Rd
+ M	man/relmat.Rd
+ M	man/residuals.drmTMB.Rd
+ M	man/simulate.drmTMB.Rd
+ M	man/spatial.Rd
+ M	man/structured_effects.Rd
+ M	man/student.Rd
+ M	man/summary.drmTMB.Rd
+ M	man/truncated_nbinom2.Rd
+ M	man/worm_plot.Rd
+ M	man/zero_one_beta.Rd
+ M	src/drmTMB.cpp
+ M	tests/testthat/helper-binomial-sd-regression.R
+ M	tests/testthat/test-beta-binomial.R
+ M	tests/testthat/test-beta-location-scale.R
+ M	tests/testthat/test-beta-phylo-direct-sd.R
+ M	tests/testthat/test-binomial-sd-integration.R
+ M	tests/testthat/test-binomial-sd-profile.R
+ M	tests/testthat/test-binomial-sd-simulation.R
+ M	tests/testthat/test-binomial-sd-target-selectors.R
+ M	tests/testthat/test-gamma-location-scale.R
+ M	tests/testthat/test-gaussian-random-effect-scale.R
+ M	tests/testthat/test-hurdle-nbinom2.R
+ M	tests/testthat/test-julia-bridge.R
+ M	tests/testthat/test-julia-family-beta_binomial.R
+ M	tests/testthat/test-julia-family-cumulative_logit.R
+ M	tests/testthat/test-julia-marker-slope-guard.R
+ M	tests/testthat/test-julia-module-compat.R
+ M	tests/testthat/test-julia-structured.R
+ M	tests/testthat/test-lognormal-location-scale.R
+ M	tests/testthat/test-lognormal-ordinary-correlated-q2.R
+ M	tests/testthat/test-nbinom2-location-scale.R
+ M	tests/testthat/test-nbinom2-ordinary-correlated-q2.R
+ M	tests/testthat/test-nbinom2-sigma-structured-recovery.R
+ M	tests/testthat/test-parse-formula.R
+ M	tests/testthat/test-poisson-mean.R
+ M	tests/testthat/test-poisson-sd-assembly.R
+ M	tests/testthat/test-positive-continuous-structured-mu.R
+ M	tests/testthat/test-random-effect-targets.R
+ M	tests/testthat/test-sd-level-grammar.R
+ M	tests/testthat/test-student-location-scale.R
+ M	tests/testthat/test-tweedie-location-scale.R
+ M	tests/testthat/test-zi-nbinom2.R
+ M	tests/testthat/test-zi-poisson.R
+ M	tools/general-sd-regression/native-calibration/self-test.py
+ M	tools/general-sd-regression/native-calibration/staged-decision.R
+ M	tools/general-sd-regression/native-calibration/summarize.R
+ M	tools/general-sd-regression/native-calibration/test-staged-decision.R
+ M	tools/general-sd-regression/run-native-tests.R
+ M	tools/general-sd-regression/tests/test_universe.py
+ M	tools/general-sd-regression/universe.py
+ M	vignettes/count-nbinom2.Rmd
+ M	vignettes/distribution-families.Rmd
+ M	vignettes/formula-grammar.Rmd
+ M	vignettes/implementation-map.Rmd
+ M	vignettes/julia-engine.Rmd
+ M	vignettes/location-scale-scale.Rmd
+ M	vignettes/model-map.Rmd
+ M	vignettes/predictor-dependent-random-sd.Rmd
+ M	vignettes/spatial-models.Rmd
+ M	vignettes/structural-dependence.Rmd
+ M	vignettes/which-scale.Rmd
+??	:memory:.ses
+??	LOOP/lanes/general-sd-regression/checkpoints/
+??	LOOP/lanes/general-sd-regression/ultra-plan.assessment.json
+??	R/julia-simulate.R
+??	docs/dev-log/after-task/2026-10-17-general-sd-first-look-integrity.md
+??	docs/dev-log/after-task/2026-10-17-general-sd-lognormal-marginal-sim-checkpoint.md
+??	docs/dev-log/after-task/2026-10-17-julia-bernoulli-sd-inference-routing.md
+??	docs/dev-log/after-task/2026-10-17-stage-two-hash-map-repair.md
+??	docs/dev-log/after-task/2026-10-18-bernoulli-correlated-q2-cross-engine-review-repair.md
+??	docs/dev-log/after-task/2026-10-18-bernoulli-intercept-cross-engine-check.md
+??	docs/dev-log/after-task/2026-10-18-bernoulli-slope-cross-engine-check.md
+??	docs/dev-log/after-task/2026-10-18-beta-independent-slope-sd.md
+??	docs/dev-log/after-task/2026-10-18-binomial-same-group-coefficient-sd.md
+??	docs/dev-log/after-task/2026-10-18-gamma-independent-slope-sd.md
+??	docs/dev-log/after-task/2026-10-18-general-sd-adapter-seal.md
+??	docs/dev-log/after-task/2026-10-18-julia-bernoulli-two-target-bridge.md
+??	docs/dev-log/after-task/2026-10-18-julia-beta-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-18-julia-selected-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-18-lognormal-intercept-gate-reverification.md
+??	docs/dev-log/after-task/2026-10-18-native-student-slope-sd.md
+??	docs/dev-log/after-task/2026-10-18-nbinom2-independent-slope-sd.md
+??	docs/dev-log/after-task/2026-10-18-poisson-julia-slope-bridge.md
+??	docs/dev-log/after-task/2026-10-18-sd-clamp-report-consistency.md
+??	docs/dev-log/after-task/2026-10-18-stage-two-nonqualifying-combiner-status.md
+??	docs/dev-log/after-task/2026-10-18-student-sd-oracle-reverification.md
+??	docs/dev-log/after-task/2026-10-18-student-sd-oracle.md
+??	docs/dev-log/after-task/2026-10-18-student-slope-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-calibration-contract-reconciliation.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-calibration-contract-review.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-corrected-first-look.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-corrected-first-look.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-partial-target-oracle.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-phylo-calibration-pilot.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-phylo-sd-simulation.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-phylo-sd-verification.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-phylo-sd-verification.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-phylo-sim-covariance-oracle.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-pilot-qualification.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-profile-level-guard.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-profile-level-guard.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-profile-range-0975.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-profile-range-0975.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-q2-nonlogit-links.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-q2-nonlogit-links.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-q2-same-data-parity.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-sd-first-look-calibration.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-sd-first-look-calibration.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-sd-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-timing-capsule.assessment.json
+??	docs/dev-log/after-task/2026-10-19-bernoulli-timing-capsule.md
+??	docs/dev-log/after-task/2026-10-19-bernoulli-timing-pre-run.md
+??	docs/dev-log/after-task/2026-10-19-campaign-oc-conditional-reporting.assessment.json
+??	docs/dev-log/after-task/2026-10-19-campaign-oc-conditional-reporting.md
+??	docs/dev-log/after-task/2026-10-19-campaign-oc-harness.md
+??	docs/dev-log/after-task/2026-10-19-clean-current-look2-preflight.md
+??	docs/dev-log/after-task/2026-10-19-current-source-timing-pre-run.assessment.json
+??	docs/dev-log/after-task/2026-10-19-current-source-timing-pre-run.md
+??	docs/dev-log/after-task/2026-10-19-first-look-replay-contract-correction.md
+??	docs/dev-log/after-task/2026-10-19-general-sd-calibration-contract-review.md
+??	docs/dev-log/after-task/2026-10-19-julia-bernoulli-slope-only-bootstrap-verification.md
+??	docs/dev-log/after-task/2026-10-19-julia-binomial-phylo-predict-parameters.md
+??	docs/dev-log/after-task/2026-10-19-julia-binomial-phylo-sd-live-bridge.assessment-v2.json
+??	docs/dev-log/after-task/2026-10-19-julia-binomial-phylo-sd-live-bridge.assessment.json
+??	docs/dev-log/after-task/2026-10-19-julia-binomial-phylo-sd-live-bridge.md
+??	docs/dev-log/after-task/2026-10-19-julia-sd-candidate-availability.md
+??	docs/dev-log/after-task/2026-10-19-native-bernoulli-sd-slice.md
+??	docs/dev-log/after-task/2026-10-19-poisson-phylo-sd-extraction.md
+??	docs/dev-log/after-task/2026-10-19-stage-two-current-source-review.md
+??	docs/dev-log/after-task/2026-10-19-stage-two-profile-level-correction.md
+??	docs/dev-log/after-task/2026-10-19-staged-bias-diagnostics-decision.assessment.json
+??	docs/dev-log/after-task/2026-10-19-staged-bias-diagnostics-decision.md
+??	docs/dev-log/after-task/2026-10-19-staged-calibration-status-reconciliation.md
+??	docs/dev-log/after-task/2026-10-19-structured-sd-target-resolution.md
+??	docs/dev-log/after-task/2026-10-19-v4-source-tarball-local-smoke.md
+??	docs/dev-log/after-task/2026-10-19-zi-nbinom2-sd-route-verification.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-identifiability-review.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-local-route-verification.assessment.json
+??	docs/dev-log/after-task/2026-10-20-bernoulli-local-route-verification.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-ordinary-phylo-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-20-bernoulli-ordinary-phylo-sd.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-phylo-interval-diagnostics.assessment.json
+??	docs/dev-log/after-task/2026-10-20-bernoulli-phylo-interval-diagnostics.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-phylo-sd-interval-smoke.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-relmat-sd.md
+??	docs/dev-log/after-task/2026-10-20-bernoulli-sd-formula-design.assessment.json
+??	docs/dev-log/after-task/2026-10-20-bernoulli-sd-formula-design.md
+??	docs/dev-log/after-task/2026-10-20-beta-animal-matrix-sd.md
+??	docs/dev-log/after-task/2026-10-20-beta-animal-pedigree-sd.md
+??	docs/dev-log/after-task/2026-10-20-beta-binomial-animal-matrix-sd.md
+??	docs/dev-log/after-task/2026-10-20-beta-binomial-animal-sd.md
+??	docs/dev-log/after-task/2026-10-20-beta-binomial-sd-slope.assessment.json
+??	docs/dev-log/after-task/2026-10-20-beta-binomial-sd-slope.md
+??	docs/dev-log/after-task/2026-10-20-binomial-animal-ainv-sd.md
+??	docs/dev-log/after-task/2026-10-20-binomial-animal-pedigree-sd.md
+??	docs/dev-log/after-task/2026-10-20-binomial-animal-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-binomial-relmat-sd-verification.md
+??	docs/dev-log/after-task/2026-10-20-clean-current-adapter-case-map.md
+??	docs/dev-log/after-task/2026-10-20-clean-current-adapter-qualification.assessment.json
+??	docs/dev-log/after-task/2026-10-20-clean-current-adapter-qualification.md
+??	docs/dev-log/after-task/2026-10-20-clean-current-adapter-source-mode.md
+??	docs/dev-log/after-task/2026-10-20-clean-current-first-look-manifest-validator.md
+??	docs/dev-log/after-task/2026-10-20-clean-current-stage-two-mode-adapter.md
+??	docs/dev-log/after-task/2026-10-20-clean-current-worker-receipt.md
+??	docs/dev-log/after-task/2026-10-20-cumulative-logit-sd-slope.assessment.json
+??	docs/dev-log/after-task/2026-10-20-cumulative-logit-sd-slope.md
+??	docs/dev-log/after-task/2026-10-20-dhglm-prior-art-review.assessment.json
+??	docs/dev-log/after-task/2026-10-20-dhglm-prior-art-review.md
+??	docs/dev-log/after-task/2026-10-20-exact-v4-timing-pre-run.assessment.json
+??	docs/dev-log/after-task/2026-10-20-exact-v4-timing-pre-run.md
+??	docs/dev-log/after-task/2026-10-20-gamma-animal-pedigree-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-gamma-phylo-sd-evidence.md
+??	docs/dev-log/after-task/2026-10-20-gamma-relmat-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-gamma-spatial-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-gaussian-animal-pedigree-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-20-gaussian-animal-pedigree-sd.md
+??	docs/dev-log/after-task/2026-10-20-gaussian-animal-sd-regression.assessment.json
+??	docs/dev-log/after-task/2026-10-20-gaussian-animal-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-general-sd-finish-line-revision.md
+??	docs/dev-log/after-task/2026-10-20-general-sd-implementation-first-sequencing.assessment.json
+??	docs/dev-log/after-task/2026-10-20-general-sd-implementation-first-sequencing.md
+??	docs/dev-log/after-task/2026-10-20-general-sd-julia-poisson-smoke.assessment.json
+??	docs/dev-log/after-task/2026-10-20-general-sd-julia-poisson-smoke.md
+??	docs/dev-log/after-task/2026-10-20-julia-binomial-sd-current-source-rerun.assessment.json
+??	docs/dev-log/after-task/2026-10-20-julia-binomial-sd-current-source-rerun.md
+??	docs/dev-log/after-task/2026-10-20-julia-binomial-sd-source-bound-rerun-v2.md
+??	docs/dev-log/after-task/2026-10-20-julia-binomial-sd-source-bound-rerun-v3.md
+??	docs/dev-log/after-task/2026-10-20-julia-binomial-sd-source-bound-rerun-v4.md
+??	docs/dev-log/after-task/2026-10-20-julia-gamma-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-julia-phylo-sd-roundtrip.md
+??	docs/dev-log/after-task/2026-10-20-native-beta-binomial-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-native-beta-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-native-gamma-nb2-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-native-ordinal-tweedie-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-native-poisson-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-native-sd-rerun-notebook-review.md
+??	docs/dev-log/after-task/2026-10-20-native-student-sd-smoke.md
+??	docs/dev-log/after-task/2026-10-20-native-zero-one-beta-truncated-nb2-smoke.md
+??	docs/dev-log/after-task/2026-10-20-nbinom2-sd-vcov.md
+??	docs/dev-log/after-task/2026-10-20-notebooklm-latent-sd-methods.assessment.json
+??	docs/dev-log/after-task/2026-10-20-notebooklm-latent-sd-methods.md
+??	docs/dev-log/after-task/2026-10-20-notebooklm-methods-review.assessment.json
+??	docs/dev-log/after-task/2026-10-20-notebooklm-methods-review.md
+??	docs/dev-log/after-task/2026-10-20-poisson-animal-ainv-sd-evidence.md
+??	docs/dev-log/after-task/2026-10-20-poisson-animal-pedigree-sd-evidence.md
+??	docs/dev-log/after-task/2026-10-20-poisson-animal-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-poisson-relmat-sd-regression.md
+??	docs/dev-log/after-task/2026-10-20-sd-methods-gate-reconciliation.assessment.json
+??	docs/dev-log/after-task/2026-10-20-sd-methods-gate-reconciliation.md
+??	docs/dev-log/after-task/2026-10-20-sd-target-metadata-tests.assessment.json
+??	docs/dev-log/after-task/2026-10-20-sd-target-metadata-tests.md
+??	docs/dev-log/after-task/2026-10-20-skew-normal-slope-sd.md
+??	docs/dev-log/after-task/2026-10-20-structured-sd-clamp-report.md
+??	docs/dev-log/after-task/2026-10-20-structured-sd-target-resolver.assessment.json
+??	docs/dev-log/after-task/2026-10-20-structured-sd-target-resolver.md
+??	docs/dev-log/after-task/2026-10-20-student-phylo-sd-selector-guard.md
+??	docs/dev-log/after-task/2026-10-20-student-sd-builder-fix.assessment.json
+??	docs/dev-log/after-task/2026-10-20-student-sd-builder-fix.md
+??	docs/dev-log/after-task/2026-10-20-tweedie-sd-slope.md
+??	docs/dev-log/after-task/2026-10-20-zero-one-beta-sd-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-21-bernoulli-bridge-test-audit.md
+??	docs/dev-log/after-task/2026-10-21-beta-ordinary-sd-recovery.md
+??	docs/dev-log/after-task/2026-10-21-binomial-animal-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-21-binomial-animal-slope-sd.md
+??	docs/dev-log/after-task/2026-10-21-binomial-relmat-precision-sd.md
+??	docs/dev-log/after-task/2026-10-21-direct-sd-evidence-overlay.md
+??	docs/dev-log/after-task/2026-10-21-focused-regression-repairs.md
+??	docs/dev-log/after-task/2026-10-21-gamma-animal-slope-sd.md
+??	docs/dev-log/after-task/2026-10-21-gamma-sigma-sd-regression.md
+??	docs/dev-log/after-task/2026-10-21-hurdle-nbinom2-sd-regression.md
+??	docs/dev-log/after-task/2026-10-21-hurdle-nbinom2-slope-sd-regression.md
+??	docs/dev-log/after-task/2026-10-21-julia-binomial-animal-slope-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-21-julia-binomial-relmat-sd-parity.md
+??	docs/dev-log/after-task/2026-10-21-julia-zeroonebeta-sd-slope-bridge.md
+??	docs/dev-log/after-task/2026-10-21-native-binomial-animal-slope-output.md
+??	docs/dev-log/after-task/2026-10-21-native-lognormal-slope-sd-regression.assessment.json
+??	docs/dev-log/after-task/2026-10-21-native-lognormal-slope-sd-regression.md
+??	docs/dev-log/after-task/2026-10-21-native-zip-mu-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-21-native-zip-mu-slope-sd.md
+??	docs/dev-log/after-task/2026-10-21-nbinom2-animal-sd.md
+??	docs/dev-log/after-task/2026-10-21-nbinom2-animal-slope-sd.md
+??	docs/dev-log/after-task/2026-10-21-sd-evidence-expansion-wave2.md
+??	docs/dev-log/after-task/2026-10-21-sd-evidence-expansion.md
+??	docs/dev-log/after-task/2026-10-21-structured-sd-silent-drop-guard.md
+??	docs/dev-log/after-task/2026-10-21-truncated-nbinom2-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-21-truncated-nbinom2-slope-sd.md
+??	docs/dev-log/after-task/2026-10-21-zero-one-beta-sd-slope.assessment.json
+??	docs/dev-log/after-task/2026-10-21-zero-one-beta-sd-slope.md
+??	docs/dev-log/after-task/2026-10-21-zi-nbinom2-independent-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-21-zi-nbinom2-independent-slope-sd.md
+??	docs/dev-log/after-task/2026-10-22-bernoulli-slope-sd-rerun.md
+??	docs/dev-log/after-task/2026-10-22-fixef-julia-s3-registration.md
+??	docs/dev-log/after-task/2026-10-22-gamma-animal-slope-cross-engine-parity.md
+??	docs/dev-log/after-task/2026-10-22-gamma-phylo-point-parity-isolated.md
+??	docs/dev-log/after-task/2026-10-22-gamma-phylo-sd-julia-point-parity.assessment.json
+??	docs/dev-log/after-task/2026-10-22-gamma-phylo-sd-julia-point-parity.md
+??	docs/dev-log/after-task/2026-10-22-gamma-spatial-shared-k-parity.md
+??	docs/dev-log/after-task/2026-10-22-julia-gamma-animal-sd-bridge-parity.md
+??	docs/dev-log/after-task/2026-10-22-julia-lognormal-sd-bridge-evidence.md
+??	docs/dev-log/after-task/2026-10-22-julia-zeroonebeta-sd-evidence.md
+??	docs/dev-log/after-task/2026-10-22-live-julia-bernoulli-parity-rerun.md
+??	docs/dev-log/after-task/2026-10-22-lognormal-sigma-bootstrap-workflow.md
+??	docs/dev-log/after-task/2026-10-22-lognormal-sigma-sd-validation.assessment.json
+??	docs/dev-log/after-task/2026-10-22-lognormal-sigma-sd-validation.md
+??	docs/dev-log/after-task/2026-10-22-native-family-map-reconciliation.md
+??	docs/dev-log/after-task/2026-10-22-nb2-animal-sd-cross-engine-bridge.md
+??	docs/dev-log/after-task/2026-10-22-nbinom2-animal-A-direct-sd.md
+??	docs/dev-log/after-task/2026-10-22-poisson-animal-slope-julia-bridge-parity.md
+??	docs/dev-log/after-task/2026-10-22-poisson-animal-slope-sd.md
+??	docs/dev-log/after-task/2026-10-22-sd-evidence-count-clarity.md
+??	docs/dev-log/after-task/2026-10-22-stage-two-adapter-seed-independence.md
+??	docs/dev-log/after-task/2026-10-22-stage-two-combine-fixture.md
+??	docs/dev-log/after-task/2026-10-22-student-sd-target-guard.md
+??	docs/dev-log/after-task/2026-10-22-tweedie-julia-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-22-tweedie-relmat-sd-regression.md
+??	docs/dev-log/after-task/2026-10-22-zeroonebeta-sd-marginal-simulation.assessment.json
+??	docs/dev-log/after-task/2026-10-22-zeroonebeta-sd-marginal-simulation.md
+??	docs/dev-log/after-task/2026-10-23-bernoulli-crossed-julia-sd-output-parity.assessment.json
+??	docs/dev-log/after-task/2026-10-23-bernoulli-crossed-julia-sd-output-parity.md
+??	docs/dev-log/after-task/2026-10-23-binomial-animal-slope-provider-equivalence.md
+??	docs/dev-log/after-task/2026-10-23-cross-engine-animal-sd-parity.md
+??	docs/dev-log/after-task/2026-10-23-gamma-animal-q2-sd.md
+??	docs/dev-log/after-task/2026-10-23-gamma-animal-sd-likelihood-runtime-check.md
+??	docs/dev-log/after-task/2026-10-23-gamma-animal-slope-current-source-parity.md
+??	docs/dev-log/after-task/2026-10-23-gamma-phylo-nonunit-current-source.md
+??	docs/dev-log/after-task/2026-10-23-gamma-phylo-nonunit-parity.md
+??	docs/dev-log/after-task/2026-10-23-general-sd-evidence-count-refresh.md
+??	docs/dev-log/after-task/2026-10-23-julia-binomial-animal-ainv-sd-parity.md
+??	docs/dev-log/after-task/2026-10-23-julia-binomial-relmat-save-reload.md
+??	docs/dev-log/after-task/2026-10-23-julia-binomial-relmat-sd-simulation-oracle.md
+??	docs/dev-log/after-task/2026-10-23-julia-cumulative-logit-sd-evidence.assessment.json
+??	docs/dev-log/after-task/2026-10-23-julia-cumulative-logit-sd-evidence.md
+??	docs/dev-log/after-task/2026-10-23-julia-nb2-animal-ainv-evidence.assessment.json
+??	docs/dev-log/after-task/2026-10-23-julia-nb2-animal-ainv-evidence.md
+??	docs/dev-log/after-task/2026-10-23-julia-simulator-workflow-evidence.assessment.json
+??	docs/dev-log/after-task/2026-10-23-julia-simulator-workflow-evidence.md
+??	docs/dev-log/after-task/2026-10-23-julia-tweedie-relmat-save-reload.md
+??	docs/dev-log/after-task/2026-10-23-julia-tweedie-relmat-sd-parity.md
+??	docs/dev-log/after-task/2026-10-23-native-gamma-animal-q2-sd-verification.md
+??	docs/dev-log/after-task/2026-10-23-poisson-animal-ainv-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-23-source-bound-bernoulli-timing.md
+??	docs/dev-log/after-task/2026-10-23-tweedie-relmat-bridge-source-recheck.md
+??	docs/dev-log/after-task/2026-10-23-tweedie-relmat-tmb-julia-current-source-parity-rerun.md
+??	docs/dev-log/after-task/2026-10-24-bernoulli-ledger-receipt-refresh.md
+??	docs/dev-log/after-task/2026-10-24-beta-binomial-sigma-sd-cross-engine-oracle.assessment.json
+??	docs/dev-log/after-task/2026-10-24-beta-binomial-sigma-sd-cross-engine-oracle.md
+??	docs/dev-log/after-task/2026-10-24-beta-binomial-sigma-sd-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-24-beta-binomial-sigma-sd-regression.md
+??	docs/dev-log/after-task/2026-10-24-binomial-animal-iid-independent-laplace-oracle.md
+??	docs/dev-log/after-task/2026-10-24-binomial-animal-iid-sd-recovery-design.md
+??	docs/dev-log/after-task/2026-10-24-gamma-animal-kernel-simulation-correction.assessment.json
+??	docs/dev-log/after-task/2026-10-24-gamma-animal-kernel-simulation-correction.md
+??	docs/dev-log/after-task/2026-10-24-gamma-animal-nonunit-kernel-simulation.md
+??	docs/dev-log/after-task/2026-10-24-gamma-animal-q2-cross-engine-sd.md
+??	docs/dev-log/after-task/2026-10-24-gamma-animal-raw-kernel-parity.md
+??	docs/dev-log/after-task/2026-10-24-gaussian-ordinary-sd-parity.md
+??	docs/dev-log/after-task/2026-10-24-gaussian-random-slope-sd.md
+??	docs/dev-log/after-task/2026-10-24-general-sd-coverage-deferral.md
+??	docs/dev-log/after-task/2026-10-24-inactive-sigma-sd-rank-check.md
+??	docs/dev-log/after-task/2026-10-24-julia-beta-binomial-ordinary-sd-parity.md
+??	docs/dev-log/after-task/2026-10-24-julia-beta-ordinary-sd-bridge-label-fix.md
+??	docs/dev-log/after-task/2026-10-24-julia-binomial-animal-ainv-slope-sd-evidence.md
+??	docs/dev-log/after-task/2026-10-24-julia-binomial-animal-iid-sd-marginal-simulation.md
+??	docs/dev-log/after-task/2026-10-24-julia-binomial-nonlogit-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-24-julia-binomial-nonlogit-sd-ledger-registration.md
+??	docs/dev-log/after-task/2026-10-24-julia-binomial-nonlogit-slope-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-24-julia-binomial-sd-live-parity-rerun.md
+??	docs/dev-log/after-task/2026-10-24-julia-cumulative-logit-sd-bridge-parity.md
+??	docs/dev-log/after-task/2026-10-24-julia-cumulative-logit-sd-intercept-bridge.md
+??	docs/dev-log/after-task/2026-10-24-julia-gamma-animal-simulation-routes.assessment.json
+??	docs/dev-log/after-task/2026-10-24-julia-gamma-animal-simulation-routes.md
+??	docs/dev-log/after-task/2026-10-24-julia-poisson-animal-slope-raw-a-evidence.md
+??	docs/dev-log/after-task/2026-10-24-julia-tweedie-relmat-cross-engine-sd.md
+??	docs/dev-log/after-task/2026-10-24-nbinom2-sigma-sd-regression.md
+??	docs/dev-log/after-task/2026-10-24-poisson-animal-ainv-error-message-test.md
+??	docs/dev-log/after-task/2026-10-24-poisson-zi-sd-cross-engine-evidence.md
+??	docs/dev-log/after-task/2026-10-24-poisson-zi-slope-cross-engine.md
+??	docs/dev-log/after-task/2026-10-25-beta-binomial-sigma-slope-cross-engine.md
+??	docs/dev-log/after-task/2026-10-25-binomial-correlated-nonlogit-q2-fixture-repair.assessment.json
+??	docs/dev-log/after-task/2026-10-25-binomial-correlated-nonlogit-q2-fixture-repair.md
+??	docs/dev-log/after-task/2026-10-25-binomial-nonlogit-structured-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-cumulative-logit-selected-sd-target-bridge-fix.md
+??	docs/dev-log/after-task/2026-10-25-gamma-sigma-slope-sd.md
+??	docs/dev-log/after-task/2026-10-25-gaussian-sigma-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-25-gaussian-sigma-slope-sd.md
+??	docs/dev-log/after-task/2026-10-25-hurdle-nbinom2-sd-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-binomial-nonlogit-intercept-slope-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-gamma-sigma-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-gamma-sigma-slope-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-gaussian-slope-sd-bridge-label-fix.assessment.json
+??	docs/dev-log/after-task/2026-10-25-julia-gaussian-slope-sd-bridge-label-fix.md
+??	docs/dev-log/after-task/2026-10-25-julia-probit-phylo-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-skewnormal-sd-bridge.assessment.json
+??	docs/dev-log/after-task/2026-10-25-julia-skewnormal-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-truncated-nbinom2-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-julia-truncated-nbinom2-sd-bridge.md.assessment.json
+??	docs/dev-log/after-task/2026-10-25-julia-zi-nbinom2-sigma-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-25-lognormal-sigma-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-25-lognormal-sigma-slope-sd.md
+??	docs/dev-log/after-task/2026-10-25-native-binomial-probit-phylo-sd-check.md
+??	docs/dev-log/after-task/2026-10-25-nbinom2-sigma-slope-sd.assessment.json
+??	docs/dev-log/after-task/2026-10-25-nbinom2-sigma-slope-sd.md
+??	docs/dev-log/after-task/2026-10-25-student-sd-nb2-review.md
+??	docs/dev-log/after-task/2026-10-25-zi-nbinom2-sigma-sd.md
+??	docs/dev-log/after-task/2026-10-26-binomial-animal-ainv-nonlogit-bridge.md
+??	docs/dev-log/after-task/2026-10-26-binomial-animal-iid-nonlogit-bridge.md
+??	docs/dev-log/after-task/2026-10-26-binomial-animal-slope-iid-sd.md
+??	docs/dev-log/after-task/2026-10-26-binomial-nonlogit-animal-intercept-bridge.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-cloglog-phylo-bridge.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-correlated-q3-sd-bridge-bound.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-correlated-q3-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-nonlogit-correlated-q2-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-nonlogit-sd-bridge-rerun.assessment.json
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-nonlogit-sd-bridge-rerun.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-phylo-prediction-order.assessment-v1.json
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-phylo-prediction-order.assessment-v2.json
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-phylo-prediction-order.md
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-probit-phylo-bridge.assessment.json
+??	docs/dev-log/after-task/2026-10-26-julia-binomial-probit-phylo-bridge.md
+??	docs/dev-log/after-task/2026-10-26-native-binomial-phylo-sd-test-strength.assessment.json
+??	docs/dev-log/after-task/2026-10-26-native-binomial-phylo-sd-test-strength.md
+??	docs/dev-log/after-task/2026-10-26-native-cloglog-phylo-sd.md
+??	docs/dev-log/after-task/2026-10-27-bernoulli-spatial-sd-regression.assessment.md
+??	docs/dev-log/after-task/2026-10-27-bernoulli-spatial-sd-regression.md
+??	docs/dev-log/after-task/2026-10-27-binomial-animal-slope-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-27-binomial-correlated-block-q2.md
+??	docs/dev-log/after-task/2026-10-27-binomial-correlated-nonlogit-bridge.md
+??	docs/dev-log/after-task/2026-10-27-binomial-nonlogit-animal-iid-sd.md
+??	docs/dev-log/after-task/2026-10-27-binomial-nonlogit-ordinary-slope-sd.md
+??	docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-sd-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-sd.md
+??	docs/dev-log/after-task/2026-10-27-binomial-phylo-interaction-slope-sd.md
+??	docs/dev-log/after-task/2026-10-27-binomial-phylo-slope-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-27-binomial-relmat-slope-sd-bridge.md
+??	docs/dev-log/after-task/2026-10-27-binomial-spatial-sd-julia-bridge.md
+??	docs/dev-log/after-task/2026-10-27-binomial-spatial-sd-slope.md
+??	docs/dev-log/after-task/2026-10-27-julia-binomial-nonlogit-animal-sd.md
+??	docs/dev-log/after-task/2026-10-27-julia-binomial-phylo-interaction-nonlogit-recovery.assessment.json
+??	docs/dev-log/after-task/2026-10-27-julia-binomial-phylo-interaction-nonlogit-recovery.md
+??	docs/dev-log/after-task/2026-10-27-julia-binomial-phylo-slope-sd-roundtrip.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-ainv-relmat-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-intercept-iid-kernels.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-pedigree-relmat-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-relmat-kernel-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-relmat-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-relmat-q-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-relmat-q-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-animal-spatial-nonlogit-pair-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-correlated-q4-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-crossed-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-iid-relmat-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-mesh-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-mesh-slope-links.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-mesh-slope-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-nonlogit-mesh-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-nonlogit-phylo-interaction-slope.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-ordinary-animal-kernel-equivalence-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-ordinary-phylo-logit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-ordinary-phylo-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-animal-ainv-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-animal-pedigree-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-animal-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-relmat-links.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-relmat-q-nonlogit-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-relmat-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-phylo-spatial-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-binomial-structured-pair-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-lognormal-correlated-q2-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-nbinom2-correlated-q2-sd.md
+??	docs/dev-log/after-task/2026-10-27-native-poisson-correlated-q2-sd.md
+??	docs/dev-log/after-task/2026-10-27-nbinom2-phylogenetic-sd-regression.md
+??	docs/dev-log/after-task/2026-10-28-native-binomial-correlated-q3-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-18-bernoulli-correlated-q2-review-repair.md
+??	docs/dev-log/check-log.d/2026-10-18-beta-independent-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-18-gamma-independent-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-18-julia-bernoulli-two-target-bridge.md
+??	docs/dev-log/check-log.d/2026-10-18-julia-beta-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-18-julia-poisson-slope-sd-parity.md
+??	docs/dev-log/check-log.d/2026-10-18-julia-selected-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-18-lognormal-intercept-gate-reverification.md
+??	docs/dev-log/check-log.d/2026-10-18-lognormal-runner-marker-correction.md
+??	docs/dev-log/check-log.d/2026-10-18-native-student-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-18-nbinom2-independent-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-18-sd-clamp-report-consistency.md
+??	docs/dev-log/check-log.d/2026-10-18-student-sd-oracle-reverification.md
+??	docs/dev-log/check-log.d/2026-10-18-student-sd-oracle.md
+??	docs/dev-log/check-log.d/2026-10-18-student-slope-julia-bridge.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-phylo-calibration-pilot.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-phylo-sim-covariance-oracle.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-pilot-qualification.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-profile-range-0975.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-q2-nonlogit-links.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-timing-capsule.md
+??	docs/dev-log/check-log.d/2026-10-19-bernoulli-timing-pre-run.md
+??	docs/dev-log/check-log.d/2026-10-19-first-look-replay-contract-correction.md
+??	docs/dev-log/check-log.d/2026-10-19-julia-binomial-q2-correlation-inference.md
+??	docs/dev-log/check-log.d/2026-10-19-julia-sd-candidate-availability.md
+??	docs/dev-log/check-log.d/2026-10-19-stage-two-current-source-review.md
+??	docs/dev-log/check-log.d/2026-10-19-structured-sd-target-resolution.md
+??	docs/dev-log/check-log.d/2026-10-19-zi-nbinom2-sd-route-verification.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-identifiability-review.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-local-route-verification.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-ordinary-phylo-sd.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-phylo-interval-diagnostics.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-phylo-sd-interval-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-phylo-sd-live-julia.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-profile-path-equivalence.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-sd-formula-design.md
+??	docs/dev-log/check-log.d/2026-10-20-bernoulli-timing-pre-run-current-source.md
+??	docs/dev-log/check-log.d/2026-10-20-beta-binomial-sd-slope.md
+??	docs/dev-log/check-log.d/2026-10-20-beta-slope-oracle.md
+??	docs/dev-log/check-log.d/2026-10-20-binomial-animal-pedigree-sd.md
+??	docs/dev-log/check-log.d/2026-10-20-binomial-animal-sd.md
+??	docs/dev-log/check-log.d/2026-10-20-binomial-relmat-sd-verification.md
+??	docs/dev-log/check-log.d/2026-10-20-clean-current-adapter-case-map.md
+??	docs/dev-log/check-log.d/2026-10-20-clean-current-adapter-qualification.md
+??	docs/dev-log/check-log.d/2026-10-20-clean-current-adapter-source-mode.md
+??	docs/dev-log/check-log.d/2026-10-20-clean-current-stage-two-adapter.md
+??	docs/dev-log/check-log.d/2026-10-20-clean-current-worker-receipt.md
+??	docs/dev-log/check-log.d/2026-10-20-cumulative-logit-sd-slope.md
+??	docs/dev-log/check-log.d/2026-10-20-exact-v4-timing-pre-run.md
+??	docs/dev-log/check-log.d/2026-10-20-general-sd-implementation-first-sequencing.assessment.json
+??	docs/dev-log/check-log.d/2026-10-20-general-sd-implementation-first-sequencing.md
+??	docs/dev-log/check-log.d/2026-10-20-general-sd-julia-poisson-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-independent-oracle-runs.md
+??	docs/dev-log/check-log.d/2026-10-20-julia-binomial-sd-current-source-rerun.md
+??	docs/dev-log/check-log.d/2026-10-20-julia-binomial-sd-source-bound-rerun-v2.md
+??	docs/dev-log/check-log.d/2026-10-20-julia-binomial-sd-source-bound-rerun-v3.md
+??	docs/dev-log/check-log.d/2026-10-20-julia-binomial-sd-source-bound-rerun-v4.md
+??	docs/dev-log/check-log.d/2026-10-20-julia-gamma-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-julia-phylo-sd-roundtrip.md
+??	docs/dev-log/check-log.d/2026-10-20-native-beta-binomial-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-native-beta-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-native-gamma-nb2-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-native-ordinal-tweedie-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-native-poisson-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-native-sd-rerun-notebook-review.md
+??	docs/dev-log/check-log.d/2026-10-20-native-student-sd-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-native-zero-one-beta-truncated-nb2-smoke.md
+??	docs/dev-log/check-log.d/2026-10-20-nbinom2-sd-vcov.md
+??	docs/dev-log/check-log.d/2026-10-20-notebooklm-latent-sd-methods.md
+??	docs/dev-log/check-log.d/2026-10-20-notebooklm-methods-review.md
+??	docs/dev-log/check-log.d/2026-10-20-poisson-animal-ainv-sd.md
+??	docs/dev-log/check-log.d/2026-10-20-poisson-animal-pedigree-sd.md
+??	docs/dev-log/check-log.d/2026-10-20-poisson-animal-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-20-poisson-relmat-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-20-sd-methods-gate-reconciliation.md
+??	docs/dev-log/check-log.d/2026-10-20-sd-target-metadata-tests.md
+??	docs/dev-log/check-log.d/2026-10-20-skew-normal-sd-oracle.md
+??	docs/dev-log/check-log.d/2026-10-20-structured-sd-target-resolver.md
+??	docs/dev-log/check-log.d/2026-10-20-student-phylo-sd-selector-guard.md
+??	docs/dev-log/check-log.d/2026-10-20-student-sd-builder-fix.md
+??	docs/dev-log/check-log.d/2026-10-20-tweedie-sd-marginal-oracle-live.md
+??	docs/dev-log/check-log.d/2026-10-20-tweedie-sd-slope.md
+??	docs/dev-log/check-log.d/2026-10-20-zero-one-beta-sd-julia-bridge.md
+??	docs/dev-log/check-log.d/2026-10-21-bernoulli-bridge-test-audit.md
+??	docs/dev-log/check-log.d/2026-10-21-beta-ordinary-sd-recovery.md
+??	docs/dev-log/check-log.d/2026-10-21-binomial-animal-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-21-binomial-relmat-precision-sd.md
+??	docs/dev-log/check-log.d/2026-10-21-direct-sd-evidence-overlay.md
+??	docs/dev-log/check-log.d/2026-10-21-gamma-sigma-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-21-hurdle-nbinom2-slope-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-21-julia-binomial-animal-slope-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-21-julia-binomial-relmat-sd-parity.md
+??	docs/dev-log/check-log.d/2026-10-21-julia-zeroonebeta-sd-slope-bridge.md
+??	docs/dev-log/check-log.d/2026-10-21-lognormal-sd-slope.md
+??	docs/dev-log/check-log.d/2026-10-21-lognormal-sigma-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-21-native-binomial-animal-slope-output.md
+??	docs/dev-log/check-log.d/2026-10-21-native-zip-mu-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-21-sd-evidence-expansion-wave2.md
+??	docs/dev-log/check-log.d/2026-10-21-sd-evidence-expansion.md
+??	docs/dev-log/check-log.d/2026-10-21-structured-sd-silent-drop-guard.md
+??	docs/dev-log/check-log.d/2026-10-21-truncated-nbinom2-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-21-zero-one-beta-sd-slope.md
+??	docs/dev-log/check-log.d/2026-10-21-zi-nbinom2-independent-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-22-bernoulli-slope-sd-rerun.md
+??	docs/dev-log/check-log.d/2026-10-22-gamma-animal-slope-cross-engine-parity.md
+??	docs/dev-log/check-log.d/2026-10-22-gamma-phylo-point-parity-isolated.md
+??	docs/dev-log/check-log.d/2026-10-22-gamma-phylo-sd-julia-point-parity.md
+??	docs/dev-log/check-log.d/2026-10-22-gamma-spatial-shared-k-parity.md
+??	docs/dev-log/check-log.d/2026-10-22-julia-gamma-animal-sd-bridge-parity.md
+??	docs/dev-log/check-log.d/2026-10-22-live-julia-bernoulli-parity-rerun.md
+??	docs/dev-log/check-log.d/2026-10-22-lognormal-sigma-bootstrap-workflow.md
+??	docs/dev-log/check-log.d/2026-10-22-lognormal-sigma-sd-validation.md
+??	docs/dev-log/check-log.d/2026-10-22-native-family-map-reconciliation.md
+??	docs/dev-log/check-log.d/2026-10-22-nb2-animal-sd-cross-engine-bridge.md
+??	docs/dev-log/check-log.d/2026-10-22-nbinom2-animal-A-direct-sd.md
+??	docs/dev-log/check-log.d/2026-10-22-sd-evidence-count-clarity.md
+??	docs/dev-log/check-log.d/2026-10-22-stage-two-combine-fixture.md
+??	docs/dev-log/check-log.d/2026-10-22-student-sd-target-guard.md
+??	docs/dev-log/check-log.d/2026-10-22-tweedie-julia-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-22-tweedie-relmat-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-22-zeroonebeta-sd-marginal-simulation.md
+??	docs/dev-log/check-log.d/2026-10-23-binomial-animal-slope-provider-equivalence.md
+??	docs/dev-log/check-log.d/2026-10-23-cross-engine-animal-sd-parity.md
+??	docs/dev-log/check-log.d/2026-10-23-gamma-animal-slope-current-source-parity.md
+??	docs/dev-log/check-log.d/2026-10-23-gamma-phylo-nonunit-current-source.md
+??	docs/dev-log/check-log.d/2026-10-23-gamma-phylo-nonunit-parity.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-binomial-crossed-current-source-rerun.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-binomial-relmat-save-reload.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-binomial-relmat-sd-simulation-oracle.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-cumlogit-sd-evidence.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-nb2-animal-ainv-evidence.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-simulator-workflow-evidence.md
+??	docs/dev-log/check-log.d/2026-10-23-julia-tweedie-relmat-save-reload.md
+??	docs/dev-log/check-log.d/2026-10-23-native-binomial-sd-recovery.md
+??	docs/dev-log/check-log.d/2026-10-23-native-gamma-animal-q2-sd.md
+??	docs/dev-log/check-log.d/2026-10-23-poisson-animal-ainv-julia-bridge.md
+??	docs/dev-log/check-log.d/2026-10-23-source-bound-bernoulli-timing.md
+??	docs/dev-log/check-log.d/2026-10-23-tweedie-relmat-bridge-rerun.md
+??	docs/dev-log/check-log.d/2026-10-23-tweedie-relmat-bridge-source-recheck.md
+??	docs/dev-log/check-log.d/2026-10-24-bernoulli-ledger-receipt-refresh.md
+??	docs/dev-log/check-log.d/2026-10-24-beta-binomial-sigma-sd-cross-engine-oracle.md
+??	docs/dev-log/check-log.d/2026-10-24-beta-binomial-sigma-sd-julia-bridge.md
+??	docs/dev-log/check-log.d/2026-10-24-gamma-animal-nonunit-kernel-simulation.md
+??	docs/dev-log/check-log.d/2026-10-24-gamma-animal-q2-cross-engine-sd.md
+??	docs/dev-log/check-log.d/2026-10-24-gamma-animal-raw-kernel-parity.md
+??	docs/dev-log/check-log.d/2026-10-24-gaussian-ordinary-sd-parity.md
+??	docs/dev-log/check-log.d/2026-10-24-inactive-sigma-sd-rank-check.md
+??	docs/dev-log/check-log.d/2026-10-24-julia-binomial-animal-ainv-slope-sd-evidence.md
+??	docs/dev-log/check-log.d/2026-10-24-julia-poisson-animal-slope-raw-a-evidence.md
+??	docs/dev-log/check-log.d/2026-10-24-julia-tweedie-relmat-cross-engine-sd.md
+??	docs/dev-log/check-log.d/2026-10-24-live-julia-bernoulli-parity-rerun.md
+??	docs/dev-log/check-log.d/2026-10-24-nbinom2-sigma-sd-regression.md
+??	docs/dev-log/check-log.d/2026-10-24-poisson-animal-ainv-error-message-test.md
+??	docs/dev-log/check-log.d/2026-10-24-poisson-zi-sd-cross-engine-evidence.md
+??	docs/dev-log/check-log.d/2026-10-24-poisson-zi-slope-cross-engine.md
+??	docs/dev-log/check-log.d/2026-10-25-binomial-correlated-nonlogit-q2-fixture-repair.md
+??	docs/dev-log/check-log.d/2026-10-25-binomial-nonlogit-structured-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-25-gamma-sigma-slope-sd.md
+??	docs/dev-log/check-log.d/2026-10-25-julia-binomial-nonlogit-intercept-slope-bridge.md
+??	docs/dev-log/check-log.d/2026-10-25-julia-probit-phylo-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-25-julia-zi-nbinom2-sigma-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-25-native-binomial-probit-phylo-sd-check.md
+??	docs/dev-log/check-log.d/2026-10-25-student-sd-nb2-review.md
+??	docs/dev-log/check-log.d/2026-10-26-binomial-animal-ainv-nonlogit-bridge.md
+??	docs/dev-log/check-log.d/2026-10-26-binomial-animal-iid-nonlogit-bridge.md
+??	docs/dev-log/check-log.d/2026-10-26-binomial-animal-slope-iid-sd.md
+??	docs/dev-log/check-log.d/2026-10-26-binomial-nonlogit-animal-intercept.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-cloglog-phylo-bridge.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-correlated-q3-sd-bridge-bound.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-correlated-q3-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-nonlogit-animal-slope-ainv-bootstrap.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-nonlogit-correlated-q2-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-phylo-prediction-order.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-binomial-probit-phylo-bridge.md
+??	docs/dev-log/check-log.d/2026-10-26-julia-nb2-animal-ainv-workflows.md
+??	docs/dev-log/check-log.d/2026-10-26-native-binomial-phylo-sd-test-strength.md
+??	docs/dev-log/check-log.d/2026-10-26-native-cloglog-phylo-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-binomial-correlated-block-q2.md
+??	docs/dev-log/check-log.d/2026-10-27-binomial-correlated-nonlogit-bridge.md
+??	docs/dev-log/check-log.d/2026-10-27-binomial-nonlogit-animal-iid-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-julia-binomial-nonlogit-animal-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-julia-binomial-phylo-interaction-nonlogit-recovery.md
+??	docs/dev-log/check-log.d/2026-10-27-julia-binomial-phylo-slope-sd-bridge.md
+??	docs/dev-log/check-log.d/2026-10-27-julia-binomial-spatial-sd-evidence.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-ainv-relmat-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-intercept-iid-kernels.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-pedigree-relmat-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-relmat-kernel-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-relmat-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-relmat-q-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-relmat-q-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-animal-spatial-nonlogit-pair-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-correlated-q4-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-crossed-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-iid-relmat-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-mesh-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-nonlogit-mesh-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-nonlogit-phylo-interaction-slope.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-ordinary-animal-kernel-equivalence-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-ordinary-phylo-logit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-ordinary-phylo-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-animal-ainv-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-animal-pedigree-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-animal-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-relmat-links.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-relmat-q-nonlogit-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-relmat-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-spatial-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-binomial-structured-pair-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-nbinom2-correlated-q2-sd.md
+??	docs/dev-log/check-log.d/2026-10-27-native-poisson-correlated-q2-sd.md
+??	docs/dev-log/check-log.d/2026-10-28-native-binomial-correlated-q3-nonlogit-sd.md
+??	docs/dev-log/evidence/bernoulli-spatial-sd-20261027/
+??	docs/dev-log/evidence/binomial-animal-iid-cross-engine-20261024/
+??	docs/dev-log/evidence/binomial-animal-iid-sd-recovery-20261024/
+??	docs/dev-log/evidence/binomial-relmat-slope-sd-20261027/
+??	docs/dev-log/evidence/gamma-animal-kernel-simulation-correction-20261024/
+??	docs/dev-log/evidence/gamma-animal-marginal-simulation-docs-20261024/
+??	docs/dev-log/evidence/gamma-animal-nonunit-kernel-simulation-20261024/
+??	docs/dev-log/evidence/gamma-animal-raw-kernel-parity-20261024/
+??	docs/dev-log/evidence/gamma-phylo-nonunit-current-source-20261023/
+??	docs/dev-log/evidence/gamma-phylo-nonunit-parity-20261023/
+??	docs/dev-log/evidence/general-sd-regression/
+??	docs/dev-log/evidence/tweedie-relmat-julia-bridge-20261023/
+??	docs/dev-log/general-sd-regression/bernoulli-correlated-q2-contract.md
+??	docs/dev-log/general-sd-regression/bernoulli-phylo-calibration-pilot-design.md
+??	docs/dev-log/general-sd-regression/binomial-animal-slope-output-GATES.md
+??	docs/dev-log/general-sd-regression/calibration-0975-band-audit.md
+??	docs/dev-log/general-sd-regression/calibration-binomial-oc.md
+??	docs/dev-log/general-sd-regression/campaign-oc-design.md
+??	docs/dev-log/general-sd-regression/candidate-source-manifest-20261023.json
+??	docs/dev-log/general-sd-regression/deferred/
+??	docs/dev-log/general-sd-regression/direct-sd-evidence-summary.md
+??	docs/dev-log/general-sd-regression/direct-sd-evidence.tsv
+??	docs/dev-log/general-sd-regression/evidence/bernoulli-native-tests-20261020/
+??	docs/dev-log/general-sd-regression/evidence/bernoulli-two-engine-smoke-20261020.md
+??	docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/
+??	docs/dev-log/general-sd-regression/evidence/beta-ordinary-sd-bridge-20261024/
+??	docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1/
+??	docs/dev-log/general-sd-regression/evidence/binomial-animal-iid-independent-oracle-20261024/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/adapter-probe-attempts.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/attempt-reconciliation-20261019-v1/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/attempt-reconciliation-20261019-v2/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/attempt-reconciliation-20261019-v3/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-external-seal-reconstructed-v2.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-external-seal-reconstructed-v3.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-external-seal-reconstructed-v4.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-external-seal-reconstructed.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-external-seal.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-postfix-20261019-v2/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-standardized-reconstructed-v2.csv
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-standardized-reconstructed-v2.csv.receipt.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-standardized-reconstructed-v3.csv
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-standardized-reconstructed-v3.csv.receipt.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-standardized-reconstructed.csv
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-standardized-reconstructed.csv.receipt.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look-v4/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/first-look/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/production-complete-evidence.tar.gz
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/profile-range-debug-0975-current-source-v2/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-current-source-audit-20261019-v2/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-current-source-audit-20261019-v3/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-current-source-audit-20261019-v4/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-current-source-audit-20261019/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-execution-design-assessment-v3.json
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-go-v1/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-partial-v8/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-preparation-v8/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/stage-two-qualification-20261019-v3/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261017/timing-pre-run-20261019-v1/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261019/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261020/
+??	docs/dev-log/general-sd-regression/evidence/calibration-20261023/
+??	docs/dev-log/general-sd-regression/evidence/campaign-oc-20261019/
+??	docs/dev-log/general-sd-regression/evidence/campaign-oc-bias-diagnostics-20261019/
+??	docs/dev-log/general-sd-regression/evidence/campaign-oc-inference-review-20261019/
+??	docs/dev-log/general-sd-regression/evidence/campaign-oc-joint-20261019/
+??	docs/dev-log/general-sd-regression/evidence/campaign-oc-joint-20261021/
+??	docs/dev-log/general-sd-regression/evidence/campaign-oc-joint-corrected-20261019/
+??	docs/dev-log/general-sd-regression/evidence/cumulative-logit-sd-bridge-20261025/
+??	docs/dev-log/general-sd-regression/evidence/gamma-animal-julia-20261022/
+??	docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-julia-20261023/
+??	docs/dev-log/general-sd-regression/evidence/gamma-animal-q2-native-20261023/
+??	docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-julia-20261022/
+??	docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261022/
+??	docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023/
+??	docs/dev-log/general-sd-regression/evidence/gamma-phylo-point-parity-20261022/
+??	docs/dev-log/general-sd-regression/evidence/gaussian-ordinary-sd-parity-20261024-v1/
+??	docs/dev-log/general-sd-regression/evidence/gaussian-random-slope-sd-20261024/
+??	docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-current-20261025/
+??	docs/dev-log/general-sd-regression/evidence/gaussian-sigma-slope-20261025/
+??	docs/dev-log/general-sd-regression/evidence/hurdle-nbinom2-sd-bridge-20261025/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-ainv-slope-20261024/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-cloglog-phylo-bridge-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-sd-bridge-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-sd-bridge-final-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-bridge-20261023-current/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-crossed-sd-20261023/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-animal-slope-ainv-bootstrap-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-recovery-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-correlated-q2-sd-bridge-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-sd-bridge-20261024/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-sd-bridge-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-slope-sd-bridge-20261024/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-interaction-sd-bridge-20261027/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-phylo-slope-sd-bridge-20261027/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-bridge-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-probit-phylo-workflows-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-rds-20261023/
+??	docs/dev-log/general-sd-regression/evidence/julia-binomial-spatial-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261020-v3/
+??	docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261020-v4/
+??	docs/dev-log/general-sd-regression/evidence/julia-bridge-source-bound-20261024-rerun/
+??	docs/dev-log/general-sd-regression/evidence/julia-cumlogit-sd-20261023/
+??	docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/
+??	docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-intercept-bridge-20261024/
+??	docs/dev-log/general-sd-regression/evidence/julia-gamma-smoke-20261020/
+??	docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023/
+??	docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-workflows-20261026/
+??	docs/dev-log/general-sd-regression/evidence/julia-sim-integrity-20261023/
+??	docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-20261023-v2/
+??	docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-20261023-v3/
+??	docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-20261023/
+??	docs/dev-log/general-sd-regression/evidence/lognormal-20261017/
+??	docs/dev-log/general-sd-regression/evidence/lognormal-julia-sd-20261022/
+??	docs/dev-log/general-sd-regression/evidence/lognormal-sigma-slope-20261025/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-ainv-relmat-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-intercept-iid-kernels-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-pedigree-relmat-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-kernel-nonlogit-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-nonlogit-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-q-nonlogit-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-relmat-q-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-animal-spatial-nonlogit-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-correlated-q3-nonlogit-20261028/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-correlated-q4-nonlogit-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-crossed-nonlogit-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-iid-relmat-kernel-nonlogit-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-logit-mesh-spatial-slope-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-mesh-intercept-preslope-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-mesh-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-mesh-slope-links-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-nonlogit-mesh-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-nonlogit-phylo-interaction-slope-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-animal-kernel-equivalence-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-phylo-logit-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-ordinary-phylo-nonlogit-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-ainv-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-pedigree-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-q-nonlogit-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-spatial-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-binomial-structured-pair-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-checkpoint-20261017/totoro/install.log
+??	docs/dev-log/general-sd-regression/evidence/native-cloglog-phylo-sd-20261026/
+??	docs/dev-log/general-sd-regression/evidence/native-lognormal-correlated-q2-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-nbinom2-correlated-q2-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/native-poisson-correlated-q2-sd-20261027/
+??	docs/dev-log/general-sd-regression/evidence/nbinom2-sigma-slope-20261025/
+??	docs/dev-log/general-sd-regression/evidence/package-check-20261017/00install.out
+??	docs/dev-log/general-sd-regression/evidence/phylo-calibration-pilot-20261020/
+??	docs/dev-log/general-sd-regression/evidence/poisson-20261017/output/leaf-reverify.log
+??	docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023/
+??	docs/dev-log/general-sd-regression/evidence/poisson-animal-julia-20261022/
+??	docs/dev-log/general-sd-regression/evidence/poisson-animal-slope-raw-a-20261024/
+??	docs/dev-log/general-sd-regression/evidence/poisson-label-20261017/output/install.log
+??	docs/dev-log/general-sd-regression/evidence/poisson-zi-sd-cross-engine-20261024/
+??	docs/dev-log/general-sd-regression/evidence/poisson-zi-slope-cross-engine-20261024/
+??	docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025/
+??	docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-current-v2/
+??	docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-current-v3/
+??	docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-recheck-v2.log
+??	docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-recheck-with-path.log
+??	docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-recheck.log
+??	docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261024-current-v4/
+??	docs/dev-log/general-sd-regression/evidence/zeroonebeta-julia-sd-20261022/
+??	docs/dev-log/general-sd-regression/first-look-inference-review.md
+??	docs/dev-log/general-sd-regression/gamma-sigma-contract.md
+??	docs/dev-log/general-sd-regression/gaussian-sigma-slope-contract.md
+??	docs/dev-log/general-sd-regression/lognormal-sd-assembly-evidence.md
+??	docs/dev-log/general-sd-regression/lognormal-sd-contract.md
+??	docs/dev-log/general-sd-regression/native-family-sd-adapter-map.md
+??	docs/dev-log/general-sd-regression/native-family-wave-plan.md
+??	docs/dev-log/general-sd-regression/nbinom2-independent-slope-alignment.md
+??	docs/dev-log/general-sd-regression/notebooklm-methods-review-20261020.md
+??	docs/dev-log/general-sd-regression/notebooklm-review-2026-10-20.assessment.json
+??	docs/dev-log/general-sd-regression/notebooklm-review-2026-10-20.md
+??	docs/dev-log/general-sd-regression/prospective-bernoulli-calibration-proposal.md
+??	docs/dev-log/general-sd-regression/research.assessment.json
+??	docs/dev-log/general-sd-regression/stage-two-adapter-independent-review.md
+??	docs/dev-log/general-sd-regression/stage-two-execution-design.md
+??	docs/dev-log/general-sd-regression/zi-nbinom2-slice-alignment.md
+??	evidence/
+??	figure/
+??	news/
+??	src/graft/
+??	tests/testthat/helper-lognormal-sd-reference.R
+??	tests/testthat/helper-nbinom2-sd-regression.R
+??	tests/testthat/test-beta-animal-pedigree-sd-regression.R
+??	tests/testthat/test-beta-binomial-animal-pedigree-sd-regression.R
+??	tests/testthat/test-beta-binomial-sd-integration.R
+??	tests/testthat/test-beta-binomial-sd-regression.R
+??	tests/testthat/test-beta-binomial-sd-slope-integration.R
+??	tests/testthat/test-beta-binomial-sd-slope.R
+??	tests/testthat/test-beta-binomial-sigma-sd-regression.R
+??	tests/testthat/test-beta-sd-integration.R
+??	tests/testthat/test-beta-sd-regression.R
+??	tests/testthat/test-beta-sd-slope-integration.R
+??	tests/testthat/test-binomial-animal-ainv-relmat-sd.R
+??	tests/testthat/test-binomial-animal-ainv-sd-regression.R
+??	tests/testthat/test-binomial-animal-iid-sd-regression.R
+??	tests/testthat/test-binomial-animal-pedigree-relmat-sd.R
+??	tests/testthat/test-binomial-animal-pedigree-sd-regression.R
+??	tests/testthat/test-binomial-animal-relmat-kernel-equivalence-nonlogit-sd.R
+??	tests/testthat/test-binomial-animal-relmat-nonlogit-sd.R
+??	tests/testthat/test-binomial-animal-relmat-q-nonlogit-sd.R
+??	tests/testthat/test-binomial-animal-relmat-q-precision-sd.R
+??	tests/testthat/test-binomial-animal-sd-regression.R
+??	tests/testthat/test-binomial-animal-slope-sd-regression.R
+??	tests/testthat/test-binomial-animal-spatial-nonlogit-pair-sd.R
+??	tests/testthat/test-binomial-cloglog-phylo-sd-regression.R
+??	tests/testthat/test-binomial-correlated-q3-nonlogit-sd.R
+??	tests/testthat/test-binomial-correlated-q4-nonlogit-sd.R
+??	tests/testthat/test-binomial-correlated-q4-sd.R
+??	tests/testthat/test-binomial-correlated-sd.R
+??	tests/testthat/test-binomial-crossed-nonlogit-sd.R
+??	tests/testthat/test-binomial-crossed-sd-regression.R
+??	tests/testthat/test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R
+??	tests/testthat/test-binomial-mesh-sd-regression.R
+??	tests/testthat/test-binomial-nonlogit-animal-iid-sd-regression.R
+??	tests/testthat/test-binomial-nonlogit-ordinary-slope-sd.R
+??	tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-nonlogit-sd.R
+??	tests/testthat/test-binomial-ordinary-animal-kernel-equivalence-sd.R
+??	tests/testthat/test-binomial-ordinary-phylo-nonlogit-sd.R
+??	tests/testthat/test-binomial-ordinary-phylo-sd.R
+??	tests/testthat/test-binomial-phylo-animal-ainv-sd.R
+??	tests/testthat/test-binomial-phylo-animal-pedigree-sd.R
+??	tests/testthat/test-binomial-phylo-animal-sd.R
+??	tests/testthat/test-binomial-phylo-interaction-sd.R
+??	tests/testthat/test-binomial-phylo-interaction-slope-sd.R
+??	tests/testthat/test-binomial-phylo-relmat-q-nonlogit-sd.R
+??	tests/testthat/test-binomial-phylo-relmat-sd.R
+??	tests/testthat/test-binomial-phylo-sd-regression.R
+??	tests/testthat/test-binomial-phylo-sd-simulation.R
+??	tests/testthat/test-binomial-phylo-slope-sd.R
+??	tests/testthat/test-binomial-phylo-spatial-sd.R
+??	tests/testthat/test-binomial-relmat-precision-sd.R
+??	tests/testthat/test-binomial-relmat-sd.R
+??	tests/testthat/test-binomial-relmat-slope-sd.R
+??	tests/testthat/test-binomial-sd-formula-design.R
+??	tests/testthat/test-binomial-sd-oracle-guard.R
+??	tests/testthat/test-binomial-spatial-sd-regression.R
+??	tests/testthat/test-check-fixed-effect-rank.R
+??	tests/testthat/test-cumulative-logit-sd-integration.R
+??	tests/testthat/test-cumulative-logit-sd-regression.R
+??	tests/testthat/test-cumulative-logit-sd-slope-integration.R
+??	tests/testthat/test-cumulative-logit-sd-slope.R
+??	tests/testthat/test-fixef-imported-generic-dispatch.R
+??	tests/testthat/test-gamma-animal-pedigree-sd-regression.R
+??	tests/testthat/test-gamma-animal-q2-cross-engine-sd.R
+??	tests/testthat/test-gamma-animal-q2-nonunit-kernel-parity.R
+??	tests/testthat/test-gamma-animal-q2-nonunit-kernel-simulation.R
+??	tests/testthat/test-gamma-animal-slope-sd-regression.R
+??	tests/testthat/test-gamma-phylo-sd-regression.R
+??	tests/testthat/test-gamma-relmat-sd-regression.R
+??	tests/testthat/test-gamma-sd-integration.R
+??	tests/testthat/test-gamma-sd-regression.R
+??	tests/testthat/test-gamma-sigma-sd-integration.R
+??	tests/testthat/test-gamma-sigma-sd-regression.R
+??	tests/testthat/test-gamma-spatial-sd-regression.R
+??	tests/testthat/test-gaussian-animal-sd-regression.R
+??	tests/testthat/test-gaussian-sd-slope-regression.R
+??	tests/testthat/test-gaussian-sigma-sd-regression.R
+??	tests/testthat/test-gaussian-sigma-sd-slope-regression.R
+??	tests/testthat/test-hurdle-nbinom2-sd-identifiability.R
+??	tests/testthat/test-hurdle-nbinom2-sd-regression.R
+??	tests/testthat/test-julia-beta-binomial-sd-parity.R
+??	tests/testthat/test-julia-beta-binomial-sigma-sd-bridge.R
+??	tests/testthat/test-julia-beta-sd.R
+??	tests/testthat/test-julia-binomial-animal-ainv-nonlogit-sd-bridge.R
+??	tests/testthat/test-julia-binomial-animal-iid-nonlogit-sd-bridge.R
+??	tests/testthat/test-julia-binomial-animal-iid-sd-parity.R
+??	tests/testthat/test-julia-binomial-animal-sd-regression.R
+??	tests/testthat/test-julia-binomial-animal-slope-iid-sd-bridge.R
+??	tests/testthat/test-julia-binomial-correlated-q3-cloglog-sd-bridge.R
+??	tests/testthat/test-julia-binomial-correlated-q3-logit-sd-bridge.R
+??	tests/testthat/test-julia-binomial-correlated-q3-sd-bridge.R
+??	tests/testthat/test-julia-binomial-correlated-q4-sd-bridge.R
+??	tests/testthat/test-julia-binomial-crossed-sd.R
+??	tests/testthat/test-julia-binomial-nonlogit-correlated-sd-bridge.R
+??	tests/testthat/test-julia-binomial-nonlogit-intercept-slope-sd-bridge.R
+??	tests/testthat/test-julia-binomial-nonlogit-slope-sd-bridge.R
+??	tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R
+??	tests/testthat/test-julia-binomial-phylo-interaction-sd-bridge.R
+??	tests/testthat/test-julia-binomial-phylo-interaction-slope-sd-bridge.R
+??	tests/testthat/test-julia-binomial-phylo-sd.R
+??	tests/testthat/test-julia-binomial-phylo-slope-sd.R
+??	tests/testthat/test-julia-binomial-relmat-sd-parity.R
+??	tests/testthat/test-julia-binomial-relmat-slope-sd-bridge.R
+??	tests/testthat/test-julia-binomial-sd-links-bridge.R
+??	tests/testthat/test-julia-binomial-sd.R
+??	tests/testthat/test-julia-binomial-spatial-sd-bridge.R
+??	tests/testthat/test-julia-cumulative-logit-sd-intercept-parity.R
+??	tests/testthat/test-julia-cumulative-logit-sd-slope-parity.R
+??	tests/testthat/test-julia-cumulative-logit-sd-target-labels.R
+??	tests/testthat/test-julia-gamma-animal-intercept-simulation.R
+??	tests/testthat/test-julia-gamma-phylo-sd-scale.R
+??	tests/testthat/test-julia-gamma-sd.R
+??	tests/testthat/test-julia-gamma-sigma-sd-bridge.R
+??	tests/testthat/test-julia-gaussian-sd-parity.R
+??	tests/testthat/test-julia-hurdle-nbinom2-sd-bridge.R
+??	tests/testthat/test-julia-lognormal-sd-gate.R
+??	tests/testthat/test-julia-lognormal-sd-parity.R
+??	tests/testthat/test-julia-nbinom2-sigma-sd-bridge.R
+??	tests/testthat/test-julia-nbinom2-zi-sigma-sd-bridge.R
+??	tests/testthat/test-julia-negbinomial-sd.R
+??	tests/testthat/test-julia-poisson-animal-ainv-sd-parity.R
+??	tests/testthat/test-julia-poisson-animal-ainv-slope-sd-parity.R
+??	tests/testthat/test-julia-poisson-animal-sd-parity.R
+??	tests/testthat/test-julia-poisson-animal-slope-sd-parity.R
+??	tests/testthat/test-julia-poisson-offset-sd-parity.R
+??	tests/testthat/test-julia-poisson-sd.R
+??	tests/testthat/test-julia-poisson-zi-sd-regression.R
+??	tests/testthat/test-julia-rhs-intercept-only.R
+??	tests/testthat/test-julia-skewnormal-sd-bridge.R
+??	tests/testthat/test-julia-structured-dimnames.R
+??	tests/testthat/test-julia-student-sd.R
+??	tests/testthat/test-julia-truncated-nbinom2-sd-bridge.R
+??	tests/testthat/test-julia-tweedie-relmat-sd.R
+??	tests/testthat/test-julia-tweedie-sd-regression.R
+??	tests/testthat/test-julia-zero-one-beta-sd.R
+??	tests/testthat/test-julia-zi-nbinom2-sigma-sd-bridge.R
+??	tests/testthat/test-lognormal-sd-assembly.R
+??	tests/testthat/test-lognormal-sd-integration.R
+??	tests/testthat/test-lognormal-sd-reference.R
+??	tests/testthat/test-lognormal-sd-slope-assembly.R
+??	tests/testthat/test-lognormal-sigma-sd-regression.R
+??	tests/testthat/test-nbinom2-animal-sd-regression.R
+??	tests/testthat/test-nbinom2-animal-slope-sd-regression.R
+??	tests/testthat/test-nbinom2-correlated-q2-sd.R
+??	tests/testthat/test-nbinom2-phylo-sd-regression.R
+??	tests/testthat/test-nbinom2-sd-integration.R
+??	tests/testthat/test-nbinom2-sd-regression.R
+??	tests/testthat/test-nbinom2-sigma-sd-regression.R
+??	tests/testthat/test-nbinom2-sigma-slope-sd-regression.R
+??	tests/testthat/test-poisson-animal-ainv-sd-regression.R
+??	tests/testthat/test-poisson-animal-pedigree-sd-regression.R
+??	tests/testthat/test-poisson-animal-sd-regression.R
+??	tests/testthat/test-poisson-animal-slope-sd-regression.R
+??	tests/testthat/test-poisson-correlated-q2-sd.R
+??	tests/testthat/test-poisson-phylo-sd-regression.R
+??	tests/testthat/test-poisson-relmat-sd-regression.R
+??	tests/testthat/test-random-effect-target-metadata.R
+??	tests/testthat/test-skew-normal-sd-integration-oracle.R
+??	tests/testthat/test-skew-normal-sd-integration.R
+??	tests/testthat/test-skew-normal-sd-regression.R
+??	tests/testthat/test-structured-sd-clamp-report.R
+??	tests/testthat/test-structured-sd-targets.R
+??	tests/testthat/test-student-sd-integration.R
+??	tests/testthat/test-student-sd-regression.R
+??	tests/testthat/test-truncated-nbinom2-sd-integration.R
+??	tests/testthat/test-truncated-nbinom2-sd-regression.R
+??	tests/testthat/test-tweedie-relmat-sd-regression.R
+??	tests/testthat/test-tweedie-sd-integration.R
+??	tests/testthat/test-tweedie-sd-marginal-oracle.R
+??	tests/testthat/test-tweedie-sd-regression.R
+??	tests/testthat/test-zero-one-beta-sd-integration.R
+??	tests/testthat/test-zero-one-beta-sd-regression.R
+??	tests/testthat/test-zero-one-beta-sd-slope.R
+??	tests/testthat/test-zi-nbinom2-sd-regression.R
+??	tests/testthat/test-zi-nbinom2-sigma-sd-regression.R
+??	tests/testthat/test-zi-nbinom2-sigma-sd-workflows.R
+??	tests/testthat/test-zi-poisson-sd-integration.R
+??	tests/testthat/test-zi-poisson-sd-regression.R
+??	tools/general-sd-regression/calibration-binomial-oc.R
+??	tools/general-sd-regression/campaign-oc.R
+??	tools/general-sd-regression/native-calibration-stage-two/
+??	tools/general-sd-regression/native-calibration/clean-manifests.R
+??	tools/general-sd-regression/native-calibration/prepare-095.R
+??	tools/general-sd-regression/native-calibration/prepare-0975.R
+??	tools/general-sd-regression/native-calibration/run-095.py
+??	tools/general-sd-regression/native-calibration/run-0975.py
+??	tools/general-sd-regression/native-calibration/summarize-095.R
+??	tools/general-sd-regression/native-calibration/summarize-0975.R
+??	tools/general-sd-regression/native-calibration/summarize-timing-095.R
+??	tools/general-sd-regression/native-calibration/summarize-timing-0975.R
+??	tools/general-sd-regression/native-calibration/test-clean-current-route.py
+??	tools/general-sd-regression/native-calibration/test-clean-manifests.R
+??	tools/general-sd-regression/native-calibration/test-profile-level-harness.py
+??	tools/general-sd-regression/native-calibration/test-summarize-clean-current-095.R
+??	tools/general-sd-regression/native-calibration/test-summarize-timing-095.R
+??	tools/general-sd-regression/native-calibration/test-summarize-timing-0975.R
+??	tools/general-sd-regression/native-calibration/test-timing-0975.py
+??	tools/general-sd-regression/native-calibration/worker-095.R
+??	tools/general-sd-regression/native-calibration/worker-0975.R
+??	tools/general-sd-regression/probes/
+??	tools/general-sd-regression/reconcile_evidence.py
+??	tools/general-sd-regression/test-campaign-oc.R
+??	tools/general-sd-regression/test-native-runner-markers.R
+??	tools/general-sd-regression/tests/test_reconcile_evidence.py

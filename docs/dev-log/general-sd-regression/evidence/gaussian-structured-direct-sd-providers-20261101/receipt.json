@@ -1,0 +1,74 @@
+{
+  "evidence_id": "gaussian-native-structured-direct-sd-providers-20261101",
+  "date": "2026-11-01",
+  "status": "unreviewed",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "endpoint": "mu",
+      "mechanism_id": "relmat_intercept",
+      "target_member": "mu:I",
+      "member_coefs": "I",
+      "link_variant": "identity",
+      "provider_input": "K_covariance",
+      "layout": "single known-relatedness field",
+      "q_value": "1",
+      "block_rule_id": "S1/P-temporal",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "endpoint": "mu",
+      "mechanism_id": "spatial_coordinate_intercept",
+      "target_member": "mu:I",
+      "member_coefs": "I",
+      "link_variant": "identity",
+      "provider_input": "coordinates",
+      "layout": "coordinate covariance field",
+      "q_value": "1",
+      "block_rule_id": "S1/P-temporal",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"identity\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "endpoint": "mu",
+      "mechanism_id": "animal_numeric_slope",
+      "target_member": "mu:x1..xp",
+      "member_coefs": "x1..xp",
+      "link_variant": "identity",
+      "provider_input": "A_covariance",
+      "layout": "independent animal fields",
+      "q_value": "1",
+      "block_rule_id": "S1/P-temporal",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-20261101/run-test.R gaussian-structured-direct-sd-providers  # run-test.R: devtools::test(filter=\"gaussian-structured-direct-sd-providers\", reporter=\"summary\", stop_on_failure=FALSE), exit 1 on any failure/error/skip; actually invoked from a byte-identical scratch copy",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "git_branch": "codex/general-sd-regression",
+  "test_path": "tests/testthat/test-gaussian-structured-direct-sd-providers.R",
+  "test_sha256": "8d2518cadf1fd365abee11fe28389377245244560ca5b7bdd85152370fbcd260",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-20261101/source-manifest.json",
+  "source_manifest_sha256": "0cc53859bd6c777bb777612122e155f731a84114b2a5bb80a731689ce0fbd5b1",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-20261101/test-console.log",
+  "console_log_sha256": "fb30a78a1f004447200803ac1066a2f8dc96aa1cd574e6806fe121c16ad1b4e6",
+  "result": {
+    "exit_status": 0,
+    "expectations_passed": 49,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "tolerances_copied_from_test": "dense oracle logLik 1e-6; independent L-BFGS-B optimum 1e-5; SD prediction 1e-10; constant-SD vs base logLik 2e-5; smoke recovery |z-0.4|<0.4",
+  "scope": "native Gaussian engine, linked rows only as listed in candidate_rows; rows the test merely uses as comparator (ordinary or base fits) are not linked",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

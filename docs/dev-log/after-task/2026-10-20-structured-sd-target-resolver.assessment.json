@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "684f4b1143a193fe50624fa3ce2ce23163a7919f527d84042f2c0468f982a6ba",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review against the exact test output, source diff, acceptance ledger and report requirements.",
+  "genre": "Internal engineering after-task report",
+  "coverage": "Whole 12-section report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report is specific about the resolver behavior and the boundary between its unit tests and production support. Repeated headings are required by the repository's report checker.",
+  "confidence": "medium",
+  "confidence_reason": "The source, test output and status checks were inspected; the perceived-style score is a subjective self-assessment.",
+  "examples": [
+    {
+      "location": "Section 2, line 10",
+      "cue": "The report names the exact resolver and the behavior changed.",
+      "impact": "A maintainer can locate the change and distinguish it from model admission.",
+      "repair": "no change needed",
+      "line": 10,
+      "quote": "`drm_resolve_sd_target()` now validates member identity fields before filtering"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "not_applicable",
+  "science_gate_reason": "The slice validates target metadata and does not change scientific parameterization or inferential claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The source diff, red and green focused test output, issue search, and open-gate status were checked against the recorded commands.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external references.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were assessed; repository after-task reports have been seen.",
+  "interpretation": "perceived_style_not_authorship"
+}

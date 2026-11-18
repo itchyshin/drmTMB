@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f1c551e6936b2a8519456f8f1e0fb5b66a5d3692852f80be6b392d9980a31ece",
+  "draft_version": "final-v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate whole-draft self-review against inspected source, source-pinned test logs and rendered tutorial; independent reviewers supplied the recorded specific corrections.",
+  "genre": "After-task development report",
+  "coverage": "Whole docs/dev-log/after-task/2026-11-05-fixed-effect-priors.md",
+  "score": 4,
+  "style_status": "assessed",
+  "score_reason": "Concrete evidence and scope; required audit structure and source identifiers add density. The execution record deliberately preserves historical pending states under dated checkpoints.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent scoped code/reader reviews; no human style assessment.",
+  "examples": [
+    {
+      "location": "Line 5",
+      "line": 5,
+      "quote": "Help applied users regularize separation and unstable fixed coefficients in drmTMB and DRModels.jl, with explicit distributional-parameter, coefficient and intercept selection. Shinichi approved implementation and isolated overlap on 5 November 2026. Merge, release and publication remain unauthorized.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 29",
+      "line": 29,
+      "quote": "Five live bridge fixtures pass coefficient, data-likelihood, prior, total-objective, prior-gradient, selector and inference-guard comparisons. Maximum coefficient gap is 4.30e-11 and maximum data-likelihood gap 1.07e-12. These measurements concern the named fixtures only. Tutorial code executes; rendered R HTML and an isolated Julia prior page exist. Pkgdown configuration checks pass. The refreshed R package check on the closeout source completed with zero errors and two warnings from omitted vignette outputs in the intentionally unbuilt-vignette archive; examples and usage checks passed.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 33",
+      "line": 33,
+      "quote": "The final full Julia run reached its 90-minute limit and exited 124. It is incomplete, not a pass. Its source remains a30e3472 and the process group has no remaining members. The retained output contains passing partial summaries but cannot establish the unrun remainder. No full-suite success is claimed.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and coefficient interpretations match the implemented targets; calibration and posterior-sampling claims are explicitly withheld.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Checked against final source manifests, focused and affected logs, five live fixtures, exact-baseline residual receipts and the actual Julia exit124 timeout. No full-suite pass is claimed.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external reference claim requiring verification in this artifact.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

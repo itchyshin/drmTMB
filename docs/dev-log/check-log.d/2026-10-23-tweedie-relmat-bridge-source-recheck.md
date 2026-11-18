@@ -1,0 +1,5 @@
+| Date | Check | Command | Result | Scope |
+|---|---|---|---|---|
+| 2026-10-23 | Current-source Tweedie related-matrix SD bridge | `PATH=/Users/z3437171/.juliaup/bin:$PATH OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=.worktrees/general-sd-julia JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = "julia-tweedie-relmat-sd", reporter = "summary", stop_on_failure = TRUE)'` | PASS, exit 0; 24 expectations passed; one live bridge test ran. Julia-only regression 55/55 and validation 14/14 also passed; source diff check clean. | One complete-response q1 Tweedie related-matrix mean-intercept point comparison. The source manifest covers 199 files and binds the current native and Julia candidates. No broad parity or interval-calibration claim. |
+
+Source-bound evidence: `docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261023-current-v3/receipt.json`. The central check-log index was not changed because its ownership preflight stalled before returning a file verdict.

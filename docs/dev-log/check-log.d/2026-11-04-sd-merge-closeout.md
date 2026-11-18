@@ -1,0 +1,1 @@
+| 2026-11-04 | SD-regression ordered merges and Julia receipt refresh | DRModels.jl #1250 and drmTMB #1670 merged after settled checks; both triggered main workflows passed; live Gaussian label receipt 8/8 checks at 4e-6, 64/64 R and 114/114 Julia hashes match | Narrow workflow evidence only; calibration deferred | Codex, Rose self-review |

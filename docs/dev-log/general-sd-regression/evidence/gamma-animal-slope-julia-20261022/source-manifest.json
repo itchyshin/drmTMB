@@ -1,0 +1,20 @@
+{
+  "repository": "DRModels.jl paired candidate",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "branch": "codex/general-sd-regression",
+  "worktree_state": "dirty shared candidate; listed hashes identify test-time files",
+  "files": [
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/gamma.jl",
+      "sha256": "405003bc6cdc0bb3c8826c14f5127c5f9964e92337d4024d9ce3c2a9f5838fea"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/inference.jl",
+      "sha256": "bc435919231e5b84b406dbb219831d47585fcd238cfe0ecb9c8f3a1e65f5ee9a"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-julia-20261022/test_gamma_animal_slope_sd_regression.jl",
+      "sha256": "a49dbb3bb4f6d748e207dae0737e8d340951329d2845b5607dbd762ee0dfa9ab"
+    }
+  ]
+}

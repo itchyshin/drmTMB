@@ -1,0 +1,42 @@
+{
+  "evidence_id": "nbinom2-phylo-relmat-slope-sd-20261101",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"K_covariance\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"phylo_numeric_slope\",\"S1/P-temporal\",\"phylo\",\"structured intercept plus one independent numeric slope\",\"tree\",\"independent phylogenetic fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"devtools::test(filter = 'nbinom2-phylo-relmat-slope-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_source_path": "tests/testthat/test-nbinom2-phylo-relmat-slope-sd-regression.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/nbinom2-phylo-relmat-slope-sd-20261101/test-snapshot/test-nbinom2-phylo-relmat-slope-sd-regression.R",
+  "test_file_sha256": "9cde0847a6296b339acd913fc69885fa1ce5efab32dc57cc9b56c67c534cc12d",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-phylo-relmat-slope-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "8907b278656180010aa5f35b14c71c049e6e8ea5f16f9e45e862e653c2f24bd1",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-phylo-relmat-slope-sd-20261101/test-console.log",
+  "console_log_sha256": "e9d5ff9bd5c002b586a54544fb1ba865a38e3ebdacf77ab9ae41cb4ccc8c3014",
+  "test_result": "Fresh run exit 0: 2 test_that blocks, 38 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (abs 1e-4) for relmat K, relmat Q and phylo tree slope SDs.",
+  "exit_status": 0,
+  "expectation_counts": {
+    "tests": 2,
+    "expectations": 38,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "scope": "Native NB2 slope-only terms relmat(0 + x | id, K = K), relmat(0 + x | id, Q = Q) and phylo(0 + x | species, tree = tree), each with sd(<group>, level = ...) ~ z. Dense drmTMB-independent Laplace oracle (abs 1e-4 on logLik), prediction identity 1e-8, K vs Q logLik agreement 1e-4, constant-SD equivalence 2e-5, SD slope recovery within 0.5, seeded simulate() and saveRDS/readRDS prediction retention. The slope-only 0 + x form (no structured intercept field) is the form the ledger already links to *_numeric_slope rows for the Julia Binomial phylo slope receipt.",
+  "limits": "native engine only, one fixture per cell, loose recovery bands, no interval calibration, no Julia parity, dirty shared tree, unreviewed. Evidence grade focused_test: oracle or equivalence checks with loose SD-recovery bounds, not a calibration study. Provider inputs or layouts not named in scope were not tested (not tested, not fenced)."
+}

@@ -1,0 +1,27 @@
+{
+  "evidence_id": "julia-tweedie-relmat-sd-20261023",
+  "files": [
+    {
+      "file": "src/tweedie.jl",
+      "sha256": "fa445611d265d2097a0ea10759afb7a6740901531170ea8ac826eaa5692a91a8"
+    },
+    {
+      "file": "test/test_tweedie_relmat_sd_regression.jl",
+      "sha256": "b9d1a1e4b80b2859f3df0e3144e0048bc2f1d9dcafea5c11a4b7735a17be95d3"
+    },
+    {
+      "file": "Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-20261023/test_tweedie_relmat_sd_regression.jl",
+      "note": "byte-identical snapshot of executed test source from the Julia worktree",
+      "sha256": "b9d1a1e4b80b2859f3df0e3144e0048bc2f1d9dcafea5c11a4b7735a17be95d3"
+    }
+  ],
+  "purpose": "Focused Julia Tweedie related-matrix SD test receipt; not broad support or calibration.",
+  "source_branch": "codex/general-sd-regression",
+  "source_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_repository": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "working_tree_state": "dirty; exact relevant source hashes recorded below"
+}

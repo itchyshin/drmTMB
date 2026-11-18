@@ -1,4 +1,6 @@
-# 226 — One canonical reader learning path across 41 vignettes
+# 226: One canonical reader learning path across 43 vignettes
+
+<!-- slop-ok: Historical review prose is preserved. The prior slice updates only the vignette count and placement inventory; new inventory wording was reviewed separately. -->
 
 ## 1. The problem
 
@@ -35,13 +37,15 @@ links from any other vignette (`adding-families`, `convergence`,
 so they are reachable only by guessing a URL or scrolling the reference
 index.
 
-The synchronized placement table below now contains 41 vignettes after the
+The synchronized placement table below now contains 43 vignettes after the
 location-scale tutorial was split into two shorter parts, the first-week
 interval and bivariate non-Gaussian routes were added, the comparator
 article was placed under stage 5, the temporal random-effect tutorial
 and its development-only phylogenetic OU companion were added to stage 4,
-and the CJS capture–recapture tutorial was added as a specialist route with
-its own first-capture conditioning contract.
+the predictor-dependent group-SD tutorial was added to stage 3, and the
+CJS capture–recapture tutorial was added as a specialist route with its
+own first-capture conditioning contract. The fixed-effect prior guide joins
+the specialist branch for optional penalized fits.
 
 ## 2. The canonical sequence
 
@@ -79,10 +83,11 @@ at that point in the workflow.
    readers need a reporting boundary before they choose syntax, not only after
    they have completed a tutorial.
 
-A **Specialist branch** sits alongside stage 3 for four pages that are
+A **Specialist branch** sits alongside stage 3 for five pages that are
 deliberately off the main line: `meta-analysis`, which uses known sampling
 variances and no raw response data — a different task from picking a family
-for raw data — `julia-engine` and `cross-family`, which choose a different
+for raw data — `fixed-effect-priors`, which documents optional penalized
+fits, `julia-engine` and `cross-family`, which choose a different
 compute backend rather than answering a modelling question, and
 `cjs-first-capture`, which uses a dedicated hidden-state model and
 first-capture conditioning rather than an ordinary response-family formula.
@@ -91,7 +96,7 @@ that document the package's own internals rather than how to use it.
 
 ## 3. The full placement table
 
-41 rows. Role legend: **tutorial** = worked biological example with fitted
+43 rows. Role legend: **tutorial** = worked biological example with fitted
 output and interpretation; **guide** = orientation/reference, no full worked
 analysis; **route-chooser** = helps the reader pick a family or syntax
 before fitting; **specialist** = correct placement is deliberately outside
@@ -109,6 +114,7 @@ path.
 | 5 | `model-map` | 2. Choose your family | route-chooser | "What can I fit today?" status map; the reader consults it while deciding which family/syntax combination is actually implemented. |
 | 6 | `location-scale` | 3. Interpretation tutorials | tutorial | Part 1 of the Gaussian variance sequence: `mu` and residual `sigma` interpretation with a biological example. |
 | 6a | `location-scale-scale` | 3. Interpretation tutorials | tutorial | Part 2 of the Gaussian variance sequence: personality and sex-specific repeatability from `sigma` plus `sd(individual)`, followed by a short phylogenetic `sd(group, level = "phylogenetic")` extension. |
+| 6b | `predictor-dependent-random-sd` | 3. Interpretation tutorials | tutorial | Part 3 of the variance sequence: lets the group-level SD itself depend on a predictor with `sd(group) ~ x`, and separates it from residual `sigma`; read after `location-scale-scale`. Point estimates only, no interval calibration. |
 | 7 | `robust-student` | 3. Interpretation tutorials | tutorial | Student-t shape-parameter (`nu`) worked tutorial for robust continuous responses. |
 | 8 | `count-nbinom2` | 3. Interpretation tutorials | tutorial | NB2 count worked tutorial, including zero-inflation (`zi`). |
 | 9 | `proportion-beta-binomial` | 3. Interpretation tutorials | tutorial | Beta, beta-binomial, and zero-one-beta worked tutorial for bounded/proportion responses. |
@@ -116,6 +122,7 @@ path.
 | 10a | `bivariate-nongaussian` | 3. Interpretation tutorials | route-chooser | Distinguishes the implemented joint and staged routes for non-Gaussian response pairs before readers interpret an association as if every family combination used the same model. |
 | 11 | `missing-data` | 3. Interpretation tutorials | guide | Documents `miss_control()` response/predictor routes; a reader needs this while writing the formula for their chosen family, not after fitting, so it sits with the family/formula-writing stage rather than stage 5. |
 | 12 | `meta-analysis` | Specialist branch | specialist | Per P2: known sampling variances with no raw data is categorically unlike choosing a family for raw observations. Kept `family = gaussian()` plus `meta_V(V = V)`, clearly labelled as a specialist route, not folded into "Choose your family." |
+| 12a | `fixed-effect-priors` | Specialist branch | guide | Optional normal priors and ridge penalties for selected fixed effects in Gaussian location-scale and binomial-logit models, with explicit intercept selection and restricted inference. |
 | 13 | `structural-dependence` | 4. Random & structured effects | route-chooser | Overview and router across `animal()`, `phylo()`, `spatial()`, `relmat()` before the reader picks a specific structured-effect tutorial. |
 | 14 | `animal-models` | 4. Random & structured effects | tutorial | Worked `animal()` / additive-relatedness tutorial. |
 | 14a | `temporal-random-effects` | 4. Random & structured effects | tutorial | Worked `temporal()` tutorial separating stable series differences, temporal persistence, and residual noise in repeated Gaussian measurements. |
@@ -142,12 +149,12 @@ path.
 | 34 | `comparing-with-other-packages` | 5. Uncertainty & inference boundaries | guide | Fits eight models drmTMB shares with `lme4`, `glmmTMB`, `metafor` and `ordinal`, and shows the estimates agreeing on matched scales. Read when the question is "should I trust this package", after the reader can already fit and interpret a model. States which comparisons are independent engines and which share drmTMB's TMB stack. |
 | 35 | `cjs-first-capture` | Specialist branch | specialist | Dedicated Cormack–Jolly–Seber capture–recapture route for first-capture-conditioned histories; its hidden-state likelihood and eligibility assumptions differ from ordinary distributional response families. |
 
-Total: 41 placed. Stage counts **after the §9 corrections**: **1. First fit**
-= 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 9 ·
-**Specialist branch** = 4 · **4. Random & structured effects** = 9 ·
+Total: 43 placed. Stage counts **after the §9 corrections**: **1. First fit**
+= 4 · **2. Choose your family** = 4 · **3. Interpretation tutorials** = 10 ·
+**Specialist branch** = 5 · **4. Random & structured effects** = 9 ·
 **5. Uncertainty & inference boundaries** = 5 · **6. Honest limitations** = 1
 · **Developer track** = 5.
-4 + 4 + 9 + 4 + 9 + 5 + 1 + 5 = 41.
+4 + 4 + 10 + 5 + 9 + 5 + 1 + 5 = 43.
 
 Two rows deserve a placement note beyond the reason column:
 

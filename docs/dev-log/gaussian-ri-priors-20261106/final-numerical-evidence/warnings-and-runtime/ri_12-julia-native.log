@@ -1,0 +1,10 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     5
+│   rcond = 6.403028216309936e-19
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-final-f60eb88e-20261106/src/vcov_guard.jl:122

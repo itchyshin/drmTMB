@@ -1,0 +1,8 @@
+{
+  "R/drmTMB.R": "8d0ee06cbdebff0e418d51394c122df94b75b970640edf0249e4dac792474b6a",
+  "man/drmTMB.Rd": "118c88f064c68adc7ba1d0a089132a22407bc58766f1f9c6356a2f6b31543aeb",
+  "tests/testthat/test-phylo-utils.R": "71609b165ba21882e5a77c3ac3fd3267eda1102c0c65837e557f2b125487f157",
+  "tests/testthat/test-reader-vignette-contracts.R": "3fd05d3373e9382e3108bfc9db7318d41e52c792c20f5d244438d3c80f37e190",
+  "inst/reader-contracts/vignette-manifest.csv": "e9985ff1dd43f788950fdbd0fb31c591b6c63a5ca02417a4c3ad7a073614f2f8",
+  "tools/function-cheatsheet-source.Rmd": "54635b5788f2cb9249370b10de8f3c8e05a10714663e51ecaf19f23b794154ba"
+}

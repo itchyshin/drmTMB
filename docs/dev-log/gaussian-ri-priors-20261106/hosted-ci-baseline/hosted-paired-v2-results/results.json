@@ -1,0 +1,58 @@
+[
+  {
+    "label": "baseline",
+    "mode": "prefix",
+    "source": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--threads=1",
+      "--check-bounds=yes",
+      "--depwarn=yes",
+      "--compiled-modules=yes",
+      "--code-coverage=@/home/runner/work/DRModels.jl/DRModels.jl/baseline",
+      "--color=yes",
+      "--warn-overwrite=yes",
+      "--inline=yes",
+      "--track-allocation=none",
+      "--project=/home/runner/work/DRModels.jl/DRModels.jl/baseline-env",
+      "/home/runner/work/DRModels.jl/DRModels.jl/diagnostic/tools/ci-prior-hosted-diagnostic/run.jl",
+      "/home/runner/work/DRModels.jl/DRModels.jl",
+      "baseline",
+      "prefix"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 696.0343353748322,
+    "process_exit_code": 0,
+    "timeout_policy": "SIGINT process group at1170s,15s grace, then SIGKILL group",
+    "log_sha256": "3f326b89bf98d4df23a8129b962a6d5cfe0a1a218b04a32010eb365f5333559d"
+  },
+  {
+    "label": "candidate",
+    "mode": "prefix",
+    "source": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--threads=1",
+      "--check-bounds=yes",
+      "--depwarn=yes",
+      "--compiled-modules=yes",
+      "--code-coverage=@/home/runner/work/DRModels.jl/DRModels.jl/candidate",
+      "--color=yes",
+      "--warn-overwrite=yes",
+      "--inline=yes",
+      "--track-allocation=none",
+      "--project=/home/runner/work/DRModels.jl/DRModels.jl/candidate-env",
+      "/home/runner/work/DRModels.jl/DRModels.jl/diagnostic/tools/ci-prior-hosted-diagnostic/run.jl",
+      "/home/runner/work/DRModels.jl/DRModels.jl",
+      "candidate",
+      "prefix"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 689.2239835262299,
+    "process_exit_code": 0,
+    "timeout_policy": "SIGINT process group at1170s,15s grace, then SIGKILL group",
+    "log_sha256": "fd67ad4f0496ebcde774efefce5e0bc0d16adb7bcf7cda1bf985030259397f56"
+  }
+]

@@ -1,0 +1,1 @@
+t<-proc.time()[['elapsed']];r<-devtools::test(filter='^beta-spatial-q2-sd-regression$',reporter='summary',stop_on_failure=FALSE);d<-as.data.frame(r);cat('PASSED',sum(d$passed),'FAILED',sum(d$failed),'ERRORS',sum(d$error),'SECONDS',proc.time()[['elapsed']]-t,'\n');if(any(d$failed>0|d$error))quit(status=1)

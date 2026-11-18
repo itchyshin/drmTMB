@@ -1,0 +1,32 @@
+ℹ Testing drmTMB
+beta-spatial-q2-sd-regression: ...............1........................`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+..
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-spatial-q2-sd-regression.R:115:3'): Beta spatial q2 maps
+Error in `parse_structured_marker_call(term, marker, dpar)`: `pedigree`, `A`, and `Ainv` must name objects.
+x Use syntax like `animal(1 | id, pedigree = pedigree)`.
+Backtrace:
+     ▆
+  1. ├─testthat::expect_error(...) at test-beta-spatial-q2-sd-regression.R:115:3
+  2. │ └─testthat:::expect_condition_matching_(...)
+  3. │   └─testthat:::quasi_capture(...)
+  4. │     ├─testthat (local) .capture(...)
+  5. │     │ └─base::withCallingHandlers(...)
+  6. │     └─rlang::eval_bare(quo_get_expr(.quo), quo_get_env(.quo))
+  7. ├─drmTMB:::drm_build_beta_ls_spec(...)
+  8. └─drmTMB::bf(...) at general-sd-regression/R/drmTMB.R:6824:3
+  9.   └─drmTMB:::parse_drm_formula_entries(calls, names) at general-sd-regression/R/bf.R:52:3
+ 10.     └─drmTMB:::parse_drm_formula_entry(calls[[i]], names[[i]], i) at general-sd-regression/R/parse-formula.R:21:5
+ 11.       └─drmTMB:::collect_structured_effects(rhs, dpar) at general-sd-regression/R/parse-formula.R:121:3
+ 12.         └─drmTMB:::parse_structured_marker_call(term, marker, dpar) at general-sd-regression/R/parse-formula.R:764:7
+ 13.           └─cli::cli_abort(...) at general-sd-regression/R/parse-formula.R:843:7
+ 14.             └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 41 FAILED 0 ERRORS 1 SECONDS 39.563 

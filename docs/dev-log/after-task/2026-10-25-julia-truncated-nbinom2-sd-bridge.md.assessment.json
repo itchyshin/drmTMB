@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "9b2c8c19a01efd61aac77c2882906366409bbbdf3876f128c195763d28419595",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the exact report and compare the factual claims against its test receipt, evidence reconciler output, and recorded pkgdown/test logs.",
+  "genre": "technical after-task report",
+  "coverage": "Full 97-line report, including scope, checks, limitations, and next action.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report is specific to one implementation slice, gives exact evidence and limits, and avoids generic promotional claims; some dense lists and technical phrasing remain.",
+  "confidence": "medium",
+  "confidence_reason": "The report and primary local receipts were read; source and test claims are receipt-bound, while broad scientific correctness is deliberately not asserted.",
+  "examples": [
+    {
+      "location": "Section 2, line 9",
+      "cue": "The bridge now admits one ordinary `mu` random intercept or one independent numeric `mu` slope",
+      "impact": "Names the exact route and key constraints clearly.",
+      "repair": "no change needed",
+      "line": 9,
+      "quote": "The bridge now admits one ordinary `mu` random intercept or one independent numeric `mu` slope when the SD formula selects the same group and coefficient and `sigma ~ 1`."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "unknown",
+  "science_gate_reason": "This report records narrow implementation and point-check evidence; it does not claim a general identifiability result or calibrated uncertainty.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The fit count, reconciliation totals, pkgdown result, and interrupted broad-filter outcome are tied to local logs and receipts recorded in the report.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references are cited in this report.",
+  "date": "2026-10-25",
+  "calibration_status": "No calibration examples were used; this is a self-assessment and not an independent human review.",
+  "interpretation": "perceived_style_not_authorship"
+}

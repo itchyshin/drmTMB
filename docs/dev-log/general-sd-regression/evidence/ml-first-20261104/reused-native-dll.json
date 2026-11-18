@@ -1,0 +1,7 @@
+{
+  "source_root": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/lss-refresh-1668",
+  "destination": "/Users/z3437171/.codex/worktrees/sd-article-ml/drmTMB/src/drmTMB.so",
+  "sha256": "99f6531f527c6de09b2fe001560eb840a91ca63ec73d665f120d56394cf3167c",
+  "cpp_headers_match": true,
+  "purpose": "R-only payload regression; no native source change or rebuilt-engine claim"
+}

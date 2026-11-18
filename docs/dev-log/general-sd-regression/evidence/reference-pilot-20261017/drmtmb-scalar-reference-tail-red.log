@@ -1,0 +1,20 @@
+Test passed with 13 successes 🎉.
+── Error: reference is stable, ordered and fails closed ────────────────────────
+Error in `ref(1, 1, -1000, 0.5, "cloglog")`: cannot locate a finite integration centre
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...)
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. └─global ref(1, 1, -1000, 0.5, "cloglog")
+Error:
+! Test failed with 1 failure and 1 success.
+Backtrace:
+    ▆
+ 1. └─testthat::test_that(...)
+ 2.   └─testthat:::test_code(code, parent.frame())
+ 3.     ├─withr (local) `<fn>`()
+ 4.     └─reporter$end_test(context = reporter$.context, test = test)
+ 5.       └─cli::cli_abort(...)
+ 6.         └─rlang::abort(...)
+Execution halted

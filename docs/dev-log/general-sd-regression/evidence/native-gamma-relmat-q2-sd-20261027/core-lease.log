@@ -1,0 +1,2 @@
+GRANTED -- lane 'codex-general-sd-gamma-relmat-20261027' holds /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression [R/drmTMB.R,tests/testthat/test-gamma-relmat-q2-sd-regression.R] for 4h
+  release when done: LANE_ID='codex-general-sd-gamma-relmat-20261027' /Users/z3437171/shinichi-brain/tools/lane_lease.sh --release /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression

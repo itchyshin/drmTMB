@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-iid-relmat-cloglog-k-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-iid-relmat-cloglog-k-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-iid-relmat-kernel-nonlogit-20261027/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"Rscript -e 'devtools::test(filter=\"\"binomial-iid-relmat-kernel-equivalence-nonlogit-sd\"\", reporter=\"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R",
+      "test_sha256": "609361036aac7f6a27a8f43523dace1c1150e24bc39d78db49f10d0afc45cb34",
+      "started_utc": "2026-11-02T13:16:00Z",
+      "ended_utc": "2026-11-02T13:16:56Z",
+      "exit_code": 0,
+      "expectations_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-iid-relmat-kernel-nonlogit-20261027-m26-e14507/test-console-test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.log",
+      "console_log_sha256": "57a78cd5b0ee62920351b40c106b38159be06ac0fac8a4b21ba512b2b16188d6"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-iid-relmat-kernel-nonlogit-20261027-m26-e14507/source-manifest.json",
+  "source_manifest_sha256": "65087d8fd42ba568c47be199a299e4863967be98bc4eaffca2db9df62df18784",
+  "review_status": "unreviewed"
+}

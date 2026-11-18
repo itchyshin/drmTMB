@@ -1,0 +1,88 @@
+{
+  "slice": "native Beta coordinate-spatial independent intercept and numeric-slope SD",
+  "date": "2026-10-28",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/source-manifest.json",
+  "source_manifest_sha256": "089129fd5f62bbe15753f325e3975a670c66a088e09a21866d1629e1cc3f4ff3",
+  "implementation": "R-only missing base extraction, q2-only coordinate admission and coefficient SD maps; no C++ or DLL change",
+  "test": {
+    "passed": 446,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "seconds": 276.163,
+    "estimate_seconds": 300,
+    "initial_red_errors": 2,
+    "initial_red_seconds": 7.163,
+    "initial_focus_passed": 41,
+    "initial_focus_errors": 1,
+    "initial_focus_seconds": 39.563,
+    "initial_error": "Collision test used A=fx$K, parser requires symbol; corrected to bound A=A without model change"
+  },
+  "example": {
+    "convergence": 0,
+    "seconds": 9.272,
+    "sd_slopes": [
+      0.6594423,
+      -0.4907829
+    ],
+    "truth": [
+      0.5,
+      -0.5
+    ],
+    "qualification": "One fixed-seed point-fit smoke only"
+  },
+  "numerical_acceptance": {
+    "kernel": "Independent Euclidean median-positive-distance exponential kernel plus 1e-6 I, raw diagonal retained",
+    "laplace_nll_absolute_error": "<1e-4 passed",
+    "eta_max_absolute_error": "<1e-4 passed",
+    "reorder_constant_base_error": "<1e-4 passed",
+    "derivatives": "Analytic Beta score/Hessian and finite differences passed"
+  },
+  "candidate_row_keys": [
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "native Beta mu coordinates only; one independent intercept plus numeric slope; no whole-domain admission",
+  "shared_ledger_modified": false,
+  "interval_coverage": "deferred",
+  "julia_parity": "Not run or established",
+  "aggregate_acceptance_gate": "UNKNOWN: existing runner unavailable",
+  "review": "Parent coordinator and independent read-only scout found no P0/P1 in scoped code/math; test symbol error fixed",
+  "limitations": [
+    "Fixed range, not estimated spatial range",
+    "No duplicate-coordinate fallback-jitter validation",
+    "No unseen-site, mesh, weighted or missing-data fits",
+    "No q1 spatial, labels/correlation/multiple-slope or extra random layers",
+    "No new-data SD prediction/profile/bootstrap validation",
+    "No fresh two-field marginal simulation",
+    "No coverage, live Julia parity, full package or release checks"
+  ],
+  "supporting_artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/R-implementation.patch": "16d0c9416a6707421d4e2a8b1d672d256ee82cdd20824e9a7ab6145692814dfd",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/assessment-check.log": "bdd161506d446a05d577a98084788e1990d9740df70883925337f0481e3f73d0",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/candidate-rows.tsv": "7709040e8ba91e7462a2872b919bcfa57ff17bffb80cce3c3f8cd0007ab834fc",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/coordination.md": "cde123fce12626b839e40b7b0be4192b3679291f3530db05bd41f306e538e786",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/environment.log": "c7f951e49e787ae7489c9e9937f2d247d8c427db952d997f2a2040b32f3ad05a",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/example-runner.R": "3439f2158f4093299dccfe9282669e6a601bee9903b6678868e14d6885b7d073",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/example.log": "cef3f376d60f8edddd9e621c5a4b6eb558a41b97b9709d0032f571509fb17b31",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/file-preflight.log": "1ea152d85c689f56931340dd36d6ebde4b24aaba5a97230d0488a0e39aa9083e",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/finalize-evidence.py": "e8da3325ca0516b7b8097b5b0e4290f82c12b45dce109b98779874e939303fc1",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/focused.log": "450948f2ffaeed604201c6898f90fc21d68f8d46179eaafcf082d7d33f7025a0",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/independent-review.md": "cf64c0d7b878d74f7bdd89208bdd9ea3df440f33f8174998597bba5865a20fa5",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/issues.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/lease.log": "96af595d0fa6dfc9bad35785510b560385627e877320b4f1f1e85e8d52b20a97",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/pre-fit-alignment.md": "5a6e072acdf21fb70bf0f340946f001ca935542e81a3233e5991b9e6020cf19c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/prose-check.log": "e965250f453d0aa8216a4ea9356eabb5a26e76ba9f2b69559c23b20c372b1147",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/red-runner.R": "ab159d448274d7e284ece5083447bbb06d47284d8bef2ef325c8fc848b3c8314",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/red.log": "abfbede34dd3e55371bbbd66f679876de9f22cb1fd66969b3326553e7452a17c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/regression-runtime.json": "282d7456ee66551fc7d2275406f369b3ce254814cd6924de9abac81e834a80f4",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/regression.log": "3c65421e88613a0aabfe89acfd068884fe73570e450ce7145c494d9da0f8714c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/report-check.log": "5a2841c38ef6a0560766820c2f14d5c526e11811767e70c0dbed121a8ab6034c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/report-prose-assessment.json": "8653719415a335a0d7c4098d203fffe5340f7145713666973fe9fa9273c3f414",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/source-capsule.tar.gz": "7872bd359adeb1ddc8cc7c8a4cc7703f243806b2f7ffffe48a66a54550b01aae",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/source-manifest.json": "089129fd5f62bbe15753f325e3975a670c66a088e09a21866d1629e1cc3f4ff3",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-spatial-q2-sd-20261028/test-runner.R": "d14f46006328e1424c12ca4c2017c1fb5d1419e313dbda159f915461eb47fab7"
+  }
+}

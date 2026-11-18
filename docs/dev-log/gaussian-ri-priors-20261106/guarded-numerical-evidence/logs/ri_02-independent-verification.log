@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "id": "ri_02",
+      "engine": "R/TMB",
+      "errors": {
+        "point_objective": 1.394210315402096e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 2.0319211975233398e-16,
+        "point_decomposition": 0.0,
+        "point_gradient": 7.16777597954715e-16,
+        "point_hessian": 3.693486095155118e-10,
+        "fit_objective_at_returned_point": 1.0072359726586239e-15,
+        "fit_data_nll": 4.677719823941366e-16,
+        "fit_prior": 0.0,
+        "fit_optimum_objective": 4.4807339902143475e-11,
+        "fit_coefficients": 6.6640648662590526e-12
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 8.77215111076157e-07
+      }
+    },
+    {
+      "id": "ri_02",
+      "engine": "Julia/native",
+      "errors": {
+        "point_objective": 1.394210315402096e-16,
+        "point_data_nll": 0.0,
+        "point_prior": 0.0,
+        "point_decomposition": 0.0,
+        "point_gradient": 1.6041413305521675e-16,
+        "point_hessian": 3.477922768248364e-16,
+        "fit_objective_at_returned_point": 1.1191510806816582e-16,
+        "fit_data_nll": 0.0,
+        "fit_prior": 7.892282850611326e-17,
+        "fit_optimum_objective": 2.238302161363316e-16,
+        "fit_coefficients": 3.464689487830918e-11
+      },
+      "unavailable": [],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 9.705632216863742e-11
+      }
+    },
+    {
+      "id": "ri_02",
+      "engine": "R/Julia-bridge",
+      "errors": {
+        "fit_objective_at_returned_point": 1.1191510806816582e-16,
+        "fit_data_nll": 0.0,
+        "fit_prior": 7.892282850611326e-17,
+        "fit_optimum_objective": 2.238302161363316e-16,
+        "fit_coefficients": 3.464689487830918e-11
+      },
+      "unavailable": [
+        "arbitrary-point bridge gradient/Hessian interface"
+      ],
+      "boundary_group_sd": {
+        "reference": 0.0,
+        "candidate": 9.705632216863742e-11
+      }
+    }
+  ]
+}
+INDEPENDENT_COMPARISON_PASS

@@ -1,0 +1,16 @@
+julia-binomial-animal-iid-nonlogit-sensitivity-b29: ............i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..........b29 probit: ll=-3377.778611 oracle=-3377.778465 agreement=1.46e-04 rel=4.32e-08; gaps: selector_swap=-52.0965, animal_slope_sign=-25.0614, site_slope_sign=-23.7938, reversed_animal_sd_vector=-8.1202, reversed_site_sd_vector=-18.8519, A_scale_2=-3.0171, A_scale_1.1=-0.0650, A_wrong_decay=-0.1975, wrong_link=-29.3190
+..........b29 cloglog: ll=-3439.942202 oracle=-3439.942053 agreement=1.48e-04 rel=4.31e-08; gaps: selector_swap=-69.0536, animal_slope_sign=-39.4842, site_slope_sign=-25.7152, reversed_animal_sd_vector=-10.3086, reversed_site_sd_vector=-21.8156, A_scale_2=-2.9698, A_scale_1.1=-0.0638, A_wrong_decay=-0.6484, wrong_link=-26.4984
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=32 failed=0 errors=0 skipped=0
+DRM_BLOCKS 2
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`

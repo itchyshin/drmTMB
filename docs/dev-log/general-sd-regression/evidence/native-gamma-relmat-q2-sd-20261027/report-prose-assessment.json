@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "57fb075e161ca07d5c759acdd4fd11a0ff7dee8fe407d1f77eaac98268ce6153",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex GPT-6.1 Sol",
+  "method": "Separate post-draft reading against focused logs, scope, reviewer findings and local files.",
+  "genre": "technical after-task report",
+  "coverage": "whole saved report",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Required numbered headings make the report structured; concrete model, measured error and explicit scope avoid generic claims.",
+  "confidence": "medium",
+  "confidence_reason": "Editorial self-review, with no human naturalness rating.",
+  "examples": [
+    {
+      "location": "line 5",
+      "cue": "concrete scope",
+      "impact": "States the purpose before the mechanism.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Fit separate predictor-dependent SDs for a Gamma model's relatedness intercept and slope, and verify that its reported random effects and conditional predictions use those scales."
+    },
+    {
+      "location": "line 59",
+      "cue": "concrete scope",
+      "impact": "Names the tested product and its untested neighbors explicitly.",
+      "repair": "no change needed",
+      "line": 59,
+      "quote": "The slice covers complete responses, supplied K and Q, two independent Gamma location fields, coefficient-selected group SD formulas, extraction, fitted conditional predictions, conditional simulation, and save/reload in the tested configuration. It does NOT cover Julia parity, interval coverage, weighted or missing-response models, additional random layers, labelled or correlated fields, new-data SD extrapolation, or fresh q2 marginal simulation. Earlier saved fits contain their earlier extracted values and should be refitted before relying on corrected conditional predictions."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Within scope: covariance and Gamma parameterization match independent oracle and read-only mathematical review; no coverage or parity claim.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "108 passing checks, 44.864 seconds and example convergence compared with saved tool logs; limitations and non-landed state retained.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature claims or bibliographic references; local evidence paths are recorded.",
+  "date": "2026-10-27",
+  "calibration_status": "House protocol examples seen; no independent calibration study performed.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,32 @@
+* installing *source* package ‘drmTMB’ ...
+** this is package ‘drmTMB’ version ‘0.7.1’
+** using staged installation
+** libs
+using C compiler: ‘x86_64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
+using C++ compiler: ‘x86_64-linux-gnu-g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
+x86_64-linux-gnu-g++ -std=gnu++20 -I"/usr/share/R/include" -DNDEBUG  -I'/home/snakagaw/R/lib/RcppEigen/include' -I'/home/snakagaw/R/lib/TMB/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-SRqRsK/r-base-4.6.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-SRqRsK/r-base-4.6.1=/usr/src/r-base-4.6.1-6.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3   -c drmTMB.cpp -o drmTMB.o
+In file included from /home/snakagaw/R/lib/RcppEigen/include/Eigen/Core:205,
+                 from /home/snakagaw/R/lib/RcppEigen/include/Eigen/Dense:1,
+[Compiler header warnings omitted from review excerpt; full raw log remains on Totoro.]
+/home/snakagaw/R/lib/TMB/include/atomic_math.hpp:459:1:   required from ‘bool atomic::atomicmatmul<Type>::forward(size_t, size_t, const CppAD::vector<bool>&, CppAD::vector<bool>&, const CppAD::vector<Type>&, CppAD::vector<Type>&) [with Type = double; size_t = long unsigned int]’
+/home/snakagaw/R/lib/TMB/include/atomic_math.hpp:459:1:   required from here
+/home/snakagaw/R/lib/RcppEigen/include/Eigen/src/Core/DenseCoeffsBase.h:56:30: warning: ignoring attributes on template argument ‘Eigen::internal::packet_traits<double>::type’ {aka ‘__m128d’} [-Wignored-attributes]
+   56 |                      >::type PacketReturnType;
+      |                              ^~~~~~~~~~~~~~~~
+x86_64-linux-gnu-gcc -std=gnu2x -I"/usr/share/R/include" -DNDEBUG  -I'/home/snakagaw/R/lib/RcppEigen/include' -I'/home/snakagaw/R/lib/TMB/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-SRqRsK/r-base-4.6.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-SRqRsK/r-base-4.6.1=/usr/src/r-base-4.6.1-6.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c init.c -o init.o
+x86_64-linux-gnu-gcc -std=gnu2x -I"/usr/share/R/include" -DNDEBUG  -I'/home/snakagaw/R/lib/RcppEigen/include' -I'/home/snakagaw/R/lib/TMB/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-SRqRsK/r-base-4.6.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-SRqRsK/r-base-4.6.1=/usr/src/r-base-4.6.1-6.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c meuwissen_luo.c -o meuwissen_luo.o
+x86_64-linux-gnu-g++ -std=gnu++20 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o drmTMB.so drmTMB.o init.o meuwissen_luo.o -L/usr/lib/R/lib -lR
+installing to /home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/check-closeout/drmTMB.Rcheck/00LOCK-drmTMB/00new/drmTMB/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (drmTMB)

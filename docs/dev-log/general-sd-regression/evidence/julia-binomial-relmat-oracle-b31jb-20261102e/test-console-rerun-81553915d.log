@@ -1,0 +1,17 @@
+julia-binomial-relmat-oracle-b31jb: .i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..........b31jb relmat logit: ll=-730.481797 oracle=-730.481795 agreement=1.58e-06 min_gap=0.9065 (x906); gaps: selector_swap=-171.476, sd_slope_sign=-26.763, reversed_sd_vector=-25.912, sd_intercept_plus_log2=-3.716, K_scale_2=-0.906, cov2cor_K=-0.993, K_by_position=-20.558
+...................b31jb relmat probit: ll=-624.614490 oracle=-624.614488 agreement=1.52e-06 min_gap=1.2735 (x1273); gaps: selector_swap=-331.740, sd_slope_sign=-32.500, reversed_sd_vector=-32.977, sd_intercept_plus_log2=-5.081, K_scale_2=-1.273, cov2cor_K=-1.290, K_by_position=-36.131
+...................b31jb relmat cloglog: ll=-715.453742 oracle=-715.453741 agreement=1.65e-06 min_gap=1.1278 (x1128); gaps: selector_swap=-181.710, sd_slope_sign=-25.468, reversed_sd_vector=-26.631, sd_intercept_plus_log2=-4.527, K_scale_2=-1.128, cov2cor_K=-1.413, K_by_position=-28.833
+........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=57 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T01:18:16Z end=2026-11-03T01:18:45Z rc=0
