@@ -330,10 +330,46 @@ categorical <- function() {
   )
 }
 
+# A stats `family` object whose `family` string collides with a drmTMB
+# constructor (glmmTMB::nbinom2(), a hand-built `family = "nbinom2"` object)
+# used to hit the generic "supported families include nbinom2()" abort.
+# drmTMB::nbinom2() is a drm_family and does not come through here (#1717).
+drm_abort_foreign_impute_family <- function(family) {
+  if (!inherits(family, "family") || inherits(family, "drm_family")) {
+    return(invisible(NULL))
+  }
+  fname <- family$family
+  constructors <- c(
+    nbinom2 = "nbinom2",
+    truncated_nbinom2 = "truncated_nbinom2",
+    tweedie = "tweedie",
+    beta = "beta_family",
+    lognormal = "lognormal"
+  )
+  if (
+    !is.character(fname) ||
+      length(fname) != 1L ||
+      is.na(fname) ||
+      !fname %in% names(constructors)
+  ) {
+    return(invisible(NULL))
+  }
+  drm_fun <- unname(constructors[[fname]])
+  cli::cli_abort(
+    c(
+      "Received a stats {.code family} object with {.code family = \"{fname}\"}, which is not a {.pkg drmTMB} family.",
+      "x" = "{.pkg drmTMB} requires its own {.code drm_family} constructors, not stats {.code family} objects from other packages.",
+      "i" = "Use {.code drmTMB::{drm_fun}()} instead."
+    ),
+    class = "drmTMB_foreign_impute_family"
+  )
+}
+
 drm_impute_family_type <- function(family) {
   if (is.function(family) && identical(family, base::beta)) {
     drm_abort_base_beta_as_family()
   }
+  drm_abort_foreign_impute_family(family)
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
     return("gaussian")
   }
