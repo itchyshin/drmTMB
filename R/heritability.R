@@ -288,6 +288,7 @@ drm_variance_ratio <- function(
   level,
   method
 ) {
+  validate_profile_level(level)
   drm_abort_fixed_prior_inference(object, paste0(quantity, " confidence intervals"))
   if (method == "profile") {
     cli::cli_abort(
