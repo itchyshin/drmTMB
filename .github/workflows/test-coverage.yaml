@@ -36,6 +36,10 @@
 # 42526163025, shard 1, test-newton-polish-guard.R DLLInfo error).
 
 on:
+  # Push-to-main keeps this path filter. It is the current main behaviour:
+  # an unrelated push does not start this workflow. Do not copy that filter
+  # onto pull_request. A workflow that never starts leaves its checks missing,
+  # and a missing required check can block a ready PR.
   push:
     branches: [main, master]
     paths:
@@ -50,16 +54,9 @@ on:
       - "tools/covr-source-tree-layout.sh"
   pull_request:
     branches: [main, master]
-    paths:
-      - "R/**"
-      - "src/**"
-      - "tests/**"
-      - "DESCRIPTION"
-      - "NAMESPACE"
-      - ".github/workflows/test-coverage.yaml"
-      - ".github/workflows/codecov-upload.yaml"
-      - "codecov.yml"
-      - "tools/covr-source-tree-layout.sh"
+    # ready_for_review starts the nine shards after a draft is marked ready,
+    # when coverage_paths says the diff touches the list above.
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 name: test-coverage
@@ -72,7 +69,63 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Ready pull requests only. Drafts skip it. Push and workflow_dispatch skip
+  # it too: push already applied the path filter above, and a manual run
+  # measures every shard, which is the current workflow_dispatch behaviour.
+  # The job id has no hyphen so `needs.coverage_paths` is not parsed as
+  # subtraction.
+  coverage_paths:
+    name: coverage path filter
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      run: ${{ steps.filter.outputs.run }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+      - name: Compare the pull request diff to the coverage path list
+        id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          diff_out=$(git diff --name-status --find-renames "$BASE_SHA" HEAD)
+          run=false
+          while IFS=$'\t' read -r status path1 path2; do
+            [ -z "${status:-}" ] && continue
+            for f in "$path1" "$path2"; do
+              [ -z "$f" ] && continue
+              case "$f" in
+                R/*|src/*|tests/*|DESCRIPTION|NAMESPACE|.github/workflows/test-coverage.yaml|.github/workflows/codecov-upload.yaml|codecov.yml|tools/covr-source-tree-layout.sh)
+                  run=true
+                  ;;
+              esac
+            done
+          done <<< "$diff_out"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "coverage_paths=$run"
+
   test-coverage:
+    needs: coverage_paths
+    # Drafts skip all nine shards. A ready PR runs them when the diff matches
+    # the push path list, and also runs them when coverage_paths itself
+    # failed, so a filter error cannot hide the suite. Push and
+    # workflow_dispatch do not consult the filter: `pull_request.draft` is
+    # absent on those events, and the event_name clause keeps every shard.
+    if: >-
+      ${{ always() && (
+        github.event_name != 'pull_request' ||
+        (
+          github.event.pull_request.draft == false &&
+          (
+            needs.coverage_paths.outputs.run == 'true' ||
+            needs.coverage_paths.result != 'success'
+          )
+        )
+      ) }}
     runs-on: ubuntu-24.04
     # Timeout evidence from run 42517999771 (head 7acb39384, tested merge
     # e45d4241c6a21a534c957fff8d0d32452358ce20): shards 2/3 spent ~87 min

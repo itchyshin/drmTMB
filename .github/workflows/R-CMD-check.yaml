@@ -12,6 +12,13 @@ on:
     tags: ["v*"]
   pull_request:
     branches: [main, master]
+    # Keep the default activity types and add ready_for_review, so marking a
+    # draft ready starts a new run of the full eight-shard matrix. Draft
+    # activity still triggers this workflow. os-matrix then emits only ubuntu
+    # shard 1/8. Shards 2-8 are absent from that draft run. source-tree,
+    # validate-shard-records, and the four shard N/4 rollups are created and
+    # skipped, so those check names are not missing.
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 name: R-CMD-check
@@ -40,10 +47,18 @@ jobs:
       - id: set-matrix
         run: |
           FULL="${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') }}"
+          DRAFT="${{ github.event_name == 'pull_request' && github.event.pull_request.draft }}"
           if [ "$FULL" = "true" ]; then
             # A release/tag run is the CRAN-shaped one: each OS runs the whole
             # suite in a single job (shard 0 == unsharded), exactly as before.
+            # workflow_dispatch is not a pull_request, so DRAFT is false here.
             echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}],"shard":[0]}' >> "$GITHUB_OUTPUT"
+          elif [ "$DRAFT" = "true" ]; then
+            # One ubuntu release shard. The job-level `if` cannot see `matrix`
+            # (GitHub context table), so the draft cut is this matrix, not a
+            # per-shard condition. Ready pull requests fall through to the
+            # eight-shard matrix below.
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}],"shard":[1]}' >> "$GITHUB_OUTPUT"
           else
             # A 150-minute 4-way check was cancelled while tests were still
             # running. Split the same radix-ordered test files eight ways;
@@ -289,6 +304,9 @@ jobs:
   # premise cannot quietly join the blind spot, and an existing one cannot
   # quietly leave the lane.
   source-tree-tests:
+    # Same event guard as the extra shards: skip on a draft pull request,
+    # and still run for tags and workflow_dispatch.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-24.04
     name: source-tree tests (blind spot)
     timeout-minutes: 45
@@ -325,7 +343,10 @@ jobs:
   # Check all eight records for this run attempt before producing the four
   # existing required contexts. A partial rerun must rerun all shard jobs.
   validate-shard-records:
-    if: ${{ always() }}
+    # always() preserves today's failure behaviour on ready PRs, tags, and
+    # workflow_dispatch. Drafts skip this job: only shard 1 uploaded a record,
+    # and a red rollup would not be the one smoke result.
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     needs: [os-matrix, R-CMD-check]
     runs-on: ubuntu-24.04
     steps:
@@ -351,7 +372,7 @@ jobs:
         run: bash tools/validate-check-shards.sh
 
   required-shard-rollup:
-    if: ${{ always() }}
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     needs: [validate-shard-records]
     runs-on: ubuntu-24.04
     name: ubuntu-latest (release) shard ${{ matrix.shard }}/4
