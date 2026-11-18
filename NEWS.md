@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* `anova()` and `lrt_boundary()` now refuse two fits that used different
+  rows, even when both report the same number of observations. A different
+  observation count still reports that count (refs #1661).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
