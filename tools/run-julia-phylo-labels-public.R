@@ -40,7 +40,7 @@ out$result <- tryCatch({
     pf = drm(bf(@formula(y ~ x + phylo(1 | species)), @formula(sigma ~ x), @formula(sd(species, phylogenetic) ~ z)), Gaussian();
         data=(y=label_y,x=label_x,z=label_z,species=label_species),tree=pt)
     Dict("mu"=>coef(pf,:mu),"sigma"=>coef(pf,:sigma),"sd_phylo"=>coef(pf,:sd_phylo),
-      "loglik"=>loglik(pf),"fitted"=>fitted(pf),"converged"=>is_converged(pf),
+      "loglik"=>loglik(pf),"fitted"=>fitted(pf; re = :zero),"converged"=>is_converged(pf),
       "labels"=>pt.leaf_names,"covariance"=>DRModels.sigma_phy_dense(pt),
       "julia"=>string(VERSION),"threads"=>Threads.nthreads(),"blas"=>BLAS.get_num_threads(),"source"=>pathof(DRModels))
   end')
