@@ -217,12 +217,9 @@ test_that("bivariate phylogenetic group-SD ADREPORT matches the R log-SD transfo
     data = dat,
     control = d1_group_sd_control()
   )
-  log_eta <- as.numeric(fit$obj$report()$log_sd_phylo_group)
-  # Intercept-only sd1() and sd2() formulas: one log SD per response, repeated
-  # across the four tips. sd_phylo_group_log_values() does not index this
-  # bivariate coefficient vector, so the design check is the repeated value.
-  expect_equal(length(log_eta), 8L)
-  expect_equal(log_eta[seq_len(4L)], rep(log_eta[[1L]], 4L), tolerance = 1e-12)
-  expect_equal(log_eta[5:8], rep(log_eta[[5L]], 4L), tolerance = 1e-12)
-  d1_expect_group_sd(fit, "log_sd_phylo_group", "sd_phylo_group", log_eta)
+  eta <- drmTMB:::sd_phylo_group_log_values(
+    list(beta_sd_mu = as.numeric(fit$obj$report()$beta_sd_mu)),
+    fit$model
+  )
+  d1_expect_group_sd(fit, "log_sd_phylo_group", "sd_phylo_group", eta)
 })
