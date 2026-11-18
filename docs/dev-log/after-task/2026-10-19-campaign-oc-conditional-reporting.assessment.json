@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c0ea43025419f83e48a70fab86f0c1765e7f56fff3ed195ac2334f45540e365b",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate post-draft review under writing-naturalness.md; checked factual statements against the harness, tests, receipt, calibration contract, and independent review; ran prose-style-review and slop_check.py.",
+  "genre": "Technical after-task report",
+  "coverage": "Whole saved report, including all 12 sections",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "The prose is direct and specific, with the expected technical vocabulary and little generic framing. The longer residuals section is denser than the rest but remains easy to scan.",
+  "confidence": "medium",
+  "confidence_reason": "The full short report was reviewed and factual claims were checked against current source and retained evidence; style scoring remains a subjective editorial judgment.",
+  "examples": [
+    {
+      "location": "Section 1, line 5",
+      "cue": "States the two probability denominators in one sentence.",
+      "impact": "Gives the reader the reporting distinction before the implementation details.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Distinguish the unconditional campaign probability of each second-look outcome from the probability conditional on a campaign reaching look two."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The probability estimands, their denominators, and exact-binomial interval interpretation match summarize_look2_outcomes() and the campaign outcome partitions.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test result, runtime, seed, R version, source hashes, preflight observations, and review conclusion were checked against command outputs or current files.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no literature citations or external reference claims.",
+  "date": "2026-10-19",
+  "calibration_status": "No calibrated style controls were used; the report is assessed by self-review, the prose-style-review checklist, and slop_check.py.",
+  "interpretation": "perceived_style_not_authorship"
+}

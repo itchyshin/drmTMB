@@ -7,7 +7,7 @@
 drm_family_dpq(object)
 }
 \arguments{
-\item{object}{A \code{drmTMB} fit.}
+\item{object}{A native \code{drmTMB} fit or a Julia-engine \code{drmTMB_julia} fit.}
 }
 \value{
 A list with elements \code{dpars}, \code{d}, \code{p}, \code{q}, \code{discrete},

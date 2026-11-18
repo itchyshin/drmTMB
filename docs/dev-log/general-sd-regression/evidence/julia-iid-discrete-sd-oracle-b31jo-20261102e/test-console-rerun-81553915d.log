@@ -1,0 +1,24 @@
+julia-iid-discrete-sd-oracle-b31jo: ........................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.............b31jo iid beta_binomial intercept: ll=-1066.096784 oracle=-1066.096784 agreement=3.91e-11; min gap=2.181 (sd_vector_reversed)
+...............b31jo iid beta_binomial slope: ll=-1033.589129 oracle=-1033.589129 agreement=1.68e-10; min gap=1.102 (selector_dropped)
+.............b31jo iid cumulative_logit intercept: ll=-530.488598 oracle=-530.488598 agreement=1.96e-10; min gap=2.398 (selector_dropped)
+...............b31jo iid cumulative_logit slope: ll=-533.471063 oracle=-533.471063 agreement=2.42e-10; min gap=0.719 (selector_dropped)
+.............b31jo iid hurdle_nbinom2 intercept: ll=-812.793402 oracle=-812.793402 agreement=1.46e-10; min gap=5.537 (sd_times_2)
+...............b31jo iid hurdle_nbinom2 slope: ll=-800.357406 oracle=-800.357406 agreement=1.69e-10; min gap=4.521 (selector_dropped)
+...............b31jo iid truncated_nbinom2 slope: ll=-730.957278 oracle=-730.957278 agreement=1.02e-10; min gap=6.177 (selector_dropped)
+.............b31jo iid tweedie intercept: ll=-610.406639 oracle=-610.406639 agreement=1.97e-10; min gap=9.192 (sd_times_2)
+.............b31jo iid zi_poisson intercept: ll=-738.674079 oracle=-738.674079 agreement=1.99e-10; min gap=4.787 (sd_vector_reversed)
+...............b31jo iid zi_poisson slope: ll=-700.605687 oracle=-700.605687 agreement=1.70e-10; min gap=4.058 (sd_times_2)
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 10 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=164 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T01:21:22Z end=2026-11-03T01:23:36Z rc=0

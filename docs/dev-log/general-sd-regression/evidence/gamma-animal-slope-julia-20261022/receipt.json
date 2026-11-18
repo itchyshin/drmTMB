@@ -1,0 +1,12 @@
+{
+  "evidence_id": "julia-gamma-animal-numeric-slope-sd-20261022-current",
+  "candidate_row": "Julia Gamma univariate mu animal_numeric_slope, q=1 per coefficient, supplied A covariance",
+  "candidate_row_key": "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+  "test_command": "JULIA_DEPOT_PATH='/private/tmp/general-sd-julia-depot:/Users/z3437171/.julia' OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. test/test_gamma_animal_slope_sd_regression.jl",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_file_sha256": "a49dbb3bb4f6d748e207dae0737e8d340951329d2845b5607dbd762ee0dfa9ab",
+  "test_result": "16/16 assertions passed in 26.9 seconds on Julia 1.10.0.",
+  "coverage": "Synthetic Gamma animal independent-slope fit and signed SD-slope recovery; group and row SD predictions; independent dense Laplace objective; constant-SD likelihood equivalence; seeded marginal simulator against normalized-covariance oracle; serialization; one bootstrap refit; rejection of within-animal SD predictor variation.",
+  "limits": "One complete-data Julia q1 independent animal mean-slope cell with fixed sigma and supplied non-unit-diagonal A, normalized to unit-diagonal R. Native parity for raw A scaling, animal intercept-plus-slope joint blocks, other animal providers, and interval coverage are not established. Receipt is unreviewed."
+}

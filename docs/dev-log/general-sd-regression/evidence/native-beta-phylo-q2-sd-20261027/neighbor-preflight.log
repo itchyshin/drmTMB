@@ -1,0 +1,82 @@
+─── LANE PRE-FLIGHT · general-sd-regression · last 12h ───
+ ME              : unknown  (foreign lanes = ALL: claude codex cursor)
+                   Runtime not identified -- treating every platform as foreign. Say which you are.
+ ON BRANCH       : codex/general-sd-regression
+ ── --file: work on these paths that your checkout does NOT have ──
+   !! tests/testthat/test-beta-location-scale.R -- 5 ref(s) carry work you do not have
+      refs/codex/snapshots/3c6b69da44e2357c60b   1 commit(s) · Add Beta phylogenetic direct SD regression
+      codex/no-to-yes-wave1                      1 commit(s) · Add non-Gaussian mu random slopes
+      codex/beta-mu-random-intercepts            1 commit(s) · Add bounded-response mu random intercepts
+      ... and 2 more ref(s) (newest 3 shown)
+      see the newest:  git diff HEAD..refs/codex/snapshots/3c6b69da44e2357c60b75c92f771b73b60897287 -- tests/testthat/test-beta-location-scale.R
+ OPEN PRs        :
+   !! #1655  codex/cran-filter-interactive-20261027     Fix interactive CRAN lane guard test
+   !! #1654  codex/fix-mathjax-order-20261027           Fix MathJax configuration order in the documentation site
+   !! #1653  codex/docs-audit-roxygen-associate-2026102 Stabilize association help when Matrix is attached
+   !! #1652  codex/docs-audit-r-associate-symmetry-2026 test: tolerate measured optimizer path variation
+      #1651  docs/r-julia-tolerance-source-pin          docs: bind Julia tolerance claim to tested source pin
+   !! #1648  claude/issue-1568-quantile-conditional-doc docs: fitted-row quantile outputs are conditional on the ran
+   !! #1647  claude/issue-1320-predict-mean             predict(type = "mean") returns E[Y] (Part of #1320)
+   !! #1646  claude/issue-1532-gamma-mi-newton          Gamma mi(): twelve Newton steps and a wider trapezoid span (
+   !! #1642  claude/issue-1201-reml-se-convention       Label REML mean-block SE convention per engine (#1201)
+   !! #1629  claude/issue-1455-censored-refusal         Refuse censored responses (Surv, cens) with one classed erro
+   !! #1627  claude/issue-1329-tmb-data-defaults        Refactor make_tmb_data_core() onto one shared defaults list
+   !! #1623  cursor/fixed-design-rank-check-46f8        Abort rank-deficient fixed-effect designs before fitting
+   !! #1612  codex/cmr-page-integration                 Add first-capture CJS models and article
+   !! #1575  codex/fix-pr1563-skip-census               fix: refresh boundary LRT skip census
+   !! #1565  cursor/julia-setup-segfault-4acf           fix: stop JuliaCall setup SIGSEGV (exit 139) on official Jul
+   !! #1563  cursor/fx6-boundary-lrt-3f95               Detect Poisson vs NB2 as a chi-bar boundary test and add a b
+   !! #1546  claude/e1-check-drm-print-1534             check_drm(): print fits 80 columns, keeps all columns
+   !! #1529  claude/optimistic-euler-un5qle             mi(): weighted mi() prior and adaptive Beta/Gamma prior quad
+   !! #1524  claude/lane-n1-zi-hurdle-re                feat: one mu random intercept in zero-inflated and hurdle co
+   !! #1514  claude/lane-b-numeric-kernels              fix(kernels): stable beta-binomial at large phi, bounded Twe
+   !! #1509  claude/lane-c-convergence-inference        Lane C: unbounded-scale flag, REML Wald, skew-normal caveat,
+   !! #1505  cursor/triage-f-convergence                Flag unusable convergence: aliased designs, dispersion limit
+   !! #1503  cursor/triage-d-silent-inputs              fix: reject factor responses and report non-stationary gradi
+   !! #1502  cursor/triage-c-bridge-inputs              Fix Julia weights=NULL, control defaults, and Hessian conver
+   !! #1501  cursor/triage-pilot-inputs                 Stop silently dropping contrasts, Gaussian links, and failed
+   !! #1500  cursor/triage-pilot-quick                  Triage pilot: close verdicts plus update(), level, and miss_
+   !! #1443  claude/truncated-poisson-hurdle            truncated_poisson() + hu: hurdle Poisson (decision 16a; twin
+   !! #1438  claude/drmtmb-1282                         feat(structured): admit phylo()/relmat() on beta_binomial mu
+   !! #1435  claude/drmtmb-fixef-nlme                   fix: fixef() dispatch when nlme masks the generic
+   !! #1033  codex/response-missing-formula-surface     fix(missing-data): reconcile the response-mask formula ledge
+ origin/main     : quiet for 12h
+ LOCAL BRANCHES  : none active in last 12h beyond what is listed above
+ LANE CENSUS     : ** 31 LANES LIVE **
+                   · codex/cran-filter-interactive-20261027
+                   · codex/fix-mathjax-order-20261027
+                   · codex/docs-audit-roxygen-associate-20261027
+                   · codex/docs-audit-r-associate-symmetry-20261027
+                   · docs/r-julia-tolerance-source-pin
+                   · claude/issue-1568-quantile-conditional-docs
+                   · claude/issue-1320-predict-mean
+                   · claude/issue-1532-gamma-mi-newton
+                   · ... and 23 more
+                   Two lanes collide whether or not they are different PLATFORMS.
+                   Name the ONE you are taking, and do not touch the others' files.
+ NEWEST HANDOVER : docs/dev-log/handover/AGENTS-handover-log-archive.md  (58d old, in-a-ref: yes)
+ COORD BOARD     : docs/dev-log/coordination-board.md -- COMMITTED to origin/main ✅ (reaches other lanes)
+                   dev-log/design untracked: 26826 of 26826 exist in NO ref
+ LIVE LEASES     : none claimed on general-sd-regression
+ DESIGN NUMBERS  : ** 17 DUPLICATE slot(s) across all refs ** (178, 179, 145)
+                   NEXT FREE = 279 (highest across ALL refs, not just this checkout).
+                   `main` alone UNDER-COUNTS: a slot taken on a branch looks free. Claim by committing.
+───
+ VERDICT         : ** FOREIGN LANE ACTIVE (codex claude cursor) **
+                   Do NOT claim these files. Concurrency is allowed; BLEED-THROUGH is not (D-88).
+                   Read that lane's PR/handover, pick a lane it does not own, and say which lane
+                   you took. If the lanes genuinely overlap, SURFACE IT to Shinichi -- ownership
+                   is his call, not yours to resolve unilaterally (D-87).
+ FILE            : ** ANOTHER REF HAS WORK ON A PATH YOU ARE ABOUT TO EDIT **
+                   Read their diff BEFORE writing. If they already did it: build ON their
+                   version and land it on THEIR lineage -- two correct implementations of one
+                   fix in one file is worse than either alone, and guarantees a conflict.
+                   Shared checkout? Commit via a temp `git worktree`, never `git checkout`
+                   their branch -- that moves HEAD under them.
+ LEDGER          : ** duplicate IDs already present -- resolve before appending a new one **
+ LEASE           : claim before you write -- tools/lane_lease.sh --claim general-sd-regression [--paths a/,b/]
+                   GRANTED=proceed | REFUSED=not safe to run concurrently (narrow --paths, or go
+                   sequential). Never bypass a refusal. Leases expire (4h); --release when done.
+ STATE THIS LINE : PLATFORM: unknown | ON BRANCH: codex/general-sd-regression | LANE: <subject>
+                   OTHER LANES: <none / codex|cursor+PR# / Nx unknown>
+───────────────────────────────────

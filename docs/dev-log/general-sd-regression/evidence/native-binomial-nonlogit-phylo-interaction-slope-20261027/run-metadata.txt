@@ -1,0 +1,7 @@
+branch: codex/general-sd-regression
+HEAD: 425bee81572c625a634b2b083050c5c57c1dc1f1
+command: NOT_CRAN=true OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-phylo-interaction-slope-sd", reporter = "summary", stop_on_failure = TRUE)'
+route: native Bernoulli phylogenetic-interaction numeric slope with predictor-dependent SD; probit and cloglog synthetic recovery cases
+truth: SD log-slope 0.55; 256 correlated pair groups; 24 observations per pair
+scope: point recovery, SD prediction, deterministic simulate() check; no coverage calibration or Julia parity
+source stability: before and after SHA-256 manifests are identical

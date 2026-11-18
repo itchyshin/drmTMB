@@ -1,0 +1,17 @@
+{
+  "scope": "Current-source focused verification of the native Binomial phylogenetic plus coordinate-spatial q1 pair under logit, probit, and cloglog; animal pairs also rerun in this suite.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "7d1f4ca356413a07214673a7ba8b6aa79af673c5d4c078d528bf60b08e95c39a"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-phylo-spatial-sd.R",
+      "sha256": "d7367136eb51f77bba0ff65751e4d5277bc560555597d2c51d5b0fe6bfad6c39"
+    }
+  ]
+}

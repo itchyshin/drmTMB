@@ -1,0 +1,3 @@
+R Error in cat("R", getRversion(), "\nDLL", d[["path"]], "\n") : 
+  argument 2 (type 'list') cannot be handled by 'cat'
+Execution halted

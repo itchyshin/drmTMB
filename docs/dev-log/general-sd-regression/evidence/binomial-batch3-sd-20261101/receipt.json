@@ -1,0 +1,57 @@
+{
+  "evidence_id": "binomial-batch3-sd-20261101",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:A_covariance\",\"additive independent latent fields\",\"phylo:tree+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:Ainv_precision\",\"additive independent latent fields\",\"phylo:tree+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:pedigree\",\"additive independent latent fields\",\"phylo:tree+animal:pedigree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:A_covariance\",\"additive independent latent fields\",\"phylo:tree+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:Ainv_precision\",\"additive independent latent fields\",\"phylo:tree+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"phylo:tree+animal:pedigree\",\"additive independent latent fields\",\"phylo:tree+animal:pedigree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"devtools::test(filter = 'binomial-batch3-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_source_path": "tests/testthat/test-binomial-batch3-sd-regression.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/binomial-batch3-sd-20261101/test-snapshot/test-binomial-batch3-sd-regression.R",
+  "test_file_sha256": "c91b5017c7c0a590fc42a45190b24fbf38864ba302646261362c3ad99c30a874",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/binomial-batch3-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "48edcc800d9d283aa50f8dda7c5cd89122e43237b86aa389e19fc827ccfd4b7a",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/binomial-batch3-sd-20261101/test-console.log",
+  "console_log_sha256": "02290d23ef805bd5ba15ef49c9b6b3f4707dba0076a38286cfea5f2a3d936d3d",
+  "test_result": "Fresh run exit 0: 2 test_that blocks, 90 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (abs 1e-4) for phylo + animal under A, Ainv and pedigree, probit and cloglog.",
+  "exit_status": 0,
+  "expectation_counts": {
+    "tests": 2,
+    "expectations": 90,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "scope": "Native Binomial probit and cloglog phylo(1 | species, tree) + animal(1 | animal_id, A | Ainv | pedigree), each with its own predictor-dependent SD. Each of the three provider fits has its own dense Laplace oracle (abs 1e-4), max gradient < 2e-2, prediction identity 1e-8, positive SD slopes; Ainv and pedigree agree with the dense A fit (logLik 1e-5, SD coefficients 1e-3); constant-SD agreement across providers.",
+  "limits": "native engine only, one fixture per cell, loose recovery bands, no interval calibration, no Julia parity, dirty shared tree, unreviewed. Evidence grade focused_test: oracle or equivalence checks with loose SD-recovery bounds, not a calibration study. Provider inputs or layouts not named in scope were not tested (not tested, not fenced)."
+}

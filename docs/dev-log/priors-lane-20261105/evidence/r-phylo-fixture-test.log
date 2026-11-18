@@ -1,0 +1,78 @@
+loaded package: /home/snakagaw/hsq_work/drm-priors-20261105-01a1ad0b/r-final-lib/drmTMB
+phylo-utils: .....Pruning 1 phylogeny tip absent from the data.
+i The fit uses the subtree induced by the observed species.
+.........Pruning 1 phylogeny tip absent from the data.
+i The fit uses the subtree induced by the observed species.
+...................................................................................................................................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+                 file
+1  test-phylo-utils.R
+2  test-phylo-utils.R
+3  test-phylo-utils.R
+4  test-phylo-utils.R
+5  test-phylo-utils.R
+6  test-phylo-utils.R
+7  test-phylo-utils.R
+8  test-phylo-utils.R
+9  test-phylo-utils.R
+10 test-phylo-utils.R
+11 test-phylo-utils.R
+12 test-phylo-utils.R
+13 test-phylo-utils.R
+14 test-phylo-utils.R
+15 test-phylo-utils.R
+16 test-phylo-utils.R
+17 test-phylo-utils.R
+18 test-phylo-utils.R
+19 test-phylo-utils.R
+20 test-phylo-utils.R
+21 test-phylo-utils.R
+22 test-phylo-utils.R
+                                                                           test
+1          q>2 correlation parameterization override stays hidden and validated
+2             validate_phylo_tree checks ultrametric trees and observed species
+3                   drm_phylo_tip_covariance builds a dense Brownian comparator
+4           drm_phylo_augmented_precision matches the dense Brownian comparator
+5           default phylogenetic covariance is invariant to branch-length units
+6                       drm_phylo_tip_covariance validates the correlation flag
+7                       non-ultrametric Brownian trees succeed on the raw scale
+8        drm_phylo_augmented_precision maps observed species to augmented nodes
+9                      drm_phylo_augmented_precision is invariant to edge order
+10                 drm_phylo_augmented_precision handles ultrametric polytomies
+11               drm_phylo_precision_nll matches the augmented Gaussian density
+12                 correlated phylogenetic precision algebra handles q=4 states
+13               TMB correlated phylogenetic prior branch matches q=4 R algebra
+14                 TMB phylogenetic q4 parameter scaffold matches q=4 R algebra
+15                 TMB phylogenetic q4 parameter scaffold matches q=8 R algebra
+16           TMB q>2 partial-correlation parameterization matches q=8 R algebra
+17           planned phylogenetic corpair loading contract is positive definite
+18                        phylogenetic q=4 endpoint pair scaffold stays planned
+19                   TMB phylogenetic prior branch matches the R algebra helper
+20                            validate_phylo_tree rejects malformed tree inputs
+21               drm_phylo_augmented_precision requires positive branch lengths
+22 q>2 phylo separable covariance stays finite as covariance -> singular (#707)
+   failed error warning skipped passed
+1       0 FALSE       0   FALSE      5
+2       0 FALSE       0   FALSE      9
+3       0 FALSE       0   FALSE      2
+4       0 FALSE       0   FALSE      8
+5       0 FALSE       0   FALSE      7
+6       0 FALSE       0   FALSE      2
+7       0 FALSE       0   FALSE      4
+8       0 FALSE       0   FALSE      5
+9       0 FALSE       0   FALSE      2
+10      0 FALSE       0   FALSE      2
+11      0 FALSE       0   FALSE      4
+12      0 FALSE       0   FALSE      4
+13      0 FALSE       0   FALSE      3
+14      0 FALSE       0   FALSE      7
+15      0 FALSE       0   FALSE     40
+16      0 FALSE       0   FALSE     48
+17      0 FALSE       0   FALSE      5
+18      0 FALSE       0   FALSE     15
+19      0 FALSE       0   FALSE      2
+20      0 FALSE       0   FALSE      8
+21      0 FALSE       0   FALSE      3
+22      0 FALSE       0   FALSE      8

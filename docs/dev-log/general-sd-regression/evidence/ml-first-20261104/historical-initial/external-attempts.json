@@ -1,0 +1,46 @@
+{
+  "attempts": [
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/s3-nb2-prerun.stderr",
+      "sha256": "f1eb302a15cc2ed49ccb912cd3dc672fd0f00dbd1b9f17d460b20f51c710f352",
+      "bytes": 1010,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/s3-nb2-prerun.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-docs-setup.log",
+      "sha256": "0db60a89d506187f9322821919724ba7c3fbddc3b36f3667af5b21153d2b7628",
+      "bytes": 9222,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-docs-setup-fresh.log",
+      "sha256": "e3c2d31b74d5e79af3f253d1ea8d0d3c7a5c3b91a2ba555318747b591368b3a2",
+      "bytes": 12694,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-docs-build.log",
+      "sha256": "644feabfb6a81a9d321d27114e9a81a09ebb789a9a24855b00ffed4dbfe8a885",
+      "bytes": 23,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/julia-pkg-root-control.log",
+      "sha256": "2a33188924e0bacabd70174281b8bfe70971dd422cfb9252a5ab865070368a35",
+      "bytes": 18,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    },
+    {
+      "path": "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/s2-b34-live.log",
+      "sha256": "0d685a0c8ca90a7c046a845f6cdc4f89b4dd5756c4d8e25880f018a1eb6bd6c0",
+      "bytes": 4188,
+      "scope": "historical attempt retained externally; not an accepted pass"
+    }
+  ]
+}

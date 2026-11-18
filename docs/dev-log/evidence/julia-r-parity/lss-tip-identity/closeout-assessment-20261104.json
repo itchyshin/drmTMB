@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "f21bd57085e66935030b4680e7525f7b77d51b34d3bb78ad76afe99036d5ed52",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft prose review against live PR/run data, runner output, source manifests and inherited handover limits.",
+  "genre": "Maintainer after-task report",
+  "coverage": "Whole report",
+  "score": 3,
+  "style_status": "rated",
+  "score_reason": "Concrete evidence and limits; repeated checklist headings reflect the required report format.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment without an independent human reader.",
+  "examples": [
+    {
+      "location": "line 11",
+      "cue": "No source fix was needed during this pickup.",
+      "impact": "Distinguishes inherited work from this pickup.",
+      "repair": "No change needed",
+      "line": 11,
+      "quote": "No source fix was needed during this pickup."
+    },
+    {
+      "location": "line 7",
+      "cue": "Calibration remains deferred.",
+      "impact": "Makes the scientific scope clear at the start.",
+      "repair": "No change needed",
+      "line": 7,
+      "quote": "Calibration remains deferred."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Claims remain limited to one label workflow; numerical checks read directly; inherited numerical limits explicitly uninvestigated.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Merge SHAs and UTC times checked against GitHub; checks and counts checked against saved logs and manifests; ownership and failure facts checked locally.",
+  "references_gate": "pass",
+  "references_gate_reason": "GitHub PR and workflow links match retrieved identities and results; no literature claims.",
+  "date": "2026-11-04",
+  "calibration_status": "Protocol and schema read; no held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

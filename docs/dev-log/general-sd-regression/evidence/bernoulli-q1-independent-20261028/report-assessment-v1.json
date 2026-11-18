@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "40fb09c0ffa3f9580f437a4f5e0f5b1354afb79bed185edc4c0f08a56406d4ab",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex Bernoulli q1 evidence agent",
+  "method": "Post-draft prose-style-review and writing-naturalness self-read against exact raw logs, receipt and source manifest",
+  "genre": "Technical after-task evidence report for R package maintainers",
+  "coverage": "Whole saved report, lines 1-65",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "Concrete measurements and explicit limits read naturally for a technical report; required section headings and one dense result paragraph add some template feel.",
+  "confidence": "medium",
+  "confidence_reason": "Self-review of a short technical report, not an independent human judgment.",
+  "examples": [
+    {
+      "location": "Goal, line 5",
+      "cue": "Purpose precedes mechanics",
+      "impact": "The reader knows the exact one-case scope before encountering tools and hashes.",
+      "repair": "No change needed.",
+      "line": 5,
+      "quote": "Bind one strict Bernoulli selected-SD case"
+    },
+    {
+      "location": "Decisions, line 15",
+      "cue": "Cross-engine likelihood gap qualified",
+      "impact": "The text avoids an unsupported numerical explanation for the optimizer gap.",
+      "repair": "The original multi-topic paragraph was split into three paragraphs before this assessment; no further change needed.",
+      "line": 15,
+      "quote": "the gap cannot be attributed quantitatively to either cause alone"
+    },
+    {
+      "location": "Checks, line 31",
+      "cue": "Dense numerical evidence",
+      "impact": "Many values require careful reading, though the adjacent machine-readable receipt preserves exact fields.",
+      "repair": "Keep exact values in this evidence report; use the short check-log fragment for quick scanning.",
+      "line": 31,
+      "quote": "It passed 1 live case, 53 expectations, 0 skips and 0 failures."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Within this one-fixture scope, the symbolic Bernoulli random-intercept SD model matches the fixture and independent references; the report withholds coverage and broad inference claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Numbers, timestamps, hashes, counts and caveats were checked against live-test.log, receipt.json, source manifests, original test/helper and capsule verification output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external literature or bibliographic claim appears in the report; named code and files were checked locally.",
+  "date": "2026-10-28",
+  "calibration_status": "No benchmark controls were used for this self-review; numeric score is an editorial judgment only.",
+  "interpretation": "perceived_style_not_authorship"
+}

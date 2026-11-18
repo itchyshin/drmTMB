@@ -1,0 +1,261 @@
+"""Guard the Codecov producer/uploader split.
+
+The producer must measure coverage without OIDC or a Codecov token. The
+uploader may use GitHub OIDC only after a successful same-repo main push of
+test-coverage. stdlib only; fails closed if a required string is missing or
+appears only in a comment.
+"""
+
+from __future__ import annotations
+
+import re
+import subprocess
+import tempfile
+import os
+import textwrap
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+PRODUCER = ROOT / ".github" / "workflows" / "test-coverage.yaml"
+UPLOADER = ROOT / ".github" / "workflows" / "codecov-upload.yaml"
+LAYOUT = ROOT / "tools" / "covr-source-tree-layout.sh"
+
+CODECOV_ACTION = (
+    "codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac"
+)
+CHECKOUT_ACTION = (
+    "actions/checkout@11d5960a326750d5838078e36cf38b85af677262"
+)
+DOWNLOAD_ACTION = (
+    "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093"
+)
+UPLOAD_ARTIFACT = (
+    "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+)
+
+
+def _noncomment_text(path: Path) -> str:
+    lines = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#"):
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _active_lines(path: Path) -> list[str]:
+    return [
+        line.rstrip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
+
+class CodecovWorkflowTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.assertTrue(PRODUCER.is_file(), f"missing {PRODUCER}")
+        self.assertTrue(UPLOADER.is_file(), f"missing {UPLOADER}")
+        self.producer = _noncomment_text(PRODUCER)
+        self.uploader = _noncomment_text(UPLOADER)
+
+    def test_producer_has_no_oidc_or_codecov_token(self) -> None:
+        self.assertNotIn("id-token", self.producer)
+        self.assertNotIn("codecov/", self.producer)
+        self.assertNotIn("CODECOV_TOKEN", self.producer)
+        self.assertNotIn("pull_request_target", self.producer)
+
+    def test_producer_partitions_one_os_nine_shards(self) -> None:
+        self.assertIn("runs-on: ubuntu-24.04", self.producer)
+        pairs = re.findall(r'\{shard: (\d+), spec: "([^"]+)"\}', self.producer)
+        expected = [("1", "1/16")] + [(str(i), f"{i}/8") for i in range(2, 9)] + [("9", "9/16")]
+        self.assertEqual(pairs, expected)
+        self.assertIn("DRMTMB_TEST_SHARD: ${{ matrix.spec }}", self.producer)
+        self.assertIn("NOT_CRAN: true", self.producer)
+        self.assertIn("type = \"tests\"", self.producer)
+        self.assertIn("covr::package_coverage(", self.producer)
+        self.assertIn("covr::to_cobertura(cov, filename = \"cobertura.xml\")", self.producer)
+        self.assertNotIn("macos", self.producer.lower())
+        self.assertNotIn("windows", self.producer.lower())
+
+    def test_trusted_artifact_is_main_push_only(self) -> None:
+        self.assertIn(
+            "if: github.event_name == 'push' && github.ref == 'refs/heads/main'",
+            self.producer,
+        )
+        self.assertIn("name: main-coverage-shard-${{ github.run_attempt }}-${{ matrix.shard }}", self.producer)
+        self.assertIn("            cobertura.xml\n            coverage-identity.txt", self.producer)
+        self.assertIn(UPLOAD_ARTIFACT, self.producer)
+        self.assertIn(
+            "if: github.event_name == 'pull_request'",
+            self.producer,
+        )
+        self.assertIn("name: pr-coverage-shard-${{ matrix.shard }}", self.producer)
+
+    def test_uploader_is_main_workflow_run_oidc_only(self) -> None:
+        self.assertIn("workflows: [test-coverage]", self.uploader)
+        self.assertIn("branches: [main]", self.uploader)
+        self.assertIn("github.event.workflow_run.event == 'push' &&", self.uploader)
+        self.assertIn(
+            "github.event.workflow_run.head_branch == 'main' &&",
+            self.uploader,
+        )
+        self.assertIn(
+            "github.event.workflow_run.head_repository.full_name == github.repository &&",
+            self.uploader,
+        )
+        self.assertIn(
+            "github.event.workflow_run.conclusion == 'success'",
+            self.uploader,
+        )
+        self.assertIn("id-token: write", self.uploader)
+        self.assertIn("use_oidc: true", self.uploader)
+        self.assertIn("fail_ci_if_error: true", self.uploader)
+        self.assertIn("disable_search: true", self.uploader)
+        self.assertIn("plugins: noop", self.uploader)
+        self.assertIn("version: v11.3.2", self.uploader)
+        self.assertIn(CODECOV_ACTION, self.uploader)
+        self.assertIn(CHECKOUT_ACTION, self.uploader)
+        self.assertIn(DOWNLOAD_ACTION, self.uploader)
+        self.assertIn("pattern: main-coverage-shard-${{ github.event.workflow_run.run_attempt }}-*", self.uploader)
+        self.assertIn(
+            "override_commit: ${{ github.event.workflow_run.head_sha }}",
+            self.uploader,
+        )
+        self.assertNotIn("CODECOV_TOKEN", self.uploader)
+        self.assertNotIn("pull_request_target", self.uploader)
+        self.assertNotIn("secrets.CODECOV_TOKEN", self.uploader)
+        self.assertNotIn("token: ${{ secrets", self.uploader)
+
+    def test_uploader_pins_all_nine_shard_reports(self) -> None:
+        files_line = next(
+            line for line in _active_lines(UPLOADER) if "files:" in line
+        )
+        for shard in range(1, 10):
+            self.assertIn(
+                f"main-coverage-shard-${{{{ github.event.workflow_run.run_attempt }}}}-{shard}/cobertura.xml",
+                files_line,
+            )
+        report_ids = re.findall(r"main-coverage-shard-\$\{\{ github\.event\.workflow_run\.run_attempt \}\}-(\d+)/cobertura\.xml", files_line)
+        self.assertEqual(sorted(map(int, report_ids)), list(range(1, 10)))
+
+    def test_runtime_report_preflight_rejects_missing_and_empty(self) -> None:
+        text = UPLOADER.read_text(encoding="utf-8")
+        block = text.split("      - name: Check all R coverage reports\n", 1)[1]
+        block = block.split("      - name: Upload", 1)[0]
+        script = textwrap.dedent(block.split("        run: |\n", 1)[1].split("        env:\n", 1)[0])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            paths = [root / f"main-coverage-shard-2-{i}" / "cobertura.xml" for i in range(1, 10)]
+            for report in paths:
+                report.parent.mkdir()
+                report.write_text("<coverage/>\n")
+            identities = [p.parent / "coverage-identity.txt" for p in paths]
+            for shard, identity in enumerate(identities, 1):
+                spec = "1/16" if shard == 1 else "9/16" if shard == 9 else f"{shard}/8"
+                identity.write_text(f"coverage_id={shard}\nshard={spec}\ncheckout_sha=abc123\nrun_id=77\nrun_attempt=2\n")
+            env = dict(os.environ, COVERAGE_ROOT=str(root), EXPECTED_SHA="abc123", EXPECTED_RUN_ID="77", EXPECTED_ATTEMPT="2")
+            run = lambda: subprocess.run(["bash", "-c", script], env=env, capture_output=True)
+            self.assertEqual(run().returncode, 0)
+            for report in paths:
+                report.unlink()
+                self.assertNotEqual(run().returncode, 0, f"accepted missing {report}")
+                report.write_text("")
+                self.assertNotEqual(run().returncode, 0, f"accepted empty {report}")
+                report.unlink()
+                report.mkdir()
+                self.assertNotEqual(run().returncode, 0, f"accepted directory {report}")
+                report.rmdir()
+                report.write_text("<broken")
+                self.assertNotEqual(run().returncode, 0, f"accepted malformed XML {report}")
+                report.write_text("<other/>\n")
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong XML root {report}")
+                report.write_text("<coverage/>\n")
+            for identity in identities:
+                original = identity.read_text()
+                identity.unlink()
+                self.assertNotEqual(run().returncode, 0, f"accepted missing {identity}")
+                identity.write_text("")
+                self.assertNotEqual(run().returncode, 0, f"accepted empty {identity}")
+                identity.write_text(original.replace("checkout_sha=abc123", "checkout_sha=wrong"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong SHA {identity}")
+                current_spec = next(line for line in original.splitlines() if line.startswith("shard="))
+                identity.write_text(original.replace(current_spec, "shard=wrong"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong shard {identity}")
+                identity.write_text(original + "shard=wrong\n")
+                self.assertNotEqual(run().returncode, 0, f"accepted duplicate shard {identity}")
+                identity.write_text(original.replace("coverage_id=", "coverage_id=wrong"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong id {identity}")
+                identity.write_text(original.replace("run_id=77", "run_id=76"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong run {identity}")
+                identity.write_text(original.replace("run_attempt=2", "run_attempt=1"))
+                self.assertNotEqual(run().returncode, 0, f"accepted wrong attempt {identity}")
+                identity.write_text(original)
+
+    def test_comment_cannot_satisfy_oidc_gate(self) -> None:
+        mutated = re.sub(
+            r"github\.event\.workflow_run\.event == 'push' &&",
+            "",
+            self.uploader,
+            count=1,
+        )
+        self.assertNotIn(
+            "github.event.workflow_run.event == 'push' &&",
+            mutated,
+        )
+
+    def test_producer_plants_rcheck_layout_and_records_shas(self) -> None:
+        self.assertIn("timeout-minutes: 180", self.producer)
+        self.assertNotIn("timeout-minutes: 90", self.producer)
+        self.assertNotIn("timeout-minutes: 120", self.producer)
+        self.assertIn("tools/covr-source-tree-layout.sh", self.producer)
+        self.assertIn("00_pkg_src", self.producer)
+        self.assertIn("checkout_sha=", self.producer)
+        self.assertIn("coverage_commit=", self.producer)
+        self.assertIn("branch_head=", self.producer)
+        self.assertIn(
+            "github.event.pull_request.head.sha || github.sha",
+            self.producer,
+        )
+        self.assertIn("sha_note=pull_request_merge_sha_is_not_branch_head", self.producer)
+        self.assertNotIn("skip_on_covr", self.producer)
+
+    def test_layout_script_plants_locator_walkup(self) -> None:
+        self.assertTrue(LAYOUT.is_file(), f"missing {LAYOUT}")
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.check_call(
+                ["bash", str(LAYOUT), tmp, str(ROOT)],
+                cwd=str(ROOT),
+            )
+            planted = Path(tmp) / "00_pkg_src" / "drmTMB"
+            for rel in (
+                "DESCRIPTION",
+                "R/drmTMB.R",
+                "man/is_converged.Rd",
+                "src/drmTMB.cpp",
+            ):
+                self.assertTrue(
+                    (planted / rel).exists(),
+                    f"missing planted {rel}",
+                )
+            # covr testInstalledPackage cwd:
+            # <lib>/drmTMB/drmTMB-tests/testthat. Walk-up parent 3 is <lib>.
+            fake_testthat = (
+                Path(tmp) / "drmTMB" / "drmTMB-tests" / "testthat"
+            )
+            fake_testthat.mkdir(parents=True)
+            lib_root = fake_testthat.parents[2]
+            self.assertEqual(lib_root, Path(tmp).resolve())
+            self.assertTrue(
+                (lib_root / "00_pkg_src" / "drmTMB" / "src" / "drmTMB.cpp").is_file()
+            )
+            self.assertTrue(
+                (lib_root / "00_pkg_src" / "drmTMB" / "man" / "is_converged.Rd").is_file()
+            )
+            self.assertTrue(
+                (lib_root / "00_pkg_src" / "drmTMB" / "R" / "drmTMB.R").is_file()
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()

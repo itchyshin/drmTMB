@@ -1,0 +1,17 @@
+julia-binomial-nonlogit-structured-sd-bridge: ........W...i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.................................................................
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. non-logit Binomial guard defers only supported structured SD routes ('test-julia-binomial-nonlogit-structured-sd-bridge.R:53:3') - `engine = "julia"` cannot check the order of the unlabelled `animal()` `Ainv` matrix.
+i Rows are paired with the grouping levels in order of first appearance in `data`. Give `Ainv` row and column names to match by name.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 3 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS blocks=4 expectations=77 failed=0 skipped=0 errors=0 warnings=1
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`

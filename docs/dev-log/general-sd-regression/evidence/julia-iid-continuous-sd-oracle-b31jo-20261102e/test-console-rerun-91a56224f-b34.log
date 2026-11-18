@@ -1,0 +1,30 @@
+julia-iid-continuous-sd-oracle-b31jo: i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+Wi Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.............b31jo iid beta intercept: ll=244.831963 oracle=244.831963 agreement=5.12e-13; min gap=0.751 (selector_dropped)
+...............b31jo iid beta slope: ll=265.161587 oracle=265.161587 agreement=1.48e-10; min gap=2.901 (selector_dropped)
+.............b31jo iid gamma intercept: ll=-306.442282 oracle=-306.442282 agreement=7.39e-13; min gap=10.806 (selector_dropped)
+...............b31jo iid gamma slope: ll=-328.282924 oracle=-328.282924 agreement=5.25e-11; min gap=6.017 (selector_dropped)
+.............b31jo iid gaussian intercept: ll=-374.019505 oracle=-374.019505 agreement=1.59e-12; min gap=12.613 (sd_times_2)
+...............b31jo iid gaussian slope: ll=-381.137374 oracle=-381.137374 agreement=3.75e-12; min gap=13.182 (selector_dropped)
+.............b31jo iid lognormal intercept: ll=-322.498739 oracle=-322.498739 agreement=3.47e-11; min gap=16.482 (sd_times_2)
+...............b31jo iid lognormal slope: ll=-347.840529 oracle=-347.840529 agreement=6.93e-12; min gap=15.763 (selector_dropped)
+.............b31jo iid zero_one_beta intercept: ll=-65.527512 oracle=-65.527512 agreement=4.97e-13; min gap=1.931 (selector_dropped)
+...............b31jo iid zero_one_beta slope: ll=-52.155808 oracle=-52.155808 agreement=6.57e-11; min gap=6.816 (sd_vector_reversed)
+
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Julia beta iid intercept SD matches the independent oracle ('test-julia-iid-continuous-sd-oracle-b31jo.R:23:7') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+i The deprecated feature was likely used in the drmTMB package.
+  Please report the issue at <https://github.com/itchyshin/drmTMB/issues>.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 10 live tests ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=140 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T04:07:31Z end=2026-11-03T04:08:54Z rc=0

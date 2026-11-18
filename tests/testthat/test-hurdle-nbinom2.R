@@ -262,19 +262,11 @@ test_that("hurdle nbinom2 rejects unsupported or invalid inputs", {
   )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | id), hu ~ 1),
-      family = truncated_nbinom2(),
-      data = dat
-    ),
-    "Hurdle .* random effects"
-  )
-  expect_error(
-    drmTMB(
       bf(y ~ x + (0 + x | id), hu ~ 1),
       family = truncated_nbinom2(),
       data = dat
     ),
-    "Hurdle .* random effects"
+    "ordinary.*random intercept"
   )
   expect_error(
     drmTMB(
@@ -298,7 +290,7 @@ test_that("hurdle nbinom2 rejects unsupported or invalid inputs", {
       family = truncated_nbinom2(),
       data = dat
     ),
-    "Random-effect scale"
+    "one ordinary.*intercept"
   )
   expect_error(
     drmTMB(

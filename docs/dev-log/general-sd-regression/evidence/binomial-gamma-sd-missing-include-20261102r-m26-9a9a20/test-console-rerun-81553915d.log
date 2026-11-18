@@ -1,0 +1,15 @@
+binomial-gamma-sd-missing-include: ................................................................................................................................................................WW.........................................................................WW........
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Gamma structured SD include (no empty group) equals complete-case and the oracle ('test-binomial-gamma-sd-missing-include.R:410:5') - NA/NaN function evaluation
+
+2. Gamma structured SD include (no empty group) equals complete-case and the oracle ('test-binomial-gamma-sd-missing-include.R:411:5') - NA/NaN function evaluation
+
+3. Gamma structured constant SD under include equals the plain structured fit ('test-binomial-gamma-sd-missing-include.R:552:5') - NA/NaN function evaluation
+
+4. Gamma structured constant SD under include equals the plain structured fit ('test-binomial-gamma-sd-missing-include.R:554:5') - NA/NaN function evaluation
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=241 failed=0 errors=0 skipped=0
+DRM_RUN start=2026-11-03T01:06:16Z end=2026-11-03T01:09:17Z rc=0

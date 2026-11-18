@@ -1,0 +1,32 @@
+{
+  "recorded_at": "2026-11-07T02:30:16.520458+00:00",
+  "run": 42311551066,
+  "source": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+  "original_attempt": 1,
+  "original_conclusion": "failure",
+  "original_shards": {
+    "1": "success",
+    "2": "success",
+    "3": "failure",
+    "4": "success"
+  },
+  "new_RI_prior_tests": {
+    "core": 43,
+    "factor_selector": 5,
+    "result": "pass"
+  },
+  "failure": "test_binomial_sd_public.jl:92 slope_fit.converged",
+  "classification": "unresolved",
+  "diagnostic_retry": {
+    "attempt": 2,
+    "job": 128272640509,
+    "debug": true,
+    "status_at_recording": "in_progress",
+    "scope": "failed shard3 job only; source and assertions unchanged"
+  },
+  "hashes": {
+    "Julia-CI-original-final-385fde27.json": "d07d30f288eb8d78d65485a0111d0fc65b51bcf71c186dec25761edc746b2fb8",
+    "Julia-CI-shard4-385fde27.log": "8753e418c724b556b5b079f26c357d68ac51f7ee8cc5f9a9c91a73cebacf9618",
+    "Julia-CI-shard3-385fde27.log": "259a0eeba43e64ad723c6ab3ea1d1e1d971cce689dcbf932836042e7d470ddaa"
+  }
+}

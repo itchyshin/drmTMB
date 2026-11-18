@@ -1,0 +1,12 @@
+{
+  "evidence_id": "julia-poisson-animal-intercept-sd-20261022",
+  "candidate_row": "Julia Poisson univariate mu animal_intercept, q=1, supplied A covariance",
+  "candidate_row_key": "[\"Julia\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "test_command": "JULIA_DEPOT_PATH='/private/tmp/general-sd-julia-depot:/Users/z3437171/.julia' OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 julia --project=. test/test_poisson_animal_sd_regression.jl",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_file_sha256": "2ae6022da27d06d88e56dc2c739265be2439db029960219c74693d5a4c638fb4",
+  "test_result": "21/21 assertions passed in 25.3 seconds on Julia 1.10.",
+  "coverage": "Synthetic fit and signed SD-slope recovery, dense Laplace objective, row/group prediction, simulation oracle, save/reload, one bootstrap refit, constant-SD equivalence, within-group variation rejection, and missing-A rejection.",
+  "limits": "One Julia q1 Poisson animal mean-intercept cell only. Native TMB parity for non-unit-diagonal A and interval coverage are not established. Receipt is unreviewed."
+}

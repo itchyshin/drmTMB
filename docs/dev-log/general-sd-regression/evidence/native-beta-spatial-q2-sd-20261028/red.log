@@ -1,0 +1,28 @@
+ℹ Testing drmTMB
+beta-spatial-q2-sd-regression: 12
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-spatial-q2-sd-regression.R:97:3'): Beta spatial q2 maps 
+Error in `drmTMB:::drm_build_beta_ls_spec(beta_spatial_q2_sd_form(coords), fx$data)`: Beta models only support `mu` and `sigma`.
+x Unsupported parameter: "sd_spatial(id)".
+i Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(beta_spatial_q2_sd_form(coords), fx$data) at test-beta-spatial-q2-sd-regression.R:97:3
+ 2.   └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6862:5
+ 3.     └─rlang::abort(...)
+
+── 2. Error ('test-beta-spatial-q2-sd-regression.R:132:3'): Beta spatial q2 SD f
+Error in `drm_build_beta_ls_spec(formula, data, env = formula_env, weights = weights_full, impute = impute, missing = missing_control)`: Beta models only support `mu` and `sigma`.
+x Unsupported parameter: "sd_spatial(id)".
+i Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-beta-spatial-q2-sd-regression.R:132:3
+ 2.   └─drmTMB:::drm_build_beta_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6862:5
+ 4.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 0 FAILED 0 ERRORS 2 SECONDS 7.163 

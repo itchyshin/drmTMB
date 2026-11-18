@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-relmat-probit-cloglog-bridge-20261029-m26",
+  "rerecord_of_evidence_id": "julia-binomial-relmat-probit-cloglog-bridge-20261029",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-nonlogit-sd-bridge-live-20261029/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "PATH=<Julia 1.10.0> DRMTMB_JULIA_TESTS=true DRM_JL_PATH=<paired candidate> JULIA_NUM_THREADS=4 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 R_PROFILE_USER=/dev/null Rscript -e devtools::test(filter=julia-binomial-relmat-nonlogit-sd-bridge, reporter=summary, stop_on_failure=TRUE)",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-relmat-nonlogit-sd-bridge.R",
+      "test_sha256": "31c583b0d463ecfa7eb4d3a816fd64a2c66f7382a0c641e692bf1adbd8ec5804",
+      "started_utc": "2026-11-02T13:21:36Z",
+      "ended_utc": "2026-11-02T13:22:24Z",
+      "exit_code": 0,
+      "expectations_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-nonlogit-sd-bridge-live-20261029-m26-3a04af/test-console-test-julia-binomial-relmat-nonlogit-sd-bridge.log",
+      "console_log_sha256": "4c2f50d64cb8445b32077d3d2df66e547fba2f68d0cf25f6b9345bb3b19b7457"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-nonlogit-sd-bridge-live-20261029-m26-3a04af/source-manifest.json",
+  "source_manifest_sha256": "9c98d32d217fbf3129cab87c1689941811869370edb26c3e66fabb0011f213c7",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,4 @@
+Test Summary:                     | Pass  Total   Time
+Bernoulli animal q2 SD regression |   33     33  26.6s
+Test Summary:                               | Pass  Total  Time
+Non-logit Bernoulli animal q2 SD regression |   20     20  2.3s

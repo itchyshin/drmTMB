@@ -1,0 +1,15 @@
+julia-binomial-relmat-nonlogit-sd-bridge: i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+......................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Your tests are splendid!
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=22 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-02T13:21:36Z end=2026-11-02T13:22:24Z rc=0

@@ -1,0 +1,55 @@
+{
+  "evidence_id": "gaussian-native-structured-direct-sd-providers-20261101-20261101d",
+  "refresh_of_evidence_ids": [
+    "gaussian-native-structured-direct-sd-providers-20261101"
+  ],
+  "command": "cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gaussian-structured-direct-sd-providers.R\", reporter = \"summary\")'",
+  "command_note": "The R expression actually run additionally captured the test_file result as a data frame, printed a final DRM_RECEIPT_COUNTS line and set a nonzero exit status on any failure, error or skip; the test_file(...) call is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "not recorded (temp file removed); see run_ended_utc",
+  "run_ended_utc": "2026-11-02T04:33:15Z (log mtime)",
+  "exit_code": 0,
+  "test_blocks": 3,
+  "expectations_passed": 60,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d/test-console.log",
+  "console_log_sha256": "06b0c161380fa9b802d4279f6eeef47fa0c39fba8b0a3fa662336d923274020c",
+  "test_path": "tests/testthat/test-gaussian-structured-direct-sd-providers.R",
+  "test_sha256": "60b381afd6ae58d4848f8fd0631796473d9118e4271fecdff25c8ce382379a2c",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d/source-manifest.json",
+  "source_manifest_sha256": "f248912fe16436f026be1b551e174728c9ec6edfcf1cb836f03ac6f295602923",
+  "evidence_grade": "focused_test",
+  "evidence_grade_basis": "inherited from replaced ledger rows (gaussian-native-structured-direct-sd-providers-20261101)",
+  "scope": "Same row_keys as the replaced ledger lines for gaussian-native-structured-direct-sd-providers-20261101; see candidate_rows. Fresh run of the current test source.",
+  "tolerances_note": "Tolerances are those in the test source at the recorded sha256; none were loosened. Numeric tolerance tokens found by regex in the test file (informational): 1e-10, 1e-12, 1e-5, 1e-6, 1e-8, 2e-5",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"identity\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"A_covariance\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "not_covered": [
+    "rows the test only uses as comparators",
+    "interval calibration or coverage",
+    "provider inputs the test does not fit (not tested; not asserted to be fenced)",
+    "Julia parity (native engine only)"
+  ],
+  "live_julia": "not applicable; log states 0 live Julia tests ran",
+  "limits": [
+    "dirty shared tree",
+    "unreviewed",
+    "a receipt does not promote any row; direct_sd_claim stays none"
+  ],
+  "supersedes_note": "Refresh: the test file changed after the earlier receipt, so the earlier digest no longer matches the live test. Old evidence directories are untouched."
+}

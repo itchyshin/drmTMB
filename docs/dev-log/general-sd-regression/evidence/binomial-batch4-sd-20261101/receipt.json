@@ -1,0 +1,57 @@
+{
+  "evidence_id": "binomial-batch4-sd-20261101",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+spatial:coordinates\",\"additive independent latent fields\",\"animal:A_covariance+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+spatial:coordinates\",\"additive independent latent fields\",\"animal:Ainv_precision+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+spatial:coordinates\",\"additive independent latent fields\",\"animal:pedigree+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+spatial:coordinates\",\"additive independent latent fields\",\"animal:A_covariance+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+spatial:coordinates\",\"additive independent latent fields\",\"animal:Ainv_precision+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+spatial:coordinates\",\"additive independent latent fields\",\"animal:pedigree+spatial:coordinates\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"devtools::test(filter = 'binomial-batch4-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_source_path": "tests/testthat/test-binomial-batch4-sd-regression.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/binomial-batch4-sd-20261101/test-snapshot/test-binomial-batch4-sd-regression.R",
+  "test_file_sha256": "f4214f3e28f3e1b0c9dd5aed4620e1b9c6802463572efead482bfdeafc1ca7c6",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/binomial-batch4-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "4f90e896282a7a668144c423552c96741099401e0728fcc60a8b6ce1cdc6a548",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/binomial-batch4-sd-20261101/test-console.log",
+  "console_log_sha256": "37ac0cb433b4c61b82a40d40a19829cf5c519d152edbea90f0f6591876c22a68",
+  "test_result": "Fresh run exit 0: 2 test_that blocks, 88 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (abs 1e-4) for animal + spatial under A, Ainv and pedigree, probit and cloglog.",
+  "exit_status": 0,
+  "expectation_counts": {
+    "tests": 2,
+    "expectations": 88,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "scope": "Native Binomial probit and cloglog animal(1 | animal_id, A | Ainv | pedigree) + spatial(1 | site, coords), each with its own predictor-dependent SD. Each of the three provider fits has its own dense Laplace oracle (abs 1e-4; the spatial covariance is solve() of the package spatial precision helper, not independent), max gradient < 2e-2, prediction identity 1e-8, positive SD slopes; Ainv and pedigree agree with the dense A fit (logLik 1e-5, SD coefficients 1e-3); constant-SD agreement across providers.",
+  "limits": "native engine only, one fixture per cell, loose recovery bands, no interval calibration, no Julia parity, dirty shared tree, unreviewed. Evidence grade focused_test: oracle or equivalence checks with loose SD-recovery bounds, not a calibration study. Provider inputs or layouts not named in scope were not tested (not tested, not fenced)."
+}

@@ -1,0 +1,4 @@
+kind	seed	route	status	converged	stored_nll	current_nll	stored_current_delta	mu	sigma	sd_or_resd	gradient	constant_minus_plain_nll	error
+fit	20261022	plain	returned	false	1759.5023159025004	1759.5023159025004	0.0	0.4912301106592933,0.28964577586541623	-5.560616755355324	-0.5218162490617144	unavailable		
+fit	20261022	constant_sd	returned	true	1730.121452195357	1730.121452195357	0.0	0.46559602677673045,0.2901711747648818	-0.958352872014519	-0.5469062934090144	unavailable		
+comparison	20261022	constant_sd_vs_plain	both_returned									-29.380863707143362	

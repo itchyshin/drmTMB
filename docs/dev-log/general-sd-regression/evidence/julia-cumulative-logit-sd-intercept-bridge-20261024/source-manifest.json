@@ -1,0 +1,44 @@
+{
+  "created": "2026-10-24",
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "DRMjl_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "f9036f202b9acda097146a54b6637377a520182682d03c6f9de86ac27537a85c"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "7d145f5556baf59812f43295a15132f8207b38c7c52785715481ce40af5894fc"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "b47b4e438c030f6c7d8f17c3508497a8708089e8baa2fee5312a642fa67d6735"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6"
+    },
+    {
+      "file": "tests/testthat/test-julia-cumulative-logit-sd-intercept-parity.R",
+      "sha256": "b120d0311b365efcbc5d9580086bd73580402e87fbfacbacc80dbbd5d66572df"
+    },
+    {
+      "file": "../general-sd-julia/src/cumulative.jl",
+      "sha256": "b9b1181d13cc2ceeed68db25a4f59493fbe8a21a1339c81e31880e4cfeaf375c"
+    },
+    {
+      "file": "../general-sd-julia/test/test_cumlogit_sd_regression.jl",
+      "sha256": "9a1700c0ec204d0dbdaede1571158b1741a9654b5793180d3c3d16c9d11ac15a"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-intercept-bridge-20261024/test-run.log",
+      "sha256": "7bb1ee52f5dd41879b96a1ee1ab415e07ca9069c4d616408b2576a516a030e68"
+    },
+    {
+      "file": "tests/testthat/test-julia-family-cumulative_logit.R",
+      "sha256": "c46350029127abe5db83781533d53a12accbc0ba16f3b0754627678f31e75ba5"
+    }
+  ],
+  "note": "Candidate working-tree hashes bind this focused complete-response same-data R/TMB and Julia bridge fixture; the working trees also contain unrelated in-progress work."
+}

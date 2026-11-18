@@ -1,0 +1,80 @@
+{
+  "slice": "native Beta animal independent intercept and numeric-slope SD via pedigree",
+  "date": "2026-10-27",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "base_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/source-manifest.json",
+  "source_manifest_sha256": "17ac15b4228cee3ba2d1264302e7f03b98555139fe16d837279302c260abaab2",
+  "implementation": "two R provider gates; no C++ or DLL rebuild",
+  "test": {
+    "focused_passed": 32,
+    "focused_seconds": 31.088,
+    "regression_passed": 194,
+    "regression_seconds": 166.22,
+    "failures": 0,
+    "errors": 0,
+    "warnings": 0,
+    "skipped": 0,
+    "regression_estimate_seconds": 210
+  },
+  "example": {
+    "convergence": 0,
+    "seconds": 8.683,
+    "sd_coefficients": {
+      "intercept_field": [
+        -0.6226751,
+        0.442166
+      ],
+      "slope_field": [
+        -0.762918,
+        -0.3842006
+      ]
+    },
+    "slope_truth": [
+      0.5,
+      -0.5
+    ]
+  },
+  "numerical_acceptance": {
+    "laplace_absolute_nll_error": "<1e-4 passed",
+    "eta_max_absolute_error": "<1e-4 passed",
+    "provider_loglik_and_coefficient_errors": "<1e-4 passed",
+    "oracle_max_gradient": "<1e-5 passed",
+    "derivative_error": "<1e-4 passed",
+    "hessian_error": "<2e-4 passed"
+  },
+  "candidate_row_keys": [
+    "[\"native\",\"beta\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"logit\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"pedigree\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+  ],
+  "row_scope": "mu only; one intercept plus one independent numeric slope; unrelated founders/full siblings; no whole-domain admission",
+  "shared_ledger_modified": false,
+  "interval_coverage": "deferred",
+  "julia_parity": "not run or established",
+  "aggregate_acceptance_gate": "UNKNOWN: existing runner unavailable",
+  "limitations": [
+    "no inbred/single-known-parent tests",
+    "no fresh constant-SD pedigree q2 equivalence fit",
+    "no weighted or missing-response checks",
+    "no fresh q2 marginal simulation",
+    "no release/full check/publication"
+  ],
+  "review": "parent read-only mathematical/scoped-code review; no P0/P1; independently read green logs; no reviewer fits",
+  "artifacts": {
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/R-implementation.patch": "b6503a1d5fa9706b43173a7fb31647ddd65f75f76c624e655d3a77e46eddab74",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/candidate-rows.tsv": "1fd4755bb599406310c3bc50ab573aeb24d58c4d82e10fab881b0cfb4ae5fbb7",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/commands.md": "d647cd32db8700fbe677096f74fc3450bfce2e3668cd2a18c6ac64c42b7c3b14",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/example-preflight.log": "6974ce5f352c8c98a48ad1d87d808025294226a290a73a0611cbb4bdc71521d2",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/example.log": "172184513a1422575b88f8ccab8fe84e4781b0d4ad0be8865e02cd6c861b7817",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/focused.log": "f31f7002c744751755b2ae6ff288193d740f16782507563b224b91ba90b26265",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/independent-review.md": "643f8c84805e3ce3d1d7c7ec5bb1fe77d8a314e6fd2e706954b6b5cde7af3654",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/lease.log": "614e28608c7a1e399b51ecb15d3674653418065778468f0dc05b03f71606d20e",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/pre-fit-alignment.md": "fb78a79e49d507a873864f92f9d5cff3de64d52398f68f0ffbe0a2a6593a4176",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/prose-check.log": "443c192717c27b631c36871da84af049f2302bf976b63d9ab1e291a97b3540c8",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/red.log": "b88a6b8875aadf62f0bddfdf7b4811cda0ac4d5ac7150b28b7744709413c3fdb",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/regression.log": "992cf3916b0e8149d8024aa9a04d8e5bad18b6b3ff0c92cdb9b92aca050a6c1f",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/report-prose-assessment.json": "ba6d755c5a7d9b02b4fddd33834da671115701529849222785f1d9d6914a9f96",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/report-structure.log": "5a2841c38ef6a0560766820c2f14d5c526e11811767e70c0dbed121a8ab6034c",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/source-capsule.tar.gz": "05122dddc3218ff9972c086ad3b184504450c4abafcb7c1f00b38f6a4ec94b49",
+    "docs/dev-log/general-sd-regression/evidence/native-beta-animal-pedigree-q2-sd-20261027/source-manifest.json": "17ac15b4228cee3ba2d1264302e7f03b98555139fe16d837279302c260abaab2"
+  }
+}

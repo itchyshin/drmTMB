@@ -143,16 +143,21 @@ test_that("the relmat slice's fences hold: slopes, labels, REs, phylo+relmat all
     ),
     "intercept-only"
   )
-  # relmat + ordinary RE: one or the other in this slice
-  expect_error(
-    drmTMB(
+  # relmat + same-group ordinary intercept is now deliberately admitted by the
+  # general-sd-regression lane (allow_binomial_relmat_iid in R/drmTMB.R; fitted
+  # in test-binomial-iid-relmat-kernel-equivalence-nonlogit-sd.R and
+  # docs/dev-log/after-task/2026-10-27-native-binomial-iid-relmat-nonlogit-sd.md).
+  expect_s3_class(
+    suppressWarnings(drmTMB(
       bf(cbind(succ, fail) ~ x + relmat(1 | id, K = K) + (1 | id)),
       family = stats::binomial(),
       data = fx$data
-    ),
-    "ordinary random effects"
+    )),
+    "drmTMB"
   )
-  # phylo() and relmat() together: only one structured mu provider
+  # phylo() and relmat() together: now an admitted q1 provider pair, but only
+  # with two matching SD formulas (test-binomial-phylo-relmat-sd.R); without
+  # them the pair guard in drm_build_binomial_spec() refuses.
   skip_if_not_installed("ape")
   tree <- ape::rcoal(length(levels(fx$data$id)))
   tree$tip.label <- levels(fx$data$id)
@@ -162,7 +167,7 @@ test_that("the relmat slice's fences hold: slopes, labels, REs, phylo+relmat all
       family = stats::binomial(),
       data = fx$data
     ),
-    "one structured"
+    "requires two matching SD formulas"
   )
 })
 

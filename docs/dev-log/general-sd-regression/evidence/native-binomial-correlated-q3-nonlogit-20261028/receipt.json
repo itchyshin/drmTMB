@@ -1,0 +1,23 @@
+{
+  "evidence_id": "native-binomial-correlated-q3-nonlogit-sd-20261028",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"binomial-correlated-q3-nonlogit-sd\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "exit_code": 0,
+  "expectations_passed": 18,
+  "links": [
+    "probit",
+    "cloglog"
+  ],
+  "checks": [
+    "fit convergence and positive-definite Hessian",
+    "finite three-dimensional correlation parameters",
+    "signed broad recovery bounds for all three log-SD slopes",
+    "group-level SD prediction names and formula consistency",
+    "binary marginal simulation"
+  ],
+  "limitations": [
+    "One fixed-seed synthetic design per link.",
+    "Point-recovery checks are not interval-coverage validation.",
+    "Native R/TMB only; no Julia parity claim.",
+    "No independent quadrature likelihood oracle for these non-logit links in this slice."
+  ]
+}

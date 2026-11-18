@@ -1,0 +1,16 @@
+{
+  "observed_at_utc": "2026-10-24T19:33:13+00:00",
+  "result": "PASS",
+  "test_file": "tests/testthat/test-julia-poisson-zi-sd-regression.R",
+  "test_sha256": "ec0dd301a70f49c034a0389ba6c67b7eca31afc9b7c105bd603b25e4ed68b605",
+  "test_command": "PATH='/Users/z3437171/.juliaup/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin' DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME='/Users/z3437171/.juliaup/bin' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"julia-poisson-zi-sd-regression\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "test_exit_code": 0,
+  "live_julia_bridge_tests": 2,
+  "failures": 0,
+  "skips": 0,
+  "source_count": 169,
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-zi-slope-cross-engine-20261024/sources-before.sha256",
+  "source_manifest_sha256": "811689f060445aebdc21ce400b93b63ad2902a71c11b3bdf1aa3857f01abef28",
+  "source_manifest_stable_before_after": true,
+  "scope": "Source-stable same-data synthetic TMB/Julia ZIP fits for one ordinary mean intercept and one explicitly selected independent mean-slope coefficient, with fixed-effect-only zi. Checks convergence, selector identity, positive SD-predictor coefficients, TMB/Julia coefficient agreement, group and observation-level SD predictions, and no residual sigma. The Julia slope test also passed its separate fixed-seed recovery, scalar-integral oracle, seeded simulation, profile, and bootstrap checks. This receipt does not establish coverage calibration or other ZIP structures."
+}

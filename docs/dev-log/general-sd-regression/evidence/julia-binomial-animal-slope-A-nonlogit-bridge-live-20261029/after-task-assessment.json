@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "78c04b23b22124a8b04fc0a4637b03046bea65e99bb850a9c066a21d0dcc61ce",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex GPT-6",
+  "method": "Separate review of the saved report against its test source and console log, evidence manifest, reconciler output, issue search, and repository diff.",
+  "genre": "technical after-task report",
+  "coverage": "whole saved report",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "The report gives the model formula, data layout, numerical checks, and explicit limits. Its required headings make the structure uniform, but the details remain specific to this test.",
+  "confidence": "medium",
+  "confidence_reason": "This short report is checked against local evidence; the rating is editorial and not independently calibrated.",
+  "examples": [
+    {
+      "location": "line 27",
+      "cue": "specific fit checks",
+      "impact": "The reader gets the exact recovery and agreement tolerances for both links.",
+      "repair": "no change needed",
+      "line": 27,
+      "quote": "The focused test passed with one live Julia bridge test covering both links. Each link fit one TMB model and one Julia model. Both engines converged; each estimated the log-SD slope within 0.65 of truth, agreed within 0.4, matched log likelihood within 0.05, and returned fitted group SDs within 0.04."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The reported covariance and group-level SD construction match the synthetic generator; results are bounded to the tested fixture. The report explicitly says no independent likelihood oracle or interval-coverage claim was used.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Fit counts and thresholds were checked against the test source and console output; evidence counts against reconciliation; source hashes against the manifest.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims.",
+  "date": "2026-10-29",
+  "calibration_status": "Earlier after-task assessment records were viewed as format examples; no human ratings or calibration controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

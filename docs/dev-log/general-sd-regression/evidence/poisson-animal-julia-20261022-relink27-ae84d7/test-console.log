@@ -1,0 +1,5 @@
+Test Summary:                              | Pass  Total   Time
+Poisson animal random-effect SD regression |   36     36  59.4s
+Test Summary:                                                    | Pass  Total  Time
+Poisson animal SD regression preserves supplied covariance scale |    2      2  0.4s
+DRM_RUN start=2026-11-02T14:03:30Z end=2026-11-02T14:04:32Z rc=0 core=241

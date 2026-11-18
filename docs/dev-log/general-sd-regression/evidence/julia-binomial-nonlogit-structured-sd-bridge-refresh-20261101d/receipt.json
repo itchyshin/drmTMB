@@ -1,0 +1,59 @@
+{
+  "evidence_id": "julia-binomial-animal-slope-ainv-nonlogit-20261029-20261101d",
+  "refresh_of_evidence_ids": [
+    "julia-binomial-animal-slope-ainv-nonlogit-20261029"
+  ],
+  "command": "DRMTMB_JULIA_TESTS=true DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" JULIA_HOME=$HOME/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin JULIA_NUM_THREADS=2 cd \"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R\", reporter = \"summary\")'",
+  "command_note": "The R expression actually run additionally captured the test_file result as a data frame, printed a final DRM_RECEIPT_COUNTS line and set a nonzero exit status on any failure, error or skip; the test_file(...) call is as above.",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "dirty and shared; uncommitted edits present; unreviewed",
+  "run_started_utc": "not recorded (temp file removed); see run_ended_utc",
+  "run_ended_utc": "2026-11-02T04:34:41Z (log mtime)",
+  "exit_code": 0,
+  "test_blocks": 4,
+  "expectations_passed": 77,
+  "failures": 0,
+  "skips": 0,
+  "errors": 0,
+  "warnings": 1,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-structured-sd-bridge-refresh-20261101d/test-console.log",
+  "console_log_sha256": "ea5464c77378e0002fe9ffaeee6c7892ff84ca2073ccfb28e4a2da9bfec7a12c",
+  "test_path": "tests/testthat/test-julia-binomial-nonlogit-structured-sd-bridge.R",
+  "test_sha256": "9c7e1d4949fabe218607ebcc3af8b5ff9c1e62dc80acc5869a262874176ec4fc",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-structured-sd-bridge-refresh-20261101d/source-manifest.json",
+  "source_manifest_sha256": "3e83502a843268f9be6071472f3928d0d59b317f3cec22d5b8882ec3ff1095ad",
+  "evidence_grade": "recovery",
+  "evidence_grade_basis": "inherited from replaced ledger rows (julia-binomial-animal-slope-ainv-nonlogit-20261029)",
+  "scope": "Same row_keys as the replaced ledger lines for julia-binomial-animal-slope-ainv-nonlogit-20261029; see candidate_rows. Fresh run of the current test source.",
+  "tolerances_note": "Tolerances are those in the test source at the recorded sha256; none were loosened. Numeric tolerance tokens found by regex in the test file (informational): 0.1, 0.2, 1e-8",
+  "candidate_rows": [
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"cloglog\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"Julia\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"probit\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"cloglog\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"probit\",\"animal_numeric_slope\",\"S1/P-temporal\",\"animal\",\"structured intercept plus one independent numeric slope\",\"Ainv_precision\",\"independent animal fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "not_covered": [
+    "rows the test only uses as comparators",
+    "interval calibration or coverage",
+    "provider inputs the test does not fit (not tested; not asserted to be fenced)",
+    "live Julia parity beyond the three live bridge test cases",
+    "pedigree input, correlated animal blocks, missing data"
+  ],
+  "live_julia": "3 live Julia tests ran and passed (console log: 'Julia bridge: 3 live tests ran'); one expected non-logit guard warning from the test is recorded",
+  "limits": [
+    "dirty shared tree",
+    "unreviewed",
+    "a receipt does not promote any row; direct_sd_claim stays none"
+  ],
+  "supersedes_note": "Refresh: the test file changed after the earlier receipt, so the earlier digest no longer matches the live test. Old evidence directories are untouched."
+}

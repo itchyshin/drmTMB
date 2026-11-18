@@ -1,0 +1,25 @@
+TMB elapsed: 37.882 converged: TRUE 
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+Julia elapsed: 401.248 converged: TRUE 
+TARGET sd(id, dpar = "mu", coef = "(Intercept)") 
+(Intercept)          w0 
+ -0.8263543   0.3813367 
+(Intercept)          w0 
+ -0.8588633   0.4009997 
+TARGET sd(id, dpar = "mu", coef = "x1") 
+(Intercept)          w1 
+ -0.6076208   0.4993377 
+(Intercept)          w1 
+ -0.6669626   0.5473738 
+TARGET sd(id, dpar = "mu", coef = "x2") 
+(Intercept)          w2 
+ -0.6059604   0.4718229 
+(Intercept)          w2 
+ -0.6303626   0.4901416 
+logLik TMB -3324.218 Julia -3321.071 
+Julia exit.

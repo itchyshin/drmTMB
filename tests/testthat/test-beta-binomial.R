@@ -395,13 +395,23 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
     ),
     "random intercepts"
   )
+  # A sigma random intercept on fixed mu is now admitted (evidence:
+  # docs/dev-log/after-task/2026-10-24-beta-binomial-sigma-sd-regression.md;
+  # fit tests in test-beta-binomial-sigma-sd-regression.R), so assert assembly.
+  # The remaining sigma-random-effect fences stay refused.
+  sigma_re_spec <- drm_build_beta_binomial_spec(
+    bf(cbind(success, failure) ~ x, sigma ~ 1 + (1 | id)),
+    dat
+  )
+  expect_identical(sigma_re_spec$random$sigma$n_terms, 1L)
+  expect_true("u_sigma" %in% sigma_re_spec$random_names)
   expect_error(
     drmTMB(
-      bf(cbind(success, failure) ~ x, sigma ~ 1 + (1 | id)),
+      bf(cbind(success, failure) ~ x + (1 | id), sigma ~ 1 + (1 | id)),
       family = beta_binomial(),
       data = dat
     ),
-    "sigma.*random effects"
+    "sigma random effects currently require fixed mu"
   )
   expect_error(
     drmTMB(
@@ -409,7 +419,7 @@ test_that("beta-binomial rejects malformed and unsupported inputs", {
       family = beta_binomial(),
       data = dat
     ),
-    "Random-effect scale"
+    "No random-effect term matches"
   )
   expect_error(
     drmTMB(

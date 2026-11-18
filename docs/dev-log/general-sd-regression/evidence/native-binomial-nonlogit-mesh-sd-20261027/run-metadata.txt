@@ -1,0 +1,6 @@
+branch: codex/general-sd-regression
+HEAD: 425bee81572c625a634b2b083050c5c57c1dc1f1
+command: OPENBLAS_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "binomial-mesh-sd-regression")'
+new test cases: native Binomial probit and cloglog mesh spatial-intercept SD point recovery and marginal simulate()
+scope: fixed-kappa spatial mesh intercept; complete response; ML; point recovery only; no interval coverage; no Julia parity
+source stability: before and after SHA-256 manifests are identical

@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-11-07T02:10:02.626840+00:00",
+  "run": 42318931694,
+  "job": 128238649958,
+  "source": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+  "job_conclusion": "success",
+  "victim_testset": "public Bernoulli/binomial random-intercept SD regression",
+  "victim_pass": 44,
+  "victim_total": 44,
+  "package_tests_pass_marker": true,
+  "raw_log_sha256": "c22b36e3add0faf48e9bd276e2736909ace0addce0b62abac4d7e61b55aa491e",
+  "classification": "Candidate hosted convergence failure remains unresolved. Hosted baseline passed the same testset; six controlled local diagnostics also passed. No baseline-defect attribution justified. Await original candidate workflow termination before one diagnostic retry."
+}

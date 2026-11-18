@@ -1,0 +1,85 @@
+{
+  "evidence_id": "binomial-animal-provider-pairs-nonlogit-sd-20261101",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:K_covariance\",\"additive independent latent fields\",\"iid:group_factor+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:Q_precision\",\"additive independent latent fields\",\"iid:group_factor+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:K_covariance\",\"additive independent latent fields\",\"iid:group_factor+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+relmat:Q_precision\",\"additive independent latent fields\",\"iid:group_factor+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"probit\",\"phylo_interaction_intercept\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured intercept\",\"tree_pair\",\"phylogenetic interaction field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "probit",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"cloglog\",\"phylo_interaction_intercept\",\"S1/P-temporal\",\"phylo_interaction\",\"pair-level structured intercept\",\"tree_pair\",\"phylogenetic interaction field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "cloglog",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"devtools::test(filter = 'binomial-animal-provider-pairs-nonlogit-sd', reporter = 'summary', stop_on_failure = FALSE)\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_source_path": "tests/testthat/test-binomial-animal-provider-pairs-nonlogit-sd.R",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-snapshot/test-binomial-animal-provider-pairs-nonlogit-sd.R",
+  "test_file_sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "a3f0d2b4f874ac6a6916a23fcdf47fba31b3e8d221416e4084c29de3041bca56",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console.log",
+  "console_log_sha256": "90783019bdeed1a20a41a36e00d3f69bc297cc7193a5de3150824635df25f40e",
+  "test_result": "Fresh run exit 0: 6 test_that blocks, 94 expectations, 0 failed, 0 skipped, 0 errors, 0 warnings. Dense Laplace oracle logLik agreement (abs 1e-4) for animal A + iid, relmat K/Q + iid, and phylo-interaction intercept, probit and cloglog.",
+  "exit_status": 0,
+  "expectation_counts": {
+    "tests": 6,
+    "expectations": 94,
+    "failed": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "scope": "Native Binomial probit and cloglog: animal(1 | id, A = A) + (1 | site); relmat(1 | population, K = K) and relmat(1 | population, Q = Q) each + (1 | group); phylo_interaction(1 | plant:pollinator, tree1, tree2) intercept; each with separate predictor-dependent SDs. Dense Laplace oracle (abs 1e-4) on every fit (relmat Q fit has its own oracle), max gradient < 2e-2, prediction identity 1e-8, constant-SD equivalence (logLik 1e-5, coefficients 1e-3), SD-slope recovery within 0.5.",
+  "limits": "native engine only, one fixture per cell, loose recovery bands, no interval calibration, no Julia parity, dirty shared tree, unreviewed. Evidence grade focused_test: oracle or equivalence checks with loose SD-recovery bounds, not a calibration study. Provider inputs or layouts not named in scope were not tested (not tested, not fenced).",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed a plain-R dense Laplace oracle (damped Newton mode, observed Hessian, log|I+Sigma Z'WZ|, hand-written probit and cloglog derivatives) that does not call drmTMB. It supports all 8 linked rows: native Binomial probit and cloglog; iid(site or group) plus animal(A), relmat(K) or relmat(Q), each with separate sd() formulas on both fields; and the phylo_interaction intercept with an SD regression. Oracle agreement is 1e-4 at fitted parameters. The relmat-Q fit has its own oracle built from solve(Q). The phylo-interaction pair covariance kronecker(A2,A1) uses the package tip-covariance helper. I checked that helper separately against ape::vcv (max difference 3e-16 on rcoal, 0 on the balanced 8-tip tree up to depth scaling), so it is not circular. The test has no emulated-bug block. A scratch check (no files edited) on animal+iid probit gave oracle gaps of 24.5 (swapped SD curves), 15.4 (reversed animal SDs) and 4.0 (constant SD), against 1e-4 tolerance. Focused test rerun on the current worktree: 94 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 4 of 7 entries differ (R/drmTMB.R, R/random-effect-targets.R, R/predict-parameters.R, src/drmTMB.cpp). They were changed by later lane commits and the receipt records a dirty tree, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish logit, other provider layouts (e.g. Ainv or pedigree), calibration, coverage or Julia parity. Recovery bands are loose (0.5). One fixture per cell. The receipt manifest needs a refresh.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-provider-pairs-nonlogit-sd.R",
+    "test_sha256": "033c86d7b5459fdcc5f13dd4fdee1ace7d3c3bd26cf4a1686c3fbac5ba95b84f",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:08:54Z",
+    "expectations_passed": 94,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-provider-pairs-nonlogit-sd-20261101/test-console-rerun-81553915d.log",
+    "console_log_sha256": "558c7b185c70a065b43317fc7b37581f548d9142c1b261ba46da3a53d3f6bf8f",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

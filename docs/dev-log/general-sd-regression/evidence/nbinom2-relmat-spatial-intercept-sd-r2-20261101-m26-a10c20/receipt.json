@@ -1,0 +1,44 @@
+{
+  "evidence_id": "nbinom2-relmat-spatial-intercept-sd-20261101-m26",
+  "rerecord_of_evidence_id": "nbinom2-relmat-spatial-intercept-sd-20261101",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e \"\"devtools::test(filter = 'nbinom2-relmat-spatial-intercept-sd-regression', reporter = 'summary', stop_on_failure = FALSE)\"\" (wrapper also prints expectation counts and exits non-zero on any failure, error or skip)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+      "test_sha256": "9bba69c183c726d701f861f9d5d7fff610dabd7504cd7f28d4f713ceb31fecf1",
+      "started_utc": "2026-11-02T13:18:18Z",
+      "ended_utc": "2026-11-02T13:18:26Z",
+      "exit_code": 0,
+      "expectations_passed": 34,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101-m26-a10c20/test-console-test-nbinom2-relmat-spatial-intercept-sd-regression.log",
+      "console_log_sha256": "6edb3429a7ba6ded46d4741eb21337d41903ced58e68cd4add5a9155b7ceaac4"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101-m26-a10c20/source-manifest.json",
+  "source_manifest_sha256": "a1163287640045c64c0255cfbeb3c526aa37cada68f1d897759c9cb99cbe3aad",
+  "review_status": "reviewed_narrow_claim",
+  "oracle": "Dense Laplace approximation of the marginal likelihood evaluated at the fitted parameters, computed in the test (Newton inner loop on the full Sigma). Independence: partly independent of the engine (separate dense implementation, no TMB), but the spatial oracle and data-generating covariance use drmTMB:::drm_spatial_coords_precision (the helper under test), checked only against a kernel rebuilt with the same formula (mirrored); the relmat kernel is analytic and independent.",
+  "review_note": "Both linked rows (NB2 relmat intercept, NB2 coordinate-spatial intercept) are fitted with sd(...) ~ z. Fitted logLik equals a base-R dense damped-Newton Laplace oracle to 1e-6 relative; for relmat the covariance (non-unit-scale Toeplitz, 1.7x) is built in the test, for spatial the covariance comes from drm_spatial_coords_precision but is checked against a kernel rebuilt in the test from the ring by dist()/median() to 1e-8 (formula mirrored, not independently justified). Emulated-bug sensitivity: kernel and coordinates are supplied in a shuffled order, and reading them by position moves the oracle logLik by more than 1000x tolerance; constant-SD equivalence also checked. Manifest 8/8 hashes match current files (shasum), rerun at e9c72ab3e: 34 pass, 0 fail, 0 skip. Covers the intercept-only fields. Does NOT establish: the spatial kernel convention itself, selector-swap sensitivity, slope fields, Q or Ainv inputs, calibration or coverage, Julia parity.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+    "test_sha256": "9bba69c183c726d701f861f9d5d7fff610dabd7504cd7f28d4f713ceb31fecf1",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:41Z",
+    "ended_utc": "2026-11-03T01:10:59Z",
+    "expectations_passed": 34,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101-m26-a10c20/test-console-rerun-81553915d.log",
+    "console_log_sha256": "2fbad7240fd9541bf388dce29c1cf0a6710aa03fd7dad0cd1279fcd6a421868e",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

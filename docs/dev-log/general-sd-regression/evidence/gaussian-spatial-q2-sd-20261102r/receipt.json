@@ -1,0 +1,44 @@
+{
+  "evidence_id": "native-gaussian-spatial-q2-sd-20261102r",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); r<-as.data.frame(testthat::test_file(\"tests/testthat/test-gaussian-spatial-q2-sd.R\", reporter=\"silent\")); print(colSums(r[c(\"passed\",\"failed\",\"error\",\"skipped\")]))'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "427a9a40198d588409a350843ef7fe8c788454a9",
+  "tree_state": "dirty shared candidate (uncommitted edits present); unreviewed",
+  "run_started_utc": "2026-11-02T11:25:25Z",
+  "run_ended_utc": "2026-11-02T11:25:59Z",
+  "exit_code": 0,
+  "expectations_passed": 52,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r/test-console.log",
+  "console_log_sha256": "b0bf68bbc47748c2f5a893627d89ef27aa5e17499e5ed8ca6f11e03320ef7249",
+  "test_path": "tests/testthat/test-gaussian-spatial-q2-sd.R",
+  "test_sha256": "2c287989acd98d5b399d08b3fb869e59cda426003fe225d361696b7ea7d00818",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-spatial-q2-sd-20261102r/source-manifest.json",
+  "source_manifest_sha256": "3121aaea0152a97690e714e3193d5c8befaca1302f55b424ac945fe382d23e91",
+  "live_julia": "not run; native R engine only",
+  "scope": "Gaussian coordinate-spatial q2 with per-coefficient SD formulas (unlabelled and labelled with rho) against the exact marginal oracle (1e-6 relative), plus an independent optimiser, bug-sensitivity and constant-SD equivalence.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I,x1\",\"identity\",\"spatial_correlated_block\",\"SP2-spatial-within\",\"spatial\",\"within-endpoint correlated intercept and one numeric slope\",\"coordinates\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1\",\"I,x1\",\"identity\",\"spatial_correlated_block\",\"SP2-spatial-within\",\"spatial\",\"within-endpoint correlated intercept and one numeric slope\",\"coordinates\",\"within_endpoint_structured_correlated_block\",\"q=2;partition=one_correlated_term\",\"fixed\",\"2\",\"one_correlated_term\"]",
+      "link_variant": "identity",
+      "ledger_status": "unresolved"
+    }
+  ],
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "Gaussian spatial q2 mesh/other provider inputs: not tested"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed"
+}

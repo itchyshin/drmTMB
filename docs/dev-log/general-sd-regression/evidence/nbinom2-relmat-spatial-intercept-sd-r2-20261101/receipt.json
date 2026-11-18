@@ -1,0 +1,60 @@
+{
+  "evidence_id": "nbinom2-relmat-spatial-intercept-sd-r2-20261101",
+  "date": "2026-11-01",
+  "status": "unreviewed",
+  "refresh_of_evidence_ids": [
+    "nbinom2-relmat-spatial-intercept-sd-20261101"
+  ],
+  "evidence_ids": [
+    "nbinom2-relmat-spatial-intercept-sd-20261101"
+  ],
+  "candidate_rows_existing_ledger": [
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "mechanism_id": "relmat_intercept",
+      "provider_input": "K_covariance",
+      "link_variant": "log",
+      "family_route": "nbinom2",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "mechanism_id": "spatial_coordinate_intercept",
+      "provider_input": "coordinates",
+      "link_variant": "log",
+      "family_route": "nbinom2",
+      "ledger_status": "required"
+    }
+  ],
+  "test_command": "cd <worktree>; NOT_CRAN=true OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'suppressMessages(devtools::load_all(\".\", quiet=TRUE)); res <- testthat::test_file(\"tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R\", reporter=\"summary\"); ...' > docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101/test-console.log",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "b87566680778831c2bae38d66399c3ca667e29fc",
+  "git_branch": "codex/general-sd-regression",
+  "test_path": "tests/testthat/test-nbinom2-relmat-spatial-intercept-sd-regression.R",
+  "test_sha256": "9bba69c183c726d701f861f9d5d7fff610dabd7504cd7f28d4f713ceb31fecf1",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101/source-manifest.json",
+  "source_manifest_sha256": "80699f9433cafcddd9e59b18a5e2f1c64193abb731261203616811bde38f2833",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/nbinom2-relmat-spatial-intercept-sd-r2-20261101/test-console.log",
+  "console_log_sha256": "18ce3ed531ef5cf50c53584fc2c1018ba14ee3f4520373cf623b406d127bae73",
+  "result": {
+    "exit_status": 0,
+    "test_blocks": 3,
+    "expectations": 34,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "warnings": 0,
+    "note": "Expectation count is the observed testthat count from this fresh run; earlier ledger text quoted a different count for an earlier version of the test file."
+  },
+  "oracle": "Dense Laplace approximation of the marginal likelihood evaluated at the fitted parameters, computed in the test (Newton inner loop on the full Sigma). Independence: partly independent of the engine (separate dense implementation, no TMB), but the spatial oracle and data-generating covariance use drmTMB:::drm_spatial_coords_precision (the helper under test), checked only against a kernel rebuilt with the same formula (mirrored); the relmat kernel is analytic and independent.",
+  "tolerances_copied_from_test": "dense-Laplace match 1e-6 (relative); prediction identity 1e-10; constant-SD equivalence logLik 2e-5, mu coefficients 1e-4, log SD 1e-4; kernel rebuild 1e-8; positional relmat kernel differs by >0.2, positional spatial precision by >0.5; positional oracle logLik differs by >1000 x (1e-6 x |logLik|); loose SD recovery bands as in the test",
+  "scope": "Native NB2 mu relmat(1 | id, K = K) with sd(id, level='relmat') ~ z and spatial(1 | site, coords = coords) with sd(site, level='spatial') ~ z (log link). K covariance input only: no Q fit in this file (not tested, not fenced). Also refusal of a z that varies within a relmat level.",
+  "limits": [
+    "native engine only",
+    "fixed-seed fixtures with loose recovery bands where applicable",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

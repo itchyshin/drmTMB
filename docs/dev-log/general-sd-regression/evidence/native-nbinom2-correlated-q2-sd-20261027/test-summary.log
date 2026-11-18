@@ -1,0 +1,10 @@
+Focused command: Rscript -e 'devtools::test(filter = "nbinom2-correlated-q2-sd")'
+Result: 12 expectations passed; 0 failed, 0 warnings, 0 skipped; 48.0 seconds.
+
+Adjacent command: Rscript -e 'devtools::test(filter = "nbinom2-(ordinary-correlated-q2|correlated-q2-sd)")'
+Result: 37 expectations passed; 0 failed, 0 warnings, 0 skipped; 51.1 seconds.
+
+Documentation: pkgdown::check_pkgdown() reported no problems; existing Pandoc --mathml deprecation warnings only.
+Vignette: the first render accidentally loaded the installed package from a different worktree and failed before reaching the new NB2 section. The source-bound rerender used devtools::load_all('.') and completed successfully; the new section is present in /tmp/predictor-dependent-random-sd-nbinom2-q2.html. Pandoc emitted an existing --mathjax deprecation warning.
+Full site command: Rscript -e 'pkgdown::build_site()'
+Result: full package site completed successfully, including both formula grammar and predictor-dependent SD articles; existing Pandoc mathml/mathjax deprecation warnings only.

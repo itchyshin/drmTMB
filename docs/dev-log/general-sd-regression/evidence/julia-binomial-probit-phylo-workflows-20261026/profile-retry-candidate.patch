@@ -1,0 +1,45 @@
+diff --git a/src/inference.jl b/src/inference.jl
+--- a/src/inference.jl
++++ b/src/inference.jl
+@@ -989,10 +989,19 @@
+         elseif method === :nelder_mead
+             iterations === nothing ? Optim.optimize(obj, u0, Optim.NelderMead()) :
+                 Optim.optimize(
+                     obj, u0, Optim.NelderMead(), Optim.Options(; iterations, x_abstol=1e-8),
+                 )
++        elseif method === :lbfgs_finite_backtracking
++            ls = Optim.LineSearches.BackTracking(; iterations=20)
++            iterations === nothing ?
++                Optim.optimize(obj, u0, Optim.LBFGS(; linesearch=ls); autodiff) :
++                Optim.optimize(
++                    obj, u0, Optim.LBFGS(; linesearch=ls),
++                    Optim.Options(; iterations, g_tol=1e-6, x_abstol=1e-8);
++                    autodiff,
++                )
+         else
+             # The pre-slice forward/finite path intentionally used Optim's
+             # defaults (rather than the capped stored-gradient budget). Keep
+             # that policy unless a private test override requests a budget.
+             iterations === nothing ?
+@@ -1059,10 +1068,21 @@
+             obj, primary.minimizer, :lbfgs_stored, autodiff;
+             (grad!)=grad!, iterations=something(primary_iterations, 40), fallback=true,
+         )
+         continuation.accepted && return continuation
+         return continuation
++    end
++
++    # A finite-difference LBFGS endpoint can return a usable candidate without
++    # converging, especially when its default line search stalls. Retry that
++    # candidate with bounded BackTracking; only Optim convergence is accepted.
++    if grad! === nothing && autodiff === :finite && primary.reason === :not_converged &&
++       isfinite(primary.value) && all(isfinite, primary.minimizer)
++        return _profile_attempt(
++            obj, primary.minimizer, :lbfgs_finite_backtracking, :finite;
++            iterations=something(primary_iterations, 3000), fallback=true,
++        )
+     end
+ 
+     # Preserve the remaining fallback policy. A stored-gradient construction
+     # exception retries finite-difference LBFGS; a finite-difference exception
+     # can retry value-only Nelder--Mead.

@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-zi-poisson-mu-iid-intercept-20261024-m26",
+  "rerecord_of_evidence_id": "julia-zi-poisson-mu-iid-intercept-20261024",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-zi-slope-cross-engine-20261024/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"PATH='/Users/z3437171/.juliaup/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin' DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRMTMB_JULIA_TESTS=true NOT_CRAN=true JULIA_HOME='/Users/z3437171/.juliaup/bin' OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"julia-poisson-zi-sd-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-poisson-zi-sd-regression.R",
+      "test_sha256": "ec0dd301a70f49c034a0389ba6c67b7eca31afc9b7c105bd603b25e4ed68b605",
+      "started_utc": "2026-11-02T13:25:06Z",
+      "ended_utc": "2026-11-02T13:26:03Z",
+      "exit_code": 0,
+      "expectations_passed": 19,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-zi-slope-cross-engine-20261024-m26-4bcdc7/test-console-test-julia-poisson-zi-sd-regression.log",
+      "console_log_sha256": "c6a5010c4fdddf01b290d2c9fa3e8d1042386792cf4f2840c87eac3936f54b18"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-zi-slope-cross-engine-20261024-m26-4bcdc7/source-manifest.json",
+  "source_manifest_sha256": "5a5ec4740948e240df807c87cf83ee6530e5e34b197496f0e20c4c8ea35d3f8f",
+  "review_status": "unreviewed"
+}

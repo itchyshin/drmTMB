@@ -1,0 +1,28 @@
+Q1 run start UTC: 2026-10-28T07:31:26Z
+Q1 R source: /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression
+Q1 Julia source: /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia (via scratch /Users/z3437171/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/pkg/src)
+Q1 Julia depot: /Users/z3437171/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/depot-overlay:/Users/z3437171/Documents/Codex/2026-10-28/drm-julia-parity.ryyLiV/depot:/Users/z3437171/.julia
+Q1 selected test SHA256: 721658fe990bd3147fd030572320fc7d60bbe78bed4c87f21b928f8d6e60d23f 
+Q1 fixture/Laplace helper SHA256: acd2153d99bc46d4094cbf5d9a1abd05febd00cb9e9e2a3619d3325925df9018 
+Q1 original AST statements: 57 
+Q1 appended expression: independent reference source only
+Q1 loaded DLL: /var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpwSEcNJ/pkgload1565df8da39b/drmTMB.so 
+Q1 loaded DLL SHA256: afde22660f3bc7577f9e6cb261356ceb11c31ef1c50ad27199295e3e1a71b7dc 
+Q1 extracted test: /Users/z3437171/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/test-bernoulli-q1-extracted.R 
+bernoulli-q1-extracted: ............................................Q1 fixture RDS: /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/docs/dev-log/general-sd-regression/evidence/bernoulli-q1-independent-20261028/fixture.rds 
+Q1 fixture SHA256: c24dd2b2a5f776ec5fbc29ffc34fa2120b8707add6fb99ae7d2bb7e80d694ef7 
+.........Q1 fixture rows=3600 groups=300 trials=1
+Q1 native NLL=2277.245843760257 Laplace reference=2277.245843748281 abs_error=1.19762262e-08
+Q1 Julia NLL=2275.223762651749 AGHQ5 reference=2275.223762651570 abs_error=1.78715709e-10
+Q1 AGHQ1 versus Laplace abs_error=4.64615368e-09
+Q1 native/JULIA NLL gap (distinct approximations)=2.02208111
+Q1 SD predictor abs maxima native=0.806234 Julia=0.782129 interior_bound=9
+Q1 profile interval lower=0.340069547 upper=0.6954241; bootstrap3 lower=0.56271955 upper=0.671479152
+Q1 native pdHess=TRUE Julia converged=TRUE
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Q1 live test cases: 1  expectations: 53  skips: 0  failures: 0 
+Julia exit.
+  Activating project at `~/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/pkg`
+Q1 run end UTC: 2026-10-28T07:32:53Z

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "b2ca224a7d25d9166ad43495357f42958e8c53544f24f236766880ff7b461ff1",
+  "draft_version": "2026-10-25-current",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Read the complete after-task report and checked its claims against the retained test console, source manifest, evidence reconciliation, and rendered documentation checks.",
+  "genre": "software after-task report",
+  "coverage": "Entire report, including all 12 required sections and next-action note.",
+  "score": 2,
+  "style_status": "judged",
+  "score_reason": "The report is concrete and specific to one narrow implementation slice; its procedural detail makes it somewhat checklist-like but not strongly formulaic.",
+  "confidence": "medium",
+  "confidence_reason": "The retained hashes, test record, reconciliation output, and documentation checks support the described work; no independent prose reviewer assessed this report.",
+  "examples": [
+    {
+      "location": "Section 5, first paragraph",
+      "cue": "The combined source-bound command passed the native recovery filter with 12 expectations and the live bridge filter with two Julia fits and 22 expectations.",
+      "impact": "The exact counts make the evidence and its scope easy to audit.",
+      "repair": "No change needed; the counts are retained in the run record.",
+      "line": 29,
+      "quote": "The combined source-bound command passed the native recovery filter with 12 expectations and the live bridge filter with two Julia fits and 22 expectations."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits its claim to a single synthetic Gaussian independent-slope route and explicitly withholds interval-calibration and broad-support claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test counts, checks, and ledger totals were checked against the retained report evidence and current reconciler; broader implementation limits are stated.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations.",
+  "date": "2026-10-25",
+  "calibration_status": "Informal self-assessment; no human or blinded calibration.",
+  "interpretation": "perceived_style_not_authorship"
+}

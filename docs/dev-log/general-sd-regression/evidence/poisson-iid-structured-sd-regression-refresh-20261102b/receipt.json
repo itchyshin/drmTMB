@@ -1,0 +1,29 @@
+{
+  "evidence_id": "native-poisson-iid-structured-sd-20261101-20261102b",
+  "refresh_of_evidence_ids": [
+    "native-poisson-iid-structured-sd-20261101"
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-poisson-iid-structured-sd-regression.R\", reporter = \"summary\")'",
+  "git_head": "1d23c75da1e960b8b5ae49c92f24be54bf7ed240",
+  "tree_state": "uncommitted staged edits; unreviewed",
+  "run_started_utc": "2026-11-02T08:14:54Z",
+  "run_ended_utc": "2026-11-02T08:15:16Z",
+  "exit_code": 0,
+  "expectations_passed": 170,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sd-regression-refresh-20261102b/test-console.log",
+  "console_log_sha256": "03bb57ceab75e617e70b9eec1479bafc4fb61ec1e71e843a5361482a758141a0",
+  "test_path": "tests/testthat/test-poisson-iid-structured-sd-regression.R",
+  "test_sha256": "75cc60ed878522b3c5e180b6852c28014697e220ef129d1fff0dbd2a2a8900db",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-iid-structured-sd-regression-refresh-20261102b/source-manifest.json",
+  "source_manifest_sha256": "28354bf0582c41c4ca444036ae1a59e0254d72b22a0956f559a705e82174fbd6",
+  "live_julia": "not run unless the console log says live tests ran",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity unless stated"
+  ],
+  "review_status": "unreviewed"
+}

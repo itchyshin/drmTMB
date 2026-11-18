@@ -1,0 +1,50 @@
+{
+  "evidence_id": "native-poisson-sd-missing-include-20261102r-m26",
+  "rerecord_of_evidence_id": "native-poisson-sd-missing-include-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-poisson-sd-missing-include.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-poisson-sd-missing-include.R",
+      "test_sha256": "81ecbaacb2acc3dfad2be3fd98c29f035aeedc4d5d7ebcda01bf8871651ea133",
+      "started_utc": "2026-11-02T13:18:35Z",
+      "ended_utc": "2026-11-02T13:18:41Z",
+      "exit_code": 0,
+      "expectations_passed": 38,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r-m26-e9abe1/test-console-test-poisson-sd-missing-include.log",
+      "console_log_sha256": "170a93fcf542d5e0df71b9e2c99ab01caf31ca15d85df7d2ba3fe933aeb62733"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r-m26-e9abe1/source-manifest.json",
+  "source_manifest_sha256": "4acff244135ab23c0950e1835f34bd12094f111e47e3d691cb2034e0ccf09d73",
+  "review_status": "reviewed_narrow_claim",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "other Poisson SD routes under include: fences pinned, not linked"
+  ],
+  "review_note": "Independent review of two native Poisson ordinary rows, iid intercept SD (sd(id) ~ w0) and iid numeric slope SD (slope member only: sd(id, coef='x') ~ w1 from the slope-only (0 + x | id) fit, plus the same-group intercept and slope fit), under miss_control(response = 'include'). Oracle: a base-R per-group dense Laplace (Newton mode, exact Hessian, no kernels) evaluated at the fitted coefficients on observed rows only; it matched logLik to about 1e-12 in a Totoro scratch run (test tolerance 1e-6 relative is about 4e-4 absolute). Sensitivity: the test asserts masked-rows-as-zeros (> 0.05), wrong-sign intercept SD (> 0.05) and swapped intercept/slope SDs in the same-group fit (> 0.05). In scratch I added slope-only perturbations: sign-flipped slope SD moves the oracle 0.048 and a misaligned w1 0.122 (about 100 to 300 times the tolerance), and a misaligned w0 for the intercept fit moves it 74.8. Include equals complete-case logLik at 1e-8 relative, including a group with all responses NA. All 5 manifest hashes match current files; rerun 38 pass, 0 failures, 0 skips. Does NOT establish: calibration or coverage, correlated (q>=2) blocks (the test confirms they stay refused), structured providers, zi-Poisson with SD (stays refused), recovery of the SD slopes, an intercept-plus-slope correlated field.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-poisson-sd-missing-include.R",
+    "test_sha256": "81ecbaacb2acc3dfad2be3fd98c29f035aeedc4d5d7ebcda01bf8871651ea133",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:11:11Z",
+    "ended_utc": "2026-11-03T01:11:26Z",
+    "expectations_passed": 38,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-sd-missing-include-20261102r-m26-e9abe1/test-console-rerun-81553915d.log",
+    "console_log_sha256": "c554ce30e69b36049b00bb4b834cb38f32ac67c7a6f6c6d6c7ea977b5a9bd10b",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

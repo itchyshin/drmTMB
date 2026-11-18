@@ -1,0 +1,15 @@
+Native candidate sources:
+253f13c5eb75ff8f4fcb1b3d8466330338c445529c2530e96d42143e6fafa8c4  R/drmTMB.R
+0ac3e7f2a09ed929413aec51a539bd2319b9ac163ae9eb9345585894e24fb60d  R/methods.R
+e06c5d10c95700033895589eca12822ebbac4bd2cb5f260cb8a7c8f63c334cfc  tests/testthat/test-binomial-spatial-sd-regression.R
+
+Julia candidate sources:
+eaac383855ccb867dcac31f0de182fb7b292a7744002fd00c452baa92bb42cc2  ../general-sd-julia/src/binomial_sd_regression.jl
+4d7557b72acfa05c18dccaa475fd63f990cc581ed7340875b6e8275c150b7ab1  ../general-sd-julia/src/inference.jl
+7bc0cde9d32a623c4673e2886691ea979d4bae5ee7389e07a1ca5bef8f9027e8  ../general-sd-julia/test/test_binomial_spatial_sd_regression.jl
+
+Totoro Julia runtime and copied sources:
+julia version 1.10.10
+eaac383855ccb867dcac31f0de182fb7b292a7744002fd00c452baa92bb42cc2  /tmp/sd-binomial-spatial-20261027-codex/src/binomial_sd_regression.jl
+4d7557b72acfa05c18dccaa475fd63f990cc581ed7340875b6e8275c150b7ab1  /tmp/sd-binomial-spatial-20261027-codex/src/inference.jl
+7bc0cde9d32a623c4673e2886691ea979d4bae5ee7389e07a1ca5bef8f9027e8  /tmp/sd-binomial-spatial-20261027-codex/test_binomial_spatial_sd_regression.jl

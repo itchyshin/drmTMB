@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-phylo-animal-pedigree-logit-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-phylo-animal-pedigree-logit-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-pedigree-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-phylo-animal-pedigree-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-phylo-animal-pedigree-sd.R",
+      "test_sha256": "3e6205e739c4c967368842e619c848ac4dd4c1c1cb7a15c1936cc86790a85544",
+      "started_utc": "2026-11-02T13:16:56Z",
+      "ended_utc": "2026-11-02T13:17:19Z",
+      "exit_code": 0,
+      "expectations_passed": 7,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-pedigree-sd-20261027-m26-9c5be6/test-console-test-binomial-phylo-animal-pedigree-sd.log",
+      "console_log_sha256": "1903b8a8df206c9f8433aa5b7a603fcd314a39f590e051bd834b43a9efde5134"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-animal-pedigree-sd-20261027-m26-9c5be6/source-manifest.json",
+  "source_manifest_sha256": "0933df309ee07f099e35332054d2ba07bc203543ca8978bae0d37d74f00c0d76",
+  "review_status": "unreviewed"
+}

@@ -1,0 +1,49 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-julia-b34-iid-quadrature-oracle.R",
+      "sha256": "4b286526ed7b364118fae00458c466750ae9493a16ff48460cbe5be7b662aaa4"
+    },
+    {
+      "file": "tests/testthat/helper-b34-julia-oracles.R",
+      "sha256": "39d763f004d17cd9d4a020625a730a629c0d3e165fb114597aa987964050d199"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "0803f791a8c237df11d9d6cc6a20183137ada7cb7bea15053bfa950a2101eac3"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia HEAD ab8b67127 (private copy, tracked src files unmodified; worktree Manifest.toml): src/zeroonebeta.jl",
+      "sha256": "55576053bde9e74289ed06dfa0319201b6017d2bce2730d8f5b0b4428dc3ef30"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia HEAD ab8b67127 (private copy, tracked src files unmodified; worktree Manifest.toml): src/adaptive_ghq.jl",
+      "sha256": "98f3d7d68eda42a7f0abe457620463c305c34c87a1b3c38205ae681a3d1646ef"
+    },
+    {
+      "file": "DRModels.jl worktree general-sd-julia HEAD ab8b67127 (private copy, tracked src files unmodified; worktree Manifest.toml): src/bridge.jl",
+      "sha256": "9aa9a44da552a9a3e34e25aefa3c811c98d1b3afa17db0191870e4f732dc0596"
+    }
+  ],
+  "re_recorded": "2026-11-03 on 91a56224f plus uncommitted batch 34 changes, after a test rerun at 91a56224f-b34; entries that differed: ['R/julia-bridge.R']"
+}

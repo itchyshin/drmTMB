@@ -1,0 +1,38 @@
+ℹ Testing drmTMB
+beta-relmat-q2-sd-regression: 123
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-beta-relmat-q2-sd-regression.R:107:3'): Beta relmat intercept
+Error in `drmTMB:::drm_build_beta_ls_spec(beta_relmat_q2_sd_form(K), fx$data)`: Beta models only support `mu` and `sigma`.
+x Unsupported parameter: "sd_relmat(id)".
+i Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(beta_relmat_q2_sd_form(K), fx$data) at test-beta-relmat-q2-sd-regression.R:107:3
+ 2.   └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6854:5
+ 3.     └─rlang::abort(...)
+
+── 2. Error ('test-beta-relmat-q2-sd-regression.R:174:3'): Beta relmat coefficie
+Error in `drmTMB:::drm_build_beta_ls_spec(beta_relmat_q2_sd_form(K), dat)`: Beta models only support `mu` and `sigma`.
+x Unsupported parameter: "sd_relmat(id)".
+i Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.
+Backtrace:
+    ▆
+ 1. └─drmTMB:::drm_build_beta_ls_spec(beta_relmat_q2_sd_form(K), dat) at test-beta-relmat-q2-sd-regression.R:174:3
+ 2.   └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6854:5
+ 3.     └─rlang::abort(...)
+
+── 3. Error ('test-beta-relmat-q2-sd-regression.R:192:3'): Beta relmat coefficie
+Error in `drm_build_beta_ls_spec(formula, data, env = formula_env, weights = weights_full, impute = impute, missing = missing_control)`: Beta models only support `mu` and `sigma`.
+x Unsupported parameter: "sd_relmat(id)".
+i Name each parameter formula in `bf()`, such as `bf(y ~ x, sigma ~ x)`.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-beta-relmat-q2-sd-regression.R:192:3
+ 2.   └─drmTMB:::drm_build_beta_ls_spec(...) at general-sd-regression/R/drmTMB.R:491:3
+ 3.     └─cli::cli_abort(...) at general-sd-regression/R/drmTMB.R:6854:5
+ 4.       └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+PASSED 0 FAILED 0 ERRORS 3 SECONDS 6.133 

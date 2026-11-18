@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "0eec446a044852dd617c1178f3c409ebde0a2c78aa91dcd5e9f2ee6801f1b13e",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the complete after-task report, compared estimates, interval status, refit counts, and diagnostics with captured R output, and applied the naturalness protocol.",
+  "genre": "Technical after-task report",
+  "coverage": "Complete report, exact saved draft version v1.",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "The report states exact interval endpoints and diagnostics, then limits each inference claim to the evidence collected.",
+  "confidence": "medium",
+  "confidence_reason": "Run outputs are direct, but the evidence is deliberately small and diagnostic rather than calibrated.",
+  "examples": [
+    {
+      "location": "Section 5, third bullet",
+      "line": 25,
+      "quote": "The same fit had optimizer convergence code 0, maximum absolute gradient `7.61e-11`, and `pd_hess = FALSE`.",
+      "cue": "The fit-health diagnostics are reported alongside the interval results.",
+      "impact": "Readers can see why finite endpoints alone do not validate inference.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report explicitly separates interval-workflow diagnostics from repeated-sample coverage and notes the non-positive-definite Hessian.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The interval endpoints, convergence code, gradient, Hessian flag, and refit counts were checked against captured R output.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no literature or external-source claims.",
+  "date": "2026-10-20",
+  "calibration_status": "No held-out style controls were used; exact run outputs were checked.",
+  "interpretation": "perceived_style_not_authorship"
+}

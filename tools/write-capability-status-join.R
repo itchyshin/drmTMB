@@ -9,12 +9,10 @@
 #   2. rows present in DRM.jl's file and NOT in drmTMB's;
 #   3. rows present in both whose STATUS WORD differs.
 #
-# WHY THIS IS NOT `docs/design/parity-matrix.md`'s job. The matrix ABORTS when a
-# drmTMB capability name is missing from DRM.jl's file -- that guard is right
-# for the matrix, which must not emit a half-joined row, but it means the matrix
-# can never report case (1). This file exists to report exactly the cases the
-# matrix refuses to render. It never aborts on an unmatched row; an unmatched
-# row is its output.
+# This join inventories unmatched names and differing status words. The matrix
+# also displays explicitly reviewed pending names as UNCITED; its strict check
+# continues to reject unexpected unmatched names. An absent row in either
+# document does not establish whether the corresponding code exists.
 #
 # HOW DRM.jl IS READ. With `git show <pin>:<path>` against a DRM.jl repository,
 # never its working tree -- the canonical clone routinely sits on some other

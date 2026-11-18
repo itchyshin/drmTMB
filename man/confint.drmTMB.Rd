@@ -55,8 +55,13 @@ response scale.}
 \item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when the \code{tmbprofile}
 profile engine is used.}
 
-\item{profile_precision}{Profile-control shortcut. \code{"default"} leaves
-\code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls unchanged. \code{"fast"} supplies
+\item{profile_precision}{Profile-control shortcut. \code{"default"} leaves the
+TMB profile step size unchanged and sets \code{ytol} to at least 0.5 above the
+requested likelihood cutoff, with a minimum of 2, when omitted. This gives
+the profile room to reach the cutoff; endpoint finding can still fail for
+other reasons.
+An explicit \code{ytol} remains in force.
+\code{"fast"} supplies
 \code{ystep = 0.5} and \code{ytol = 2} unless the caller supplies those controls in
 \code{...}, giving a quicker first-pass profile for long variance-component or
 correlation targets.}

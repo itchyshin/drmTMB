@@ -1,0 +1,33 @@
+{
+  "evidence_id": "native-q2-sd-marginal-simulate-20261102r-m26",
+  "rerecord_of_evidence_id": "native-q2-sd-marginal-simulate-20261102r",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/q2-sd-marginal-simulate-20261102r/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); r<-as.data.frame(testthat::test_file(\"\"tests/testthat/test-q2-sd-marginal-simulate.R\"\", reporter=\"\"silent\"\")); print(colSums(r[c(\"\"passed\"\",\"\"failed\"\",\"\"error\"\",\"\"skipped\"\")]))'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-q2-sd-marginal-simulate.R",
+      "test_sha256": "1f09d17af5d447f49886f60a834ee4d8867a39a89636585f0ad1962cf492316c",
+      "started_utc": "2026-11-02T13:18:39Z",
+      "ended_utc": "2026-11-02T13:18:56Z",
+      "exit_code": 0,
+      "expectations_passed": 170,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/q2-sd-marginal-simulate-20261102r-m26-093ace/test-console-test-q2-sd-marginal-simulate.log",
+      "console_log_sha256": "5de19917826655940d04b8ad2ecc3795af129c8d95c62cf3fd0cc1ad5bf056cd"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/q2-sd-marginal-simulate-20261102r-m26-093ace/source-manifest.json",
+  "source_manifest_sha256": "d7e19064a615be52658dee7218821beba8a62ad6aa55fb037adfa1b2ecf01920",
+  "review_status": "unreviewed",
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "family-provider pairs not run in this file (e.g. binomial animal/relmat/spatial, poisson animal/phylo, nbinom2 relmat/spatial, gaussian spatial)"
+  ]
+}

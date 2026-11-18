@@ -1,0 +1,11 @@
+Gaussian ordinary random-intercept SD cross-engine parity
+Observed date: 2026-10-24
+Native source HEAD: 425bee81572c625a634b2b083050c5c57c1dc1f1
+Julia source HEAD: 70dbf564eb670144c63c08f61ea099084d95add2
+Both candidate worktrees were dirty; relevant source and test hashes are in source-manifest.json.
+
+Test command: DRM_JL_PATH="/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia" DRM_JL_JULIA_HOME="/Users/z3437171/.juliaup/bin" OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = "julia-gaussian-sd-parity")'
+
+Result: exit 0, 14 expectations passed, 0 failures, 0 warnings, 0 skips, and one live Julia bridge fit; 32.1 seconds. The fixture is complete-data Gaussian with a predictor-dependent ordinary mean random-intercept SD, fixed sigma formula, independent seeded DGP, signed coefficient recovery, native/Julia coefficient and likelihood agreement, group-SD output, and reordered-row prediction alignment.
+
+Scope limits: this is one q1 ordinary Gaussian mean intercept cell and a point/workflow check. It does not establish Gaussian slope parity, structured or correlated effects, interval calibration, or full programme parity.

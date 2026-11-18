@@ -1,0 +1,52 @@
+{
+  "recorded_at": "2026-11-07T02:24:42.539321+00:00",
+  "run": 42315004155,
+  "source": "d9c0902e014de93f8fb6abbcfe55817d57101012",
+  "production_source": "5d0f159644991f49dd767b8baf8cb61f537b3720",
+  "conclusion": "success",
+  "scope": "Existing three-platform full package checks and source-tree job; no release or publication",
+  "platforms": [
+    {
+      "platform": "windows",
+      "fail": 0,
+      "warn": 124,
+      "skip": 720,
+      "pass": 41933,
+      "check_status": "2 NOTEs",
+      "notes": [
+        "Non-standard top-level news directory, present at pre-slice base",
+        "Report-only spelling.Rout comparison"
+      ],
+      "raw_log": "R-CI-windows-d9c0902e.log",
+      "sha256": "553cc1053b3d84e44e7c497e33ec8882f8c741e9e877148f2d93173986ee60c1"
+    },
+    {
+      "platform": "macos",
+      "fail": 0,
+      "warn": 116,
+      "skip": 703,
+      "pass": 42020,
+      "check_status": "2 NOTEs",
+      "notes": [
+        "Non-standard top-level news directory, present at pre-slice base",
+        "Report-only spelling.Rout comparison"
+      ],
+      "raw_log": "R-CI-macos-d9c0902e.log",
+      "sha256": "f9acd97143427663e65877858fa64a0d20742ba75a171d6f6463aeb05a1a730d"
+    },
+    {
+      "platform": "linux",
+      "fail": 0,
+      "warn": 117,
+      "skip": 703,
+      "pass": 42013,
+      "check_status": "2 NOTEs",
+      "notes": [
+        "Non-standard top-level news directory, present at pre-slice base",
+        "Report-only spelling.Rout comparison"
+      ],
+      "raw_log": "R-CI-linux-d9c0902e.log",
+      "sha256": "81efd3b5b6a552029abbab24f012d5d181f63dd51a9e901e64610b7c66e87a44"
+    }
+  ]
+}

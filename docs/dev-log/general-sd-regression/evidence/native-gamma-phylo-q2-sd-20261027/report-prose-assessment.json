@@ -1,0 +1,43 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "b7b029357b3944bb601f22e5c68bc1043cb34c359a594f53c7905940c6cf13f2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "bounded native Gamma tree worker",
+  "method": "Separate self review after comparing corrected-source patch, logs and example; independent math review separate",
+  "genre": "technical after-task report",
+  "coverage": "whole exact saved draft",
+  "score": 3,
+  "style_status": "known",
+  "score_reason": "Concrete equations, retained failed attempts and numerical results; required headings create regular structure",
+  "confidence": "medium",
+  "confidence_reason": "Self judgment without human calibration",
+  "examples": [
+    {
+      "location": "11",
+      "line": 11,
+      "quote": "Independent fields satisfy u_k ~ N(0,K), b_k=D_k u_k and Cov(b_k)=D_k K D_k, where D_k=diag(exp(W_k alpha_k)). The Gamma mean is exp(X beta+b_0+x*b_1), with shape=sigma^-2. K is Brownian shared ancestry divided by global tree height. The example pairs phylo(1+x|id,tree=tree) with two coefficient-selected sd(id,level=\"phylogenetic\") formulas.",
+      "cue": "specific scoped explanation",
+      "impact": "Connects the fitted syntax to the exact likelihood",
+      "repair": "no change needed"
+    },
+    {
+      "location": "57",
+      "line": 57,
+      "quote": "A passing focused route cannot prove shared control flow was preserved. Compare an edited shared validator against its before snapshot after removing the intended additions, then run existing provider neighbors.",
+      "cue": "specific scoped explanation",
+      "impact": "States the observed shared-code failure and practical repair",
+      "repair": "no change needed"
+    }
+  ],
+  "science_gate": "pass",
+  "science_gate_reason": "Claims restricted to independent numerical and fixed-seed point checks; no coverage claim",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared final runner logs, example, scoped patch and independent review",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references",
+  "date": "2026-10-28",
+  "calibration_status": "Earlier Gamma/Beta reports seen; no held-out writing controls",
+  "interpretation": "perceived_style_not_authorship"
+}

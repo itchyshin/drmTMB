@@ -1,0 +1,3 @@
+Test Summary:                                         | Pass  Total  Time
+quadrature helpers preserve the shared test namespace |    3      3  0.0s
+NAMESPACE_ONLY_PASS; full quadrature fit assertions not run by this smoke

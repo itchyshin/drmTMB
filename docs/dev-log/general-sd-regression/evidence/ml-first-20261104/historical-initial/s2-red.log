@@ -1,0 +1,92 @@
+julia-structured-stored-prediction: 1234567.....
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Error ('test-julia-structured-stored-prediction.R:35:7'): gaussian identit
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+── 2. Error ('test-julia-structured-stored-prediction.R:35:7'): poisson log stor
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+── 3. Error ('test-julia-structured-stored-prediction.R:35:7'): nbinom2 log stor
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+── 4. Error ('test-julia-structured-stored-prediction.R:35:7'): gamma log stored
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+── 5. Error ('test-julia-structured-stored-prediction.R:35:7'): binomial logit s
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+── 6. Error ('test-julia-structured-stored-prediction.R:35:7'): binomial probit 
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+── 7. Error ('test-julia-structured-stored-prediction.R:35:7'): binomial cloglog
+Error in `predict(fit, dpar = "mu", type = "link")`: `predict()` cannot reconstruct a conditional stored `mu` prediction: the Julia bridge did not retain its random-effect payload.
+Backtrace:
+    ▆
+ 1. ├─testthat::expect_equal(...) at test-julia-structured-stored-prediction.R:35:7
+ 2. │ └─testthat::quasi_label(enquo(object), label)
+ 3. │   └─rlang::eval_bare(expr, quo_get_env(quo))
+ 4. ├─stats::predict(fit, dpar = "mu", type = "link")
+ 5. └─drmTMB:::predict.drmTMB_julia(fit, dpar = "mu", type = "link")
+ 6.   └─cli::cli_abort("{.fn predict} cannot reconstruct a conditional stored {.code {dpar}} prediction: the Julia bridge did not retain its random-effect payload.") at drmTMB/R/julia-bridge.R:11130:5
+ 7.     └─rlang::abort(...)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

@@ -1,0 +1,37 @@
+{
+  "evidence_id": "julia-binomial-correlated-q3-logit-current-20261029-relink27",
+  "relink_of_evidence_id": "julia-binomial-correlated-q3-logit-current-20261029",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-logit-current-20261029/receipt.md",
+  "prior_test_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-logit-current-20261029/test-snapshot/test-julia-binomial-correlated-q3-logit-sd-bridge.R",
+  "git_head": "7fd8acec3",
+  "tree_state": "R/, src/, tests/, inst/ (tracked) clean at 7fd8acec3; every manifest file unmodified at run time",
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532",
+  "drmodels_jl_tree_state": "src/, test/, ext/, Project.toml, Manifest.toml clean at that commit (only docs modified)",
+  "host": "Mac Studio",
+  "command": "NOT_CRAN=true DRMTMB_JULIA_TESTS=true JULIA_HOME=<Julia 1.10.0> DRM_JL_PATH=<general-sd-julia worktree at 87a371a66> OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e 'pkgload::load_all(\".\", quiet = TRUE); testthat::test_file(\"tests/testthat/test-julia-binomial-correlated-q3-logit-sd-bridge.R\", reporter = \"summary\")' (Mac Studio, one test at a time)",
+  "live_test_path": "tests/testthat/test-julia-binomial-correlated-q3-logit-sd-bridge.R",
+  "live_test_origin": "tests/testthat/test-julia-binomial-correlated-q3-logit-sd-bridge.R",
+  "row_key_support": "live test is byte-identical to the frozen snapshot",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-correlated-q3-logit-sd-bridge.R",
+      "test_sha256": "a8488b82ab7447303397abc0e7e33bbadf9d9a0ba013193a2a61b78bbb13125e",
+      "started_utc": "2026-11-02T14:18:45Z",
+      "ended_utc": "2026-11-02T14:26:17Z",
+      "exit_code": 0,
+      "expectations_passed": 19,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-logit-current-20261029-relink27-31ede2/test-console.log",
+      "console_log_sha256": "9c0cf4b513539f8b9f1e490f8e899ede38591c783c7380e33e798126dbbae962"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-correlated-q3-logit-current-20261029-relink27-31ede2/source-manifest.json",
+  "source_manifest_sha256": "413c304b70435838f292655f9054799ea8c8d8d82c98f858723a6f2dc7010a57",
+  "review_status": "unreviewed",
+  "does_not_establish": [
+    "No claim beyond what the live test asserts; the old frozen-snapshot receipt is superseded for source-binding only, not reviewed.",
+    "No interval coverage, calibration or cross-engine claim beyond the live test assertions."
+  ]
+}

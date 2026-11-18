@@ -222,13 +222,24 @@ test_that("binomial REML preserves unsupported-shape and missing-engine rejectio
     "requires exactly one admitted ordinary unlabelled `mu` random-effect term",
     fixed = TRUE
   )
-  # Same message move as above: labelled blocks are still refused by
-  # validate_binomial_mu_random_terms(), but its wording widened when the
-  # experimental unlabelled correlated q = 2 block was admitted. Labelled
-  # `(1 | p | g)` remains unsupported.
+  # A labelled scalar intercept `(1 | p | g)` is now deliberately admitted by the
+  # general-sd-regression lane (fitted in
+  # test-binomial-sd-target-selectors-integration.R:32); with one coefficient and
+  # no correlations it satisfies the Cox-Reid REML term count, so it fits.
+  expect_s3_class(
+    suppressWarnings(drmTMB(
+      bf(y ~ x + (1 | p | g)),
+      family = binomial(),
+      data = fx$data,
+      REML = TRUE
+    )),
+    "drmTMB"
+  )
+  # Labelled slopes are still refused by validate_binomial_mu_random_terms(),
+  # whose wording widened when the unlabelled correlated q = 2 block was admitted.
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | p | g)),
+      bf(y ~ x + (0 + x | p | g)),
       family = binomial(),
       data = fx$data,
       REML = TRUE
@@ -260,6 +271,8 @@ test_that("binomial REML rejects every structured mu provider", {
   # same drm_validate_reml_spec() fence as phylo(). Providers not yet admitted
   # for ML (spatial, animal, phylo_interaction) are refused earlier, at parse
   # time, with the "planned, not implemented" message instead.
+  # Update: the general-sd-regression lane has since admitted spatial() and
+  # animal() on binomial mu for ML, so they now reach the same REML fence.
   fx <- binom_re_fixture(nid = 8L, neach = 4L)
   ids <- levels(fx$data$g)
   # Ultrametric so phylo tree validation does not mask the REML fence.
@@ -272,7 +285,9 @@ test_that("binomial REML rejects every structured mu provider", {
 
   admitted_calls <- list(
     quote(drmTMB(bf(y ~ x + phylo(1 | g, tree = tree)), family = binomial(), data = fx$data, REML = TRUE)),
-    quote(drmTMB(bf(y ~ x + relmat(1 | g, K = A)), family = binomial(), data = fx$data, REML = TRUE))
+    quote(drmTMB(bf(y ~ x + relmat(1 | g, K = A)), family = binomial(), data = fx$data, REML = TRUE)),
+    quote(drmTMB(bf(y ~ x + spatial(1 | g, coords = coords)), family = binomial(), data = fx$data, REML = TRUE)),
+    quote(drmTMB(bf(y ~ x + animal(1 | g, A = A)), family = binomial(), data = fx$data, REML = TRUE))
   )
   for (call in admitted_calls) {
     expect_error(
@@ -282,18 +297,7 @@ test_that("binomial REML rejects every structured mu provider", {
     )
   }
 
-  deferred_calls <- list(
-    quote(drmTMB(bf(y ~ x + spatial(1 | g, coords = coords)), family = binomial(), data = fx$data, REML = TRUE)),
-    quote(drmTMB(bf(y ~ x + animal(1 | g, A = A)), family = binomial(), data = fx$data, REML = TRUE))
-  )
-  for (call in deferred_calls) {
-    expect_error(
-      eval(call),
-      "Structured-effect syntax is planned, not implemented",
-      fixed = TRUE
-    )
-  }
-
+  # phylo_interaction() is likewise now admitted for ML and reaches the REML fence.
   fx$data$partner1 <- fx$data$g
   fx$data$partner2 <- factor(rep(ids, each = 4L))
   expect_error(
@@ -301,7 +305,7 @@ test_that("binomial REML rejects every structured mu provider", {
       bf(y ~ x + phylo_interaction(1 | partner1:partner2, tree1 = tree, tree2 = tree)),
       family = binomial(), data = fx$data, REML = TRUE
     ),
-    "Structured-effect syntax is planned, not implemented",
+    "Binomial `REML` requires exactly one admitted ordinary unlabelled `mu`",
     fixed = TRUE
   )
 })

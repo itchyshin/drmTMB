@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-correlated-q4-probit-x1-to-xp-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-correlated-q4-probit-x1-to-xp-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-correlated-q4-nonlogit-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-correlated-q4-nonlogit-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-correlated-q4-nonlogit-sd.R",
+      "test_sha256": "00251045f8a77f014756babcd8b0b88d511618eaed4b7c9e83c02fe003b9ea99",
+      "started_utc": "2026-11-02T13:15:46Z",
+      "ended_utc": "2026-11-02T13:22:15Z",
+      "exit_code": 0,
+      "expectations_passed": 32,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-correlated-q4-nonlogit-20261027-m26-0772c0/test-console-test-binomial-correlated-q4-nonlogit-sd.log",
+      "console_log_sha256": "713cc49ca7db76e337b2faa65ca054cef4aaea10efe98b467faf26b291d3151d"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-correlated-q4-nonlogit-20261027-m26-0772c0/source-manifest.json",
+  "source_manifest_sha256": "ddc7c63853aadf56b0a8e785e961e86a26b0d146017a3168f10409cb235f0d6b",
+  "review_status": "unreviewed"
+}

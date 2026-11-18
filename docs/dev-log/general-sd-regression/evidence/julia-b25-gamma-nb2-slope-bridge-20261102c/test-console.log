@@ -1,0 +1,16 @@
+ℹ Loading drmTMB
+i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+B25 diffs: mu 1.4e-08; sigma 2.58e-07; sd_relmat(id) 1.74e-08; logLik diff 3.11e-06
+B25 diffs: mu 2.03e-08; sigma 2.89e-07; sd_spatial(id) 3.85e-08; logLik diff 1.1e-05
+B25 diffs: mu 9.86e-09; sigma 6.82e-08; sd_relmat(id) 2.57e-08; logLik diff 4.83e-06
+Julia bridge: 3 live tests ran; bridge glue was exercised in this configuration.
+ passed  failed   error skipped 
+     45       0       0       0 
+[1] 4
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`

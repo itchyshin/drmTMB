@@ -1,0 +1,18 @@
+
+
+processing file: predictor-dependent-random-sd.Rmd
+1/11                       
+2/11 [unnamed-chunk-1]     
+3/11                       
+4/11 [simulate-data]       
+5/11                       
+6/11 [fit-bernoulli]       
+7/11                       
+8/11 [fit-poisson]         
+9/11                       
+10/11 [predict-group-scales]
+11/11                       
+output file: predictor-dependent-random-sd.md
+
+[1] "predictor-dependent-random-sd.md"
+SD_GUIDE_KNIT_PASS

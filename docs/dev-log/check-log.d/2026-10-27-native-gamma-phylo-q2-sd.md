@@ -1,0 +1,3 @@
+# Gamma tree independent intercept and slope SDs
+
+Native complete-data Gamma mu now admits one unlabelled phylo intercept plus independent numeric slope with separate selected SD formulas. Corrected-source focused48 passed12.386s; seven Gamma files171 passed57.241s; positive-continuous neighbor198 passed18.016s, zero failures/errors/warnings/skips in both broader runs. Final example converged2.643s, SD slopes .3280183/-.5660805 versus .5/-.5. Independent height-normalized covariance and dense Gamma Laplace oracle passed. Shared-validator nesting error was found by review, repaired, and all final evidence rerun. No coverage/live Julia/public-map promotion. See the corresponding after-task report and native-gamma-phylo-q2-sd-20261027 receipt.

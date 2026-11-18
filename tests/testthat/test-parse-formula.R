@@ -87,6 +87,47 @@ test_that("keyed sd() and corpair() formulas may repeat", {
   )
 })
 
+test_that("random-effect SD parser errors point to supported syntax", {
+  expect_error(
+    bf(y ~ x, sd() ~ w),
+    "select its parameter and coefficient"
+  )
+  expect_error(
+    bf(y ~ x, sd_spatial(site) ~ w),
+    "not supported yet"
+  )
+})
+
+test_that("structured SD targets retain explicit target selectors", {
+  formulas <- list(
+    phylogenetic = bf(
+      y ~ x + phylo(1 | id, tree = tree),
+      sd(id, level = "phylogenetic", dpar = "mu", coef = "x", block = "p") ~ z
+    ),
+    animal = bf(
+      y ~ x + animal(1 | id, A = A),
+      sd(id, level = "animal", dpar = "mu", coef = "x", block = "p") ~ z
+    ),
+    relmat = bf(
+      y ~ x + relmat(1 | id, K = K),
+      sd(id, level = "relmat", dpar = "mu", coef = "x", block = "p") ~ z
+    ),
+    spatial = bf(
+      y ~ x + spatial(1 | id, coords = coords),
+      sd(id, level = "spatial", dpar = "mu", coef = "x", block = "p") ~ z
+    )
+  )
+
+  for (formula in formulas) {
+    entry <- drmTMB:::parse_sd_lhs(formula$entries[[2L]]$lhs)
+    expect_true(entry$explicit)
+    expect_true(entry$level %in% c("phylogenetic", "animal", "relmat", "spatial"))
+    expect_identical(entry$target_dpar, "mu")
+    expect_identical(entry$target_coef, "x")
+    expect_identical(entry$target_block, "p")
+  }
+})
+
 test_that("distinct bivariate parameters are not treated as duplicates", {
   expect_no_error(
     bf(
