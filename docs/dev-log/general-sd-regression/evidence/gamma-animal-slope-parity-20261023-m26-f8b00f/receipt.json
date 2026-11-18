@@ -1,0 +1,26 @@
+{
+  "evidence_id": "gamma-current-source-bridge-parity-loglik-20261023-m26",
+  "rerecord_of_evidence_id": "gamma-current-source-bridge-parity-loglik-20261023",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023/receipt-whole-file-loglik.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRM_JL_PATH and DRMODELS_JL_PATH point to paired Julia worktree; DRM_JULIA_TESTS=true NOT_CRAN=true; scratch Julia depot; Rscript --vanilla -e devtools::load_all(); devtools::test(filter=\"\"julia-gamma-sd\"\", reporter=\"\"summary\"\")\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-gamma-sd.R",
+      "test_sha256": "e491ba81e5a89f0e7f868cdf543cbad288e4345a06d55aff16597c3262622b02",
+      "started_utc": "2026-11-02T13:22:42Z",
+      "ended_utc": "2026-11-02T13:23:59Z",
+      "exit_code": 0,
+      "expectations_passed": 54,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023-m26-f8b00f/test-console-test-julia-gamma-sd.log",
+      "console_log_sha256": "6407a8fee50e2084e06682c9b10019764d69cc9040590a6b76596ff5225c4b40"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023-m26-f8b00f/source-manifest.json",
+  "source_manifest_sha256": "67ddd4de53759cfe769f7cc5831d17dec484fa55a02b4e7123f9cc113295eb00",
+  "review_status": "unreviewed"
+}

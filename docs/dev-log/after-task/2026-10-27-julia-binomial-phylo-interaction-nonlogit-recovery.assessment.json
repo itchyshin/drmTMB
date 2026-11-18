@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "c7a4df2cb809efd26c8378d7a382a03b4ba297bcdf2e32154d7a9f487cb580b0",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Separate full-draft review against the Totoro test receipt, verified source hashes, generated ledger, and current documentation text.",
+  "genre": "internal after-task software report",
+  "coverage": "entire draft",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "The report is tied to exact test counts, files, and limits. Its required section structure and technical terms make it somewhat template-like, but the claims are specific and the limitations are stated plainly.",
+  "confidence": "medium",
+  "confidence_reason": "The test output, source manifest, ledger rows, and relevant documentation lines were checked directly; the assessment concerns only this short engineering report.",
+  "examples": [
+    {
+      "location": "line 62",
+      "cue": "The opening sentence bounds the claim to Julia and one interaction-intercept route.",
+      "impact": "This prevents the focused test from being mistaken for parity or family-wide evidence.",
+      "repair": "no change needed",
+      "line": 62,
+      "quote": "This is Julia-only evidence for one phylogenetic-interaction intercept."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report distinguishes point recovery from covariance-oracle and interval-calibration evidence, and uses the fitted log-SD formula consistently with the tested target.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Test counts, elapsed time, ledger counts, source hash count, documentation findings, and issue-search outcome were checked against current command outputs and files.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report uses local files and command receipts and makes no literature citation.",
+  "date": "2026-10-27",
+  "calibration_status": "Not calibrated; informal internal calibration notes were not used to set a threshold.",
+  "interpretation": "perceived_style_not_authorship"
+}

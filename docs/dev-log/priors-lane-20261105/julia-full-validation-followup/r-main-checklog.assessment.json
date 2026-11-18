@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "edb6b65a1806a31041757723ed971fd199149098138858872fe8c91870df7f64",
+  "draft_version": "validation-final-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Whole-draft self-review against source-pinned receipts; an independent integration reviewer verified the result and corrected stale report wording.",
+  "genre": "Technical validation report, check log or recovery record",
+  "coverage": "Whole /Users/z3437171/.codex/worktrees/drm-priors-design-20261105/drmTMB/docs/dev-log/priors-lane-20261105/julia-full-validation-followup/r-main-checklog-excerpt.md",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "Concrete measurements and limitations; audit structure and source identifiers add necessary density.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent fact review; no held-out prose calibration or human authorship assessment.",
+  "examples": [
+    {
+      "location": "Line 3",
+      "line": 3,
+      "quote": "Normal priors and ridge penalties for ordinary Gaussian mu/sigma and binomial-logit fixed effects are implemented in an isolated lane. Independent numerical and affected-regression checks pass; broad R residuals reproduce on baseline. The original Julia run stopped at 90 minutes; its unchanged-source follow-up passed all eight default-suite shards and 554 selected files. Detailed source pins, failures and limits are in [the per-file evidence log](check-log.d/2026-11-05-fixed-effect-priors.md). No merge, release or general parity/calibration claim is authorized.",
+      "cue": "Concrete purpose, measurement or scope statement",
+      "impact": "Separates validated results from broader untested claims",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "No new estimator or calibration claim; default-suite checks are distinguished from parity, intervals and release readiness.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "All eight exits,554ordered file completions,raw/transcript hashes and source/runtime checks pass; old90minute run remains historical and incomplete.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No literature claim; primary operational run evidence was verified separately.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "ac230ee8f123acafc4c0c7d9727370492bb9ae547a65e50e64da04c841e7be71",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Self-review using protocols/writing-naturalness.md after reading the exact saved report and checking its cited source claims.",
+  "genre": "Technical after-task report",
+  "coverage": "Entire saved report, lines 1-63",
+  "score": 2,
+  "style_status": "assessed",
+  "score_reason": "The report names the software, response family, variance-to-SD conversion, checks, and limitations directly. It uses consistent technical terms and compact sections; a little repetition between the issue and check sections remains.",
+  "confidence": "medium",
+  "confidence_reason": "I read the full report and verified the mathematical conversion and cited manual claims. The style score remains subjective and was not reviewed by another reader.",
+  "examples": [
+    {
+      "location": "Line 13",
+      "cue": "The equation gives both variance and SD parameterizations in one place.",
+      "impact": "The reader can see the coefficient conversion without inferring it from prose.",
+      "repair": "no change needed",
+      "line": 13,
+      "quote": "The `dhglm` manual documents a log link for random-effect variance. If `log(lambda_g) = W_g gamma` and `lambda_g = tau_g^2`, then `log(tau_g) = W_g (gamma / 2)`. The fixed-predictor design is shared; the variance-model coefficients are twice the corresponding log-SD coefficients."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report treats the equation conversion as algebra and does not infer identifiability or coverage from software documentation.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The documented binomial family, variance-predictor interface, and fitting methods were checked against the official CRAN reference manual; the DHGLM paper claim is limited to its publisher abstract.",
+  "references_gate": "pass",
+  "references_gate_reason": "The official CRAN manual and Lee and Noh publisher record are linked directly and support the claims assigned to them.",
+  "date": "2026-10-20",
+  "calibration_status": "No calibrated style controls were reviewed; this is a subjective self-assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

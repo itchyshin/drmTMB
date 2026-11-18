@@ -1,0 +1,28 @@
+# Interim primary-source review: predictor-dependent latent SDs
+
+**Status:** primary-source review in progress. This is not the requested NotebookLM review and it does not establish novelty. The NotebookLM CLI check on 2026-10-26 returned `token_fetch: false`; a saved browser permission also denied page access. NotebookLM use remains pending account reauthentication and access restoration.
+
+## Decision this review informs
+
+The review asks what the existing methods literature establishes about covariate-dependent latent-effect scales, when those scales can be identified from clustered responses, and what likelihood and uncertainty checks are needed before advertising them across response families and structured covariance models.
+
+## Sources checked
+
+- Lee and Nelder's hierarchical generalized linear models combine random effects with structured dispersion components and describe joint mean/dispersion fitting. This establishes broad adjacent prior art for dispersion modelling, but the article's framework is not the same implementation contract as a predictor-dependent scale on a Gaussian latent random effect under drmTMB's marginal likelihood. [Lee and Nelder 2001](https://doi.org/10.1093/biomet/88.4.987)
+- Lee and Nelder's double hierarchical GLMs allow random effects in both the mean and dispersion models. Their h-likelihood framework differs from our normal latent-effect model and integration route, so this is relevant prior art rather than a direct parity precedent. [Lee and Nelder 2006](https://doi.org/10.1111/j.1467-9876.2006.00538.x)
+- Pan and MacKenzie model covariance structures as functions of baseline covariates, time, and interactions in longitudinal data. This supports covariate-dependent covariance as an established modelling idea, but does not by itself establish the exact random-effect SD regression or non-Gaussian family coverage here. [Pan and MacKenzie 2006](https://doi.org/10.1191/1471082X06st105oa)
+- Wang derives design-based identifiability conditions for covariance parameters in linear mixed models. Those conditions are a useful warning that named covariance parameters can remain unidentifiable even when a model is not overparameterized; they do not directly prove identifiability in a nonlinear GLMM with predictor-dependent latent scales. [Wang 2016](https://doi.org/10.1016/j.laa.2016.06.022)
+- Joe's numerical study of discrete-response mixed models reports that Laplace bias depends on response discreteness, is greater for binary and ordinal outcomes than for counts in the studied cases, and decreases with cluster size. It also finds Laplace can be adequate in many tested settings, including some small clusters. Treat integration accuracy as design-dependent, not uniformly poor or uniformly adequate. [Joe 2008](https://doi.org/10.1016/j.csda.2008.05.002)
+- Capanu, Gonen, and Begg compare Laplace, adaptive quadrature, and hybrid methods in binary GLMMs using sparse, unbalanced, crossed, and multilevel structures. Their reported differences among variance-component estimates motivate independent recovery and integration checks for each advertised domain, rather than relying on engine agreement alone. [Capanu, Gonen, and Begg 2013](https://doi.org/10.1002/sim.5866)
+
+## Provisional implications for this implementation
+
+1. Define the latent scale and its covariance multiplier explicitly. If `b ~ N(0, D K D)`, then the marginal SD for group `g` is `tau_g * sqrt(K[g,g])`; `tau_g` is a multiplier, not the marginal SD when the kernel diagonal is not one. Preserve each engine's existing kernel convention and test non-unit diagonals directly.
+2. Treat identifiability as design- and family-specific. The SD-formula design needs independent groups spanning its predictor values; repeated Bernoulli observations per group and adequate outcome information matter. Collinearity with mean predictors, rare events, small group counts, or a nearly zero random-effect scale can make SD slopes weakly identified. The checked sources do not yield a universal analytic admission rule for every supported family or structured covariance.
+3. Keep likelihood accuracy separate from optimizer convergence. A finite optimizer result or agreement between two engines is not an independent oracle. For Bernoulli routes, retain scalar-cluster integration or another independently coded likelihood check alongside recovery tests, especially for sparse and low-information designs.
+4. Require each profile endpoint's nuisance optimization to converge before returning a finite interval. A passing profile-workflow test does not establish nominal coverage. The current patch probe passes endpoint assertions, but its fit still has a non-positive-definite finite-difference Hessian and withholds Wald SEs. Coverage calibration remains outside this implementation wave by the user's later scope decision.
+5. Validate derived SD predictions on the stated scale. For structured kernels, test group labels and ordering, matrix scaling, and save/reload behavior so outputs agree with the declared covariance model.
+
+## Limits and next research step
+
+This small, curated set supports the distinction between structured dispersion models, covariate-dependent covariance models, and the specific predictor-dependent random-effect SD interface being implemented. It cannot support a novelty claim or a statement that all distributions are identifiable. Add and assess primary sources for variance-component boundaries and profile/parametric-bootstrap intervals, then use the existing NotebookLM corpus to find omissions and challenge this synthesis once account access works. Verify each NotebookLM claim against its original source before citing it.

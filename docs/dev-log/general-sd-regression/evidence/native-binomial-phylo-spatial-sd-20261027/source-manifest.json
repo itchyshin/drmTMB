@@ -1,0 +1,25 @@
+{
+  "task": "native-binomial-phylogenetic-spatial-sd",
+  "created_utc": "2026-10-27T21:06:17.734991+00:00",
+  "head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "test_exit_code": 0,
+  "test_command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"binomial-phylo-spatial-sd|binomial-phylo-sd-regression|binomial-spatial-sd-regression|binomial-phylo-sd-simulation\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "files_sha256": {
+    "R/drmTMB.R": "e2d52599b1006d333ff8eebab47fd9cb821bbe199f6083fb7d7813dc3f2f4cfc",
+    "src/drmTMB.cpp": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70",
+    "R/methods.R": "7732e623b6ae2a7f4b2f7e3663b66683f832265b55a1c881a4a3a49f310eac1b",
+    "tests/testthat/test-binomial-phylo-spatial-sd.R": "65a1b119e283103ddd4e8052efd1eb62ef5c2c172edbaa971bfb9d0335f2ed06",
+    "vignettes/predictor-dependent-random-sd.Rmd": "28818220b1bffe6797631bcb9f3b7c9738cfb3415d630f680ec42dce50be87eb",
+    "docs/design/18-random-effect-scale-models.md": "84670df932122eb1012284af336d0a58eae20ec07ad2b9fe7d6360b8dd1abf5c",
+    "docs/design/06-distribution-roadmap.md": "670e8fab68bb63e5534e99fc1a6ac428951804c6273776a770d18761a821d478",
+    "docs/dev-log/check-log.d/2026-10-27-native-binomial-phylo-spatial-sd.md": "e1c1eb4c98df4e9703b338e07086d92354c6618e67b26f36e8656c9ea35a540f",
+    "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-spatial-sd-20261027/focused-tests.log": "704bab8fadc3158c73f57e1e45568b65401daefc9df5107c5ef9b325cfb656b8"
+  },
+  "limits": [
+    "native TMB point-fit evidence only",
+    "profile coefficient target mapping checked, interval endpoints not run",
+    "no interval coverage",
+    "no Julia parity",
+    "no package-wide check"
+  ]
+}

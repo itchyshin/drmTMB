@@ -1,0 +1,1149 @@
+Precompiling packages...
+    DRModels Being precompiled by another process (pid: 2837472, pidfile: /home/snakagaw/.julia/compiled/v1.10/DRModels/yORCy_KliP6.ji.pidfile)
+   8225.9 ms  ✓ DRModels
+  1 dependency successfully precompiled in 9 seconds. 98 already precompiled.
+     Testing DRModels
+      Status `/tmp/jl_TnzZlt/Project.toml`
+  [4c88cf16] Aqua v0.8.18
+  [6c755ef2] DRModels v0.8.0 `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`
+  [8bb1440f] DelimitedFiles v1.9.1
+  [31c24e10] Distributions v0.25.134
+  [f6369f11] ForwardDiff v1.4.7
+⌅ [c3a54625] JET v0.9.18
+  [1fd47b50] QuadGK v2.11.3
+  [276daf66] SpecialFunctions v2.9.1
+  [860ef19b] StableRNGs v1.1.0
+  [82ae8749] StatsAPI v1.8.0
+  [3eaba693] StatsModels v0.7.10
+  [37e2e46d] LinearAlgebra
+  [56ddb016] Logging
+  [d6f4376e] Markdown
+  [de0858da] Printf
+  [9a3f8284] Random
+  [9e88b42a] Serialization
+  [2f01184e] SparseArrays v1.10.0
+  [10745b16] Statistics v1.10.0
+  [fa267f1f] TOML v1.0.3
+  [8dfed614] Test
+      Status `/tmp/jl_TnzZlt/Manifest.toml`
+  [47edcb42] ADTypes v1.24.0
+  [7d9f7c33] Accessors v0.1.46
+  [79e6a3ab] Adapt v4.8.0
+  [66dad0bd] AliasTables v1.1.3
+  [4c88cf16] Aqua v0.8.18
+  [4fba245c] ArrayInterface v7.30.2
+⌅ [da1fd8a2] CodeTracking v1.3.9
+  [38540f10] CommonSolve v0.2.14
+  [bbf7d656] CommonSubexpressions v0.3.1
+  [34da2185] Compat v4.18.1
+  [a33af91c] CompositionsBase v0.1.2
+  [187b0558] ConstructionBase v1.6.0
+  [6c755ef2] DRModels v0.8.0 `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`
+  [9a962f9c] DataAPI v1.16.0
+  [864edb3b] DataStructures v0.19.6
+  [e2d170a0] DataValueInterfaces v1.0.0
+  [8bb1440f] DelimitedFiles v1.9.1
+  [163ba53b] DiffResults v1.1.0
+  [b552c78f] DiffRules v1.16.0
+  [a0c0ee7d] DifferentiationInterface v0.7.22
+  [31c24e10] Distributions v0.25.134
+  [ffbed154] DocStringExtensions v0.10.2
+  [4e289a0a] EnumX v1.0.7
+  [1a297f60] FillArrays v1.18.2
+  [6a86dc24] FiniteDiff v2.33.0
+  [f6369f11] ForwardDiff v1.4.7
+  [a0844989] Gamma v1.2.0
+  [34004b35] HypergeometricFunctions v0.3.31
+  [3587e190] InverseFunctions v0.1.18
+  [92d709cd] IrrationalConstants v0.2.7
+  [82899510] IteratorInterfaceExtensions v1.0.0
+⌅ [c3a54625] JET v0.9.18
+  [692b3bcd] JLLWrappers v1.8.0
+⌅ [aa1ae85d] JuliaInterpreter v0.9.46
+⌅ [70703baa] JuliaSyntax v0.4.10
+⌃ [d3d80556] LineSearches v7.5.1
+  [2ab3a3ac] LogExpFunctions v1.0.3
+⌃ [6f1432cf] LoweredCodeUtils v3.2.2
+  [1914dd2f] MacroTools v0.5.16
+  [e1d29d7a] Missings v1.2.1
+⌅ [d41bc354] NLSolversBase v7.10.0
+  [77ba4419] NaNMath v1.1.5
+⌃ [429524aa] Optim v1.13.3
+  [bac558e1] OrderedCollections v2.0.3
+  [90014a1f] PDMats v0.11.41
+  [85a6dd25] PositiveFactorizations v0.2.4
+⌅ [aea7be01] PrecompileTools v1.2.1
+  [21216c6a] Preferences v1.6.1
+  [43287f4e] PtrArrays v1.4.0
+  [1fd47b50] QuadGK v2.11.3
+  [189a3867] Reexport v1.2.2
+  [79098fc4] Rmath v0.9.0
+  [f2b01f46] Roots v3.0.13
+  [efcf1570] Setfield v1.2.0
+  [1277b4bf] ShiftedArrays v2.0.0
+  [a2af1166] SortingAlgorithms v1.2.3
+  [276daf66] SpecialFunctions v2.9.1
+  [860ef19b] StableRNGs v1.1.0
+  [1e83bf80] StaticArraysCore v1.4.4
+  [82ae8749] StatsAPI v1.8.0
+  [2913bbd2] StatsBase v0.34.13
+  [4c63d2b9] StatsFuns v2.2.1
+  [3eaba693] StatsModels v0.7.10
+  [3783bdb8] TableTraits v1.0.1
+  [bd369af6] Tables v1.14.0
+  [efe28fd5] OpenSpecFun_jll v0.5.6+0
+  [f50d1b31] Rmath_jll v0.5.2+0
+  [0dad84c5] ArgTools v1.1.1
+  [56f22d72] Artifacts
+  [2a0f44e3] Base64
+  [ade2ca70] Dates
+  [8ba89e20] Distributed
+  [f43a241f] Downloads v1.6.0
+  [7b1f6079] FileWatching
+  [9fa8497b] Future
+  [b77e0a4c] InteractiveUtils
+  [b27032c2] LibCURL v0.6.4
+  [76f85450] LibGit2
+  [8f399da3] Libdl
+  [37e2e46d] LinearAlgebra
+  [56ddb016] Logging
+  [d6f4376e] Markdown
+  [a63ad114] Mmap
+  [ca575930] NetworkOptions v1.2.0
+  [44cfe95a] Pkg v1.10.0
+  [de0858da] Printf
+  [3fa0cd96] REPL
+  [9a3f8284] Random
+  [ea8e919c] SHA v0.7.0
+  [9e88b42a] Serialization
+  [6462fe0b] Sockets
+  [2f01184e] SparseArrays v1.10.0
+  [10745b16] Statistics v1.10.0
+  [4607b0f0] SuiteSparse
+  [fa267f1f] TOML v1.0.3
+  [a4e569a6] Tar v1.10.0
+  [8dfed614] Test
+  [cf7118a7] UUIDs
+  [4ec0a83e] Unicode
+  [e66e0078] CompilerSupportLibraries_jll v1.1.2+1
+  [deac9b47] LibCURL_jll v8.4.0+0
+  [e37daf67] LibGit2_jll v1.6.4+0
+  [29816b5a] LibSSH2_jll v1.11.0+1
+  [c8ffd9c3] MbedTLS_jll v2.28.1010+0
+  [14a3606d] MozillaCACerts_jll v2025.12.2
+  [4536629a] OpenBLAS_jll v0.3.23+5
+  [05823500] OpenLibm_jll v0.8.5+0
+  [bea87d4a] SuiteSparse_jll v7.2.1+1
+  [83775a58] Zlib_jll v1.2.13+1
+  [8e850b90] libblastrampoline_jll v5.11.0+0
+  [8e850ede] nghttp2_jll v1.52.0+1
+  [3f19e933] p7zip_jll v17.6.1+0
+        Info Packages marked with ⌃ and ⌅ have new versions available. Those with ⌃ may be upgradable, but those with ⌅ are restricted by compatibility constraints from upgrading.
+     Testing Running tests...
+┌ Info: issue #577 exact-vs-FD ML gradient (lc block)
+│   max_abs_err = 2.0458710103810063e-7
+└   rel = 1.8548667999006738e-8
+┌ Warning: Hessian is not positive definite at the optimum. Wald standard errors are withheld.
+│ A negative eigenvalue means this point is not a minimum, so inv(H) is not a covariance.
+│   context = ""
+│   negative_eigenvalue_indices =
+│    1-element Vector{Int64}:
+│     1
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:109
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     3
+│     4
+│   rcond = 1.0025695694411108e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     1
+│     2
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Binomial fixed-effect fit shows (quasi-)complete separation. The maximum-likelihood estimate
+│ does not exist (or is not finite): the affected coefficients can grow
+│ without bound at little or no cost in likelihood, and their reported
+│ estimates are an arbitrary stopping point of the optimiser. Their standard
+│ errors are reported as Inf and their Wald intervals as (-Inf, Inf).
+│ Consider removing or collapsing the offending predictor, or a penalised
+│ fit (Firth / MSPL).
+│   separation = :complete_or_quasi
+│   flagged_coefficients =
+│    2-element Vector{String}:
+│     "(Intercept)"
+│     "x"
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/separation.jl:304
+┌ Warning: Hessian is not positive definite at the optimum. Wald standard errors are withheld.
+│ A negative eigenvalue means this point is not a minimum, so inv(H) is not a covariance.
+│   context = ""
+│   negative_eigenvalue_indices =
+│    1-element Vector{Int64}:
+│     1
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:109
+┌ Warning: drm (Binomial phylogenetic-interaction SD regression): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). sd random-effect log SD at its lower clamp -12.0 (fitted range -35.56 to 0.7222). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:175
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is not positive definite at the optimum. Wald standard errors are withheld.
+│ A negative eigenvalue means this point is not a minimum, so inv(H) is not a covariance.
+│   context = "sparse-Laplace Binomial phylogenetic-interaction SD regression"
+│   negative_eigenvalue_indices =
+│    1-element Vector{Int64}:
+│     1
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:109
+┌ Warning: drm (Binomial phylogenetic-interaction SD regression): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). sd random-effect log SD at its lower clamp -12.0 (fitted range -35.56 to 0.7222). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:175
+┌ Warning: drm (Binomial phylogenetic-interaction SD regression): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). sd random-effect log SD at its lower clamp -12.0 (fitted range -43.18 to 0.5194). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:175
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "bivariate Student-t"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     7
+│   rcond = 2.028745939760833e-16
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm: this tree's maximum tip height is 0.8, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.894427 = sqrt(0.8) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.8 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm (sparse Laplace): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.572 to -8.572). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:175
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 2.0426690674315294e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 1.8696352692271762e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 2.1957298186173847e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 5.2791681008495e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 3.484632756360192e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm: this tree's maximum tip height is 4.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.0 = sqrt(4.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/4.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: sparse-Laplace Poisson (general covariance) vcov: a variance or dispersion coordinate sits at its clamp, so the gradient-difference Hessian is not defined; falling back to the value-based finite-difference Hessian. Its standard errors are known to be noisy (inner-solve noise / h^2); treat them with caution.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:267
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse-Laplace Poisson (general covariance)"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm: this tree's maximum tip height is 12.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 3.464102 = sqrt(12.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/12.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 1.2, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.095445 = sqrt(1.2) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.2 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: Bootstrap intervals were computed after dropping 1 of 3 refits (2 retained). Failed refits are often the hard draws, so the percentile interval can be too narrow or shifted. The status is `bootstrap_incomplete`, not a clean `bootstrap` interval.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/ci_args.jl:105
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 7.724271163220028e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 7.724271163220028e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 7.727261328872604e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 1.1025539031395598e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: drm (sparse Laplace): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.085 to -8.085). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:175
+┌ Warning: lrtest: `full` is NegBinomial2 and `reduced` is Poisson, so this tests the extra sigma at 0 — a BOUNDARY null. The reported χ²(1) p-value is INVALID there (conservative: too large, so the test loses power); the correct reference is a chi-bar-square mixture. Use `lrt_boundary(full, reduced; q = 1)` (or a parametric bootstrap) for a boundary-correct p-value.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/comparison.jl:163
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/input_validation.jl:438
+┌ Warning: drm: this tree's maximum tip height is 5.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.236068 = sqrt(5.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/5.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 15.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 3.872983 = sqrt(15.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/15.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 2.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.414214 = sqrt(2.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 4.0, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 2.0 = sqrt(4.0) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/4.0 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse phylo-mean variance block"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     2
+│   rcond = 2.690648687454695e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for species: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse phylo-mean variance block"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     2
+│   rcond = 2.690648687454695e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for species: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: drm: 2 of 100 rows have a missing/NaN response and were dropped (observed-rows fit, like glmmTMB's default na.action). Use `drm_listwise` to preprocess explicitly, or supply complete responses, to silence this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/gaussian_core.jl:1859
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 0.0
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Info: check_drm
+│   convergence_status = :degenerate
+│   converged = false
+│   max_abs_grad = 3.180289365189992e-12
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0014560569793935414
+│   cond = 5.723219249842983
+│   penalized_map = false
+└   ok = false
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 3.180289365189992e-12
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0014560569793935414
+│   cond = 5.723219249842983
+│   penalized_map = false
+└   ok = true
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "sparse phylo-mean variance block"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     2
+│   rcond = 2.996387846492905e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: drm: this tree's maximum tip height is 1.8, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.341641 = sqrt(1.8) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.8 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 0.75, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.866025 = sqrt(0.75) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.75 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+[ Info: locscale profile reference cross-check skipped (~minutes); set DRM_SLOW_TESTS=1 to run
+[ Info: locscale full-vector confint(:profile) testset skipped (~8+ min); set DRM_SLOW_TESTS=1 to run
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 1.2658298462833767e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Gaussian (1 | g) location-scale"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 6.203966068626399e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Structured SD at its lower boundary for g: the grouped / phylogenetic variance is estimated as 0 relative to the residual, so its SE (and any heritability / repeatability built on it) is not meaningful.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/boundary_diagnostics.jl:220
+┌ Info: exact-vs-FD sparse multi-component REML gradient
+│   point = "dense optimum"
+│   max_abs_err = 1.285144834994867e-7
+└   rel = 1.0199419663081448e-7
+┌ Info: exact-vs-FD sparse multi-component REML gradient
+│   point = "perturbed"
+│   max_abs_err = 3.7467835056759213e-8
+└   rel = 8.583519268821715e-10
+┌ Info: exact-vs-FD sparse multi-component REML gradient
+│   point = "boundary (iid logSD ≈ -6)"
+│   max_abs_err = 7.561857273685746e-8
+└   rel = 2.5612857994005924e-10
+WARNING: Method definition rtnb(Any, Any) in module Main at /home/snakagaw/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/test/test_hurdle.jl:10 overwritten at /home/snakagaw/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/test/test_nb2_hurdle_nan.jl:48.
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "bivariate Gaussian q=2 structured (relmat) finite-difference Hessian"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     10
+│   rcond = 1.6604986443847933e-10
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: sparse-Laplace vcov: finite-difference Hessian is not positive definite at the optimum; reported SEs are not trustworthy.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_laplace_glmm.jl:156
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "bivariate Gaussian q=2 structured (relmat) finite-difference Hessian"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     10
+│   rcond = 4.700470624893301e-11
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Info: Beta relmat gradient gate
+│   max_abs_diff = 1.8641412680153735e-7
+│   g_an =
+│    4-element Vector{Float64}:
+│     -1.197068910372962
+│      ⋮
+│   g_fd =
+│    4-element Vector{Float64}:
+│     -1.1970689104146004
+└      ⋮
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `id` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/input_validation.jl:396
+┌ Info: prior_precision collapse guard
+│   nnz_diag = 1376
+└   nnz_dense = 1376
+┌ Warning: drm: this tree's maximum tip height is 0.75, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.866025 = sqrt(0.75) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.75 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Warning: drm: this tree's maximum tip height is 1.2, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.095445 = sqrt(1.2) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.2 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+[ Info: Arc 2 end-to-end correlation-bound cells skipped (coupled ML seeds, ~minutes); set DRM_SLOW_TESTS=1 to run
+┌ Warning: drm: this tree's maximum tip height is 3.577522, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.891434 = sqrt(3.577522) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/3.577522 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Info: Arc 2 coupled REML stage (cached ML start)
+│   fixture = "H2"
+└   seconds = 2.59
+┌ Info: Arc 2 coupled REML stage (cached ML start)
+│   fixture = "G1"
+└   seconds = 52.44
+[ Info: cold Newton solve did not converge at the H2 separate-block optimum (retry path exercised)
+┌ Warning: drm: this tree's maximum tip height is 1.25, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.118034 = sqrt(1.25) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.25 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 2.4849011737160254e-12
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0013033766588030644
+│   cond = 354.84219272079747
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 3.952393967665557e-14
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.0016666666666666676
+│   cond = 1.6752419347351717
+│   penalized_map = false
+└   ok = true
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.8808288260174777e-11
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.004982152300794946
+│   cond = 108.29878138711075
+│   penalized_map = false
+└   ok = true
+┌ Warning: check_drm: SkewNormal slant ν̂ is near 0 (smallest |ν̂| = 0.49 < 0.5): the information matrix is singular at ν = 0 (the model collapses to the Gaussian), so the Wald SE / CI / test for `nu` is unreliable (anti-conservative; drmTMB#1336). Prefer a likelihood-ratio test of ν = 0 or a profile / bootstrap interval.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4456
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.8808288260174777e-11
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.004982152300794946
+│   cond = 108.29878138711075
+│   penalized_map = false
+└   ok = true
+┌ Warning: check_drm: SkewNormal slant ν̂ is near 0 (smallest |ν̂| = 0.49 < 0.5): the information matrix is singular at ν = 0 (the model collapses to the Gaussian), so the Wald SE / CI / test for `nu` is unreliable (anti-conservative; drmTMB#1336). Prefer a likelihood-ratio test of ν = 0 or a profile / bootstrap interval.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/inference.jl:4456
+┌ Info: check_drm
+│   convergence_status = :converged
+│   converged = true
+│   max_abs_grad = 1.8808288260174777e-11
+│   grad_source = :forward
+│   vcov_complete = true
+│   vcov_posdef = true
+│   min_eigval = 0.004982152300794946
+│   cond = 108.29878138711075
+│   penalized_map = false
+└   ok = true
+┌ Info: stored-loglik gap
+│   label = "relmat intercept"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "relmat intercept"
+└   gap_unpinned = -2.2856738723930903e-10
+┌ Info: dense Laplace vs fitter nll at theta_hat
+│   dense = 342.2963234019982
+│   nll = 342.2963234022502
+└   diff = -2.5198687580996193e-10
+┌ Info: stored-loglik gap
+│   label = "relmat intercept, se = true"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "relmat intercept, se = true"
+└   gap_unpinned = -2.2879476091475226e-10
+┌ Info: stored-loglik gap
+│   label = "relmat slope"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "relmat slope"
+└   gap_unpinned = -1.2448708730516955e-11
+┌ Info: stored-loglik gap
+│   label = "animal intercept (A)"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "animal intercept (A)"
+└   gap_unpinned = -2.2856738723930903e-10
+┌ Info: stored-loglik gap
+│   label = "animal intercept (Ainv)"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "animal intercept (Ainv)"
+└   gap_unpinned = -1.304556462855544e-10
+┌ Info: stored-loglik gap
+│   label = "animal slope"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "animal slope"
+└   gap_unpinned = -1.2448708730516955e-11
+┌ Info: stored-loglik gap
+│   label = "spatial slope"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "spatial slope"
+└   gap_unpinned = -6.406253305613063e-11
+┌ Info: stored-loglik gap
+│   label = "Poisson animal SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Poisson animal SD"
+└   gap_unpinned = -5.684341886080802e-14
+┌ Info: stored-loglik gap
+│   label = "Gamma animal SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Gamma animal SD"
+└   gap_unpinned = 2.745537130977027e-11
+┌ Info: stored-loglik gap
+│   label = "Gamma animal intercept+slope SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Gamma animal intercept+slope SD"
+└   gap_unpinned = 7.167955118347891e-11
+┌ Info: stored-loglik gap
+│   label = "Binomial animal SD (related)"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial animal SD (related)"
+└   gap_unpinned = -7.901235221652314e-12
+┌ Info: stored-loglik gap
+│   label = "Binomial animal q2"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial animal q2"
+└   gap_unpinned = -5.061906449554954e-10
+┌ Info: stored-loglik gap
+│   label = "Binomial animal + IID SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial animal + IID SD"
+└   gap_unpinned = 5.6274984672199935e-11
+┌ Info: stored-loglik gap
+│   label = "Binomial relmat + IID SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial relmat + IID SD"
+└   gap_unpinned = -1.2050804798491299e-11
+┌ Info: stored-loglik gap
+│   label = "Binomial crossed SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial crossed SD"
+└   gap_unpinned = -1.2732925824820995e-10
+┌ Warning: drm: this tree's maximum tip height is 2.5, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.581139 = sqrt(2.5) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/2.5 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/sparse_phy.jl:751
+┌ Info: stored-loglik gap
+│   label = "Binomial phylo SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial phylo SD"
+└   gap_unpinned = 0.0
+┌ Info: stored-loglik gap
+│   label = "Binomial phylo-interaction SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial phylo-interaction SD"
+└   gap_unpinned = 5.684341886080802e-14
+┌ Info: stored-loglik gap
+│   label = "Binomial mesh SD"
+└   gap = 0.0
+┌ Info: stored loglik vs unpinned nll one ulp from theta_hat
+│   label = "Binomial mesh SD"
+└   gap_unpinned = 0.0
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 8.568523940440374e-17
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "two-structured Gaussian"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 9.152867291084613e-13
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "two-structured Gaussian"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     5
+│   rcond = 1.131749474069697e-13
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     3
+│   rcond = 2.0499944618261846e-15
+└ @ DRModels ~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106/src/vcov_guard.jl:122
+[ Info: R-parity suite skipped (set DRM_PARITY_TESTS=1 to run)
+DRModels tests: shard 5/8 - 70 of 561 files
+Test Summary:                                 | Pass  Total  Time
+DRModels.jl — engine loads + phylo foundation |   15     15  0.2s
+Test Summary:                                  | Pass  Total  Time
+Q-gate: JET type-stability (lc_to_Λ / Λ_to_lc) |    2      2  4.1s
+Test Summary:                                              | Pass  Total   Time
+#1007 non-finite delta SE gives a NaN interval, not (0, 1) |   17     17  26.8s
+Test Summary:                           | Pass  Total   Time
+#1102 / #1104 structured PIT remainders |   13     13  23.1s
+Test Summary:                              | Pass  Total  Time
+#1190: helper holds a clamped log SD fixed |   10     10  0.7s
+Test Summary:                                             | Pass  Total  Time
+#1190: gradient-difference Hessian of a coordinate subset |    3      3  0.6s
+Test Summary:                                     | Pass  Total   Time
+#1190: NB2 crossed fit with a log SD at the floor |   21     21  10.9s
+Test Summary:                                      | Pass  Total  Time
+issue #577: prior_precision keeps structural zeros |    6      6  0.0s
+Test Summary:                                               | Pass  Total   Time
+issue #577: ML exact gradient at an exactly diagonal Lambda |    4      4  14.6s
+Test Summary:                                     | Pass  Total  Time
+#985 reference pages list the user-facing exports |    6      6  0.0s
+Test Summary:                                                     | Pass  Total  Time
+#985 engine-internal exports carry a docstring and an @docs entry |   32     32  0.0s
+Test Summary:                | Pass  Total  Time
+#985 documented return types |    4      4  0.5s
+Test Summary:   | Pass  Total  Time
+AIC / BIC / dof |    7      7  7.2s
+Test Summary:                          | Pass  Total   Time
+Beta random intercept (1|g) — recovery |    4      4  12.1s
+Test Summary:                                                  | Pass  Total   Time
+BetaBinomial predictor-dependent SD: ordinary random intercept |   25     25  33.7s
+Test Summary:                                                 | Pass  Total  Time
+BetaBinomial predictor-dependent SD: independent random slope |    8      8  3.1s
+Test Summary:                               | Pass  Total  Time
+Binomial cbind(s, f) ~ x — logit β recovery |    5      5  5.2s
+Test Summary:                                   | Pass  Total  Time
+Binomial 0/1 Bernoulli y ~ x — logit β recovery |    6      6  1.0s
+Test Summary:                                                | Pass  Total  Time
+Binomial FE: no clamp plateau (overlapping outliers, wide x) |    6      6  0.0s
+Test Summary:                                               | Pass  Total  Time
+Binomial cbind(s, f) FE: grouped trials, wide x, no plateau |    2      2  1.2s
+Test Summary:                                                        | Pass  Total  Time
+Binomial log-likelihood kernel matches Distributions off the plateau |   87     87  0.0s
+Test Summary:                                  | Pass  Total  Time
+Binomial (1 | g): fit not stuck on the plateau |    3      3  8.4s
+Test Summary:                               | Pass  Total  Time
+BetaBinomial FE: near-separated, no plateau |    1      1  2.3s
+Test Summary:                                                            | Pass  Total  Time
+BetaBinomial log-likelihood kernel matches Distributions off the plateau |   91     91  0.0s
+Test Summary:                    | Pass  Total  Time
+BetaBinomial (1 | g): no plateau |    1      1  1.4s
+Test Summary:                                                   | Pass  Total  Time
+Binomial: completely separated data still terminates with a fit |    3      3  0.6s
+Test Summary:                                                        | Pass  Total  Time
+BetaBinomial (1 | g): line-search assertion falls back, never throws |    3      3  0.8s
+Test Summary:                                  | Pass  Total  Time
+Bernoulli mesh spatial-intercept SD regression |   13     13  5.5s
+Test Summary:                                       | Pass  Total  Time
+Binomial phylogenetic-interaction SD formula target |   10     10  0.2s
+Test Summary:                                       | Pass  Total  Time
+Binomial phylogenetic-interaction SD fit and output |   35     35  6.1s
+Test Summary:                               | Pass  Total  Time
+Binomial logistic GLMM (1|g) — σ_b recovery |    7      7  1.2s
+Test Summary:                                    | Pass  Total  Time
+binomial separation: detect and warn (#731/#728) |   86     86  8.1s
+Test Summary:                                                    | Pass  Total  Time
+#bivstudent joint (p=2) term: stable across nu, matches BigFloat |   55     55  0.0s
+Test Summary:                                                       | Pass  Total  Time
+#bivstudent marginal (p=1) term: stable across nu, matches BigFloat |   72     72  0.0s
+Test Summary:                                                | Pass  Total  Time
+#bivstudent fit.nll stays on the correct ridge as nu -> huge |   20     20  5.9s
+Test Summary:                                                           | Pass  Total  Time
+#bivstudent heavy-tailed bivariate data (true nu = 5) still recovers nu |    5      5  0.5s
+Test Summary:                                           | Pass  Total   Time
+#479 non-Gaussian structured bootstrap threads K/A/tree |   31     31  11.4s
+Test Summary:                                     | Pass  Total  Time
+bivariate residual fixed-effect profile intervals |   27     27  6.2s
+Test Summary:                                       | Pass  Total  Time
+bivariate residual fixed-effect bootstrap intervals |   10     10  3.9s
+Test Summary:                                                 | Pass  Total  Time
+drm_bridge_inference — bivariate residual fixed-effect target |   18     18  4.2s
+Test Summary:                                                      | Pass  Total  Time
+bivariate bootstrap replicate data — observation pattern preserved |   12     12  0.1s
+Test Summary:                               | Pass  Total  Time
+widened bootstrap gate refuses what it must |    4      4  7.5s
+Test Summary:                             | Pass  Total   Time
+bridge %in% / nested-/ translation (#467) |   17     17  15.6s
+BRIDGE_IN_NEST_DONE
+Test Summary:                           | Pass  Total  Time
+bridge exposes selected profile failure |   24     24  0.6s
+Test Summary:                                        | Pass  Total   Time
+bridge fitted/residuals for zero-inflated count fits |   24     24  17.1s
+Test Summary:                                                           | Pass  Total  Time
+Gaussian phylo mean: :auto uses sparse L-BFGS and :em remains available |   31     31  1.7s
+Test Summary:                                     | Pass  Total  Time
+conjugate EM (#12): :em rejects unsupported cells |    4      4  1.0s
+Test Summary:                                                | Pass  Total   Time
+Cox–Reid characterization (#441) — hook + uncertified routes |   13     13  19.0s
+Test Summary:                                     | Pass  Total   Time
+#736 LogNormal crossed random effects (1|g)+(1|h) |   13     13  16.0s
+Test Summary:                                  | Pass  Total   Time
+CumulativeLogit random-intercept SD regression |   14     14  45.4s
+Test Summary:                              | Pass  Total   Time
+CumulativeLogit random-slope SD regression |   25     25  15.1s
+Test Summary:                                   | Pass  Total  Time
+lrtest warns on Poisson vs NegBinomial2 (#1115) |    7      7  2.8s
+Test Summary:                                                    | Pass  Total  Time
+family-boundary detector is Poisson to NegBinomial2 only (#1115) |    4      4  0.0s
+Test Summary:                                               | Pass  Total  Time
+variance-ratio intervals refuse active fixed-prior MAP fits |   19     19  4.5s
+Test Summary:                                           | Pass  Total  Time
+other MAP penalties keep existing variance-ratio status |    4      4  2.4s
+Test Summary:                 | Pass  Total  Time
+Gamma() fixed-effect contract |   54     54  7.0s
+Test Summary:                | Pass  Broken  Total  Time
+Beta() fixed-effect contract |   55       2     57  5.6s
+Test Summary:                             | Pass  Total  Time
+Gamma spatial random-effect SD regression |   10     10  7.0s
+Test Summary:                             | Pass  Total  Time
+#482 Gaussian mean-phylo missing response |   45     45  6.7s
+Test Summary:                            | Pass  Total  Time
+Hurdle Poisson: y ~ x, hu ~ 1 — recovery |    4      4  1.9s
+Test Summary:                                                             | Pass  Total  Time
+Hurdle Poisson: log-likelihood and fit pinned to independent computations |   10     10  1.3s
+Test Summary:                                      | Pass  Total  Time
+Hurdle negative-binomial: y ~ x, hu ~ 1 — recovery |    4      4  1.8s
+Test Summary:                                                                    | Pass  Total  Time
+Hurdle NB2 — TruncatedNegBinomial2() + hu is the same fit as NegBinomial2() + hu |   12     12  0.7s
+Test Summary:                                                    | Pass  Total  Time
+TruncatedNegBinomial2 refuses a formula part it does not consume |    5      5  1.8s
+Test Summary:                                              | Pass  Total  Time
+#1024 sparse Laplace inner mode: a cap exit is not success |    6      6  0.4s
+Test Summary:                                                  | Pass  Total  Time
+#1047 EM: converged is the EM's own stop, not iterations < cap |    5      5  0.2s
+Test Summary:                                                         | Pass  Total  Time
+#964 temporal starts are compared at the minimizer, not Optim.minimum |    2      2  0.0s
+Test Summary:                                                 | Pass  Total  Time
+#956 raw inv(H) Wald sites go through the guarded constructor |    6      6  0.0s
+Test Summary:                                               | Pass  Total  Time
+#968 constant response: no LAPACK error from the vcov guard |    1      1  0.7s
+Test Summary:                                               | Pass  Total  Time
+#949 show / check_drm / bridge_diagnostics use is_converged |    9      9  0.6s
+Test Summary:                                                         | Pass  Total  Time
+#1003 a failing boundary diagnostic warns instead of reading as clean |    1      1  0.1s
+Test Summary:                                                         | Pass  Total  Time
+#1005 Nelder-Mead locscale results need an exact-gradient certificate |    4      4  0.1s
+Test Summary:                                        | Pass  Total  Time
+#1005 the locscale converged flag by optimiser route |    6      6  0.0s
+Test Summary:                                | Pass  Total  Time
+#1007 variance ratios carry the fit's status |    6      6  0.1s
+Test Summary:                                                               | Pass  Total  Time
+#1023 resd profile: the sentinel is not an endpoint, nuisance exit recorded |   10     10  1.7s
+Test Summary:                                                        | Pass  Total  Time
+#961 non-finite Hessian on finite data: NaN vcov, not a LAPACK error |    5      5  0.3s
+Test Summary:                           | Pass  Total  Time
+#952 a fit ending on the sentinel warns |    1      1  0.0s
+Test Summary:                                                        | Pass  Total  Time
+#978 sparse phylo-mean: mean SEs from the joint observed information |    2      2  0.3s
+Test Summary:                                       | Pass  Total  Time
+#959 a fit ending at a likelihood clamp is reported |    7      7  0.1s
+Test Summary:                                                           | Pass  Total  Time
+review: PD design Gram blocks invert silently; singular ones still warn |    4      4  0.1s
+Test Summary:                                   | Pass  Total  Time
+review: profile_edge fires near the upper bound |    1      1  0.0s
+Test Summary:                                                       | Pass  Total   Time
+finite-state direct formula frontend API and ordinal payload design |   33     33  12.2s
+Test Summary:                                          | Pass  Total  Time
+finite-state contrast construction and marker ordering |   16     16  1.4s
+Test Summary:                                    | Pass  Total  Time
+finite-state categorical direct formula frontend |   12     12  5.2s
+Test Summary:                                 | Pass  Total   Time
+finite-state direct frontend admission guards |   25     25  10.6s
+FINITE_JOINT_FRONTEND_TEST_READY
+Test Summary:                                              | Pass  Total  Time
+sparse-EM Λ M-step ascends the true Laplace marginal (p=8) |   11     11  1.4s
+Test Summary:     | Pass  Total   Time
+lme4 twins (#706) |   39     39  24.9s
+Test Summary:                                       | Pass  Total  Time
+location–scale exact gradient vs finite differences |    9      9  4.0s
+Test Summary:                              | Pass  Total  Time
+LogNormal (positive continuous) — recovery |    5      5  2.2s
+Test Summary:                            | Pass  Broken  Total  Time
+lrt_boundary guards match lrtest (#1002) |    5       1      6  0.1s
+Test Summary:                          | Pass  Total   Time
+Location-scale-scale (lss) REML (#558) |   41     41  41.5s
+Test Summary:                                           | Pass  Total  Time
+Sparse multi-component LSS REML correction (#563 S7b.3) |   25     25  4.0s
+Test Summary:                                   | Pass  Total  Time
+meta_vcov_bivariate constructor (drmTMB parity) |   24     24  0.0s
+Test Summary:                 | Pass  Total  Time
+bivariate known-V engine (A8) |    9      9  3.6s
+Test Summary:                               | Pass  Total  Time
+cross-family post-fit accessors: edge cases |   68     68  2.5s
+Test Summary:                              | Pass  Total  Time
+NB2 hurdle: no NaN at extreme sigma (#866) |   20     20  0.3s
+Test Summary:                                       | Pass  Total  Time
+_nb2_logpmf: O(1) large-k accuracy and speed (#883) |  266    266  0.1s
+Test Summary:                                  | Pass  Total   Time
+NB2 correlated random slope (1+x|g) — recovery |    4      4  10.7s
+Test Summary:              | Pass  Total  Time
+numerical-stability guards |   39     39  5.2s
+Test Summary:                                | Pass  Total     Time
+ordinary (1 | g) marginal = :Laplace (Arc 2) |  335    335  1m19.0s
+  profile endpoint gap homtoep-neg4 x: 6.548185112531524e-6
+  profile endpoint gap homtoep-panel6 x: 1.71828405443053e-6
+  profile endpoint gap vignette-ar1-ri treatment: 4.36546640208979e-6
+  profile endpoint gap vignette-homtoep treatment: 1.2987294936150917e-6
+  profile endpoint gap vignette-ou-ri treatment: 6.071966187626288e-6
+  profile endpoint gap vignette-phylo-ou treatment: 1.1857270272863651e-6
+Test Summary:                                      | Pass  Total   Time
+temporal parity cells reproduce drmTMB (always on) |  208    208  32.0s
+Test Summary:                                               | Pass  Total  Time
+polytomy downstream dimensions and likelihood normalization |   22     22  4.4s
+Test Summary:                                               | Pass  Total  Time
+Poisson crossed random intercepts — sparse Laplace recovery |    5      5  1.5s
+Test Summary:                                    | Pass  Total  Time
+Poisson single-factor Laplace gate uses GHQ path |    2      2  0.1s
+Test Summary:                                       | Pass  Total  Time
+Poisson K=3 crossed — exact Laplace gradient (#165) |    8      8  0.7s
+Test Summary:                                | Pass  Total  Time
+Poisson crossed intercepts via drm() routing |    4      4  0.5s
+Test Summary:                                      | Pass  Total  Time
+Poisson correlated random slope (1+x|g) — recovery |    4      4  6.4s
+Test Summary:                                                     | Pass  Total  Time
+predict / predict_parameters delta-method SE (Gaussian loc-scale) |   22     22  0.7s
+Test Summary:                                                       | Pass  Total  Time
+q2 structured vcov: every provider/estimator arm reports usable SEs |   54     54  4.1s
+Test Summary:                                                  | Pass  Total  Time
+q2 structured vcov: relmat and animal are the same computation |    4      4  0.3s
+Test Summary:                                                    | Pass  Total  Time
+q2 structured vcov: wired through the guard, with the 2n FD step |    3      3  0.4s
+Test Summary:                                                            | Pass  Total  Time
+q2 structured vcov: the objective is the fitted one, at the fitted point |    5      5  0.5s
+Test Summary:                                                     | Pass  Total  Time
+q2 structured vcov: beta block matches the EXACT Schur complement |   10     10  0.6s
+Test Summary:                                                    | Pass  Total  Time
+q2 structured vcov: profile likelihood corroborates the rho12 SE |    4      4  5.2s
+Test Summary:                                                      | Pass  Total  Time
+q2 structured vcov: a genuinely flat direction is reported as flat |   16     16  0.2s
+Test Summary:                                                     | Pass  Total  Time
+q2 structured vcov: the sentinel says so rather than going silent |    5      5  0.0s
+Test Summary:                                                          | Pass  Total  Time
+TruncatedNegBinomial2 quantile residuals: no NaN at extreme dispersion |   17     17  0.2s
+Test Summary:                                                                   | Pass  Total  Time
+sweep: other discrete drivers stay finite at extreme parameters (no regression) |   29     29  0.1s
+Test Summary:                                                                 | Pass  Total  Time
+TruncatedNegBinomial2 quantile residuals: O(y) speed, large-y accuracy (#883) |   41     41  3.7s
+Test Summary:                                                  | Pass  Total  Time
+Beta relmat(1|id) — general-covariance sparse Laplace recovery |    7      7  0.7s
+Test Summary:                                                       | Pass  Total  Time
+Beta relmat — exact gradient vs finite differences (FD gate ≤ 1e-6) |    2      2  0.4s
+Test Summary:                                | Pass  Total  Time
+Beta animal/spatial aliases + routing errors |    9      9  1.2s
+Test Summary:                                             | Pass  Total  Time
+issue #563: _reml_prior_precision is redundant after #577 |    3      3  0.0s
+Test Summary:                                                     | Pass  Total  Time
+Arc 2 joint-Laplace REML: sparse value == dense oracle (3 blocks) |   12     12  4.2s
+Test Summary:                                                        | Pass  Total  Time
+Arc 2 joint-Laplace REML: coupled with L21 = 0 is the separate block |    3      3  0.0s
+Test Summary:                                                  | Pass  Total  Time
+Arc 2 joint-Laplace REML: whitened coupled form == direct form |    6      6  0.0s
+Test Summary:                                         | Pass  Total   Time
+Arc 2 same target: σ-phylo REML == native drmTMB REML |   23     23  12.8s
+Test Summary:                                       | Pass  Total  Time
+Arc 2 guard: neighbouring routes still match native |   20     20  4.2s
+Test Summary:                                             | Pass  Total   Time
+Arc 2 speed: coupled REML stage matches native in seconds |   11     11  55.1s
+Test Summary:                                                 | Pass  Total  Time
+Arc 2 separate block: REML is the same joint-Laplace quantity |    6      6  7.8s
+Test Summary:                                             | Pass  Total  Time
+Arc 2 separate block: H2 REML re-evaluates at its optimum |    7      7  1.1s
+Test Summary:                                                      | Pass  Total  Time
+Arc 2 boundary: zero-signal REML converges on the plateau supremum |   21     21  3.8s
+Test Summary:                                              | Pass  Total   Time
+Arc 2 profile_ci under REML: restricted-likelihood profile |    9      9  12.7s
+Test Summary:                                | Pass  Total  Time
+sd(g, animal) routes honour ids = ... (#957) |    9      9  9.3s
+Test Summary:                                 | Pass  Total  Time
+σ-axis RE (cluster 2): grad! keyword contract |    3      3  0.2s
+Test Summary:                                    | Pass  Total  Time
+σ-axis RE (cluster 2): Gamma end-to-end recovery |    4      4  1.1s
+Test Summary:                               | Pass  Total  Time
+Skew-normal location–scale–shape — recovery |    7      7  1.7s
+Test Summary:                                   | Pass  Total  Time
+Skew-normal — simulate and parametric bootstrap |   13     13  1.2s
+Test Summary:                                                              | Pass  Total  Time
+Skew-normal — UNIT TEST of the nu-near-0 Wald warning in check_drm (#1060) |    8      8  0.5s
+Test Summary:                                                  | Pass  Total  Time
+Skew-normal: nu-near-0 cutoff is pinned and documented (#1060) |   10     10  0.3s
+Test Summary:                               | Pass  Total   Time
+stored loglik is the objective at theta_hat |   38     38  22.5s
+Test Summary:                               | Pass  Total   Time
+Student-t random intercept (1|g) — recovery |    5      5  11.3s
+Test Summary:                                             | Pass  Total  Time
+indefinite Hessian does not return a Wald variance (#972) |    5      5  0.0s
+Test Summary:                                            | Pass  Total  Time
+temporal residuals (conditional on the modes, as drmTMB) |   26     26  3.9s
+Test Summary:                                          | Pass  Total  Time
+zero-truncated Poisson independent slope SD regression |   16     16  8.7s
+Test Summary:                                                      | Pass  Total  Time
+zero-truncated Poisson slope SD likelihood matches scalar integral |    1      1  0.5s
+Test Summary:                                                   | Pass  Total  Time
+zero-truncated Poisson slope SD regression validates its target |    4      4  0.2s
+Test Summary:                                             | Pass  Total     Time
+Tweedie predictor-dependent SD: ordinary random intercept |   15     15  3m04.9s
+Test Summary:                                          | Pass  Total     Time
+Tweedie predictor-dependent SD: independent mean slope |   15     15  5m19.7s
+Test Summary:                                            | Pass  Total  Time
+issue #609 item 1: predict with factor levels in newdata |   18     18  3.2s
+Test Summary:                                                  | Pass  Total  Time
+#835 docs regression: lss REML sd(id) ~ sex does not hit 0*Inf |    7      7  1.1s
+Test Summary:                                        | Pass  Total  Time
+Sparse two-structured: EQUIVALENCE to dense (anchor) |    6      6  6.2s
+Test Summary:                                                       | Pass  Total  Time
+Sparse two-structured: analytic gradient matches finite differences |    2      2  0.2s
+Test Summary:                                                        | Pass  Total  Time
+Sparse two-structured: recovery on a larger fixture (phylo + relmat) |    6      6  0.3s
+Test Summary:                                         | Pass  Total  Time
+Sparse two-structured: routed via algorithm = :sparse |    6      6  1.8s
+Test Summary:                                         | Pass  Total  Time
+augmented_tree_precision: leaf cov == sigma_phy_dense |    4      4  0.0s
+Test Summary:                                 | Pass  Total  Time
+caterpillar tree: well-formed binary topology |   12     12  0.0s
+Test Summary:                                                     | Pass  Total  Time
+END-TO-END sparse phylo: equals dense leaf-correlation fit (#232) |    7      7  0.2s
+Test Summary:                                                 | Pass  Total  Time
+END-TO-END sparse phylo: sigma ~ x heteroscedastic (D → diag) |    3      3  0.4s
+Test Summary:                                       | Pass  Total  Time
+Binomial random-intercept VA (ELBO) marginal (#136) |    9      9  7.9s
+Test Summary:                                       | Pass  Total   Time
+ZeroOneBeta mean (1 | g): fits and docs row (#1122) |    2      2  13.8s
+     Testing DRModels tests passed 

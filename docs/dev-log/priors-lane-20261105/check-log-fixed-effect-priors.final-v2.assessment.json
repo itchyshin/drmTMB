@@ -1,0 +1,52 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "5e50686c4582c438dea91aee458c78655e342183beaf8dd65e106182bdecc904",
+  "draft_version": "final-v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate whole-draft self-review against inspected source, source-pinned test logs and rendered tutorial; independent reviewers supplied the recorded specific corrections.",
+  "genre": "Development evidence log",
+  "coverage": "Whole docs/dev-log/check-log.d/2026-11-05-fixed-effect-priors.md",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Concrete evidence and scope; required audit structure and source identifiers add density. The execution record deliberately preserves historical pending states under dated checkpoints.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent scoped code/reader reviews; no human style assessment.",
+  "examples": [
+    {
+      "location": "Line 3",
+      "line": 3,
+      "quote": "Status: implementation and bounded validation complete; bounded slice complete; broad R failures classified and Julia full run incomplete. No push, merge, release or submission.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 9",
+      "line": 9,
+      "quote": "On Totoro, final optimized R source passed both new prior test files and the 10-file affected regression set (8.368 seconds; two existing live-Julia comparison skips). Julia final source passed its 82-check focused suite and 14 affected test files. Five live R-to-Julia fixtures passed, including same-name mu/sigma predictors, binomial partial priors, zero ridge, factor interaction and no-intercept factors. Maximum coefficient gap was 4.30e-11; maximum data-log-likelihood gap was 1.07e-12. This is bounded fixture agreement, not general parity or interval calibration.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Line 15",
+      "line": 15,
+      "quote": "The final full Julia run reached its 90-minute limit and exited 124; its process group is gone. It is incomplete, not a pass. No full-suite pass is claimed.",
+      "cue": "Concrete authority, evidence or limitation",
+      "impact": "Lets a reviewer distinguish validated scope from broader incomplete checks",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and coefficient interpretations match the implemented targets; calibration and posterior-sampling claims are explicitly withheld.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Checked against final source manifests, focused and affected logs, five live fixtures, exact-baseline residual receipts and the actual Julia exit124 timeout. No full-suite pass is claimed.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external reference claim requiring verification in this artifact.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

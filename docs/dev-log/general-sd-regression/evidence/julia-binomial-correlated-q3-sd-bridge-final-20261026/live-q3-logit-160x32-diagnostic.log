@@ -1,0 +1,11 @@
+TMB elapsed: 40.75 converged: TRUE 
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+sh: NA: command not found
+Error in JuliaCall::julia_setup(installJulia = FALSE, install = TRUE) : 
+  Julia is not found.
+Calls: drmTMB ... drm_julia_call_bridge -> drm_julia_setup -> <Anonymous>
+In addition: Warning message:
+In system2("bash", "-l -c 'which julia'", stdout = TRUE) :
+  running command ''bash' -l -c 'which julia'' had status 1
+Execution halted

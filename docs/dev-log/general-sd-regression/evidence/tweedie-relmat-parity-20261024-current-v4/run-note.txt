@@ -1,0 +1,10 @@
+Current-source Tweedie related-matrix bridge timing rerun
+Observed date: 2026-10-24
+Exit status: 0
+Command: DRM_JL_PATH="$(pwd | sed 's/general-sd-regression/general-sd-julia/')" DRM_JL_JULIA_HOME="/Users/z3437171/.juliaup/bin" Rscript -e 'devtools::test(filter = "julia-tweedie-relmat-sd")'
+
+Observed testthat output: 24 expectations passed, 0 failed, 0 warnings, and 0 skips. JuliaCall loaded Julia 1.10.0 and activated the paired DRM.jl worktree. The Julia fit took 544.9 seconds; the native TMB fit took 2.6 seconds; total test duration was 548.2 seconds. This rerun isolates Julia as the runtime bottleneck.
+
+The focused direct Julia test also passed 7/7 mode-polish, 43/43 related-matrix regression, and 4/4 unused-keyword assertions. This receipt covers one synthetic complete-response Tweedie related-matrix mean-intercept SD row only; no broad parity or interval calibration claim.
+
+Exact instrumented test source is archived at docs/dev-log/general-sd-regression/evidence/tweedie-relmat-parity-20261024-current-v4/test-snapshot/tests/testthat/test-julia-tweedie-relmat-sd.R with SHA-256 69be7b24caaa56457cbf7217151207397d5e78a351dd3486784c59e7c27a237c. The live test file was restored to its earlier SHA-256 e870bc909c4ea7fd4a05385fcb8948751a33503c12fbf86430aae5b9c161c36a after the timed run.

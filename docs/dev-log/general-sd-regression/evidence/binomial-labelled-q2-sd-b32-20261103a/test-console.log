@@ -1,0 +1,21 @@
+2026-11-03T01:06:33Z
+binomial-labelled-q2-sd-b32: .........................B32BN animal q2 logit | rho_hat 0.792 (true 0.70) | agree 1.00e-09 | min gap 0.383 (cov2cor_K) | n gaps 9
+.............................B32BN animal q2 probit | rho_hat 0.825 (true 0.70) | agree 1.14e-13 | min gap 1.665 (cov2cor_K) | n gaps 9
+.............................B32BN animal q2 cloglog | rho_hat 0.719 (true 0.70) | agree 5.94e-10 | min gap 0.167 (cov2cor_K) | n gaps 9
+.............................B32BN phylo q2 logit | rho_hat 0.703 (true 0.60) | agree 3.64e-12 | min gap 2.498 (rho_dropped_to_0) | n gaps 9
+..........B32BN rho moves animal | rho_hat(+0.6 data) 0.739 | rho_hat(-0.6 data) -0.651
+.......B32BN rho moves phylo | rho_hat(+0.6 data) 0.703 | rho_hat(-0.6 data) -0.837
+...............B32BN simulate animal | pooled variance ratio 1.020 | rho0 1.668 | flipped 4.578
+......`simulate()` now follows the lme4 `re.form` convention.
+* `re.form = NA` (the default) or `~0` draws fresh random effects.
+* `re.form = NULL` holds the fitted random effects fixed.
+i Earlier drmTMB versions gave the explicit values the reverse meaning; check code written for them.
+This message is displayed once per session.
+...B32BN simulate phylo | pooled variance ratio 0.998 | rho0 1.469 | flipped 2.783
+.............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=166 failed=0 errors=0 skipped=0
+EXIT=0
+2026-11-03T01:09:33Z

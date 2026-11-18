@@ -1,0 +1,33 @@
+{
+  "receipt_source": "exact current-task function_call records",
+  "source_thread": "01a14b36-0bb1-7250-b64d-933dd1ca75db",
+  "active_agent_limit_including_root": 4,
+  "new_children": 3,
+  "dispatches": [
+    {
+      "task_name": "sd_inventory",
+      "model": "gpt-6-luna",
+      "reasoning_effort": "medium",
+      "fork_turns": "none",
+      "agent_type": null,
+      "time": "2026-10-17T19:07:51.439Z"
+    },
+    {
+      "task_name": "sd_design",
+      "model": "gpt-6-sol",
+      "reasoning_effort": "high",
+      "fork_turns": "none",
+      "agent_type": null,
+      "time": "2026-10-17T19:07:56.568Z"
+    },
+    {
+      "task_name": "plan_review",
+      "model": "gpt-6-luna",
+      "reasoning_effort": "medium",
+      "fork_turns": "none",
+      "agent_type": null,
+      "time": "2026-10-17T19:09:06.504Z"
+    }
+  ],
+  "reuse": "These same three agents handle later bounded tasks; no ceiling-tier child dispatched in this checkpoint."
+}

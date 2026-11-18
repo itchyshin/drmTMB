@@ -1,0 +1,8 @@
+ℹ Testing drmTMB
+Error in dyn.load(dll_copy_file) : 
+  unable to load shared object '/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpSEyk65/pkgload82b17ce9c358/drmTMB.so':
+  dlopen(/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpSEyk65/pkgload82b17ce9c358/drmTMB.so, 0x0006): tried: '/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpSEyk65/pkgload82b17ce9c358/drmTMB.so' (segment '__LINKEDIT' load command content extends beyond end of file), '/System/Volumes/Preboot/Cryptexes/OS/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpSEyk65/pkgload82b17ce9c358/drmTMB.so' (no such file), '/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpSEyk65/pkgload82b17ce9c358/drmTMB.so' (segment '__LINKEDIT' load command content extends beyond end of file), '/private/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T/RtmpSEyk65/pkgload82b17ce9c358/drmTMB.so' (segment '__LINKEDIT' load command content extends beyond end of file), '/System/Volumes/Preboot/Cryptexes/OS/private/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T/RtmpSEyk65
+Calls: <Anonymous> ... <Anonymous> -> load_dll -> library.dynam2 -> dyn.load
+In addition: Warning message:
+In file.append(to[okay], from[okay]) : write error during file append
+Execution halted

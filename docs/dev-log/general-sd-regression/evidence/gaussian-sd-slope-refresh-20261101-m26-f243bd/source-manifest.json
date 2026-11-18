@@ -1,0 +1,23 @@
+{
+  "scope": "Source identity for gaussian-native-independent-slope-sd-20261024, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-refresh-20261101/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-sd-slope-regression.R",
+      "sha256": "a4a6f0d08c6cff902aa23cdadff35c47229b3eecbdb15e9c29a015ac9e1626b8"
+    }
+  ]
+}

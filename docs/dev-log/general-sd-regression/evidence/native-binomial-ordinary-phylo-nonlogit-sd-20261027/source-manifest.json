@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial probit and cloglog q1 ordinary iid intercept plus phylogenetic tree intercepts, each with predictor-dependent SD",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-ordinary-phylo-nonlogit-sd.R",
+      "sha256": "9528e94beb1100081d4ecda4c34700298ef82378047066a7231b55e92f099dff"
+    }
+  ]
+}

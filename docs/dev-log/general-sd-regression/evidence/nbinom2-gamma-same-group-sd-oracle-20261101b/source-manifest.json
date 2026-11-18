@@ -1,0 +1,46 @@
+{
+  "scope": "Native NB2(log) and Gamma(log) mu with same-group independent intercept and slope, y ~ x + (1 | id) + (0 + x | id), sd(id, coef = '(Intercept)') ~ w1 and sd(id, coef = 'x') ~ w2.",
+  "note": "Dirty shared candidate tree (branch codex/general-sd-regression, HEAD 7309d3cd813f9c0f42da9974470c23d87da5bcf4 plus uncommitted edits); hashes identify test-time files. Test file hashed after the run and compared with its hash taken before the run.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4a01064bef42554e9d6922d4b9e974b9760aed08c9165e60c55c65081b8e0a6b"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "c4ff2761044a9ac442cab679b7232deb6f54ee7a91add4ed4afc769feb6639bd"
+    },
+    {
+      "file": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "f47b1180697d468e39c32febe60a8b6862ecf05e9510eac12a7ebbd07a719e54"
+    },
+    {
+      "file": "tests/testthat/test-nbinom2-gamma-same-group-sd-oracle.R",
+      "sha256": "c5270713731353a0cfd79c4b36d69cb36951145a52cb3f416bfee16454086e26"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/nbinom2-gamma-same-group-sd-oracle-20261101b/test-console.log",
+      "sha256": "07602b00b0483f35e69d6376d47e429c04bba483374a191b34f61c6a4eab8f23"
+    }
+  ]
+}

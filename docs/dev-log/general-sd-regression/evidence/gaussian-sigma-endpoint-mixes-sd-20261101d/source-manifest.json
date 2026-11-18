@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "04858b361162fb58e15188e5498ecace25330c18c2a92e9e22260601d335377a"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "a0fd4f4d613467f13064c2512f10587316a78ae5ff776251180c17d36ce9e783"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-sigma-endpoint-mixes-sd.R",
+      "sha256": "058ffba20cd6f0dcf4abce6b9da432fe0be560ad56827d5f093147b29bc62f87"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-sigma-endpoint-mixes-sd-20261101d/test-console.log",
+      "sha256": "ed569dc67fbf265c6f309b6ee78deee97d0a90896385526c3ffab92999dc274c"
+    }
+  ],
+  "note": "dirty shared candidate; hashes identify test-time files at HEAD 33e4e966a05f4381ee790b238b41d6d12fa3032c"
+}

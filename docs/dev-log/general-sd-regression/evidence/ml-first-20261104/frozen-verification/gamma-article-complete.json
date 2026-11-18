@@ -1,0 +1,13 @@
+{
+  "input_script_sha256": {
+    "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/article-gamma.R": "94c6ff1b49e97b7af875768a99af42dbd562099b2db542d4795a5ff66e38cfc7"
+  },
+  "name": "gamma-article",
+  "command": [
+    "Rscript",
+    "/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/execution/article-gamma.R"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 58.101621866226196,
+  "log_sha256": "9f83e0e3efcdf9f08059f60999f5fdc97bf00a99321ed7d7097377e759412879"
+}

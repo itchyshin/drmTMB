@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "76e60a182e096a5d980d6ce34d632a3aed1d0db0332c790192adf0c60e1a9652",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Post-draft self-review using protocols/writing-naturalness.md; no model or network call",
+  "genre": "Technical after-task report",
+  "coverage": "Whole report",
+  "score": 2,
+  "style_status": "known",
+  "score_reason": "Specific implementation boundaries and measured checks make the account direct; the standardized headings contribute some regularity.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and the evidence is concrete, though the judgment is a self-review rather than an independent human assessment.",
+  "examples": [
+    {
+      "location": "Section 1, line 5",
+      "cue": "The goal names the exact family, coefficient, data boundary, and selector requirement.",
+      "impact": "It lets a maintainer judge scope without decoding vague labels.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Add a bounded predictor-dependent random-effect SD route for one independent numeric slope in the native complete-response zero-inflated Poisson model. Keep the zero-inflation parameter fixed and require the SD formula to select the same slope."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report explicitly separates the tested route from untested calibration, missingness, other ZIP effects, and Julia parity.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Assertion counts and runtime were compared with the focused test outputs; scope was checked against the current code and documentation edits.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external citation claims.",
+  "date": "2026-10-21",
+  "calibration_status": "No independent style controls were evaluated; this is not a calibrated detector.",
+  "interpretation": "perceived_style_not_authorship"
+}

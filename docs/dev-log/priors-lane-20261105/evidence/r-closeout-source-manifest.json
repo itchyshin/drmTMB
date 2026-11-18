@@ -1,0 +1,309 @@
+{
+  "aggregate_sha256": "6495656050f6f5a958c0151bad8730c124dbff55aea6fa39e5d133f01596da5c",
+  "files": [
+    {
+      "path": "DESCRIPTION",
+      "sha256": "09d05867f9455dfeea5800f0c38a6bca7ae62e09a7d3ab4ef9c94b0fe95fbda5"
+    },
+    {
+      "path": "NAMESPACE",
+      "sha256": "a1cb43d0f07e981ca6af3d927b7f2a89a976f25bc91ca172c17e0828d14ab249"
+    },
+    {
+      "path": "R/adequacy-plots.R",
+      "sha256": "7cc880509221b4c7859a583ab0c5f5dc71d4cae16a48de29db4b6c553e55ab94"
+    },
+    {
+      "path": "R/adequacy.R",
+      "sha256": "b9ab7b82aa8d5ca5bf5a23f30826ad32d306668b6801dfbdd8b120896e955d57"
+    },
+    {
+      "path": "R/aghq-coxreid.R",
+      "sha256": "d7f20896bd1f2701c353084f4f7c908d644447300eadd222c07b71511c9bd200"
+    },
+    {
+      "path": "R/associate-pairs-sandwich-bernoulli-bernoulli.R",
+      "sha256": "d6ccc65580d7e0700ab2aed7c49c8369e21f3a441eb6ee8b25c8543d411fd8b3"
+    },
+    {
+      "path": "R/associate-pairs-sandwich-gaussian-bernoulli.R",
+      "sha256": "2129bbe7278b0912ba436aa71d9fc80cb5cbdf4822af20fb618ce4baefbc8860"
+    },
+    {
+      "path": "R/associate-pairs-sandwich-gaussian-nbinom2.R",
+      "sha256": "578751c099044dc943cbadc144deaa403ff5340eaefba49aaa1f3e21de5e43fd"
+    },
+    {
+      "path": "R/associate-pairs-sandwich-nbinom2-nbinom2.R",
+      "sha256": "bbbf3d78813b32fe8a61e4589bd9ecf1f7fdf6d8841995f52fd3ff5dbb5b0a43"
+    },
+    {
+      "path": "R/associate-pairs-sandwich.R",
+      "sha256": "ae36567f517d650af47b227ce3fc3b82ac791aa9ec484a78c41741e1cc17174c"
+    },
+    {
+      "path": "R/associate-pairs.R",
+      "sha256": "424b524e481e3831954c15f3fb91fe30e746628bd99cf2142b2dc2762127640a"
+    },
+    {
+      "path": "R/bf.R",
+      "sha256": "ae1d8f090757b8f74556339faace58c3ac55e4f868d4182396dd3675a8c2b6fd"
+    },
+    {
+      "path": "R/binomial-q2-sd.R",
+      "sha256": "0bc8e57aa3555687b13cd59618ff88a2c7190af4c82db6996922324a3b62429c"
+    },
+    {
+      "path": "R/bootstrap-shards.R",
+      "sha256": "4df1c49ff6f99ae70e773c1e4c929c13807762535ece09eef1716ac30a75adca"
+    },
+    {
+      "path": "R/check.R",
+      "sha256": "57c7c29837399e2bfd4e04b46ea5f7f9b875976fda64a6622a0df6f3cc699d54"
+    },
+    {
+      "path": "R/coevolution-accessors.R",
+      "sha256": "3f47f2f9388d6b51fcc9fcee25fece85d5b7ec7c98821d0ec0159ec798280666"
+    },
+    {
+      "path": "R/control.R",
+      "sha256": "1b86ad506f7fcd56f009f2f2b25ba91d13aacdece42af515ceb6c67231217cd9"
+    },
+    {
+      "path": "R/distributional-outputs.R",
+      "sha256": "94540da0f07768fd159b8178b5312dfe505e5cbb9bfdac26983c7abf12c1cf08"
+    },
+    {
+      "path": "R/drmTMB-package.R",
+      "sha256": "dec0b5fba6754268176dbdc8d3dfb4ed56b26485c146a39ed6ab0df86ad8395c"
+    },
+    {
+      "path": "R/drmTMB.R",
+      "sha256": "8d0ee06cbdebff0e418d51394c122df94b75b970640edf0249e4dac792474b6a"
+    },
+    {
+      "path": "R/emmeans-preflight.R",
+      "sha256": "ca007531560c4fcd58a37a51716826e18eef952f64ee2f14167a05e83c3fccd3"
+    },
+    {
+      "path": "R/family-dpq.R",
+      "sha256": "10f689a8737e4cf7893f37a5c322c7926c675b9a66099201439aad561da5241e"
+    },
+    {
+      "path": "R/family.R",
+      "sha256": "8869dbb68756133e7cdee017332dbfdd707053ab099716eb0e8705abb7616784"
+    },
+    {
+      "path": "R/fixed-effect-priors.R",
+      "sha256": "53154646f0caf500ad98ffa811279afccfe175af51cf0c9768b273dc0bfc9dd0"
+    },
+    {
+      "path": "R/fixed-priors-workflow.R",
+      "sha256": "42d89ad4d52009ac61ecfb20e83669344748b11287ef5d5ce211893616ce663c"
+    },
+    {
+      "path": "R/formula-markers.R",
+      "sha256": "a724d3e9238ab0d6318bbb8ea337b69c88807311c6939ee20bb8609ae4d136b3"
+    },
+    {
+      "path": "R/gaussian-aggregation.R",
+      "sha256": "f80e3e3d81bd6589a89763a90bd1387580d3368894f134bfc2b0c8212d62a629"
+    },
+    {
+      "path": "R/heritability.R",
+      "sha256": "64fd77a2ad6bd3998c1c93e3cd1b5a3f859ad4a6e2f2bd7df5c48f83a4b3d5ce"
+    },
+    {
+      "path": "R/julia-bridge.R",
+      "sha256": "8f45528107701df18c1ea1112ecced3f1c32582586c9b4f42e6316dbe95ae037"
+    },
+    {
+      "path": "R/julia-coefficient-labels.R",
+      "sha256": "1c2814a197c8d296c2b120646d3576c8e95213ea4ca2848dad1279c2b29832ad"
+    },
+    {
+      "path": "R/julia-diagnostics.R",
+      "sha256": "7f60faae8fd3460ca143917ee2ff20067e0db5a8c08927b50f83eb5a0d30bc06"
+    },
+    {
+      "path": "R/julia-family-cumulative_logit.R",
+      "sha256": "c9c164d3abcf6878d5424c500120d63558e6bf4b05d49f7747f36ad1721663d7"
+    },
+    {
+      "path": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "path": "R/julia-fit-methods-docs.R",
+      "sha256": "f94311f98cf21e4433c1a898547541bf2c9cbf0cdf43d70b6d50e42ed0e59814"
+    },
+    {
+      "path": "R/julia-joint-call.R",
+      "sha256": "fcdaa6f048b18b4660ee6674bfd62d6f7a7100f20c3b0a83975bbc551483c2d2"
+    },
+    {
+      "path": "R/julia-joint-finite.R",
+      "sha256": "137a89177acac466abfab0d0d7c0100a5484d8c9dd6f501f3c5080312925113d"
+    },
+    {
+      "path": "R/julia-joint-methods.R",
+      "sha256": "6d5898a8bd21aaf8c71ac20f3b73e71dcdad364d4f31b7b680f961d29ec9dcc8"
+    },
+    {
+      "path": "R/julia-joint-missing.R",
+      "sha256": "03a95e1e120588961cb6e22639741ef6c6ab3ac756118529f3f1e83a8da81569"
+    },
+    {
+      "path": "R/julia-simulate.R",
+      "sha256": "17ff8f0abe08abb539f50a31c91a0b9d8a4c128623fcab2c19628bf83ee474cb"
+    },
+    {
+      "path": "R/lrt-boundary.R",
+      "sha256": "6c7791f27e6311673fbbe75734123365f4256b498fb0e6f9fca42de795410e3f"
+    },
+    {
+      "path": "R/marginal-parameters.R",
+      "sha256": "4bb246db3341b6cc68ed0a1e60ac35682e2d7499949b21212b31ee6f00e19bea"
+    },
+    {
+      "path": "R/mesh.R",
+      "sha256": "92ba60e72a2b467eb7ad384429912293aa38c2645c2cae4ca53dc616783a8dbb"
+    },
+    {
+      "path": "R/meta-vcov.R",
+      "sha256": "a433c378acd76a880bbb302192d21151c2a4e4f808122925c2f27cbda280a5cf"
+    },
+    {
+      "path": "R/methods.R",
+      "sha256": "316048f3c0996b0066c4319226291fc73290d45a42f2799ae94902f819c75ce4"
+    },
+    {
+      "path": "R/mi-weights.R",
+      "sha256": "763247341c06488d8f373187afe97d885aee18042ef68453e5bea76265468689"
+    },
+    {
+      "path": "R/missing-data.R",
+      "sha256": "909e0da5023a5bdae074e05b8211e918599ae7964b34c93ba961a9e3a13d4171"
+    },
+    {
+      "path": "R/mle-existence.R",
+      "sha256": "d53bff1b7795c7c5291ceeb14495ffc742fc55b5833fc4da516bbdb63bafd972"
+    },
+    {
+      "path": "R/model-comparison.R",
+      "sha256": "106e9a41d0778b6cfe336ab61bf9123f97f02c15022bf760cb3b2ad5b5054209"
+    },
+    {
+      "path": "R/mspl-estimator.R",
+      "sha256": "4213ecd424c5cd02bd886d799b5e3ad0746711ab6c8d8d4b7d95848e632c74d1"
+    },
+    {
+      "path": "R/mspl.R",
+      "sha256": "6f394409ab1cff8e72f73c2a01626de8177d75794c03cb5d489bf4502a33719e"
+    },
+    {
+      "path": "R/objective-at.R",
+      "sha256": "2007da452d41d614cd415dc53bc7de780a08982b311f4b99ad35f7b0099c4a20"
+    },
+    {
+      "path": "R/parallel-docs.R",
+      "sha256": "82e84fe0843ef7230b6823ad870601c138aebc46612e262ce6dcb055df7764ce"
+    },
+    {
+      "path": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "path": "R/penalty.R",
+      "sha256": "ebab55d1bf9257ea973d5c9eded45d8988f6a1ba22b162800e64bf442b6bda83"
+    },
+    {
+      "path": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "path": "R/plot-corpairs.R",
+      "sha256": "23fd048ab1c152ee325ba203210f67d5c96b88c516cff4ec7c887448a805137c"
+    },
+    {
+      "path": "R/plot-parameter-surface.R",
+      "sha256": "8a93cb9c104b086e4500ecf9b2f72b7b88fd5278667d5b1c928ea88652169421"
+    },
+    {
+      "path": "R/predict-parameters.R",
+      "sha256": "63c8b4dab77a69251b217fb1d7a9533aded8bfef5cbea02bda241921bf3845c2"
+    },
+    {
+      "path": "R/prediction-grid.R",
+      "sha256": "b599efba35c0bb8c9b3467ef69da268d9fe9b0d6aee5009fda2e8d199abe4647"
+    },
+    {
+      "path": "R/profile.R",
+      "sha256": "4fc9d4f1be6ed7f285b67d8be6440c4331c7182ff590f43eb558234b7aa969c4"
+    },
+    {
+      "path": "R/provenance.R",
+      "sha256": "3211cf0b8417c36b0bd8c3656ac255e77ca06f4a2998f3faa362f2885b3ba43d"
+    },
+    {
+      "path": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "path": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "path": "R/reader-contracts.R",
+      "sha256": "c197718d279b40be047e4ee39b1243827cd8ff9406dfd4bf4af0344ed236525f"
+    },
+    {
+      "path": "R/sparse-fixed.R",
+      "sha256": "eb38f9a4281aeb652f392eb4f4bb075fd733195b665aa666a96d2fc3c8364bfd"
+    },
+    {
+      "path": "R/temporal.R",
+      "sha256": "71079c818d9d3955407fb3ddb08869559566858e45703c1f5fb1f4146c52ac93"
+    },
+    {
+      "path": "R/utils.R",
+      "sha256": "cdbca619afd03085d98304220f6bb019e80085e1efdd521fc665de0862b7c156"
+    },
+    {
+      "path": "R/zzz.R",
+      "sha256": "10521dcc0b9f5bea053bc2dd490b6efa4edd7e571228ec28cd0f34ba226daaa1"
+    },
+    {
+      "path": "src/drmTMB.cpp",
+      "sha256": "7fadea56c0dcf6c30cc3637774ee7727f7dbbc9a632c5c6ad376cb7b8a95efcc"
+    },
+    {
+      "path": "src/drm_count_kernels.h",
+      "sha256": "ccc6faa0f61e391770ca9611646ea694189a7588a50fe31f437cf1c511fc8047"
+    },
+    {
+      "path": "src/drm_numeric.h",
+      "sha256": "bb088a59031d4970cfc61866e85d2c7e154406eb8da575cf2f75e9203ffa526c"
+    },
+    {
+      "path": "src/drm_response_kernels.h",
+      "sha256": "6795dbcde5366676e2a110ffe5bf98e4754bde2360f2e7b4af1dbcb37a25b616"
+    },
+    {
+      "path": "src/init.c",
+      "sha256": "4ce218bc4d080bc2f0d179aa96f248c5d99dc7dc3ea542d848e1782673c913c3"
+    },
+    {
+      "path": "src/meuwissen_luo.c",
+      "sha256": "75c46ada4abebc419e019bf1d6e64d5a04cde120c9c0ed6d7072691afa5aa487"
+    },
+    {
+      "path": "tests/testthat/test-fixed-effect-priors.R",
+      "sha256": "f54ff06246280a47363a1847a3a5e4592f5980db28147450dc5ee743f9ebc781"
+    },
+    {
+      "path": "tests/testthat/test-fixed-priors-workflow.R",
+      "sha256": "e1895ac42867265d28bfd66fe351d9771531e7524e754bfe6edcc9309dd81820"
+    }
+  ]
+}

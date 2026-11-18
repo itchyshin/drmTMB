@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "file": "tests/testthat/test-poisson-structured-q2-sd-regression.R",
+      "sha256": "21e72042eb318b9bf5a13ee8d2ab06451412aa4b6565b435c5e4ca860c1bbe71"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "04858b361162fb58e15188e5498ecace25330c18c2a92e9e22260601d335377a"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "a0fd4f4d613467f13064c2512f10587316a78ae5ff776251180c17d36ce9e783"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/poisson-structured-q2-sd-regression-20261101d/test-console.log",
+      "sha256": "53190ebf50d25c8b372a88ba2f4ffbb7d08b781172679079ab509126508d841e"
+    }
+  ],
+  "note": "dirty shared worktree at HEAD 33e4e966a; hashes identify the test-time files"
+}

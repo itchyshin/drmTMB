@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "6152cae79ed00cc38cc9bd1ea8784766fd8d89b5876a0343a2e34d7a638b4ac5",
+  "draft_version": "v4",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Separate post-draft assessment under writing-naturalness.md and the drmTMB prose-style-review checklist; report claims compared with source, tests, and captured check outputs.",
+  "genre": "Software after-task report",
+  "coverage": "Whole after-task report, all 12 required sections.",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report names the exact model, support boundary, checks, and remaining work. Its regular structure follows the required project template, while the details are specific to this implementation slice.",
+  "confidence": "medium",
+  "confidence_reason": "The implementation claims and check outcomes were compared with current source and command results. The style score is an editorial judgment without calibrated human controls.",
+  "examples": [
+    {
+      "location": "5. Checks Run",
+      "cue": "The focused result gives the count and failure state before describing wider checks.",
+      "impact": "Readers can distinguish the direct test evidence from documentation checks.",
+      "repair": "No change needed.",
+      "line": 51,
+      "quote": "The focused test passed 17 expectations with no failures, warnings, or skips"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The model equation and covariance were reviewed against the implementation and the independent marginal-likelihood test; inference claims stop at point recovery and workflow checks.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The route, exact test count, render, pkgdown check, warnings, and scope limits were compared with source, output, and status inventory.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external citation claims.",
+  "date": "2026-10-21",
+  "calibration_status": "No human-labelled calibration control was reviewed; this is an informal self-assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

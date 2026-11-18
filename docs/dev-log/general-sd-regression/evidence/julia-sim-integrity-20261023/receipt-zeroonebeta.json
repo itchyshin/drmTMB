@@ -1,0 +1,18 @@
+{
+  "claim": "Julia zeroonebeta predictor-dependent SD marginal simulation and bootstrap refit workflow.",
+  "command": "JULIA_DEPOT_PATH=/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 julia --project test/test_zeroonebeta_sd_simulation_integrity.jl",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/julia-sim-integrity-20261023/test-console.log",
+  "evidence_id": "julia-zeroonebeta-sd-simulator-workflow-20261023",
+  "julia_version": "julia version 1.10.0",
+  "result": "10/10 assertions passed. Seeded marginal simulation exactly matches an independently reconstructed draw; one bootstrap refit succeeded.",
+  "review_status": "unreviewed",
+  "row_key": "[\"Julia\",\"zero_one_beta\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"logit\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_source_path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_zeroonebeta_sd_simulation_integrity.jl",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/julia-sim-integrity-20261023/test_zeroonebeta_sd_simulation_integrity.jl",
+  "test_file_sha256": "55344f0296c837c5fd6011ce3c7c39306a34ff6d87f832a1881774db137b0613",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-sim-integrity-20261023/source-manifest.json",
+  "source_file_count": 93,
+  "limits": "Software workflow evidence only. No interval coverage, calibration, native TMB parity, or broad family/provider support claim."
+}

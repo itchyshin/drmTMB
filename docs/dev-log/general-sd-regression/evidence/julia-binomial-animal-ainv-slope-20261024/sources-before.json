@@ -1,0 +1,6 @@
+{
+  "src/binomial.jl": "63e57b231e683df026b3a0af3025f1a914e77d7c6358c62ab0fd481116377d2b",
+  "src/binomial_sd_regression.jl": "1e4b7ecdf817672817e5e1dee1c8262c503f66a58a39f6c2282c1405c559f145",
+  "src/inference.jl": "c4a97988f0e005355fce45bdc33dc13ec57458612b1b554a07142e5963cd5b73",
+  "test/test_binomial_animal_ainv_slope_sd_regression.jl": "07ee1ce3f6c9ef81aeb444c9d3a51962c22f693799d6505b8aa12e86050ed4fe"
+}

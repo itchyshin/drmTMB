@@ -1,0 +1,74 @@
+{
+  "evidence_id": "native-count-structured-sd-missing-include-20261102r",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); r<-as.data.frame(testthat::test_file(\"tests/testthat/test-count-structured-sd-missing-include.R\", reporter=\"silent\")); print(colSums(r[c(\"passed\",\"failed\",\"error\",\"skipped\")]))'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "427a9a40198d588409a350843ef7fe8c788454a9",
+  "tree_state": "dirty shared candidate (uncommitted edits present); unreviewed",
+  "run_started_utc": "2026-11-02T11:20:57Z",
+  "run_ended_utc": "2026-11-02T11:21:22Z",
+  "exit_code": 0,
+  "expectations_passed": 215,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/count-structured-sd-missing-include-20261102r/test-console.log",
+  "console_log_sha256": "7812e430fa79b0b3f466c821f230c8e591f696ccbd0ceea7d5446a7cdaf7ca39",
+  "test_path": "tests/testthat/test-count-structured-sd-missing-include.R",
+  "test_sha256": "aa9ff7cc9367385c103ffee377d0548cc95dc39706efbe0cb9752d5a97290021",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/count-structured-sd-missing-include-20261102r/source-manifest.json",
+  "source_manifest_sha256": "2a6ed60cff69ef7c24f8e73577a7fe54615e25acf1afbfb5d089dfa316cc80d7",
+  "live_julia": "not run; native R engine only",
+  "scope": "Poisson and NB2 (log) structured q1 intercept SD regression (relmat K, animal A, phylo tree, spatial coordinates) under miss_control(response='include'): include equals complete-case (1e-8) and a dense Laplace oracle (1e-6), including all-NA groups.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"A_covariance\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required"
+    }
+  ],
+  "not_covered": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery beyond the stated oracle/equivalence checks",
+    "relmat_intercept Q_precision, animal_intercept Ainv_precision/pedigree, phylo precision/covariance-matrix inputs: not tested in this file"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "unreviewed"
+}

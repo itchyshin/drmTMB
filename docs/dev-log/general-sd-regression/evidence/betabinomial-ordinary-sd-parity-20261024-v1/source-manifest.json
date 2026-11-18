@@ -1,0 +1,56 @@
+{
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "native_worktree_dirty": true,
+  "julia_worktree_dirty": true,
+  "files": [
+    {
+      "path": "R/drmTMB.R",
+      "sha256": "07942464ae362487c46f0935f6281b582b6f770866b7d7fa17afe5a1085a74dc"
+    },
+    {
+      "path": "R/julia-bridge.R",
+      "sha256": "8147d3d55f6ee31b04d9fd976ab88cbd97895a467920d94fef8310bce529c58a"
+    },
+    {
+      "path": "R/julia-family-registry.R",
+      "sha256": "f5b9377b6de34a85be25927b3096816eb96205213f658289ec8f7181aef8da09"
+    },
+    {
+      "path": "src/drmTMB.cpp",
+      "sha256": "64600a1b7b85102cfd5006942ed4c4866bfb3dfd061b43053d89ff2b56e345b4"
+    },
+    {
+      "path": "tests/testthat/test-julia-family-beta_binomial.R",
+      "sha256": "940097a0cf52318564f1d4e95c57f60aab113e4dbcb7556042118e4f0e1cb527"
+    },
+    {
+      "path": "tests/testthat/test-julia-beta-binomial-sd-parity.R",
+      "sha256": "ba6107fdd42972b7844991d800b24bc7f6eabf760498145ec4c5191f786cbb96"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/betabinomial-ordinary-sd-parity-20261024-v1/test-snapshot/tests/testthat/test-julia-beta-binomial-sd-parity.R",
+      "sha256": "ba6107fdd42972b7844991d800b24bc7f6eabf760498145ec4c5191f786cbb96"
+    },
+    {
+      "path": "../general-sd-julia/Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    },
+    {
+      "path": "../general-sd-julia/Manifest.toml",
+      "sha256": "14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20"
+    },
+    {
+      "path": "../general-sd-julia/src/betabinomial.jl",
+      "sha256": "4fcab5b189c4333c51339b229e93dd4cfedb92f02017663ac4b0b6458573a5cc"
+    },
+    {
+      "path": "../general-sd-julia/src/bridge.jl",
+      "sha256": "7478193def06713970cdf76580196bb7f7233b7909a738042533ccb05038cb45"
+    },
+    {
+      "path": "../general-sd-julia/test/test_betabinomial_sd_regression.jl",
+      "sha256": "a77dd5eb99423be23703a277dbaa445c903a8cb8dffa423d8a4f9eb2a0c8ea22"
+    }
+  ]
+}

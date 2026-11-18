@@ -1,0 +1,5 @@
+Test Summary:                               | Pass  Total   Time
+NB2 animal location-intercept SD regression |   19     19  40.6s
+Test Summary:                                  | Pass  Total  Time
+NB2 animal SD regression uses the raw A kernel |    9      9  8.7s
+DRM_RUN start=2026-11-02T14:02:56Z end=2026-11-02T14:03:47Z rc=0 core=242

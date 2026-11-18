@@ -632,9 +632,52 @@ test_that("binomial kernel matches dbinom()", {
 # standout finding of this audit; see the accompanying report.
 #
 # The strict grid below is therefore restricted to the confirmed-valid
-# log_sigma sub-range; the breakdown region is characterized, not asserted
-# to silently improve, by the second test.
-test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweedie() breakdown", {
+# log_sigma sub-range. Its reference is the p = 3/2 compound-Poisson
+# density below. The second test still characterizes the breakdown region
+# against tweedie::dtweedie().
+# At p = 3/2 the compound-Poisson increments are exponential. Summing the
+# Poisson/gamma mixture gives a modified-Bessel density. Evaluate in log space
+# so extreme but valid means do not depend on a package reference underflowing.
+# This reference is local to the numerical test; it is not the fitted kernel.
+log_scaled_bessel_i1 <- function(z) {
+  if (z > 1e4) {
+    # I_1(z) exp(-z), through the inverse-cubic asymptotic term.
+    -0.5 * log(2 * pi * z) +
+      log(1 - 3 / (8 * z) - 15 / (128 * z^2) - 315 / (3072 * z^3))
+  } else {
+    log(besselI(z, nu = 1, expon.scaled = TRUE))
+  }
+}
+
+tweedie_15_log_reference <- function(y, eta, log_sigma) {
+  root_mu <- exp(eta / 2)
+  phi <- exp(2 * log_sigma)
+  lambda <- 2 * root_mu / phi
+  gamma_scale <- phi * root_mu / 2
+  z <- 4 * sqrt(y) / phi
+  -lambda - y / gamma_scale + log(2 / phi) - log(y) / 2 + log_scaled_bessel_i1(z) + z
+}
+
+test_that("Tweedie Bessel reference agrees with an independent mixture sum", {
+  # Frozen 60-digit mpmath log(I_1(z)) - z values check the asymptotic branch.
+  expect_equal(log_scaled_bessel_i1(1e5), -6.67540501570853711589, tolerance = 1e-12)
+  expect_equal(log_scaled_bessel_i1(881058.6), -7.76337866784415443867, tolerance = 1e-12)
+  for (eta in c(-2, 0, 2)) for (ls in c(-1, 0, 1)) for (y in c(.01, 1, 100)) {
+    mu <- exp(eta); phi <- exp(2 * ls)
+    lambda <- 2 * sqrt(mu) / phi; scale <- phi * sqrt(mu) / 2
+    k <- seq_len(5000)
+    terms <- dpois(k, lambda, log = TRUE) + dgamma(y, shape = k, scale = scale, log = TRUE)
+    peak <- max(terms)
+    # The end of the summed range is negligible in these bounded checks.
+    expect_lt(max(tail(terms, 20)), peak - 700)
+    mixture <- peak + log(sum(exp(terms - peak)))
+    expect_equal(tweedie_15_log_reference(y, eta, ls), mixture, tolerance = 1e-10)
+  }
+  expect_equal(tweedie_15_log_reference(1, 0, 0),
+               log(tweedie::dtweedie(1, mu = 1, phi = 1, power = 1.5)), tolerance = 1e-10)
+})
+
+test_that("tweedie kernel matches an independent p = 3/2 reference on the safe grid", {
   fits <- build_fits(bf(y ~ 1, sigma ~ 1, nu ~ 1), tweedie(), c(0.01, 1, 100))
   safe_ls_grid <- c(-5, -3, -1, 0, 2, 5)
   eval_tw <- function(fit, eta, ls, yv) {
@@ -642,11 +685,7 @@ test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweed
     par <- set_named(par, "beta_mu", eta)
     par <- set_named(par, "beta_sigma", ls)
     par <- set_named(par, "beta_nu", 0) # nu = 1 + plogis(0) = 1.5
-    mu <- exp(eta); phi <- exp(ls)^2
-    ref <- tryCatch(
-      log(tweedie::dtweedie(yv, mu = mu, phi = phi, power = 1.5)),
-      error = function(e) NA_real_
-    )
+    ref <- tweedie_15_log_reference(yv, eta, ls)
     c(cpp = -fit$obj$fn(par), ref = ref)
   }
   for (f in fits) assert_clean_fixture(f)
@@ -663,9 +702,13 @@ test_that("tweedie kernel matches tweedie::dtweedie() away from TMB's own dtweed
     }
   }
   results$rel_err <- mapply(rel_err, results$cpp, results$ref)
-  finite_re <- results$rel_err[!is.na(results$rel_err)]
-  expect_true(length(finite_re) > 0)
-  expect_true(max(finite_re) <= 1e-6)
+  # All 126 points must be compared, including ones where the external
+  # reference's ordinary density underflows. Never silently drop a point.
+  expect_equal(nrow(results), 126L)
+  expect_true(all(is.finite(results$cpp)))
+  expect_true(all(is.finite(results$ref)))
+  expect_true(all(is.finite(results$rel_err)))
+  expect_true(max(results$rel_err) <= 1e-6)
 })
 
 test_that("tweedie's TMB::dtweedie() breakdown at small phi is confirmed and localized", {

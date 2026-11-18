@@ -1,0 +1,7 @@
+branch=codex/general-sd-regression
+HEAD=425bee81572c625a634b2b083050c5c57c1dc1f1
+R=4.6.0
+command=Rscript -e devtools::test(filter = "binomial-mesh-sd-regression|mesh-contract|binomial-phylo-sd-simulation")
+result=PASS 71; FAIL 0; WARN 0; SKIP 0
+source_manifest_sha256=81ad0b031b281da3c6e22b62be24618042373b9dd81c8449315446006410b425
+test_console_sha256=a1a810758e44140ba4e993de843f2273b83999877a727373c915aaba23934595

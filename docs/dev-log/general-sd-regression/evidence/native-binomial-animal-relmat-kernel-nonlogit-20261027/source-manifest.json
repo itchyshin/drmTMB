@@ -1,0 +1,26 @@
+{
+  "scope": "Native Binomial probit/cloglog animal A/Ainv/pedigree and relmat K/Q same-data covariance input equivalence; source hashes before and after focused test",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "0dba5cc7830b088a96b8dae3914b6cb4a7fbf73b235282f407848c50402881f5"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-relmat-kernel-equivalence-nonlogit-sd.R",
+      "sha256": "ec1cb9ca1dddfbbd13705efbce3d5ab35bd220bc0c5e9114840d5a01c1faeb0a"
+    }
+  ]
+}

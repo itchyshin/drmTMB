@@ -1,0 +1,18 @@
+{
+  "evidence_id": "gaussian-julia-ordinary-sd-parity-20261024-v1",
+  "row_key": "[\"Julia\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"identity\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "evidence_grade": "recovery",
+  "claim": "One complete-data Gaussian q1 ordinary mean random-intercept SD fit through Julia in the same-data TMB/Julia parity fixture.",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "native_worktree_dirty": true,
+  "julia_worktree_dirty": true,
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "fd08e51d9d48ea375b3554f9ede3b1289c841fe82ce32287364d4a00fe51052c",
+  "test_path": "tests/testthat/test-julia-gaussian-sd-parity.R",
+  "test_sha256": "cf43619c00f4ee87f22cc84e0b034f9174949e66a706778441bec22f1df874bd",
+  "test_command": "DRM_JL_PATH=\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\" DRM_JL_JULIA_HOME=\"/Users/z3437171/.juliaup/bin\" OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=4 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"julia-gaussian-sd-parity\")'",
+  "result": "Exit 0; 14 expectations passed, 0 failures, 0 warnings, 0 skips, one live Julia bridge fit; duration 32.1 seconds.",
+  "scope": "One complete-data Gaussian q1 ordinary mu random-intercept SD cell with fixed sigma formula; independent seeded point recovery, same-data coefficient and likelihood parity, group-SD output, and reordered-row prediction checks. No calibration claim.",
+  "review_status": "unreviewed"
+}

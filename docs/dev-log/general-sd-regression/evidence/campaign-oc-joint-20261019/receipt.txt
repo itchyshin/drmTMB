@@ -1,0 +1,11 @@
+date=2026-10-19
+campaign_role=decision-rule smoke pilot only; no model fits
+command=Rscript tools/general-sd-regression/campaign-oc.R 100 20261020
+elapsed_seconds=15.024
+R_version=Rscript (R) version 4.6.0 (2026-04-24)
+campaigns_per_scenario=100
+scenario_count=11
+seed=20261020
+campaign_script_sha256=d8eb6eaeaabc0153bf02f675976ac176f9e1978f286ab9551310b903a4f1ab66
+decision_helper_sha256=c4aeff17732529febbf6a00ca8ba963c188a1b5e935c6be76cecb49c680ba3c9
+stdout_sha256=db9815bffa76ff7d12a871472dd856b504741d219594cd6c741d421bf5a9736e

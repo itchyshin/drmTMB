@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/drmTMB.R",
+      "sha256": "b6fba800bbb7f41ee4f3ab6ec44e8dc0cfe7bd51ebbac78b4afa2f2ea1299db1"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/julia-bridge.R",
+      "sha256": "d3240442ad139222bfe84e2cff055349b820d09f4d45071f62ab783de627c967"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/R/parse-formula.R",
+      "sha256": "9b7a6fc9c1f9ee84e2fc3b42ec9bcd21ac66688c7bf90d90ae89341d1ea8c370"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/tests/testthat/test-julia-binomial-phylo-sd.R",
+      "sha256": "d9f473d1fafcac8841ad7c34099c80a43c4a863c65670c067fe8f388e8e714da"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial.jl",
+      "sha256": "41bf229ad8ae1e56477b589e104ea60fc7cc861942bd30c5a9f5cb5bdd312a9d"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "aa25e8175f883681f8eeb583f1f4d169f5b25af0ca104abce5ef61f85e960766"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_laplace_glmm.jl",
+      "sha256": "ee3b7618403436f6c32bedc22049e95455e5637bac5357141b1ea301da8b47ac"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_phy.jl",
+      "sha256": "7baeea615092f57e9c0d28818eaab02003abebfaf59ae13630ac13db42fcdf48"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    },
+    {
+      "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/Manifest.toml",
+      "sha256": "14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "evidence_id": "binomial-animal-relmat-sd-oracle-b29b-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c <1 core of 210-214> Rscript -e \"pkgload::load_all('.', quiet=TRUE); r <- as.data.frame(testthat::test_file('tests/testthat/test-binomial-animal-relmat-sd-oracle-b29b.R', reporter='summary')); cat(sprintf('DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n', sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))\"",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 (R/, src/ and tests/ verified identical to the worktree by checksum), 1 pinned core; five b29b files ran in parallel on cores 210-214",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:41Z",
+  "run_ended_utc": "2026-11-02T18:16:47Z",
+  "exit_code": 0,
+  "expectations_passed": 230,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 1,
+  "test_blocks_note": "count of top-level test_that() calls in the test file",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-relmat-sd-oracle-b29b-20261102d/test-console.log",
+  "console_log_sha256": "dca97b436c71ffed3dbfb1cd6d56306be11da6793a7d36823f668b565c3900dc",
+  "test_path": "tests/testthat/test-binomial-animal-relmat-sd-oracle-b29b.R",
+  "test_sha256": "f5dd53461c71224ced17156cf84763d907b7d02ccfd13ec9bd3830f94d856566",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-animal-relmat-sd-oracle-b29b-20261102d/source-manifest.json",
+  "source_manifest_sha256": "aaf8c09003af35bcfdcab44266e4f9ad6cb6fe7478dafde22a74ac83f80fe1bf",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "native-binomial-animal-relmat-k-cloglog-20261027-m26",
+    "native-binomial-animal-relmat-q-cloglog-20261027-m26",
+    "native-binomial-animal-relmat-Ainv-K-cloglog-20261027-m26",
+    "native-binomial-animal-relmat-Ainv-Q-cloglog-20261027-m26",
+    "native-binomial-animal-relmat-pedigree-K-cloglog-20261027-m26",
+    "native-binomial-animal-relmat-pedigree-Q-cloglog-20261027-m26",
+    "native-binomial-animal-relmat-k-probit-20261027-m26",
+    "native-binomial-animal-relmat-q-probit-20261027-m26",
+    "native-binomial-animal-relmat-Ainv-K-probit-20261027-m26",
+    "native-binomial-animal-relmat-Ainv-Q-probit-20261027-m26",
+    "native-binomial-animal-relmat-pedigree-K-probit-20261027-m26",
+    "native-binomial-animal-relmat-pedigree-Q-probit-20261027-m26"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and emulated-bug sensitivity) for the linked rows. Only parent ids whose row is exactly fitted by this file are listed. The base ids carry the -m26 suffix as recorded in the ledger.",
+  "scope": "Binomial probit and cloglog animal (A, Ainv, pedigree) + relmat (K, Q) with predictor-dependent SDs on both fields: six provider combinations per link. Dense Laplace oracle (1e-4 on logLik), Henderson A from an inbred pedigree (diag above 1.6), hand relmat kernel; emulated-bug sensitivity (>0.1); six provider forms agree to 1e-6.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+relmat:K_covariance\",\"additive independent latent fields\",\"animal:A_covariance+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+relmat:Q_precision\",\"additive independent latent fields\",\"animal:A_covariance+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+relmat:K_covariance\",\"additive independent latent fields\",\"animal:Ainv_precision+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+relmat:Q_precision\",\"additive independent latent fields\",\"animal:Ainv_precision+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+relmat:K_covariance\",\"additive independent latent fields\",\"animal:pedigree+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"probit\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+relmat:Q_precision\",\"additive independent latent fields\",\"animal:pedigree+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+relmat:K_covariance\",\"additive independent latent fields\",\"animal:A_covariance+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:A_covariance+relmat:Q_precision\",\"additive independent latent fields\",\"animal:A_covariance+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+relmat:K_covariance\",\"additive independent latent fields\",\"animal:Ainv_precision+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:Ainv_precision+relmat:Q_precision\",\"additive independent latent fields\",\"animal:Ainv_precision+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+relmat:K_covariance\",\"additive independent latent fields\",\"animal:pedigree+relmat:K_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    },
+    {
+      "row_key": "[\"native\",\"binomial\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"cloglog\",\"simultaneous_structured_structured\",\"q1_additive_fields\",\"animal:pedigree+relmat:Q_precision\",\"additive independent latent fields\",\"animal:pedigree+relmat:Q_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "any family, link, provider or provider combination not listed in candidate_rows",
+    "logit animal + relmat",
+    "animal + spatial",
+    "single-field animal or relmat rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Read the test and helpers. Independent base-R dense Laplace oracle with a hand Henderson A (inbred pedigree, diag(A) > 1.6), a hand relmat kernel and Ainv/Q by solve(). For probit and cloglog the oracle uses its own stable derivative code (sb26_deriv_binary), not the package's. All 12 row_keys are fitted: animal {A, Ainv, pedigree} x relmat {K, Q} for each of the two links, 6 fits per link on one fixture per link. In every fit logLik agrees with the oracle within 1e-4, and the six oracle values per link agree within 1e-6. Each emulated bug (swapped selector coefficients, reversed SD, cov2cor(K) for both fields, K x 2, kernel read by position) is asserted to move the oracle by more than 0.1. Fields are intercept-only on separate factors with sd ~ z, so there is no slope-member issue. Manifest and receipt/test sha256 values match the current files. Console shows 230 passed, 0 failed, 0 skipped, exit 0, and no Julia is involved. Does NOT establish: logit animal+relmat (covered by another receipt); calibration, coverage, SE or recovery (the true SDs are boosted per field only to give information); parity with Julia; any seed beyond the two fixed ones (one per link); behaviour away from the fitted optimum; slope or correlated random effects.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-binomial-animal-relmat-sd-oracle-b29b.R",
+    "test_sha256": "f5dd53461c71224ced17156cf84763d907b7d02ccfd13ec9bd3830f94d856566",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:05:34Z",
+    "ended_utc": "2026-11-03T01:06:29Z",
+    "expectations_passed": 230,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-relmat-sd-oracle-b29b-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "26b952cdf1121c60b05810864a304dda07ffeaaed4e5f51003b7e31a8115e021",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

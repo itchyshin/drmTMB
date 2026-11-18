@@ -1,0 +1,1 @@
+| 2026-10-18 | Julia Beta SD bridge parity | Live Julia bridge and native TMB test | 11 assertions passed: coefficients, group and row predictions, and save/reload; 2 nonfatal deprecated-alias warnings from bridge internals | Codex |

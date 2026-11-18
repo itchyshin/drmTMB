@@ -1,0 +1,20 @@
+julia-binomial-animal-intercept-oracle-b31ja: ..................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.....................b31ja intercept A logit: ll=-726.814570 oracle=-726.814566 agreement=3.75e-06; min gap=0.1972 (A_scale_1.3); gaps: selector_slope_sign=-30.253, reversed_sd_vector=-23.943, A_scale_2=-1.414, A_scale_1.3=-0.197, cov2cor_A=-0.642, A_read_by_position=-9.977, A_dimnames_reversed=-13.160, wrong_field_type=-57.628
+.............b31ja intercept Ainv logit: ll=-726.814570 oracle=-726.814566 agreement=3.75e-06; min gap=0.1972 (A_scale_1.3); gaps: selector_slope_sign=-30.253, reversed_sd_vector=-23.943, A_scale_2=-1.414, A_scale_1.3=-0.197, cov2cor_A=-0.642, A_read_by_position=-9.977, A_dimnames_reversed=-13.160, wrong_field_type=-57.628
+.............b31ja intercept A probit: ll=-568.915518 oracle=-568.915513 agreement=4.60e-06; min gap=0.3397 (A_scale_1.3); gaps: selector_slope_sign=-56.363, reversed_sd_vector=-39.435, A_scale_2=-2.274, A_scale_1.3=-0.340, cov2cor_A=-1.109, A_read_by_position=-37.437, A_dimnames_reversed=-26.061, wrong_field_type=-209.407
+.............b31ja intercept Ainv probit: ll=-568.915518 oracle=-568.915513 agreement=4.60e-06; min gap=0.3397 (A_scale_1.3); gaps: selector_slope_sign=-56.363, reversed_sd_vector=-39.435, A_scale_2=-2.274, A_scale_1.3=-0.340, cov2cor_A=-1.109, A_read_by_position=-37.437, A_dimnames_reversed=-26.061, wrong_field_type=-209.407
+.............b31ja intercept A cloglog: ll=-680.268067 oracle=-680.268062 agreement=4.44e-06; min gap=0.2998 (A_scale_1.3); gaps: selector_slope_sign=-20.623, reversed_sd_vector=-7.517, A_scale_2=-2.102, A_scale_1.3=-0.300, cov2cor_A=-0.319, A_read_by_position=-17.244, A_dimnames_reversed=-13.036, wrong_field_type=-98.725
+.............b31ja intercept Ainv cloglog: ll=-680.268067 oracle=-680.268062 agreement=4.44e-06; min gap=0.2998 (A_scale_1.3); gaps: selector_slope_sign=-20.623, reversed_sd_vector=-7.517, A_scale_2=-2.102, A_scale_1.3=-0.300, cov2cor_A=-0.319, A_read_by_position=-17.244, A_dimnames_reversed=-13.036, wrong_field_type=-98.725
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=104 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T03:56:07Z end=2026-11-03T03:56:38Z rc=0

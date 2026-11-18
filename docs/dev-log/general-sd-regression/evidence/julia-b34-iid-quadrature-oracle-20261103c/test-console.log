@@ -1,0 +1,26 @@
+julia-b34-iid-quadrature-oracle: ...i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.......b34 zob_intercept ordinary 20261401: ll=-108.40081643 oracle=-108.40081643 agreement=8.16e-12 min_gap=8.0525 (x8052471 of tol 1e-06); gaps: reversed_sd_vector=-19.186, sd_intercept_plus_log2=-13.057, sd_slope_sign=-48.172, wrong_group_predictor=-20.370, atoms_swapped=-8.052
+.......b34 zob_intercept ordinary 20261402: ll=-167.98529033 oracle=-167.98529033 agreement=7.99e-12 min_gap=0.3078 (x307844 of tol 1e-06); gaps: reversed_sd_vector=-7.515, sd_intercept_plus_log2=-14.009, sd_slope_sign=-22.167, wrong_group_predictor=-8.332, atoms_swapped=-0.308
+.......b34 zob_intercept ordinary 20261403: ll=-151.51237246 oracle=-151.51237246 agreement=8.24e-12 min_gap=2.2584 (x2258420 of tol 1e-06); gaps: reversed_sd_vector=-14.083, sd_intercept_plus_log2=-12.880, sd_slope_sign=-18.198, wrong_group_predictor=-2.258, atoms_swapped=-6.487
+........b34 zob_intercept boundary-heavy 20261410: ll=-714.31195721 oracle=-714.31195721 agreement=8.30e-12 min_gap=11.0449 (x11044882 of tol 1e-06); gaps: reversed_sd_vector=-16.070, sd_intercept_plus_log2=-11.045, sd_slope_sign=-24.789, wrong_group_predictor=-14.020, atoms_swapped=-25.809
+........b34 zob_intercept boundary-heavy 20261411: ll=-737.09106170 oracle=-737.09106170 agreement=7.62e-12 min_gap=4.1018 (x4101826 of tol 1e-06); gaps: reversed_sd_vector=-7.547, sd_intercept_plus_log2=-11.741, sd_slope_sign=-11.978, wrong_group_predictor=-4.102, atoms_swapped=-53.882
+........b34 zob_slope ordinary 20261401: ll=-123.76520202 oracle=-123.76520202 agreement=8.20e-12 min_gap=12.2426 (x12242585 of tol 1e-06); gaps: reversed_sd_vector=-20.715, sd_intercept_plus_log2=-12.243, sd_slope_sign=-49.316, wrong_group_predictor=-24.495, slope_as_intercept=-298.462, atoms_swapped=-16.519
+........b34 zob_slope ordinary 20261402: ll=-236.55563074 oracle=-236.55563074 agreement=8.19e-12 min_gap=0.0190 (x19048 of tol 1e-06); gaps: reversed_sd_vector=-6.123, sd_intercept_plus_log2=-13.622, sd_slope_sign=-15.502, wrong_group_predictor=-3.975, slope_as_intercept=-174.155, atoms_swapped=-0.019
+........b34 zob_slope ordinary 20261403: ll=-134.23598679 oracle=-134.23598679 agreement=8.13e-12 min_gap=5.4615 (x5461549 of tol 1e-06); gaps: reversed_sd_vector=-20.273, sd_intercept_plus_log2=-11.785, sd_slope_sign=-28.364, wrong_group_predictor=-5.462, slope_as_intercept=-181.527, atoms_swapped=-6.171
+.........b34 zob_slope boundary-heavy 20261410: ll=-693.85013348 oracle=-693.85013348 agreement=1.91e-11 min_gap=8.8227 (x8822683 of tol 1e-06); gaps: reversed_sd_vector=-17.033, sd_intercept_plus_log2=-8.823, sd_slope_sign=-24.595, wrong_group_predictor=-11.908, slope_as_intercept=-76.311, atoms_swapped=-25.809
+.........b34 zob_slope boundary-heavy 20261411: ll=-612.14733724 oracle=-612.14733724 agreement=3.01e-11 min_gap=9.2757 (x9275726 of tol 1e-06); gaps: reversed_sd_vector=-25.084, sd_intercept_plus_log2=-9.276, sd_slope_sign=-42.249, wrong_group_predictor=-10.758, slope_as_intercept=-40.184, atoms_swapped=-47.215
+........b34 zip_slope ordinary 20261401: ll=-1143.95374370 oracle=-1143.95374370 agreement=1.00e-10 min_gap=6.5160 (x6516018 of tol 1e-06); gaps: reversed_sd_vector=-14.291, sd_intercept_plus_log2=-13.470, sd_slope_sign=-45.645, wrong_group_predictor=-18.798, slope_as_intercept=-4778.802, zi_halved=-6.516
+........b34 zip_slope ordinary 20261402: ll=-1182.72680317 oracle=-1182.72680317 agreement=7.73e-12 min_gap=5.8556 (x5855628 of tol 1e-06); gaps: reversed_sd_vector=-5.856, sd_intercept_plus_log2=-14.161, sd_slope_sign=-25.581, wrong_group_predictor=-7.952, slope_as_intercept=-244.575, zi_halved=-7.390
+........b34 zip_slope ordinary 20261403: ll=-1163.11202002 oracle=-1163.11202002 agreement=8.19e-12 min_gap=5.6732 (x5673153 of tol 1e-06); gaps: reversed_sd_vector=-13.264, sd_intercept_plus_log2=-13.820, sd_slope_sign=-18.279, wrong_group_predictor=-5.673, slope_as_intercept=-275.381, zi_halved=-6.684
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 5 live tests ran; bridge glue was exercised in this configuration.
+COUNTS passed 106 failed 0 errors 0 skipped 0 blocks 6 
+Julia exit.
+  Activating project at `/private/tmp/claude-503/-Users-z3437171-Dropbox-Github-Local-drmTMB/20a92c74-3258-42f3-8482-db19e9dcad30/scratchpad/b34-julia-oracles-verify/jl`

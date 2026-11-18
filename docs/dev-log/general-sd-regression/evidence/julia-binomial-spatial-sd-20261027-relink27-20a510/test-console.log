@@ -1,0 +1,7 @@
+Test Summary:                  | Pass  Total   Time
+Binomial spatial SD regression |   23     23  41.2s
+Test Summary:                               | Pass  Total  Time
+Binomial spatial random-slope SD regression |   22     22  1.6s
+Test Summary:                                             | Pass  Total  Time
+Binomial structured SD scales use the fitted smooth clamp |    1      1  0.1s
+DRM_RUN start=2026-11-02T13:59:44Z end=2026-11-02T14:00:29Z rc=0 core=240

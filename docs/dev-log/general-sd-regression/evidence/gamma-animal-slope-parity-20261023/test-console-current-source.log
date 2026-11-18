@@ -1,0 +1,6 @@
+julia-gamma-sd: W..........
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. live Julia Gamma animal slope SD estimates agree with native TMB ('test-julia-gamma-sd.R:297:3') - running command ''/Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin/julia' '--startup-file=no' '/Users/z3437171/Library/R/arm64/4.6/library/JuliaCall/julia/install_dependency.jl' '/Library/Frameworks/R.framework/Resources' 2>&1' had status 1
+
+══ DONE ════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,47 @@
+{
+  "test_name": "Poisson animal-intercept A SD regression agrees across engines",
+  "test_path": "tests/testthat/test-julia-poisson-animal-sd-parity.R",
+  "test_sha256": "6cc2972137a4727763ca0791d44d5802d578130a49729000ee819aa9958bdf44",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/poisson-animal-intercept-parity-20261023/test-console.log",
+  "console_log_sha256": "981b7a143cf43eb2ebed662c5ec5dafc42fcc2f89b974cbd196f17022f73e84a",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "backend": "native",
+      "path": "R/drmTMB.R",
+      "sha256": "cd6e1acf38f081c8869f897d24c4a19f06fd4567cc29e0bc8707d9b6a47ac46a"
+    },
+    {
+      "backend": "native",
+      "path": "R/julia-bridge.R",
+      "sha256": "00cc734af9e843cf57e4ac79bd95ec1f89e6aeeddde70bdfa312fa114e87d7c2"
+    },
+    {
+      "backend": "native",
+      "path": "R/julia-simulate.R",
+      "sha256": "21ef50a63f7cb196bfbfca4fe1055585145868cdc08806cce211d00d8e8b32aa"
+    },
+    {
+      "backend": "native",
+      "path": "src/drmTMB.cpp",
+      "sha256": "e42e51c3050bf3c11e000df7966da9ca0db630e5f193ae35f20bc0b40edd8c79"
+    },
+    {
+      "backend": "julia",
+      "path": "src/bridge.jl",
+      "sha256": "717c5debc0ae3e6dd96d2a84dd7f122f5786625ad278613094b105db4c0b09f4"
+    },
+    {
+      "backend": "julia",
+      "path": "src/poisson.jl",
+      "sha256": "297911065a5e49ecb453a1db9c8079022f7abe0b7589e3f20343a8df91034877"
+    },
+    {
+      "backend": "native",
+      "path": "tests/testthat/test-julia-poisson-animal-sd-parity.R",
+      "sha256": "6cc2972137a4727763ca0791d44d5802d578130a49729000ee819aa9958bdf44"
+    }
+  ],
+  "scope_note": "Focused current-candidate evidence only; not a capability-universe completion or interval-calibration claim."
+}

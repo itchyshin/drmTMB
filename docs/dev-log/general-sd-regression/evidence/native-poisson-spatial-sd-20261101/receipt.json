@@ -1,0 +1,52 @@
+{
+  "evidence_id": "native-poisson-spatial-sd-20261101",
+  "engine": "native R/TMB",
+  "family": "poisson (log)",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"spatial_coordinate_intercept\",\"S1/P-temporal\",\"spatial\",\"structured random intercept\",\"coordinates\",\"coordinate covariance field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+      "description": "spatial_coordinate_intercept / coordinates [spatial; structured random intercept; status required] spatial(1 | site, coords = coords), sd(site, level='spatial') ~ z"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"spatial_coordinate_slope\",\"S1/P-temporal\",\"spatial\",\"structured intercept plus one independent numeric slope\",\"coordinates\",\"independent coordinate fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "description": "spatial_coordinate_slope / coordinates [spatial; structured intercept plus one independent numeric slope; status required] slope-only spatial(0 + x | site, coords = coords), sd(site, level='spatial') ~ z"
+    }
+  ],
+  "rows_not_linked": [
+    "spatial_coordinate_slope / mesh_precision (not tested; status blocked_base_plumbing)",
+    "spatial_coordinate_slope row is linked via a slope-ONLY field spatial(0 + x | site); no intercept-plus-slope spatial fit is in this file"
+  ],
+  "command": "NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 Rscript -e devtools::test(filter = '^poisson-spatial-sd-regression$', reporter = 'summary', stop_on_failure = FALSE) [wrapper run_one.sh in the evidence directory adds counts and exit status]",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "branch": "codex/general-sd-regression",
+  "dirty_shared_tree_entries": 1289,
+  "test_path": "tests/testthat/test-poisson-spatial-sd-regression.R",
+  "test_sha256": "01b4857bd86608e681ffb97e15a08d952238d3bcbc5740625dd2db7f40ed09bf",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-20261101/source-manifest.json",
+  "source_manifest_sha256": "e9c139e9ea4ee4bb314231a08a7cf8872cbdcb2db65d975410219a8459f9de21",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/native-poisson-spatial-sd-20261101/test-console.log",
+  "console_log_sha256": "b92a5680eba4f1b69e6bc13693d95761fcac30c4f8410d3d9b6dac2b5e9d078a",
+  "result": {
+    "exit_code": 0,
+    "expectations": 32,
+    "failures": 0,
+    "skipped": 0,
+    "errors": 0,
+    "warnings": 0,
+    "test_blocks": 2
+  },
+  "tolerances_copied_from_test": "convergence==0; predict()==exp(X alpha) tol 1e-8; constant-SD vs scalar logLik tol 2e-5; constant-SD intercept vs log(scalar SD) tol 1e-4; logLik(~z) >= logLik(~1) - 1e-6; z slope > 0 and |z slope - 0.4| < 0.6",
+  "oracle": "none (constant-SD equivalence, nesting and link algebra only)",
+  "evidence_grade": "focused_test",
+  "review_status": "unreviewed",
+  "limits": [
+    "native engine only",
+    "one fixture per cell",
+    "loose recovery bands",
+    "no interval calibration",
+    "no Julia parity",
+    "dirty shared tree",
+    "unreviewed"
+  ]
+}

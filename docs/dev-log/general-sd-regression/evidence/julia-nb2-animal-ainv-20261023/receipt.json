@@ -1,0 +1,16 @@
+{
+  "evidence_id": "julia-nb2-animal-ainv-sd-20261023",
+  "candidate_row": "Julia NB2 univariate mu animal_intercept, q=1, supplied Ainv precision",
+  "candidate_row_key": "[\"Julia\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"animal_intercept\",\"S1/P-temporal\",\"animal\",\"structured random intercept\",\"Ainv_precision\",\"single additive-genetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "test_command": "JULIA_DEPOT_PATH=/private/tmp/general-sd-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 julia --project=. test/test_nb2_animal_sd_regression.jl",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_source_path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/test/test_nb2_animal_sd_regression.jl",
+  "test_source_snapshot": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-20261023/test_nb2_animal_sd_regression.jl",
+  "test_file_sha256": "aecc3454cb860000546e3a980595c29c7d66bc674f5e472835b2787af7fdf236",
+  "source_manifest_sha256": "bcf43bf33207e3d522bcc3fe1632af28bc9df73c31f984c6f700711981e9b105",
+  "console_log_sha256": "b5c729c661b196ab4f71605d0fa8e503463a205f0816db71ec28f8c7ea4f4aa9",
+  "test_result": "19/19 assertions passed in 15.6 seconds on Julia 1.10.0.",
+  "scope": "Same-data supplied A versus equivalent Ainv fit comparison and malformed precision input rejection for one q1 animal mean-intercept route.",
+  "limits": "Focused route-equivalence and input-validation evidence only. No independent likelihood oracle, native TMB parity, profile/bootstrap refit, interval calibration, or general family support claim. Evidence remains unreviewed."
+}

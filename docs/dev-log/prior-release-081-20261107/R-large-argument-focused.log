@@ -1,0 +1,60 @@
+✔ | F W  S  OK | Context
+
+⠏ |          0 | large-argument-kernels                                         
+⠋ |          1 | large-argument-kernels                                         
+⠙ |          2 | large-argument-kernels                                         
+⠹ |          3 | large-argument-kernels                                         
+⠸ |          4 | large-argument-kernels                                         
+⠇ |          9 | large-argument-kernels                                         
+⠹ |         13 | large-argument-kernels                                         
+⠧ |         18 | large-argument-kernels                                         
+⠹ |         23 | large-argument-kernels                                         
+⠦ |         27 | large-argument-kernels                                         
+⠙ |         32 | large-argument-kernels                                         
+⠴ |         36 | large-argument-kernels                                         
+⠙ |         42 | large-argument-kernels                                         
+⠹ |         43 | large-argument-kernels                                         
+⠸ |         44 | large-argument-kernels                                         
+⠼ |         45 | large-argument-kernels                                         
+⠦ |         47 | large-argument-kernels                                         
+⠇ |         49 | large-argument-kernels                                         
+⠋ |         51 | large-argument-kernels                                         
+⠹ |         53 | large-argument-kernels                                         
+⠼ |         55 | large-argument-kernels                                         
+⠴ |         56 | large-argument-kernels                                         
+⠦ |         57 | large-argument-kernels                                         
+⠧ |         58 | large-argument-kernels                                         
+⠇ |         59 | large-argument-kernels                                         
+⠏ |         60 | large-argument-kernels                                         
+⠋ |         61 | large-argument-kernels                                         
+⠙ |         62 | large-argument-kernels                                         
+⠹ |         63 | large-argument-kernels                                         
+⠸ |         64 | large-argument-kernels                                         
+⠸ |         74 | large-argument-kernels                                         
+⠇ |         79 | large-argument-kernels                                         
+⠏ |         80 | large-argument-kernels                                         
+⠋ |         81 | large-argument-kernels                                         
+⠙ |         82 | large-argument-kernels                                         
+⠹ |         83 | large-argument-kernels                                         
+⠸ |         84 | large-argument-kernels                                         
+⠼ |         85 | large-argument-kernels                                         
+⠦ |         87 | large-argument-kernels                                         
+⠴ |        106 | large-argument-kernels                                         
+⠧ |        118 | large-argument-kernels                                         
+⠧ |        138 | large-argument-kernels                                         
+⠸ |        154 | large-argument-kernels                                         
+⠼ |        155 | large-argument-kernels                                         
+⠧ |        158 | large-argument-kernels                                         
+⠋ |        161 | large-argument-kernels                                         
+⠴ |        166 | large-argument-kernels                                         
+⠧ |        168 | large-argument-kernels                                         
+⠙ |        172 | large-argument-kernels                                         
+⠦ |        177 | large-argument-kernels                                         
+⠧ |        208 | large-argument-kernels                                         
+✔ |        225 | large-argument-kernels [10.5s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 10.5 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 225 ]
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

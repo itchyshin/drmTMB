@@ -1,0 +1,8 @@
+5c8945f016257acfa85436b531a2b20a7cfd0918b4e0bfbeba9046c3aacbb17a  R/julia-bridge.R
+a9b2bfa6538da13638df47f7f793b7c2f412d8c80e0d76c508a1640b47ff7817  R/julia-simulate.R
+d81ef23c0409922816e09c41e00e031e9d09624d0f8c0211f11d4d9eef5c401c  R/drmTMB.R
+605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c  R/random-effect-targets.R
+bc9f166945f404950868d14444cfe2ea15c920c8da780d6e2d1f651ae65e6fca  tests/testthat/test-julia-binomial-animal-q2-pedigree.R
+713f54870e3a7784c3cf17c3119b4ff96d88cdbab96aeea3ea782f4f1a3114bd  ../general-sd-julia/src/binomial_sd_regression.jl
+91fc48aab0f5e642f3052b0f954e27ad4a386e4045c67e7f6520427803becc64  ../general-sd-julia/src/inference.jl
+c45fbe81371be4a8baf5e68e31bdb2782d835765955fd03a1b323fbae7eccbef  docs/dev-log/general-sd-regression/evidence/julia-binomial-animal-q2-pedigree-bridge-20261029/test-console.log

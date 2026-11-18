@@ -1,0 +1,15 @@
+{
+  "qualification_registry_sha256": "1ee65b061c35c401bc38ba4de835e3f3eef0b50bcbb75d1196fc7259bdbb1d35",
+  "matching_original_pilot_artifacts": [
+    "R/drmTMB.R",
+    "R/methods.R",
+    "R/profile.R",
+    "src/drmTMB.cpp",
+    "tests/testthat/helper-binomial-sd-regression.R",
+    "/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/library/drmTMB/libs/drmTMB.so",
+    "/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/library/drmTMB/R/drmTMB.rdb",
+    "/home/snakagaw/hsq_work/drmtmb-general-sd-20261017-01/library/drmTMB/R/drmTMB.rdx"
+  ],
+  "original_capsule_sha256": "ede274abff60b948a296a9d09f259249535a8172aaec738f700eeafb5096190e",
+  "harness_archive_sha256": "233cdc76a3e91ad67dc98340cf3c51cabc512a55e71e5a59036d5619f887776a"
+}

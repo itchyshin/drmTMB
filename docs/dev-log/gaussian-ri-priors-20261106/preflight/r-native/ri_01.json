@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "id": "ri_01",
+  "engine": "R/TMB",
+  "dll": "/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T//RtmpjsQQ62/pkgload11aa03da1e4aa/drmTMB.so",
+  "dll_sha256": "21f00baa5d90d681f949fa3bc29b375edbb0a583c829d356d4b9de95fc2e8953",
+  "r_version": "R version 4.6.0 (2026-04-24)",
+  "tmb_version": "1.9.21",
+  "git_head": "34c907e1c0be19553fa2e9153e2d3c2a72c86274",
+  "X_columns": ["x", "I(as.numeric(f == \"B\"))"],
+  "W_columns": ["(Intercept)"],
+  "coordinate_order": ["beta:x", "beta:I(as.numeric(f == \"B\"))", "gamma:(Intercept)", "tau"],
+  "native_order": ["beta_mu", "beta_mu", "beta_sigma", "log_sd_mu"],
+  "tau": 0,
+  "fit": {
+    "objective": 3.7394386379959839,
+    "theta_native": [0.076971624758525467, 0.48535019716445227, -2.2514364982058721, -0.19070152324672227],
+    "theta": [0.076971624758525467, 0.48535019716445227, -2.2514364982058721, 0.8263792063269475],
+    "convergence": 0,
+    "message": "converged (Newton polish; max |gradient| = 4.96e-12)",
+    "data_nll": 2.9854057704125525,
+    "prior": 0.75403286758343124
+  },
+  "point": {
+    "status": "boundary_fixed_only_value",
+    "theta": [0.40000000000000002, -0.29999999999999999, -0.10000000000000001, 0],
+    "data_nll": 14.461278133130522,
+    "prior": 0.69774810689046296,
+    "objective": 15.159026240020985,
+    "derivative_status": "unavailable_at_log_tau_boundary"
+  }
+}

@@ -526,7 +526,7 @@ test_that("structured Julia bridge gates are intentional and pre-JuliaCall", {
       data = transform(dat, y = pmin(pmax(stats::plogis(y), 0.01), 0.99)),
       engine = "julia"
     ),
-    "only for univariate Gaussian, Poisson, NB2, or Gamma"
+    "routes general-covariance structured terms for Gaussian, Poisson, NB2, and Gamma"
   )
   expect_julia_gate(
     "structured_sigma_predictor",

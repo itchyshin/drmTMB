@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-23",
+  "status": "passed",
+  "command": "Rscript -e 'devtools::test(filter = \"gamma-animal-pedigree-sd-regression\", reporter = \"progress\")'",
+  "duration_seconds": 28.6,
+  "result": {
+    "passed": 37,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 0
+  },
+  "source_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "worktree": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "source_manifest": "source-manifest.json",
+  "console_output": "console-output.txt",
+  "test_copy": "test-gamma-animal-pedigree-sd-regression.R",
+  "limits": [
+    "This is one native Gamma animal intercept-plus-independent numeric slope route using a unit-diagonal pedigree covariance.",
+    "The focused test does not establish interval coverage, Julia parity, or broad family/provider/random-effect parity.",
+    "The test was rerun against current R/drmTMB.R and src/drmTMB.cpp; those live files include concurrent broader general-SD edits.",
+    "No new test or fit was run while assembling this evidence package."
+  ]
+}

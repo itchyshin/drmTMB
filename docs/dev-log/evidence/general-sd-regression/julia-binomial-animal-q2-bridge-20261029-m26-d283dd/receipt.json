@@ -1,0 +1,26 @@
+{
+  "evidence_id": "bernoulli-animal-q2-bridge-20261029-m26",
+  "rerecord_of_evidence_id": "bernoulli-animal-q2-bridge-20261029",
+  "prior_receipt_path": "docs/dev-log/evidence/general-sd-regression/julia-binomial-animal-q2-bridge-20261029/r-bridge-live.log",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"devtools::test(filter = \"\"julia-binomial-animal-q2-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-animal-q2-sd.R",
+      "test_sha256": "f7f5ab9dbe5ccad7aca0bbb31a9f177dd588eb7d551e1476c19d0235ac42dc2a",
+      "started_utc": "2026-11-02T13:17:03Z",
+      "ended_utc": "2026-11-02T13:18:28Z",
+      "exit_code": 0,
+      "expectations_passed": 84,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/evidence/general-sd-regression/julia-binomial-animal-q2-bridge-20261029-m26-d283dd/test-console-test-julia-binomial-animal-q2-sd.log",
+      "console_log_sha256": "9d2a85ce1f6236c603c5f6320f6ac75eb87f434e50944545dd0a1c6f00cc7de0"
+    }
+  ],
+  "source_manifest": "docs/dev-log/evidence/general-sd-regression/julia-binomial-animal-q2-bridge-20261029-m26-d283dd/source-manifest.json",
+  "source_manifest_sha256": "cf4886f56980500cae58735f5ef56b7ee578e5d36658ce81af91897212ac2c74",
+  "review_status": "unreviewed"
+}

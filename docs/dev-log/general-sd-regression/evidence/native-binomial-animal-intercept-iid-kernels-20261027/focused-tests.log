@@ -1,0 +1,14 @@
+ℹ Testing drmTMB
+beta-binomial-animal-pedigree-sd-regression: .....................
+binomial-animal-ainv-sd-regression: ...........
+binomial-animal-pedigree-sd-regression: ..........
+binomial-animal-sd-regression: ............
+julia-binomial-animal-sd-regression: ................................S...S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. Binomial animal-intercept SD with Ainv agrees across engines ('test-julia-binomial-animal-sd-regression.R:185:3') - Reason: DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)
+
+2. Binomial animal-slope SD regression passes through the Julia bridge ('test-julia-binomial-animal-sd-regression.R:284:3') - Reason: DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 2 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

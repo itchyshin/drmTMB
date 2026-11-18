@@ -1,0 +1,47 @@
+{
+  "evidence_id": "native-gamma-relmat-q2-sd-20261027-20261101e",
+  "refresh_of_evidence_ids": [
+    "native-gamma-relmat-q2-sd-20261027"
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gamma-relmat-q2-sd-regression.R\", reporter = \"summary\")'",
+  "git_head": "d97caf070dfae99cd475f592fcc656ddc10478ea",
+  "branch": "codex/general-sd-regression",
+  "tree_state": "staged uncommitted batch 17 edits; unreviewed",
+  "run_started_utc": "2026-11-02T05:29:47Z",
+  "run_ended_utc": "2026-11-02T05:30:47Z",
+  "exit_code": 0,
+  "expectations_passed": 42,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/test-console.log",
+  "console_log_sha256": "0198e982faf7fffca75fe08af02df0557e511ec998de0f6aeaf441cf6a04ef55",
+  "test_path": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
+  "test_sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/source-manifest.json",
+  "source_manifest_sha256": "4c5160e64121e3f0305e3ff310f15e738225968093e8bb6e5a5837f42830de6c",
+  "evidence_grade": "focused_test",
+  "not_covered": [
+    "Julia parity",
+    "interval calibration",
+    "coverage"
+  ],
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Independent review confirmed a dense Gamma(log) oracle with an independently optimised latent mode (nlminb with analytic gradient and Hessian, kronecker(diag(2), K^-1) precision, shape = exp(-2 log sigma)). It supports both linked rows: native Gamma log, relmat(1+x|id) with K and with Q, with per-coefficient sd(id, level='relmat', coef=...) formulas on the intercept and slope fields (independent blockdiag(K,K) fields, q=1 per coefficient). Oracle agreement is 1e-5, with mode gradient < 1e-5 and the linear predictor matched. K is permuted relative to the data factor levels, with a non-unit diagonal. The Q fit and the reversed-formula-order fit reproduce the K fit's logLik (1e-5) and SD coefficients (1e-4). The test has no emulated-bug block. A scratch check (no files edited) swapping the w0 and w1 covariates in the oracle moved the oracle by 64.4 log-lik units. The constant-SD limit matches the base fit (1e-5), and refusals and extraction checks are included. Focused test rerun on the current worktree: 42 passed, 0 failed, 0 errors, 0 skipped. Manifest rehash: 3 of 5 entries differ (R/drmTMB.R, R/methods.R, src/drmTMB.cpp). They were changed by later lane commits, so the old states could not be reproduced. The current-file rerun is the evidence. Does not establish the animal route beyond a link-scale prediction check, calibration, coverage or Julia parity. Recovery band 0.3, one fixture. The receipt manifest needs a refresh.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent workflow reviewer (Claude), 2026-11-02",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gamma-relmat-q2-sd-regression.R",
+    "test_sha256": "542cdd0419099134fa1a2609349b422099d5b023302924ee271347637dd98e21",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:00Z",
+    "ended_utc": "2026-11-03T01:10:19Z",
+    "expectations_passed": 42,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/native-gamma-relmat-q2-sd-refresh-20261101e/test-console-rerun-81553915d.log",
+    "console_log_sha256": "ebef53b54176f019e659d506c4a5474c3af7ee71b7a12f675f41e4ff3f6f70de",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

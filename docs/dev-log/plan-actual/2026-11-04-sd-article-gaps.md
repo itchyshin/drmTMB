@@ -1,0 +1,51 @@
+# ML-first SD article and gaps: plan versus current execution
+
+Reader: Shinichi and the maintainer completing integration. Status: WORK IN PROGRESS, 4 November 2026. This record concerns the first delivery; the broader SD programme remains open.
+
+## Provenance
+
+The approved plan is `LOOP/lanes/sd-article-ml/ultra-plan.md`, with its source plan retained at `/Users/z3437171/Documents/Codex/2026-11-04-sd-article-plan/PLAN.md`. The execution lane is `codex/sd-article-ml`, based on R `9e2c03f6fdcb9091418cb629f2ca7f30da695e3d`. Numerical probes use Julia `f4fa3aed451636b6ffa442ce2632515513d23b1f`. The evidence prefix records current byte snapshots and explicitly separates them from final source-freeze execution proof.
+
+## Material differences
+
+| Planned work | Current result | Classification and consequence |
+|:--|:--|:--|
+| Audit source and evidence separately for every required row | All 21,246 rows preserved; six exact source-admission grants for the three article scopes; runtime/output/calibration fields remain separate | As planned; unlinked rows are unresolved evidence, not an implementation absence count |
+| Consume existing structured stored-row exports | R bridge stored `mu` predictions now use validated structured fields; an adjacent Binomial inverse-link bug was found and repaired for explicit newdata too | Bounded neighbour repair; no new family, provider, predictor API or estimator |
+| Reproduce numerical issues before prescribing fixes | Four NB2 seeds retain two nonconverged plain fits with worse objectives; two ZeroOneBeta seeds have mixed current outcomes; historical Binomial -26.9 lacks a seed/log | Probes completed within their stated scope; numerical defects are not declared fixed |
+| Reuse the stored-loglik repair | Fix `8646e8d14` already exists; eight original NB2 probe fits have zero stored/current objective differences; accepted frozen regression passes 38/38 | Reuse and regression, with no new implementation |
+| Admit continuous-predictor Gamma example only after checks | Native and bridge each match their own independent Laplace objective at `1e-5`; estimated ratio about 1.073 versus generating 1.492 | Admitted one-draw example; weak recovery remains visible rather than changing the seed |
+| Match public native and bridge calls | Initial Julia call copied native `control(se=FALSE)` and was refused; default-control rerun passed | API correction with failed attempt retained; no tolerance or data change |
+| Show matched R and direct-Julia guidance | R article expanded; Julia docs built twice and math/layout inspected; raw data pinned to immutable documentation ref e8a666769fc436e73c7121a4c49b1d9c92866776 | HTTP readback and final deployed-page checks await push/integration |
+| Freeze source and binary through final focused checks | First batch's jobs all exited zero, but the LSS runner rebuilt the DLL; the guard rejected that binary transition. A fresh five-job batch exited zero with source and DLL unchanged | Predecessor retained; final batch accepted, without describing the predecessor as a functional-test failure |
+| Walk the neighbours after the first prediction repair | Extreme cancelling fields exposed fitted/residual reconstruction loss; retained-link and retained-response repairs now pass 66 payload expectations plus neighbours/live checks | Bounded numerical-output repair; no changed likelihood or tolerance |
+| Refresh canonical source receipt and complete independent review | Canonical LSS receipt refreshed against Julia c037268c76d29234a2174354ae4319b4d98e7c29; current-source checker PASS. Mechanical, reader and source/math completion reviews report no blockers in scope | Passed within the first delivery; broader programme and integration remain open |
+| Close package and integration gates | Full package check, CI, PR merge, main and public-URL verification remain pending | Open, with no completion claim |
+
+## Boundaries retained
+
+G5 calibration and D-342 REML policy stay deferred. Structured stored conditional output does NOT cover fresh-data conditional extrapolation, conditional standard errors, every family/provider/block combination or direct-Julia conditional fitted values. The six source grants do not replace the original programme's remaining work. No campaign, release or external issue post was started by this report slice.
+
+## Next action
+
+Finish the full package check and CI, then verify gated merges plus main and public URLs before changing this record to complete. The canonical LSS refresh and three bounded completion reviews have passed their stated scopes. The accepted frozen batch and predecessor are retained separately in the evidence prefix; the numerical ledger retains all six ZeroOneBeta attempts.
+
+## Integration update: 4 November 2026, after check2
+
+Check2 finished at 20:47:07 UTC with exit 1, retaining 41,881 passes, 1 failure, 117 warnings and 696 skips. Its documentation, examples and vignettes passed. The sole failure was an unchanged-from-main imported-generic dispatch test assuming a source root from the installed check tree.
+
+This added one bounded integration repair beyond the article/output work: choose the child package-loading path from the actual parent namespace and development flag. The assertions are unchanged. Source and installed-mode tests each pass 3/3, and independent review finds no weakening or lost class coverage. The failed full-check record remains retained rather than relabelled successful. This adjustment changes the test harness only, without changing the statistical scope.
+
+Check3 is PREPARING at this snapshot, estimated 80–120 minutes using check2's roughly 83-minute run; no PID is recorded. R new-head CI and Julia test shards remain pending, while Julia docs and preview checks passed. Full package and integration/main gates remain open. The artifact receipt is `general-sd-regression/evidence/ml-first-20261104/integration-dispatch-repair/receipt.json`; its full-failure pointer preserves the original accounting.
+
+Check3 launched at `2026-11-04T20:50:09Z` and is RUNNING on Totoro under `~/codex-runs/sd-article-ml-20261104-check3`, PID `237407`, for archive SHA-256 `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. Its source-identity record binds seven source/test/doc members to current bytes. The 80–120 minute estimate is retained, with stop/re-estimate at `22:50:09Z`; no outcome is claimed yet.
+
+## Current-ref integration update: 4 November 2026, Julia 1cd856f6
+
+The Julia CI namespace repair is committed as `1cd856f63fa8a2a62a2e181e00790a0d812fb8af`. It removes one conflicting `const D = Distributions` declaration and qualifies 29 dotted references. A real Julia 1.10 red run reproduces the `Main.D` collision. Namespace smokes pass 3/3 on both Julia 1.10 and 1.13, and the AST comparison passes 3/3 with a deliberate-tolerance-change negative control. Independent review finds no blocker within this alias correction. Julia engine source, `Project.toml`, fixtures, fit calls and tolerance assertions are unchanged; the foreign-owned Binomial fixture remains untouched.
+
+These isolated namespace smokes use an existing exploratory guard and do not qualify the full quadrature grid. The prior stable PR shard3 pass remains historical evidence, without attributing it to this change. `integration-julia-namespace-repair/` retains the bounded receipt, red/green/AST logs and review; generated verification-script hashes point to external copies rather than copying the full Julia test source into this R repository.
+
+The canonical LSS public workflow now uses Julia `1cd856f6`. Its runner reports PASS in 59.17 seconds; the refresh guard reports 59.8389805 seconds with source and DLL maps unchanged before and after. The authoritative current-source checker passes 12 labels, 72 rows and 8 checks at tolerance `4e-6`. `lss-1cd-current.json` matches canonical `public-001.json` byte for byte. The new log, guard and refresh script are retained, while c037 and earlier receipts remain unchanged.
+
+Full R check3 remains RUNNING at this snapshot: Totoro PID237407, start `2026-11-04T20:50:09Z`, stop/re-estimate `22:50:09Z`, archive SHA-256 `49a69b322add471e7fd250685becd2da88051f00882aa64526db069dca79674e`. R source-head CI `41910728363` on `6a1b35ea7afd97b96c64b0a68994b4b66b5d61ce` is running. Julia CI `41917279603` and docs `41917279899` are running. The impending R documentation/receipt/generated-view commit adds no model-source change. Package, CI, gated merge, main and public-URL gates remain open; no calibrated-interval, REML or broader-family grant follows from this update.

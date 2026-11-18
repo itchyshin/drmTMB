@@ -1,0 +1,6 @@
+e1fd288e399583807cec2b1641b4d40192194e4156b27610420c47898db03cf0  tests/testthat/test-julia-binomial-nonlogit-correlated-sd-bridge.R
+5ed7523481d50e05adf1567507add8f39185cb7c16d47065d70c8426ad85f451  R/drmTMB.R
+9ef90a0c40419f14125b174cfc31ab3a7df0ec49247f331e834cff1a95141018  R/julia-bridge.R
+6f31fbec4db84555f628572d2906858d132a6e4b7997aa8381f75d166f8569ae  src/drmTMB.cpp
+5d5eeb1dd8b9e4d3f1cc129b2aaf7dc5bb3528df6b6036bf427a411eff90e99c  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/binomial_sd_regression.jl
+63a35dd6d1bddb1d1b3652483d9a174c6f970c2e436d9238a15d452b11133e39  /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia/src/sparse_laplace_glmm.jl

@@ -1,0 +1,17 @@
+ℹ Testing drmTMB
+✔ | F W  S  OK | Context
+
+⠏ |          0 | binomial-relmat-slope-sd                                       
+⠋ |          1 | binomial-relmat-slope-sd                                       
+⠴ |          6 | binomial-relmat-slope-sd                                       
+⠇ |          9 | binomial-relmat-slope-sd                                       
+⠋ |         11 | binomial-relmat-slope-sd                                       
+⠙ |         12 | binomial-relmat-slope-sd                                       
+⠧ |         18 | binomial-relmat-slope-sd                                       
+✔ |         23 | binomial-relmat-slope-sd [12.8s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 12.9 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 23 ]
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

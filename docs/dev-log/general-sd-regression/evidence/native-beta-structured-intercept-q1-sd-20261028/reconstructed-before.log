@@ -1,0 +1,8 @@
+RECONSTRUCTED_BEFORE_REJECTIONrelmat: Beta relmat mu effects currently require an unlabelled
+intercept-plus-one-slope term.
+ℹ Use `relmat(1 + x | id, K = K)` or `Q = Q`; intercept-only, slope-only,
+  multiple-slope and labelled relmat terms remain outside this route.
+RECONSTRUCTED_BEFORE_REJECTIONspatial: Beta coordinate-spatial mu effects require an unlabelled
+intercept-plus-one-slope term.
+ℹ Use `spatial(1 + x | id, coords = coords)`; intercept-only, slope-only,
+  multiple slopes, labels and meshes remain outside this route.

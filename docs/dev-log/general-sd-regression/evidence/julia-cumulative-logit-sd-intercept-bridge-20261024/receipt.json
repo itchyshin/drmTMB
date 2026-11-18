@@ -1,0 +1,46 @@
+{
+  "receipt_id": "julia-cumulative-logit-sd-intercept-bridge-20261024",
+  "date": "2026-10-24",
+  "scope": "One complete-response cumulative-logit ordinary location random-intercept SD regression through the R-to-Julia bridge, compared with native R/TMB on the same synthetic data.",
+  "formula": "bf(score ~ x + (1 | id), sd(id) ~ w)",
+  "synthetic_design": {
+    "groups": 256,
+    "observations_per_group": 30,
+    "seed": 202610206,
+    "true_log_sd_intercept": -1.0,
+    "true_log_sd_slope": 0.5
+  },
+  "engines": {
+    "native": "R/TMB ML-Laplace",
+    "bridge": "R to DRM.jl Julia adaptive quadrature (41 nodes)"
+  },
+  "result": {
+    "assertions": "all focused test expectations passed; 0 failures and no warnings reported",
+    "elapsed_seconds": 65.87,
+    "checks": [
+      "both native TMB and Julia fits converged",
+      "both log likelihoods were finite",
+      "estimated log-SD predictor slope was positive and within 0.2 of 0.5 on both engines",
+      "cross-engine log-SD slope estimates differed by less than 0.3",
+      "group-level SD predictions increased across w = -1, 0, 1 and agreed within 0.35",
+      "four route-admission/refusal expectations passed, including rejection of a mismatched target"
+    ],
+    "passed_expectations": 20,
+    "live_bridge_expectations": 16,
+    "failed_expectations": 0,
+    "warnings": 0
+  },
+  "limitations": [
+    "one synthetic design and seed",
+    "point recovery and public group-SD prediction only",
+    "no interval-coverage validation",
+    "no evidence for correlated, labelled, structured, missing-response, or other cumulative-logit routes",
+    "TMB Laplace and Julia adaptive quadrature are not asserted to have identical likelihood approximations"
+  ],
+  "command": "TMPDIR=/private/tmp/drmtmb-cumlogit-intercept-bridge-20261024 TEMP=/private/tmp/drmtmb-cumlogit-intercept-bridge-20261024 TMP=/private/tmp/drmtmb-cumlogit-intercept-bridge-20261024 PATH='/Users/z3437171/.juliaup/bin':$PATH OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 DRMTMB_JULIA_TESTS=true DRMODELS_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_HOME=/Users/z3437171/.juliaup/bin Rscript -e 'devtools::test(filter = \"julia-cumulative-logit-sd-intercept-parity\", reporter = \"summary\", stop_on_failure = TRUE)'",
+  "successful_log": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-intercept-bridge-20261024/test-run.log",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-intercept-bridge-20261024/source-manifest.json",
+  "source_manifest_sha256": "cd635245b75d8036568efcc7178f9f84a4689ce7b0fa0ea182c5052ff96b6e98",
+  "test_path": "tests/testthat/test-julia-cumulative-logit-sd-intercept-parity.R",
+  "test_sha256": "b120d0311b365efcbc5d9580086bd73580402e87fbfacbacc80dbbd5d66572df"
+}

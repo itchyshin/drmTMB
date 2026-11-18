@@ -1,0 +1,27 @@
+{
+  "evidence_id": "julia-binomial-relmat-rds-20261023-m26",
+  "rerecord_of_evidence_id": "julia-binomial-relmat-rds-20261023",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-rds-20261023/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"PATH=\"\"/Users/z3437171/.juliaup/bin:$PATH\"\" OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true NOT_CRAN=true DRM_JL_PATH=\"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia\"\" JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"\"julia-binomial-relmat-sd-parity\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-relmat-sd-parity.R",
+      "test_sha256": "826eb2eb0bad61b74d08a08fd9f21644a44119c810992704a97b54d79aacea4b",
+      "started_utc": "2026-11-02T13:21:42Z",
+      "ended_utc": "2026-11-02T13:22:34Z",
+      "exit_code": 0,
+      "expectations_passed": 35,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-rds-20261023-m26-c193d0/test-console-test-julia-binomial-relmat-sd-parity.log",
+      "console_log_sha256": "6ce2640d321edb35c61c6351f9f5decf3c26b95ad06eb09e062fee017083fdef"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-relmat-rds-20261023-m26-c193d0/source-manifest.json",
+  "source_manifest_sha256": "7362ccda6d2d1c6208f705340645c4073f8d60290fc098604c0a900d912e3bcc",
+  "review_status": "unreviewed",
+  "claim": "One synthetic Binomial q1 related-matrix location-intercept SD workflow compared across native TMB and Julia; the Julia fit preserves coefficient, prediction, and prediction-table outputs after save/reload, and its marginal simulation matches a seeded independent covariance oracle."
+}

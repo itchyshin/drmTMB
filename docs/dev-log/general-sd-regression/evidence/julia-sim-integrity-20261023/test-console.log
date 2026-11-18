@@ -1,0 +1,6 @@
+=== test_tweedie_sd_simulation_integrity.jl exit=0 ===
+Test Summary:                                           | Pass  Total   Time
+Tweedie predictor-dependent SD simulation and bootstrap |   10     10  35.5s
+=== test_zeroonebeta_sd_simulation_integrity.jl exit=0 ===
+Test Summary:                                          | Pass  Total   Time
+ZeroOneBeta predictor-dependent SD marginal simulation |   10     10  14.6s

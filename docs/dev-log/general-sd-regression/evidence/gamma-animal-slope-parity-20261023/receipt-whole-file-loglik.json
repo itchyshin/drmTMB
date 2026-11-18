@@ -1,0 +1,23 @@
+{
+  "evidence_id": "gamma-current-source-bridge-parity-loglik-20261023",
+  "candidate_rows": [
+    "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"iid_intercept\",\"O1\",\"iid\",\"random intercept\",\"group_factor\",\"one scalar independent field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+    "[\"Julia\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+    "[\"native\",\"gamma\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"phylo_intercept\",\"S1/P-temporal\",\"phylo\",\"structured random intercept\",\"tree\",\"single phylogenetic field\",\"q=1\",\"q=1\",\"1\",\"independent\"]"
+  ],
+  "test_command": "DRM_JL_PATH and DRMODELS_JL_PATH point to paired Julia worktree; DRM_JULIA_TESTS=true NOT_CRAN=true; scratch Julia depot; Rscript --vanilla -e devtools::load_all(); devtools::test(filter=\"julia-gamma-sd\", reporter=\"summary\")",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "test_file": "tests/testthat/test-julia-gamma-sd.R",
+  "test_file_sha256": "e491ba81e5a89f0e7f868cdf543cbad288e4345a06d55aff16597c3262622b02",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023/source-manifest-whole-file-loglik.json",
+  "source_manifest_sha256": "84028814fb727cda7412b7f869db1b400f568de289865a26c5f701e76bd361b5",
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gamma-animal-slope-parity-20261023/test-console-whole-file-loglik-20261023.log",
+  "console_log_sha256": "5a0f60f08dcbee68b02d8d88820eb851872f0bc5a9b95b6b0423b2fb88fdd250",
+  "result": "The full julia-gamma-sd test file passed with five live Julia tests. The live animal-slope test also passed the added same-data logLik comparison at tolerance 1e-3, coefficient and group-SD parity checks, and row-level SD prediction checks.",
+  "limits": "Existing Gamma iid intercept, iid slope and phylogenetic intercept point-parity rows only, for the tested synthetic data and current candidate source. The animal slope fixture is slope-only and does not qualify the separate required intercept-plus-slope row. No interval-calibration or broad family support claim. A known non-fatal JuliaCall LogExpFunctions extension warning occurred."
+}

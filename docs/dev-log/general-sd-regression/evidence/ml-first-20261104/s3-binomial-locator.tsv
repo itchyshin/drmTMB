@@ -1,0 +1,2 @@
+seed	route	status	converged	sd_coefficients	gradient	stored_nll	current_nll	stored_current_delta	minimum_log_sd	maximum_log_sd	max_abs_clamped_vs_exp	max_abs_log_clamp_delta	historical_case_status	error
+20261017	scalar_q1	returned	true	-0.44233988639590605,0.5725841762254277	unavailable	445.20354977930185	445.20354977930185	0.0	-0.44233988639590605	0.13024428982952163	0.0	8.326672684688674e-17	locator_only_not_bound_to_historical_minus26.9	

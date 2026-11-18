@@ -1,0 +1,25 @@
+--- before-owned-neighbor-change
++++ tests/testthat/test-beta-location-scale.R
+@@ -593,11 +593,11 @@
+ 
+   expect_error(
+     drmTMB(
+-      bf(y ~ x + phylo(1 + x | species, tree = tree), sigma ~ x),
++      bf(y ~ x + phylo(0 + x | species, tree = tree), sigma ~ x),
+       family = beta_family(),
+       data = sim$data
+     ),
+-    "intercept-only q1"
++    "intercept.*numeric slope"
+   )
+   expect_error(
+     drmTMB(
+@@ -605,7 +605,7 @@
+       family = beta_family(),
+       data = sim$data
+     ),
+-    "unlabelled q1"
++    "unlabelled"
+   )
+   expect_error(
+     drmTMB(

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "022a71956cd3a9bb12ed19b425e90bea152d5f1383b21595f524cf8cc447d7b2",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Manual factual and prose review using the project's prose-style checklist and the recorded live test outputs.",
+  "genre": "Technical after-task report",
+  "coverage": "Entire saved report, including the formula contract, exact checks, limitations, and next actions.",
+  "score": 2,
+  "style_status": "judged",
+  "score_reason": "The report is specific and evidence-led; its repeated headings come from the required report template rather than generic filler.",
+  "confidence": "medium",
+  "confidence_reason": "The source and test outputs were checked directly, but the report concerns dirty candidate worktrees and one recovery seed.",
+  "examples": [
+    {
+      "location": "Mathematical Contract, paragraph 1",
+      "cue": "The test does not change or normalize the package's general kernel convention.",
+      "impact": "This bounds what the height-one test implies about covariance scaling.",
+      "repair": "no change needed",
+      "line": 13,
+      "quote": "The test does not change or normalize the package's general kernel convention."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits the cross-engine claim to a unit-height synthetic phylogenetic comparison and explicitly withholds calibration and broad-recovery claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Fit coefficients, log likelihoods, convergence, direct Julia assertions, bridge test outcome, and current candidate pins were checked against the recorded command outputs and test source.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no literature citations or external factual references.",
+  "date": "2026-10-19",
+  "calibration_status": "Informal self-review; prior examples seen; no independent style calibration.",
+  "interpretation": "perceived_style_not_authorship"
+}

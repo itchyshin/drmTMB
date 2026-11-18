@@ -6,7 +6,8 @@
 # Two whole-file receipts tie committed parity numbers to the source that
 # produced them:
 #
-#   1. lss-tip-identity  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json
+#   1. lss-tip-identity  docs/dev-log/priors-lane-20261105/release-default-bridge-recheck/current.json
+#      Historical receipt retained at docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json.
 #      Records a SHA-256 for EVERY file under R/ plus the runner
 #      tools/run-julia-phylo-labels-public.R. Verified by
 #      tools/check-julia-phylo-labels-receipt.R, whose --current mode compares
@@ -80,7 +81,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 RECEIPTS=(
-  docs/dev-log/evidence/julia-r-parity/lss-tip-identity/public-001.json
+  docs/dev-log/priors-lane-20261105/release-default-bridge-recheck/current.json
 )
 RUNNER=tools/run-julia-phylo-labels-public.R
 CHECKER=tools/check-julia-phylo-labels-receipt.R

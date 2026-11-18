@@ -1,0 +1,10 @@
+link = :probit
+sd0 = [-0.5349602043459885, 0.6361839424900126]
+sd1 = [-1.0890989130544928, 1.0579580878932806]
+estimated_rho = tanh(fit.theta[end]) = 0.10016814595254393
+link = :cloglog
+sd0 = [-0.752581862893539, 0.5093732458789857]
+sd1 = [-0.75335592433879, 0.42012583330827524]
+estimated_rho = tanh(fit.theta[end]) = 0.12855042664062577
+Test Summary:                                     | Pass  Total   Time
+Binomial non-logit correlated-block SD regression |   28     28  28.8s

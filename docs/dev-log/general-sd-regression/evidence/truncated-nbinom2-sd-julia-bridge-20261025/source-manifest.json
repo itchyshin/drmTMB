@@ -1,0 +1,66 @@
+{
+  "created_utc": "2026-10-25T07:51:47Z",
+  "scope": "Source files for the one complete-positive-count zero-truncated NB2 selected numeric mu slope R/TMB and Julia bridge check.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "b88edb9a03d5b4f361279a40d75859de297f4631333206037cbfbb44c581e075"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "0574e61a0a244eda9da29b66b7d2b225e2356c692550fb0063b819a01b716d23"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "9b7a6fc9c1f9ee84e2fc3b42ec9bcd21ac66688c7bf90d90ae89341d1ea8c370"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "7c1c005d3e36787f422ee7287498a7847608236473c0ab4627f9e146c8a358e6"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "f031582036e262332591de39b46f654d07c6bdf64954e09f1b47a3cbd26ed62f"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "601194d716c3816b787e4360f438a060bae3dd11292a90002d338da7bbb7a2a6"
+    },
+    {
+      "file": "tests/testthat/test-julia-truncated-nbinom2-sd-bridge.R",
+      "sha256": "02324406b4c3d0a5e57163163d87960a984872ecbb48dfb72c43a5479e32ff34"
+    },
+    {
+      "file": "../general-sd-julia/src/DRModels.jl",
+      "sha256": "0cbdfd45584d60ed6489accef52481acb8a350685946bd7e4ed71f8e9d54d0f0"
+    },
+    {
+      "file": "../general-sd-julia/src/bridge.jl",
+      "sha256": "5dce57b711cabd3b21b836f74d1affa247f2ed8d40b4320b5966491051a9ef60"
+    },
+    {
+      "file": "../general-sd-julia/src/adaptive_ghq.jl",
+      "sha256": "54391c732eb738170ab9acbe3043522ee5a4d08fdaf4f593effc932d3d0cc795"
+    },
+    {
+      "file": "../general-sd-julia/src/aghq_1d.jl",
+      "sha256": "f45ca1aba61fb31a8f8bb007536244ed6b7ff11d2d18e1062a42215b4e7603d1"
+    },
+    {
+      "file": "../general-sd-julia/src/negbinomial.jl",
+      "sha256": "60002d5c3baaae17a64ac94aea29120f8b2a864facdc065a70cf34864935e3c0"
+    },
+    {
+      "file": "../general-sd-julia/Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    }
+  ],
+  "test_console": {
+    "file": "docs/dev-log/general-sd-regression/evidence/truncated-nbinom2-sd-julia-bridge-20261025/test-console.log",
+    "sha256": "b246ed32197bc34ecba1917061a550045ec973e1b34321a144ba5775b71eb8bc"
+  }
+}

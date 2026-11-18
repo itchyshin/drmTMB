@@ -1,0 +1,62 @@
+{
+  "evidence_id": "native-gamma-iid-structured-sd-20261101d",
+  "evidence_grade": "focused_test",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:A_covariance\",\"additive independent latent fields\",\"iid:group_factor+animal:A_covariance\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "simultaneous_iid_structured",
+      "provider_input": "iid:group_factor+animal:A_covariance",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "simultaneous_iid_structured",
+      "provider_input": "iid:group_factor+animal:Ainv_precision",
+      "ledger_status": "required"
+    },
+    {
+      "row_key": "[\"native\",\"gamma\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+phylo:tree\",\"additive independent latent fields\",\"iid:group_factor+phylo:tree\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link": "log",
+      "endpoint": "mu",
+      "mechanism_id": "simultaneous_iid_structured",
+      "provider_input": "iid:group_factor+phylo:tree",
+      "ledger_status": "required"
+    }
+  ],
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-gamma-iid-structured-sd-regression.R\", reporter = \"summary\")'",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-gamma-iid-structured-sd-regression.R",
+  "test_sha256": "8950f724e12ebeaee3b3d70e8b12e05b26761be525afe71b76778ce98d54672a",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/gamma-iid-structured-sd-regression-20261101d/source-manifest.json",
+  "source_manifest_sha256": "35ad524313f227606439e78fc5e8c1955447a09e2aaab43b96f82ef784bdc7d0",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/gamma-iid-structured-sd-regression-20261101d/test-console.log",
+  "console_log_sha256": "a8c47de98256fecedcae0786aaae96462172c9c033179391910886c5ca2491bd",
+  "result": {
+    "exit_code": 0,
+    "expectations_passed": 114,
+    "failures": 0,
+    "skips": 0,
+    "julia_live_tests": "0 ran (live Julia not exercised; native R/TMB only)"
+  },
+  "summary": "Gamma(log) native: ordinary (1|g) with sd(g)~zg plus one structured mu intercept with its own sd regression (animal A and Ainv, phylo); dense Laplace oracle logLik 1e-5, A vs Ainv, term order, neighbouring gates closed; all expectations pass, 0 failures, 0 skips.",
+  "not_covered": [
+    "spatial iid-plus-structured fit is in the test but no required row exists for iid+spatial",
+    "pedigree provider input not exercised",
+    "relmat covered by another test file",
+    "single fixed-seed designs; no calibration or coverage",
+    "no Julia parity (live Julia did not run)",
+    "review_status unreviewed"
+  ],
+  "limits": [
+    "no calibration",
+    "no Julia parity",
+    "review_status unreviewed",
+    "tolerances as written in the test, not loosened"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "supervisor_exit": 124,
+  "wall_time_cap_seconds": 300,
+  "completed": 5,
+  "attempted": 6,
+  "valid_intervals": 5,
+  "all_attempts_file": "attempts-with-interruption.csv",
+  "raw_completed_file": "attempts.csv",
+  "calibration_claim": false,
+  "runner_sha256": "c93c0baffbd07560ca19e031f56f5dfa1259a13558eb5b90861cf90f0fe377db"
+}
