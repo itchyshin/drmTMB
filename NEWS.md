@@ -13,6 +13,11 @@
   residual SD although only the sum of the group and residual variances is
   identified (#1776).
 
+* A stats family named `betabinomial` or `skewnormal` now aborts with class
+  `drmTMB_foreign_near_name_family` and tells you to use
+  `drmTMB::beta_binomial()` or `drmTMB::skew_normal()`. It is not fitted.
+  Other unsupported names keep the generic family list (#1764).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
