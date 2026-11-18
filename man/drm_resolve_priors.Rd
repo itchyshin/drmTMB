@@ -13,7 +13,19 @@ drm_resolve_priors(formula, family = stats::gaussian(), data, priors)
 
 \item{data}{A data frame with complete model variables.}
 
-\item{priors}{A collection created by \code{\link[=drm_priors]{drm_priors()}}.}
+\item{priors}{A collection created by \code{\link[=drm_priors]{drm_priors()}}, or a data frame with
+\code{prior}, \code{class}, and \code{coef} columns. The table supports \code{normal(mean, sd)}
+and \code{ridge(lambda)} for \code{class = "fixef"}, and \code{gamma(mean, shape)} for
+\code{class = "ranef_sd"}. Optional \code{dpar} defaults to \code{"mu"} and optional
+\code{group} names a grouping factor. A blank fixed-effect coefficient selects
+non-intercept coefficients; a blank SD selector selects all supported
+mean random-intercept SDs. Overlapping targets and a coefficient literally
+named \code{"all"} are rejected. The Gamma table uses mean and shape, so
+\code{rate = shape / mean}; the constructor uses shape and rate. The table
+covers a subset of glmmTMB's prior classes and distributions. Random
+slopes and correlation priors are not supported. Fitted objects retain
+the original table in \code{attr(fit$priors, "input_table")}; \code{update()}
+replays the resolved targets without expanding broad selectors again.}
 }
 \value{
 A data frame identifying the resolved targets. Fixed-effect rows
@@ -26,8 +38,13 @@ unavailable fields recorded as \code{NA}.
 \description{
 Resolve selectors against the same Gaussian or binomial design builders used
 by \code{\link[=drmTMB]{drmTMB()}}. Models require complete data and unit weights. Gaussian
-identity models can include one independent mean random intercept; other
-random effects and random-effect SD formulas are not supported with priors.
+identity models can include one or two independent mean random intercepts
+with distinct grouping partitions. Normal coefficient priors also support
+one phylogenetic mean intercept with a matching phylogenetic SD regression
+and fixed residual-SD predictors. The prior targets \code{mu} or \code{sigma}
+coefficients, not the phylogenetic SD-regression coefficients. The
+R-to-Julia bridge is not yet qualified for this phylogenetic prior route.
+Other structured combinations and random slopes are not supported with priors.
 A Gamma SD prior identifies the exact group and intercept and reports shape
 and rate on the natural SD scale. The native and Julia engines support this
 prior for the Gaussian mean random-intercept model described above.
@@ -38,6 +55,24 @@ No automatic centring or scaling is performed.
 d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
 p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
 drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+table <- data.frame(prior = "normal(0,2)", class = "fixef", coef = "x")
+drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, table)
 d$group <- factor(c(1, 1, 2, 2))
 drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
+sd_table <- data.frame(prior = "gamma(0.6666666666666666,2)",
+                       class = "ranef_sd", coef = "group")
+drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, sd_table)
+\dontrun{
+tree <- ape::read.tree(text = "((a:0.5,b:0.5):0.5,(c:0.5,d:0.5):0.5);")
+dat <- data.frame(y = c(.2,.7,.35,1.1,.8,1.25,1.4,1.1,1.9,1.5,2.15,.5),
+                  x = c(-1.2,-.8,-.7,-.2,.1,.15,.4,.6,.8,1,1.2,-.3),
+                  sp = c("a","a","b","b","b","c","c","d","d","d","d","a"),
+                  z = c(-1,-1,-.35,-.35,-.35,.4,.4,1,1,1,1,-1))
+f <- bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ x,
+        sd(sp, level = "phylogenetic") ~ z)
+pri <- data.frame(prior = c("normal(.1,.7)", "normal(-.2,.5)"),
+                  class = "fixef", coef = "x", dpar = c("mu", "sigma"))
+drm_resolve_priors(f, gaussian(), dat, pri)
+fit <- drmTMB(f, data = dat, priors = pri)
+}
 }

@@ -1,0 +1,3 @@
+Executed on Totoro with one thread and the stated R and Julia sources:
+Rscript --no-init-file tools/run-julia-phylo-labels-public.R /home/snakagaw/codex-phylo-prior-receipt-8e-j6a1c-v2-20261116/julia /home/snakagaw/codex-phylo-prior-receipt-8e-j6a1c-v2-20261116/feature-receipt.json tree
+Rscript --no-init-file tools/check-julia-phylo-labels-receipt.R /home/snakagaw/codex-phylo-prior-receipt-8e-j6a1c-v2-20261116/feature-receipt.json --current --self-test

@@ -173,8 +173,9 @@ test_that("live fixed-only call retains v1 handshake", {
   p <- drm_priors(drm_prior_normal("mu", "x", sd=2))
   fit <- drmTMB(bf(y ~ x + (1 | site), sigma ~ 1), data=d, priors=p, engine="julia")
   expect_identical(fit$bridge$fixed_prior_contract, "fixed_effect_priors_v1")
-  # Exact field set from the pinned v1 backend and the existing conditional wrapper.
-  expect_setequal(names(fit$bridge), c("family", "coef_names", "coefficients", "coef", "vcov", "vcov_names", "loglik", "aic", "bic", "df", "nobs", "converged", "convergence_status", "estim_method", "ml_loglik", "infocrit_basis", "iterations", "marginal", "fitted", "residuals", "sigma", "corpairs", "dpars", "fixed_prior_contract", "resolved_priors", "fixed_prior_penalty", "likelihood_gradient", "prior_gradient", "penalized_gradient", "penalized_objective", "gradient", "gradient_names", "grad_source", "diagnostics", "coef_label_contract", "raw_coef_names", "coef_name_map", "conditional_re"))
+  # Exact v1 field set from the current paired Julia main and conditional wrapper.
+  # fit_failed fields were already present on Julia main before this prior change.
+  expect_setequal(names(fit$bridge), c("family", "coef_names", "coefficients", "coef", "vcov", "vcov_names", "loglik", "aic", "bic", "df", "nobs", "converged", "convergence_status", "estim_method", "ml_loglik", "infocrit_basis", "iterations", "marginal", "fitted", "residuals", "sigma", "corpairs", "dpars", "fixed_prior_contract", "resolved_priors", "fixed_prior_penalty", "likelihood_gradient", "prior_gradient", "penalized_gradient", "penalized_objective", "gradient", "gradient_names", "grad_source", "diagnostics", "coef_label_contract", "raw_coef_names", "coef_name_map", "conditional_re", "fit_failed", "fit_failed_message"))
   expect_null(fit$bridge$prior_contract)
   expect_identical(fit$estimator, "MAP")
 })

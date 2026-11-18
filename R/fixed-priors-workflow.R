@@ -21,6 +21,46 @@ drm_validate_fixed_prior_designs <- function(spec) {
   invisible(NULL)
 }
 
+# Narrow phylogenetic scale-regression shape for normal coefficient priors.
+drm_fixed_prior_phylo_lss <- function(priors, formula, family_type) {
+  normal <- vapply(priors, function(p) identical(p$kind, "normal"), logical(1))
+  if (!identical(family_type, "gaussian") || !all(normal)) {
+    return(FALSE)
+  }
+  entries <- formula$entries
+  dpars <- vapply(entries, `[[`, character(1), "dpar")
+  mu <- which(dpars == "mu")
+  sigma <- which(dpars == "sigma")
+  if (length(entries) != 3L || length(mu) != 1L || length(sigma) != 1L) {
+    return(FALSE)
+  }
+  structured <- entries[[mu]]$structured
+  if (length(structured) != 1L ||
+        !identical(structured[[1L]]$type, "phylo") ||
+        !identical(structured[[1L]]$coef_names, "(Intercept)") ||
+        !is.null(structured[[1L]]$covariance_label)) {
+    return(FALSE)
+  }
+  grp <- structured[[1L]]$group
+  expected <- c("mu", "sigma", paste0("sd_phylo(", grp, ")"))
+  if (!identical(sort(dpars), sort(expected))) {
+    return(FALSE)
+  }
+  other_structured <- vapply(entries[-mu], function(e) {
+    length(e$structured) > 0L
+  }, logical(1))
+  if (any(other_structured)) {
+    return(FALSE)
+  }
+  calls <- unlist(lapply(formula$calls, all.names), use.names = FALSE)
+  forbidden <- c(
+    "||", "spatial", "animal", "relmat", "corpair", "mi",
+    "meta_V", "meta_known_V", "sd1", "sd2", "ar1", "ou", "homtoep"
+  )
+  sum(calls == "|") == 1L && sum(calls == "phylo") == 1L &&
+    !any(calls %in% forbidden)
+}
+
 drm_validate_fixed_prior_request <- function(priors, formula, family, data,
                                              REML = FALSE, estimator = "ml",
                                              penalty = NULL, impute = NULL,
@@ -41,7 +81,11 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
       (ft == "binomial" && !identical(family$link, "logit"))) {
     cli::cli_abort("Fixed-effect priors currently support univariate Gaussian identity and binomial logit models only.")
   }
+  phylo_lss <- drm_fixed_prior_phylo_lss(priors, formula, ft)
   allowed <- if (ft == "gaussian") c("mu", "sigma") else "mu"
+  if (phylo_lss) {
+    allowed <- c(allowed, vapply(formula$entries, `[[`, character(1), "dpar"))
+  }
   if (any(!vapply(formula$entries, function(e) e$dpar %in% allowed, logical(1)))) {
     cli::cli_abort("Fixed-effect priors do not support this distributional-parameter formula yet.")
   }
@@ -58,15 +102,28 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
       mu <- formula$entries[[mu_idx]]
       random <- extract_random_mu_terms(mu$rhs, "mu")
       bars <- unlist(lapply(formula$calls, all.names), use.names = FALSE)
-      random_ok <- sum(bars == "|") == 1L && length(random$terms) == 1L &&
-        identical(random$terms[[1L]]$type, "intercept") &&
-        is.null(random$terms[[1L]]$covariance_label) &&
+      random_ok <- length(random$terms) %in% 1:2 &&
+        sum(bars == "|") == length(random$terms) &&
+        all(vapply(random$terms, function(term)
+          identical(term$type, "intercept") && is.null(term$covariance_label), logical(1))) &&
+        !anyDuplicated(vapply(random$terms, `[[`, character(1), "group")) &&
         !"|" %in% all.names(random$rhs)
+      if (random_ok && length(random$terms) == 2L) {
+        groups <- vapply(random$terms, `[[`, character(1), "group")
+        if (all(groups %in% names(data)) && !anyNA(data[groups])) {
+          first <- data[[groups[[1L]]]]
+          second <- data[[groups[[2L]]]]
+          paired <- unique(data.frame(first = first, second = second))
+          if (nrow(paired) == length(unique(first)) && nrow(paired) == length(unique(second)))
+            cli::cli_abort("Prior-enabled random-intercept groups must define distinct partitions; identical partitions do not identify separate SDs.")
+        }
+      }
     }
   }
-  if (!random_ok || any(calls %in% excluded) || !is.null(impute) ||
-      any(vapply(formula$entries, function(e) length(e$structured) > 0L, logical(1)))) {
-    cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one Gaussian mean random intercept, without structured or missing-predictor terms.")
+  if ((!phylo_lss && (!random_ok || any(calls %in% excluded) ||
+      any(vapply(formula$entries, function(e) length(e$structured) > 0L, logical(1))))) ||
+      !is.null(impute)) {
+    cli::cli_abort("Fixed-effect priors support fixed-effect-only models or one or two distinct Gaussian mean random intercepts, without structured or missing-predictor terms.")
   }
   if (has_sd && !"|" %in% calls)
     cli::cli_abort("SD priors require one Gaussian mean random intercept.")
@@ -89,8 +146,13 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #'
 #' Resolve selectors against the same Gaussian or binomial design builders used
 #' by [drmTMB()]. Models require complete data and unit weights. Gaussian
-#' identity models can include one independent mean random intercept; other
-#' random effects and random-effect SD formulas are not supported with priors.
+#' identity models can include one or two independent mean random intercepts
+#' with distinct grouping partitions. Normal coefficient priors also support
+#' one phylogenetic mean intercept with a matching phylogenetic SD regression
+#' and fixed residual-SD predictors. The prior targets `mu` or `sigma`
+#' coefficients, not the phylogenetic SD-regression coefficients. The
+#' R-to-Julia bridge is not yet qualified for this phylogenetic prior route.
+#' Other structured combinations and random slopes are not supported with priors.
 #' A Gamma SD prior identifies the exact group and intercept and reports shape
 #' and rate on the natural SD scale. The native and Julia engines support this
 #' prior for the Gaussian mean random-intercept model described above.
@@ -99,7 +161,19 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' @param formula A [drm_formula()] or [bf()] specification.
 #' @param family Gaussian identity or binomial logit family.
 #' @param data A data frame with complete model variables.
-#' @param priors A collection created by [drm_priors()].
+#' @param priors A collection created by [drm_priors()], or a data frame with
+#'   `prior`, `class`, and `coef` columns. The table supports `normal(mean, sd)`
+#'   and `ridge(lambda)` for `class = "fixef"`, and `gamma(mean, shape)` for
+#'   `class = "ranef_sd"`. Optional `dpar` defaults to `"mu"` and optional
+#'   `group` names a grouping factor. A blank fixed-effect coefficient selects
+#'   non-intercept coefficients; a blank SD selector selects all supported
+#'   mean random-intercept SDs. Overlapping targets and a coefficient literally
+#'   named `"all"` are rejected. The Gamma table uses mean and shape, so
+#'   `rate = shape / mean`; the constructor uses shape and rate. The table
+#'   covers a subset of glmmTMB's prior classes and distributions. Random
+#'   slopes and correlation priors are not supported. Fitted objects retain
+#'   the original table in `attr(fit$priors, "input_table")`; `update()`
+#'   replays the resolved targets without expanding broad selectors again.
 #' @return A data frame identifying the resolved targets. Fixed-effect rows
 #'   report the distributional parameter, coefficient, matrix column, prior
 #'   mean, SD, precision and selection reason. An SD-prior row reports the
@@ -111,14 +185,34 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
 #' d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
 #' p <- drm_priors(drm_prior_normal("mu", "x", sd = 2))
 #' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, p)
+#' table <- data.frame(prior = "normal(0,2)", class = "fixef", coef = "x")
+#' drm_resolve_priors(bf(mu = y ~ x, sigma = ~ 1), gaussian(), d, table)
 #' d$group <- factor(c(1, 1, 2, 2))
 #' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
+#' sd_table <- data.frame(prior = "gamma(0.6666666666666666,2)",
+#'                        class = "ranef_sd", coef = "group")
+#' drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, sd_table)
+#' \dontrun{
+#' tree <- ape::read.tree(text = "((a:0.5,b:0.5):0.5,(c:0.5,d:0.5):0.5);")
+#' dat <- data.frame(y = c(.2,.7,.35,1.1,.8,1.25,1.4,1.1,1.9,1.5,2.15,.5),
+#'                   x = c(-1.2,-.8,-.7,-.2,.1,.15,.4,.6,.8,1,1.2,-.3),
+#'                   sp = c("a","a","b","b","b","c","c","d","d","d","d","a"),
+#'                   z = c(-1,-1,-.35,-.35,-.35,.4,.4,1,1,1,1,-1))
+#' f <- bf(y ~ x + phylo(1 | sp, tree = tree), sigma ~ x,
+#'         sd(sp, level = "phylogenetic") ~ z)
+#' pri <- data.frame(prior = c("normal(.1,.7)", "normal(-.2,.5)"),
+#'                   class = "fixef", coef = "x", dpar = c("mu", "sigma"))
+#' drm_resolve_priors(f, gaussian(), dat, pri)
+#' fit <- drmTMB(f, data = dat, priors = pri)
+#' }
 drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors) {
   family <- drm_eval_family_arg(substitute(family), parent.frame())
   if (!inherits(formula, "drm_formula") || !is.data.frame(data)) {
     cli::cli_abort("Supply a {.fn bf} formula and a data frame.")
   }
   data <- drm_droplevels_fixed_predictors(data, formula)
+  table_input <- is.data.frame(priors)
+  if (table_input) priors <- drm_normalize_prior_table(priors, formula, family, data)
   drm_validate_fixed_prior_request(priors, formula, family, data)
   env <- drm_formula_env(formula, parent.frame())
   spec <- if (identical(drm_family_type(family), "gaussian")) {
@@ -130,6 +224,8 @@ drm_resolve_priors <- function(formula, family = stats::gaussian(), data, priors
   }
   drm_validate_fixed_prior_designs(spec)
   spec <- drm_apply_fixed_priors_spec(spec, priors)
+  if (table_input && !is.null(spec$resolved_priors) && any(spec$resolved_priors$coefficient == "all"))
+    cli::cli_abort("Prior tables cannot select a coefficient literally named {.val all}.")
   if (is.null(spec$resolved_sd_prior)) return(spec$resolved_priors)
   if (is.null(spec$resolved_priors)) return(spec$resolved_sd_prior)
   fixed <- spec$resolved_priors

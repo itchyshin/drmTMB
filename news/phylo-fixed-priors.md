@@ -1,0 +1,1 @@
+* Gaussian models with one phylogenetic mean intercept and a matching phylogenetic SD regression can use normal priors on `mu` and `sigma` coefficients. Estimates are penalized point estimates. Priors do not target the phylogenetic SD-regression coefficients.

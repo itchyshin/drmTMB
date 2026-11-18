@@ -76,3 +76,20 @@ test_that("sha256_file_portable handles paths containing spaces", {
     .sha256_test_oracle_abc
   )
 })
+
+test_that("system hash backends handle escaped filename output", {
+  art <- .sha256_test_artifact_dir()
+  name <- if (.Platform$OS.type == "windows") "back slash.txt" else {
+    paste0("back", intToUtf8(92), "slash.txt")
+  }
+  path <- file.path(art$dir, name)
+  writeBin(charToRaw("abc"), path)
+  for (backend in c("sha256sum", "shasum")) {
+    if (nzchar(Sys.which(backend))) {
+      expect_identical(
+        drmTMB:::sha256_file_portable(path, backend),
+        .sha256_test_oracle_abc
+      )
+    }
+  }
+})
