@@ -6,7 +6,7 @@
 # lives in codecov-upload.yaml and runs only after a successful main-branch
 # producer. Pull requests never obtain upload credentials.
 #
-# Shards reuse DRMTMB_TEST_SHARD="k/4" so the four jobs partition the suite
+# The first 1/8 shard is split into 1/16 and 9/16; nine jobs partition the suite
 # exactly once (tests/testthat/helper-shard-util.R). One OS, one R version:
 # repeating Ubuntu/macOS/Windows or attaching coverage to R-CMD-check would
 # double-count. Existing R-CMD-check shards are unchanged and do not upload
@@ -90,17 +90,27 @@ jobs:
     # is 65 vs 109 min for shard 2/4 across those runs, so runner speed, not
     # a hang, sets the tail. 180 matches R-CMD-check's unsharded job.
     timeout-minutes: 180
-    name: ubuntu-24.04 (release) coverage shard ${{ matrix.shard }}/4
+    name: ubuntu-24.04 (release) coverage shard ${{ matrix.shard }}/9
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        include:
+          - {shard: 1, spec: "1/16"}
+          - {shard: 2, spec: "2/8"}
+          - {shard: 3, spec: "3/8"}
+          - {shard: 4, spec: "4/8"}
+          - {shard: 5, spec: "5/8"}
+          - {shard: 6, spec: "6/8"}
+          - {shard: 7, spec: "7/8"}
+          - {shard: 8, spec: "8/8"}
+          - {shard: 9, spec: "9/16"}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
-      DRMTMB_TEST_SHARD: ${{ format('{0}/4', matrix.shard) }}
+      DRMTMB_TEST_SHARD: ${{ matrix.spec }}
+      DRMTMB_COVERAGE_ID: ${{ matrix.shard }}
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -126,6 +136,9 @@ jobs:
             echo "branch_head=${branch_head}"
             echo "pr_head=${{ github.event.pull_request.head.sha }}"
             echo "shard=${DRMTMB_TEST_SHARD}"
+            echo "coverage_id=${DRMTMB_COVERAGE_ID}"
+            echo "run_id=${GITHUB_RUN_ID}"
+            echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
             echo "event=${{ github.event_name }}"
             echo "ref=${{ github.ref }}"
             if [ -n "${branch_head}" ] && [ "${checkout_sha}" != "${branch_head}" ]; then
@@ -200,8 +213,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: main-coverage-shard-${{ matrix.shard }}
-          path: cobertura.xml
+          name: main-coverage-shard-${{ github.run_attempt }}-${{ matrix.shard }}
+          path: |
+            cobertura.xml
+            coverage-identity.txt
           if-no-files-found: error
           retention-days: 7
 

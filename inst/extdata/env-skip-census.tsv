@@ -213,6 +213,9 @@ test-family-dpq-batchB.R	suggests-package	environment	runs	2
 test-family-dpq-batchC.R	suggests-package	environment	runs	2
 test-family-dpq-batchD.R	cran-lane	environment	runs	2
 test-family-dpq-batchD.R	suggests-package	environment	runs	3
+test-fix-1702-sha256-portable.R	external-tool	environment	runs	3
+test-fix-1702-sha256-portable.R	runtime-conditional	runtime	depends	3
+test-fix-1702-sha256-portable.R	suggests-package	environment	runs	2
 test-fixed-priors-gaussian-ranef.R	engine-drm-jl	environment	skips	1
 test-formula-double-bar.R	cran-lane	environment	runs	2
 test-formula-grouping-guard.R	cran-lane	environment	runs	1
@@ -569,6 +572,10 @@ test-julia-predict-newdata.R	engine-drm-jl	environment	skips	2
 test-julia-predict-newdata.R	suggests-package	environment	runs	1
 test-julia-predict-quantile.R	engine-drm-jl	environment	skips	1
 test-julia-predict-quantile.R	suggests-package	environment	runs	3
+test-julia-prior-v2-contract.R	env-var-optin	environment	skips	6
+test-julia-prior-v2-contract.R	runtime-conditional	runtime	depends	2
+test-julia-prior-v2-duplicate.R	env-var-optin	environment	skips	1
+test-julia-prior-v2-duplicate.R	suggests-package	environment	runs	1
 test-julia-q2-phylo-point-export.R	engine-drm-jl	environment	skips	2
 test-julia-q2-phylo-point-export.R	suggests-package	environment	runs	4
 test-julia-reml-biv-residual.R	engine-drm-jl	environment	skips	1
@@ -710,6 +717,7 @@ test-phase18-skew-normal-fixed-effect.R	os	environment	runs	1
 test-phase18-spatial-q2-grid-writer.R	cran-lane	environment	runs	1
 test-phase18-student-shape-runner.R	os	environment	runs	1
 test-phase18-task-seed-registry.R	build-premise	build	skips	2
+test-phylo-fixed-priors.R	engine-drm-jl	environment	skips	1
 test-phylo-gaussian.R	cran-lane	environment	runs	2
 test-phylo-interaction.R	cran-lane	environment	runs	4
 test-phylo-penalized-map.R	cran-lane	environment	runs	3
@@ -747,6 +755,9 @@ test-poisson-spatial-sd-sensitivity-b26.R	cran-lane	environment	runs	2
 test-poisson-structured-q2-sd-regression.R	cran-lane	environment	runs	4
 test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
+test-prior-table-bridge.R	env-var-optin	environment	skips	1
+test-prior-table-bridge.R	suggests-package	environment	runs	1
+test-prior-table-oracle.R	suggests-package	environment	runs	5
 test-profile-parallel.R	build-premise	build	skips	1
 test-profile-parallel.R	cran-lane	environment	runs	2
 test-profile-parallel.R	os	environment	runs	5
@@ -765,6 +776,7 @@ test-provenance.R	runtime-conditional	runtime	depends	1
 test-q2-sd-marginal-simulate.R	cran-lane	environment	runs	5
 test-q2-sd-marginal-simulate.R	suggests-package	environment	runs	2
 test-q2-sd-missing-include.R	cran-lane	environment	runs	4
+test-ranef-sd-priors.R	suggests-package	environment	runs	3
 test-reader-journeys.R	build-premise	build	skips	2
 test-reader-journeys.R	suggests-package	environment	runs	1
 test-reader-vignette-contracts.R	build-premise	build	skips	1
@@ -818,5 +830,7 @@ test-temporal-homtoep-map.R	build-premise	build	skips	1
 test-temporal-homtoep-parser.R	build-premise	build	skips	1
 test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
+test-two-ri-sd-priors.R	env-var-optin	environment	skips	1
+test-two-ri-sd-priors.R	suggests-package	environment	runs	7
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14

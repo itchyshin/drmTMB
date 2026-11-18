@@ -257,19 +257,25 @@ information matrix is not positive definite the standard errors are \code{NA}
 with a \code{drmTMB_mspl_wald_unavailable} warning rather than a fabricated
 number.}
 
-\item{priors}{Optional fixed-effect normal priors or ridge penalties created
-by \code{\link[=drm_priors]{drm_priors()}}. Supports Gaussian identity and binomial logit models
-with complete data and unit weights; Gaussian models may also include one
-independent mean random intercept. The Julia bridge currently refuses
-factor predictors in Gaussian mean random-intercept formulas.
-Select distributional parameters and coefficient columns explicitly;
-\code{\link[=drm_resolve_priors]{drm_resolve_priors()}} previews those selections. Active priors produce
+\item{...}{Reserved for future model options.}
+
+\item{priors}{Optional fixed-effect normal priors, ridge penalties, or a
+Gamma prior on a random-intercept SD, created by \code{\link[=drm_priors]{drm_priors()}} or
+specified in a prior table; see \code{\link[=drm_resolve_priors]{drm_resolve_priors()}} for table syntax.
+Fixed-effect priors support Gaussian identity and binomial logit models
+with complete data and unit weights; Gaussian models may also include one or
+two independent mean random intercepts with distinct grouping partitions. The SD prior
+supports a complete-data, unit-weight Gaussian ML model with one or two
+unlabelled independent mean random intercepts, selected by group and
+\code{(Intercept)}. It acts on the
+natural SD scale and can be combined with fixed-effect priors. The Julia
+bridge currently refuses factor predictors in Gaussian mean
+random-intercept formulas. \code{\link[=drm_resolve_priors]{drm_resolve_priors()}} previews selections.
+Active priors produce
 penalized/MAP point estimates. Covariance is local penalized-Hessian
 curvature, not calibrated sampling covariance. Confidence intervals and
 likelihood comparisons are not implemented. Cannot be combined with
 \code{REML}, \code{estimator = "mspl"}, or \code{penalty}.}
-
-\item{...}{Reserved for future model options.}
 }
 \value{
 A \code{drmTMB} fit object.

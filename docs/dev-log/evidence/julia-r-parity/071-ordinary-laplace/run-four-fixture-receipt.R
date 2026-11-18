@@ -24,7 +24,7 @@ pkg_version <- function(package) {
   as.character(utils::packageVersion(package))
 }
 runner_path <- sub("^--file=", "", commandArgs()[grepl("^--file=", commandArgs())][[1L]])
-runner_sha256 <- unname(tools::sha256sum(runner_path)[[1L]])
+runner_sha256 <- drmTMB:::sha256_file_portable(runner_path)
 drmtmb_tree_clean_at_start <- tree_clean(root, exclude_receipts = TRUE)
 drm_jl_tree_clean_at_start <- tree_clean(jl)
 dir.create(out, recursive = TRUE, showWarnings = FALSE)
