@@ -116,6 +116,46 @@ drm_aicc_from_loglik <- function(loglik, k, n, what = "object") {
   aic + 2 * k * (k + 1) / (n - k - 1)
 }
 
+# Row names of the observations that entered the likelihood. Native fits store
+# that data frame on `$data` after complete-case filtering, so two fits that
+# drop different rows of one source keep different names even when `nobs`
+# matches (#1661). Fits without a data frame (nothing to compare) are skipped.
+drm_likelihood_row_names <- function(object) {
+  data <- object$data
+  if (!is.data.frame(data)) {
+    return(NULL)
+  }
+  rownames(data)
+}
+
+drm_abort_unless_same_likelihood_rows <- function(a, b, fn) {
+  rows_a <- drm_likelihood_row_names(a)
+  rows_b <- drm_likelihood_row_names(b)
+  if (is.null(rows_a) || is.null(rows_b)) {
+    return(invisible(NULL))
+  }
+  if (identical(rows_a, rows_b)) {
+    return(invisible(NULL))
+  }
+  if (
+    !anyDuplicated(rows_a) &&
+      !anyDuplicated(rows_b) &&
+      identical(sort(rows_a), sort(rows_b))
+  ) {
+    return(invisible(NULL))
+  }
+  only_a <- length(setdiff(rows_a, rows_b))
+  only_b <- length(setdiff(rows_b, rows_a))
+  cli::cli_abort(
+    c(
+      "{.fn {fn}}: the two fits do not use the same rows.",
+      "x" = "{only_a} row name{?s} appear only in one fit and {only_b} only in the other.",
+      "i" = "A likelihood ratio needs one set of observations. Missing values must drop the same rows in both fits."
+    ),
+    class = "drmTMB_lrt_row_mismatch"
+  )
+}
+
 # Nested likelihood-ratio test for two ML fits on the same data.
 # DRM.jl comparison.jl:65-78:
 #   dof     = dof(full) - dof(reduced)          (must be > 0)
@@ -136,6 +176,7 @@ drm_lrtest <- function(reduced, full) {
       "{.fn lrtest}: the two fits use different numbers of observations ({n_reduced} vs {n_full}); a likelihood ratio needs the same data."
     )
   }
+  drm_abort_unless_same_likelihood_rows(reduced, full, "lrtest")
   drm_lrtest_reml_guard(reduced, full)
   drm_lrtest_map_guard(reduced, full)
   df <- as.numeric(attr(ll_full, "df")) - as.numeric(attr(ll_reduced, "df"))
