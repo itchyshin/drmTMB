@@ -136,6 +136,7 @@ drm_lrtest <- function(reduced, full) {
       "{.fn lrtest}: the two fits use different numbers of observations ({n_reduced} vs {n_full}); a likelihood ratio needs the same data."
     )
   }
+  drm_lrtest_same_likelihood_rows(reduced, full)
   drm_lrtest_reml_guard(reduced, full)
   drm_lrtest_map_guard(reduced, full)
   df <- as.numeric(attr(ll_full, "df")) - as.numeric(attr(ll_reduced, "df"))
@@ -157,6 +158,51 @@ drm_lrtest <- function(reduced, full) {
 # default `drm_warn_information_criterion()` uses).
 drm_fit_estimator <- function(object) {
   if (is.null(object$estimator)) "ML" else object$estimator
+}
+
+# Original data-row indices that contributed to this fit's likelihood (same rows
+# masked by response inclusion and strictly positive weights).
+drm_lrtest_likelihood_rows <- function(object) {
+  md <- object$missing_data
+  if (!is.list(md) || is.null(md$original_row) || is.null(md$model_row)) {
+    return(NULL)
+  }
+  n <- length(md$model_row)
+  observed <- if (!is.null(md$observed_y1) && !is.null(md$observed_y2)) {
+    as.logical(md$observed_y1 | md$observed_y2)
+  } else if (!is.null(md$observed_y)) {
+    as.logical(md$observed_y)
+  } else {
+    rep(TRUE, n)
+  }
+  weights <- object$model$tmb_data$weights
+  if (is.null(weights)) {
+    weights <- rep(1, n)
+  } else {
+    weights <- as.numeric(weights)
+    if (length(weights) != n) {
+      weights <- rep(1, n)
+    }
+  }
+  active <- observed & (weights > 0)
+  sort(as.integer(md$original_row[active]))
+}
+
+drm_lrtest_same_likelihood_rows <- function(reduced, full) {
+  rows_reduced <- drm_lrtest_likelihood_rows(reduced)
+  rows_full <- drm_lrtest_likelihood_rows(full)
+  if (is.null(rows_reduced) || is.null(rows_full)) {
+    return(invisible(NULL))
+  }
+  if (!identical(rows_reduced, rows_full)) {
+    cli::cli_abort(
+      c(
+        "{.fn lrtest}: the two fits must use the same contributing observations, not only the same {.arg nobs}.",
+        "i" = "Contributing row indices differ ({length(rows_reduced)} vs {length(rows_full)}); check missing responses or zero weights that drop different rows in each model."
+      )
+    )
+  }
+  invisible(NULL)
 }
 
 # Mean-structure fingerprint (DRM.jl `_mean_structure`, comparison.jl:117-126):

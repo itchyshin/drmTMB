@@ -143,6 +143,7 @@ lrt_boundary <- function(full, reduced, q = 1L) {
       "i" = "Nested models are compared on one data set; check for rows dropped by missing values in one fit only."
     ))
   }
+  drm_lrtest_same_likelihood_rows(reduced, full)
   df <- df_full - df_reduced
   if (df != q) {
     cli::cli_warn(c(
