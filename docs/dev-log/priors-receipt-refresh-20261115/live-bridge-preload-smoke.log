@@ -1,0 +1,35 @@
+ℹ Starting Julia (first call in a session takes ~30-60 s; later calls are
+  fast)...
+Julia version 1.12.6 at location /home/snakagaw/.julia/juliaup/julia-1.12.6+0.x64.linux.gnu/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+LIVE_BRIDGE_SMOKE_OK
+Julia exit.
+Precompiling packages...
+   1130.2 ms  ✓ InlineStrings
+    858.5 ms  ✓ SentinelArrays
+    272.6 ms  ✓ InlineStrings → SerializationExt
+   1390.4 ms  ✓ StructUtils
+   1311.9 ms  ✓ CategoricalArrays
+    280.9 ms  ✓ StructUtils → StructUtilsTablesExt
+    359.2 ms  ✓ CategoricalArrays → CategoricalArraysSentinelArraysExt
+    474.7 ms  ✓ CategoricalArrays → CategoricalArraysStatsBaseExt
+   2201.8 ms  ✓ StringManipulation
+   7635.6 ms  ✓ Parsers
+    309.5 ms  ✓ InlineStrings → ParsersExt
+  11630.6 ms  ✓ PrettyTables
+   6302.9 ms  ✓ JSON
+    367.5 ms  ✓ JSON → JSONSerializationExt
+    380.9 ms  ✓ CategoricalArrays → CategoricalArraysJSONExt
+    529.9 ms  ✓ Conda
+  18868.1 ms  ✓ DataFrames
+    875.1 ms  ✓ StructUtils → StructUtilsDataFramesExt
+   3650.7 ms  ✓ RCall
+  19 dependencies successfully precompiled in 39 seconds. 68 already precompiled.
+  Activating project at `~/codex-receipt-r5d-j21-20261115/julia`
+Precompiling packages...
+   9062.8 ms  ✓ DRModels
+  1 dependency successfully precompiled in 19 seconds. 100 already precompiled.
+real 80.30
+user 133.15
+sys 21.24

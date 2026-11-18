@@ -103,7 +103,11 @@ r071_reconcile_all <- function(root = ".", drmjl_path,
   drmjl_sha <- r071_sha(drmjl_path)
   runner_path <- file.path(root, "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/run-four-fixture-receipt.R")
   if (!file.exists(runner_path)) stop("missing receipt runner: ", runner_path, call. = FALSE)
-  runner_sha256 <- unname(tools::sha256sum(runner_path)[[1L]])
+  helper <- file.path(root, "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace/r071-file-sha256.R")
+  if (!exists("r071_file_sha256", mode = "function", inherits = TRUE)) {
+    sys.source(helper, envir = globalenv(), keep.source = FALSE)
+  }
+  runner_sha256 <- r071_file_sha256(runner_path)
   parts <- lapply(r071_fixtures(), r071_validate_fixture, out = out, drmtmb_sha = drmtmb_sha, drmjl_sha = drmjl_sha, runner_sha256 = runner_sha256)
   names(parts) <- r071_fixtures()
   profile <- do.call(rbind, lapply(parts, `[[`, "profile"))

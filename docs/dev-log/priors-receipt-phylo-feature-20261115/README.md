@@ -1,0 +1,3 @@
+# Phylogenetic-prior branch receipt
+
+The no-prior labelled-tree Gaussian fixture ran in isolated Totoro checkouts at R `7bf63a960169bb53bac4f73ac642f1cd83b1bb29` and Julia `ec420ac23918d57c877099851d45100e87aa51da`. The runner completed in 108.959 seconds; all eight checks passed and the checker rejected 12 mutated receipts. Receipt SHA-256: `652a21e186c200a6e302c39990c11edf79f07a69fcaef9dce87ea866b2d0d57c`. An independent audit matched all 68 R hashes, 127 Julia hashes and the runner hash to those commits. Source status files were empty before and after; the recorded Julia environment hashes match. The copied Julia manifest does not attest every dependency or binary. This fixture does not establish fitted-prior parity or uncertainty calibration.
