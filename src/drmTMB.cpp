@@ -177,11 +177,14 @@ Type drm_gamma_mi_log_integrand(
     int include_y)
 {
   Type x = exp(u);
+  // Stirling-remainder form of the Gamma log-density (as
+  // drm_gamma_log_density); the textbook lgamma(shape) form cancels terms of
+  // size shape * log(shape) at small CV (#1548).
   Type log_gamma =
-    (shape - Type(1.0)) * u -
-    x / scale -
-    lgamma(shape) -
-    shape * log(scale);
+    Type(0.5) * log(shape) - Type(0.5) * log(Type(2.0) * M_PI) -
+    drm_stirling_remainder(shape) -
+    shape * drm_expm1_minus_x(u - log(shape * scale)) -
+    u;
   Type log_y = Type(0.0);
   if (include_y == 1) {
     Type mu_q = mu_base + beta_x * (x - x_base);
@@ -749,6 +752,10 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(prior_beta_mean);
   DATA_VECTOR(prior_beta_sd);
   DATA_IVECTOR(prior_beta_normalized);
+  DATA_IVECTOR(prior_sd_index);
+  DATA_VECTOR(prior_sd_shape);
+  DATA_VECTOR(prior_sd_rate);
+  DATA_VECTOR(prior_sd_lgamma);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -1990,12 +1997,9 @@ Type objective_function<Type>::operator()()
         );
         if (mi_observed(i) == 1) {
           Type x_i = mi_x(i);
+          // Stable at large phi (#1548), as are the quadrature copies below.
           Type log_density =
-            lgamma(alpha_i + beta_i) -
-            lgamma(alpha_i) -
-            lgamma(beta_i) +
-            (alpha_i - Type(1.0)) * log(x_i) +
-            (beta_i - Type(1.0)) * log(Type(1.0) - x_i);
+            drm_beta_log_density(x_i, alpha_i, beta_i);
           // (Dinnage audit M1): weights(i) scales the WHOLE row
           // contribution; apply it to the imputation-prior term here and
           // move it OUTSIDE the mixture/quadrature sum below (log_denom),
@@ -2007,11 +2011,7 @@ Type objective_function<Type>::operator()()
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
             Type x_q = mi_quad_nodes(q);
             Type log_density =
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_q) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+              drm_beta_log_density(x_q, alpha_i, beta_i);
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
             Type log_y = drm_response_log_density(model_type, y(i), mu_q, log_sigma(i), V_known(i), Type(0.0), 0);
@@ -2040,11 +2040,7 @@ Type objective_function<Type>::operator()()
           for (int q = 0; q < mi_quad_nodes.size(); ++q) {
             Type x_q = mi_quad_nodes(q);
             Type log_density =
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_q) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+              drm_beta_log_density(x_q, alpha_i, beta_i);
             Type term = mi_quad_weights(q) * exp(log_density);
             prior_norm += term;
             prior_mean += x_q * term;
@@ -2121,13 +2117,10 @@ Type objective_function<Type>::operator()()
           } else if (asDouble(x_i) >= 1.0) {
             log_density = log_zoi_mi + log_coi_mi;
           } else {
+            // Stable at large phi (#1548), as are the quadrature copies below.
             log_density =
               log_one_minus_zoi_mi +
-              lgamma(alpha_i + beta_i) -
-              lgamma(alpha_i) -
-              lgamma(beta_i) +
-              (alpha_i - Type(1.0)) * log(x_i) +
-              (beta_i - Type(1.0)) * log(Type(1.0) - x_i);
+              drm_beta_log_density(x_i, alpha_i, beta_i);
           }
           // (Dinnage audit M1): weights(i) scales the WHOLE row
           // contribution; apply it to the imputation-prior term here and
@@ -2147,11 +2140,7 @@ Type objective_function<Type>::operator()()
             } else {
               log_density =
                 log_one_minus_zoi_mi +
-                lgamma(alpha_i + beta_i) -
-                lgamma(alpha_i) -
-                lgamma(beta_i) +
-                (alpha_i - Type(1.0)) * log(x_q) +
-                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+                drm_beta_log_density(x_q, alpha_i, beta_i);
             }
             Type mu_q = mu(i) +
               beta_mu(mi_col) * (x_q - X_mu(i, mi_col));
@@ -2188,11 +2177,7 @@ Type objective_function<Type>::operator()()
             } else {
               log_density =
                 log_one_minus_zoi_mi +
-                lgamma(alpha_i + beta_i) -
-                lgamma(alpha_i) -
-                lgamma(beta_i) +
-                (alpha_i - Type(1.0)) * log(x_q) +
-                (beta_i - Type(1.0)) * log(Type(1.0) - x_q);
+                drm_beta_log_density(x_q, alpha_i, beta_i);
             }
             Type term = mi_quad_weights(q) * exp(log_density);
             prior_norm += term;
@@ -2692,11 +2677,9 @@ Type objective_function<Type>::operator()()
         Type scale_i = mi_mean(i) * sigma_gamma_mi * sigma_gamma_mi;
         if (mi_observed(i) == 1) {
           Type x_i = mi_x(i);
+          // Stable at small CV (#1548); scale_i = mean * sigma^2 as before.
           Type log_density =
-            (shape_gamma_mi - Type(1.0)) * log(x_i) -
-            x_i / scale_i -
-            lgamma(shape_gamma_mi) -
-            shape_gamma_mi * log(scale_i);
+            drm_gamma_log_density(x_i, mi_eta(i), log_sigma_gamma_mi);
           // (Dinnage audit M1): weights(i) scales the WHOLE row
           // contribution; apply it to the imputation-prior term here and
           // move it OUTSIDE the mixture/quadrature sum below (log_denom),
@@ -7216,5 +7199,13 @@ Type objective_function<Type>::operator()()
   }
   nll += fixed_prior_penalty;
   REPORT(fixed_prior_penalty);
+  Type sd_prior_penalty = Type(0.0);
+  for (int i = 0; i < prior_sd_index.size(); ++i) {
+    Type eta = log_sd_mu(prior_sd_index(i));
+    sd_prior_penalty += prior_sd_rate(i) * exp(eta) - (prior_sd_shape(i) - Type(1)) * eta -
+      prior_sd_shape(i) * log(prior_sd_rate(i)) + prior_sd_lgamma(i);
+  }
+  nll += sd_prior_penalty;
+  REPORT(sd_prior_penalty);
   return nll;
 }

@@ -47,9 +47,21 @@ drm_pkg_candidates <- function(rel, start_dir = getwd()) {
   unique(out)
 }
 
+# covr runs tests from <lib>/drmTMB/drmTMB-tests/testthat, so `../../<rel>`
+# lands in the installed package, which also ships DESCRIPTION, NAMESPACE,
+# and NEWS.md but has no R/, man/, or src/ sources. Callers want the source
+# tree (test-newton-polish-guard.R passes it to pkgload::load_all()), so a
+# candidate whose root carries an installed-package Meta/package.rds is never
+# a hit.
+drm_is_installed_pkg_root <- function(candidate, rel) {
+  root <- substr(candidate, 1L, nchar(candidate) - nchar(rel) - 1L)
+  file.exists(file.path(root, "Meta", "package.rds"))
+}
+
 drm_pkg_path <- function(rel, start_dir = getwd()) {
   candidates <- drm_pkg_candidates(rel, start_dir = start_dir)
-  exists <- file.exists(candidates)
+  exists <- file.exists(candidates) &
+    !vapply(candidates, drm_is_installed_pkg_root, logical(1), rel = rel)
   hit <- candidates[exists]
   if (length(hit) == 0L) {
     stop(

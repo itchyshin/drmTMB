@@ -192,6 +192,17 @@ test_that("drm_pkg_path resolves checkout, Rcheck 00_pkg_src, and win-builder si
     drm_pkg_path(rel, start_dir = file.path(rcheck_c, "tests")),
     r_c
   )
+
+  # D: covr::package_coverage(); cwd = <lib>/drmTMB/drmTMB-tests/testthat.
+  # `../..` is the installed package, which has its own DESCRIPTION; the
+  # source tree is planted at <lib>/00_pkg_src/drmTMB.
+  lib_d <- file.path(tmp, "covr", "package")
+  write_pkg_file(file.path(lib_d, "drmTMB", "DESCRIPTION"))
+  write_pkg_file(file.path(lib_d, "drmTMB", "Meta", "package.rds"))
+  desc_d <- write_pkg_file(file.path(lib_d, "00_pkg_src", "drmTMB", "DESCRIPTION"))
+  covr_wd <- file.path(lib_d, "drmTMB", "drmTMB-tests", "testthat")
+  dir.create(covr_wd, recursive = TRUE)
+  expect_equal(drm_pkg_path("DESCRIPTION", start_dir = covr_wd), desc_d)
 })
 
 # ---------------------------------------------------------------------------
