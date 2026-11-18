@@ -335,6 +335,15 @@ drm_impute_family_type <- function(family) {
     drm_abort_base_beta_as_family()
   }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
+    # #1749: the same identity-link contract as drm_family_type() (#1482).
+    # A log or inverse link used to be fitted on the identity scale with no message.
+    if (!identical(family$link, "identity")) {
+      cli::cli_abort(c(
+        "{.pkg drmTMB} Gaussian models currently require {.code gaussian()}, identity link.",
+        "x" = "Received Gaussian link {.val {family$link}}.",
+        "i" = "The implemented Gaussian contract is {.code mu = X_mu beta_mu} on the identity scale."
+      ))
+    }
     return("gaussian")
   }
   # The logit-only restriction here is DELIBERATE (design 252 §6), not an

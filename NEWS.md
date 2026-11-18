@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* `impute_model()` and `drm_impute_family_type()` now refuse a Gaussian
+  imputation family whose link is not identity, and the message names that
+  link. Plain `gaussian()` imputation is unchanged (refs #1749).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
