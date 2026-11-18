@@ -45,31 +45,21 @@ jobs:
             # suite in a single job (shard 0 == unsharded), exactly as before.
             echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"},{"os":"macos-latest","r":"release"},{"os":"windows-latest","r":"release"}],"shard":[0]}' >> "$GITHUB_OUTPUT"
           else
-            # Routine runs shard the suite 4 ways. Measured 2026-09-03 on this
-            # repo's own check log: of a 44 min check, `checking tests` alone was
-            # 30m56s (10:59:14 -> 11:30:10), against 209s to install, 49s of
-            # examples and 124s of vignettes. Tests are ~75% of the wall clock,
-            # so they are the only part worth splitting -- cutting vignettes
-            # would have bought about two minutes.
-            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}],"shard":[1,2,3,4]}' >> "$GITHUB_OUTPUT"
+            # A 150-minute 4-way check was cancelled while tests were still
+            # running. Split the same radix-ordered test files eight ways;
+            # hosted completion times for this split have not yet been measured.
+            echo 'matrix={"config":[{"os":"ubuntu-latest","r":"release"}],"shard":[1,2,3,4,5,6,7,8]}' >> "$GITHUB_OUTPUT"
           fi
 
   R-CMD-check:
     needs: os-matrix
     # Keep public check names stable while selecting the known passing Linux image.
     runs-on: ${{ matrix.config.os == 'ubuntu-latest' && 'ubuntu-24.04' || matrix.config.os }}
-    # Six Ubuntu runs in August 2026 took 43m35s to 46m34s; a prior
-    # 45-minute limit cancelled main run 30847977891.
-    # The four PR shards keep their 75-minute limit. The full unsharded
-    # dispatch/tag matrix gets 180 minutes: run 42191037809 cancelled all
-    # three OS jobs about 75 minutes after they started, while R CMD check
-    # was active (Windows 72m38s, macOS 72m14s, Ubuntu 64m46s in that
-    # step). This timing is consistent with the old job limit; GitHub's
-    # logs do not identify the cancellation initiator. Keep the complete
-    # test suite and report another timeout rather than treating it as green.
-    timeout-minutes: ${{ matrix.shard == 0 && 180 || 75 }}
+    # Give every routine shard the same bounded 150-minute limit. Full
+    # dispatch and tag jobs remain unsharded with their existing 180-minute limit.
+    timeout-minutes: ${{ matrix.shard == 0 && 180 || 150 }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.shard != 0 && format(' shard {0}/4', matrix.shard) || '' }}
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.shard != 0 && format(' shard {0}/8', matrix.shard) || '' }}
 
     strategy:
       fail-fast: false
@@ -79,10 +69,10 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       NOT_CRAN: true
-      # "k/4" on routine runs, empty on the shard 0 (release/tag) combos above.
+      # "k/8" on routine runs, empty on the shard 0 (release/tag) combos above.
       # tests/testthat.R treats an unset/empty value as "run everything", so a
       # local devtools::test() and the CRAN lane are both unaffected.
-      DRMTMB_TEST_SHARD: ${{ matrix.shard != 0 && format('{0}/4', matrix.shard) || '' }}
+      DRMTMB_TEST_SHARD: ${{ matrix.shard != 0 && format('{0}/8', matrix.shard) || '' }}
 
     steps:
       - uses: actions/checkout@v6.0.2
@@ -252,6 +242,25 @@ jobs:
         with:
           upload-snapshots: true
 
+      - name: Record successful shard
+        if: ${{ github.event_name == 'pull_request' && matrix.shard != 0 }}
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/r-check-proof"
+          printf '%s:%s:%s\n' "$RUN_ID" "$RUN_ATTEMPT" "$SHARD" > "$RUNNER_TEMP/r-check-proof/proof.txt"
+
+      - name: Upload successful shard record
+        if: ${{ github.event_name == 'pull_request' && matrix.shard != 0 }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: r-check-proof-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.shard }}
+          path: ${{ runner.temp }}/r-check-proof/proof.txt
+          if-no-files-found: error
+          retention-days: 1
+
   # THE BLIND SPOT THIS CLOSES. Every job above checks the built TARBALL, and
   # .Rbuildignore removes tools/, docs/, pkgdown/, bench/, _pkgdown.yml and the
   # simulation-results tree under inst/sim. A test whose premise is such a path hits
@@ -312,3 +321,46 @@ jobs:
 
       - name: Run the tests R CMD check cannot reach
         run: Rscript --no-init-file tools/run-source-tree-tests.R
+
+  # Check all eight records for this run attempt before producing the four
+  # existing required contexts. A partial rerun must rerun all shard jobs.
+  validate-shard-records:
+    if: ${{ always() }}
+    needs: [os-matrix, R-CMD-check]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require successful matrix
+        env:
+          MATRIX_RESULT: ${{ needs.R-CMD-check.result }}
+          SETUP_RESULT: ${{ needs.os-matrix.result }}
+        run: test "$SETUP_RESULT" = success && test "$MATRIX_RESULT" = success
+      - uses: actions/checkout@v6.0.2
+      - name: Test shard-record validator
+        run: python3 tools/tests/test_r_check_shards.py
+      - name: Download shard records
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: r-check-proof-${{ github.run_id }}-${{ github.run_attempt }}-*
+          path: ${{ runner.temp }}/r-check-proofs
+      - name: Require all eight distinct shard records
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: bash tools/validate-check-shards.sh
+
+  required-shard-rollup:
+    if: ${{ always() }}
+    needs: [validate-shard-records]
+    runs-on: ubuntu-24.04
+    name: ubuntu-latest (release) shard ${{ matrix.shard }}/4
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - name: Require validated shard records
+        env:
+          VALIDATION_RESULT: ${{ needs.validate-shard-records.result }}
+        run: test "$VALIDATION_RESULT" = success

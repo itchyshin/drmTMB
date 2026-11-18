@@ -96,8 +96,69 @@ r071_s7_read_source_pins <- function(path) {
 
 r071_s7_file_sha256 <- function(path) {
   if (!file.exists(path)) stop("S7 coverage writer cannot hash absent file: ", path, call. = FALSE)
-  if (exists("r071_s7_sha256", mode = "function", inherits = TRUE)) return(r071_s7_sha256(path))
-  unname(tools::sha256sum(path)[[1L]])
+  if (exists("r071_s7_sha256", mode = "function", inherits = TRUE)) {
+    return(r071_s7_sha256(path))
+  }
+  if (exists("r071_file_sha256", mode = "function", inherits = TRUE)) {
+    return(r071_file_sha256(path))
+  }
+  if (requireNamespace("drmTMB", quietly = TRUE) &&
+      exists("sha256_file_portable", asNamespace("drmTMB"), inherits = FALSE)) {
+    return(drmTMB:::sha256_file_portable(path))
+  }
+  laplace_dir <- NULL
+  n <- sys.nframe()
+  if (n > 0L) {
+    for (fr in rev(seq_len(n))) {
+      frame <- sys.frames()[[fr]]
+      for (name in c("ofile", "file")) {
+        script <- tryCatch(get(name, envir = frame, inherits = FALSE), error = function(e) NULL)
+        if (!(is.character(script) && length(script) == 1L && !is.na(script) && nzchar(script))) next
+        script <- chartr("\\", "/", script)
+        if (!grepl("071-ordinary-laplace/[^/]+$", script)) next
+        hit <- tryCatch(dirname(normalizePath(script, mustWork = TRUE)), error = function(e) NULL)
+        if (!is.null(hit)) {
+          laplace_dir <- hit
+          break
+        }
+      }
+      if (!is.null(laplace_dir)) break
+    }
+  }
+  rel <- "docs/dev-log/evidence/julia-r-parity/071-ordinary-laplace"
+  if (is.null(laplace_dir)) {
+    root <- Sys.getenv("DRMTMB_ROOT", unset = "")
+    if (nzchar(root) && dir.exists(file.path(root, rel))) {
+      laplace_dir <- normalizePath(file.path(root, rel), mustWork = TRUE)
+    }
+  }
+  if (is.null(laplace_dir)) {
+    if (!dir.exists(rel)) {
+      stop("cannot locate 071 ordinary-Laplace evidence directory", call. = FALSE)
+    }
+    laplace_dir <- normalizePath(rel, mustWork = TRUE)
+  }
+  helper <- file.path(laplace_dir, "r071-file-sha256.R")
+  if (file.exists(helper)) {
+    load_env <- environment()
+    if (requireNamespace("drmTMB", quietly = TRUE)) {
+      sys.source(helper, envir = load_env, keep.source = FALSE)
+    } else {
+      if (!nzchar(Sys.getenv("DRMTMB_ROOT", unset = ""))) {
+        Sys.setenv(DRMTMB_ROOT = normalizePath(
+          file.path(laplace_dir, "..", "..", "..", "..", ".."),
+          mustWork = TRUE
+        ))
+      }
+      sys.source(helper, envir = load_env, keep.source = FALSE)
+    }
+    return(r071_file_sha256(path))
+  }
+  stop(
+    "S7 coverage writer needs r071_s7_sha256, drmTMB::sha256_file_portable, ",
+    "or the 071 SHA-256 helper script.",
+    call. = FALSE
+  )
 }
 
 r071_s7_read_source_tree_check <- function(path, source_root, drmjl_source_root,

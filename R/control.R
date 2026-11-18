@@ -255,6 +255,7 @@ drm_control <- function(
   }
   if (identical(optimizer_method, "nlminb")) {
     optimizer <- drm_control_optimizer(optimizer, optimizer_preset)
+    optimizer <- drm_sanitize_nlminb_controls(optimizer)
   } else {
     if (!identical(optimizer_preset, "default")) {
       cli::cli_abort("{.arg optimizer_preset} must be {.val default} when {.arg optimizer_method} selects {.fn stats::optim}.")
@@ -529,4 +530,31 @@ drm_control_flag <- function(x, name) {
     cli::cli_abort("{.arg {name}} must be {.code TRUE} or {.code FALSE}.")
   }
   x
+}
+
+# Drop unrecognized `nlminb()` control names before optimization so only the
+# package's classed warning fires, not `nlminb`'s generic one.
+drm_sanitize_nlminb_controls <- function(optimizer) {
+  if (length(optimizer) == 0L) {
+    return(optimizer)
+  }
+  valid <- drm_nlminb_control_names()
+  julia_bridge <- drm_optimizer_julia_bridge_names()
+  nms <- names(optimizer)
+  unknown <- is.na(pmatch(nms, valid)) & !(nms %in% julia_bridge)
+  if (!any(unknown)) {
+    return(optimizer)
+  }
+  for (nm in nms[unknown]) {
+    suggestion <- drm_suggest_closest_name(nm, valid)
+    bullets <- c(
+      "Unknown {.fn stats::nlminb} control element {.val {nm}} will be ignored.",
+      "i" = "Use documented {.fn stats::nlminb} control settings; see {.fn ?stats::nlminb}."
+    )
+    if (!is.null(suggestion) && length(suggestion) > 0L) {
+      bullets <- c(bullets, "i" = "Did you mean {.val {suggestion}}?")
+    }
+    cli::cli_warn(bullets, class = "drmTMB_unknown_optimizer_control")
+  }
+  optimizer[!unknown]
 }
