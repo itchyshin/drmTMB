@@ -267,17 +267,15 @@ test_that("zero-inflated Poisson rejects unsupported or invalid inputs", {
     ),
     "one-sided"
   )
-  expect_error(
-    drmTMB(
+  zip_intercept <- drm_build_poisson_spec(
       bf(y ~ x + (1 | id), zi ~ 1),
-      family = stats::poisson(link = "log"),
       data = dat
-    ),
-    "Zero-inflated Poisson random effects"
   )
+  expect_identical(zip_intercept$model_type, "zi_poisson")
+  expect_equal(zip_intercept$random$mu$n_re, 2L)
   expect_error(
     drmTMB(
-      bf(y ~ x + (0 + x | id), zi ~ 1),
+      bf(y ~ x + (1 + x | id), zi ~ 1),
       family = stats::poisson(link = "log"),
       data = dat
     ),

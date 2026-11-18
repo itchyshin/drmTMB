@@ -1,0 +1,16 @@
+{
+  "status": "feasibility_only_not_calibration",
+  "original_attempts": 6,
+  "original_completed": 5,
+  "original_supervisor_cap_seconds": 300,
+  "original_exit": 124,
+  "retry_attempts": 1,
+  "retry_completed": 1,
+  "retry_supervisor_cap_seconds": 90,
+  "retry_exit": 0,
+  "retry_wall_seconds": 78.54,
+  "unique_seeds": 6,
+  "total_fit_attempts": 7,
+  "completed_with_valid_intervals": 6,
+  "all_attempts_retained": true
+}

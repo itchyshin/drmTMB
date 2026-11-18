@@ -283,29 +283,29 @@ convention, `logit P(Y <= j) = alpha_j - x'beta`, and the two log-likelihoods
 agree to five decimal places with matching-sign coefficients. Warm serving
 and skin contact both push ratings toward "more bitter."
 
-The comparison that makes this pair valuable runs the other way. `ordinal`
-can add a scale formula to this same model, and it fits:
+`ordinal` can also add a scale formula to this same model, and since #966
+`drmTMB` fits the same location-scale model through a discrimination formula
+`disc ~ ...`:
 
 ```{r comparison4-scale-comparator, eval = has_ordinal}
 cmp4_scale <- ordinal::clm(rating ~ temp + contact, scale = ~ temp, data = wine)
-as.numeric(logLik(cmp4_scale))
-```
-
-`cumulative_logit()` does not accept the equivalent formula in `drmTMB` 0.7.0:
-
-```{r comparison4-drmtmb-scale, eval = has_ordinal, error = TRUE}
-drmTMB(
-  bf(mu = rating ~ temp + contact, sigma = ~ temp),
+fit4_disc <- drmTMB(
+  bf(rating ~ temp + contact, disc ~ temp),
   data = wine, family = cumulative_logit()
 )
+c(
+  ordinal = as.numeric(logLik(cmp4_scale)),
+  drmTMB = as.numeric(logLik(fit4_disc))
+)
+c(ordinal_zeta = unname(cmp4_scale$zeta), drmTMB_disc = unname(coef(fit4_disc, "disc")))
 ```
 
-`cumulative_logit()` currently fits only a `mu` location formula; a scale or
-discrimination formula for this family is not yet implemented. If you need
-that, `ordinal::clm(scale = ~ ...)` is the tool that already has it. This
-asymmetry is worth sitting with: the two packages' surfaces do not coincide,
-and they fail to coincide in the direction that costs `drmTMB` something,
-which is the direction worth believing.
+The conversion is a sign flip. `ordinal::clm()` models the latent scale
+`s = exp(z'zeta)`, while `drmTMB` models discrimination
+`disc = 1 / s = exp(z'gamma)`, so `gamma = -zeta`. Both fix the reference
+scale at 1, because the latent unit is not identifiable alongside free
+cutpoints. A `sigma ~` formula is still rejected for this family; use
+`disc ~` and read `sigma(fit)` as the derived latent scale `1 / disc`.
 
 **Independence:** `ordinal` is not yet classified in `drmTMB`'s design
 documents.

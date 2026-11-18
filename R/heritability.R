@@ -22,6 +22,12 @@
 #' a fit has two or more structured components. Their names make the denominator
 #' explicit so that one label does not refer to two different quantities.
 #'
+#' These quantities are Gaussian-only for now: a non-Gaussian fit is refused
+#' with an error rather than given a value on an unstated scale. A
+#' non-Gaussian version would have to say which scale it reports (latent,
+#' liability, or observed data; de Villemereuil et al. 2016, *Genetics*
+#' 204:1281-1294); see `docs/design/275-repeatability-scale-and-residual-variance.md`.
+#'
 #' Fits must be Gaussian, have a constant residual scale (`sigma ~ 1`) or a
 #' closed-form marginal residual variance, and have at least one structured
 #' mean random-effect component (`(1 | group)`, `phylo(...)`, `animal(...)`,
@@ -48,6 +54,9 @@
 #' parameters, combined with the fixed-parameter covariance
 #' (`object$sdr$cov.fixed`) via the quadratic form, then a Wald interval at
 #' `level`, clamped to `[0, 1]`. This is a delta-method approximation; not a coverage claim.
+#' For fits with active fixed-effect priors, these interval-returning
+#' accessors are unavailable. Point-only variance shares remain available in
+#' `summary()$derived`.
 #'
 #' `method = "profile"` is accepted but is **not implemented**; it aborts
 #' naming `method = "delta"` as
@@ -279,6 +288,7 @@ drm_variance_ratio <- function(
   level,
   method
 ) {
+  drm_abort_fixed_prior_inference(object, paste0(quantity, " confidence intervals"))
   if (method == "profile") {
     cli::cli_abort(
       "{.arg method} = {.val profile} is not implemented for {.fn {quantity}}; use {.code method = \"delta\"}."
@@ -287,7 +297,8 @@ drm_variance_ratio <- function(
   if (!identical(object$model$model_type, "gaussian")) {
     cli::cli_abort(c(
       "{.fn {quantity}} requires a Gaussian {.field model_type} fit.",
-      "i" = "This fit has {.val {object$model$model_type}}."
+      "i" = "This fit has {.val {object$model$model_type}}.",
+      "i" = "{.fn heritability}, {.fn icc}, {.fn repeatability} and the {.code summary()$derived} variance share are Gaussian-only for now. Non-Gaussian fits need the latent, liability and observed-data scales of de Villemereuil et al. (2016, {.emph Genetics} 204:1281-1294); the planned design is in {.file docs/design/275-repeatability-scale-and-residual-variance.md}."
     ))
   }
   drm_variance_ratio_reject_random_slopes(object, quantity)

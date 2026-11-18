@@ -196,7 +196,7 @@ drm_lrtest_map_guard <- function(reduced, full) {
   cli::cli_abort(
     c(
       "{.fn lrtest}: cannot compare penalized (MAP) fits.",
-      "i" = "A penalized fit shrinks its variance components, so the likelihood-ratio statistic does not have the usual chi-square distribution; refit both without the penalty."
+      "i" = "A penalized fit optimizes a prior-adjusted objective, so the likelihood-ratio statistic does not have the usual chi-square reference; refit both without priors or penalties."
     ),
     class = "drmTMB_lrtest_map_error"
   )

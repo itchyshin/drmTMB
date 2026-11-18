@@ -48,7 +48,11 @@ fixed-effect Poisson, negative-binomial, or zero-truncated
 negative-binomial models for one count predictor, fixed-effect lognormal or
 Gamma models for one positive continuous predictor, and fixed-effect
 Tweedie models for one non-negative semi-continuous predictor with exact
-zeros. Most current non-Gaussian predictor families are fitted inside a
+zeros. A Gaussian response also accepts one Gaussian and one binary
+predictor with independent fixed-effect models. No other two-predictor
+family pair is supported; this mixed pair is available on the native engine,
+not the Julia bridge. Most current
+non-Gaussian predictor families are fitted inside a
 Gaussian response location model; Poisson, binomial, negative-binomial,
 beta, Gamma, lognormal, beta-binomial, and student responses are
 currently supported for one binary missing predictor. \code{nbinom2()}

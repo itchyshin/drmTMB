@@ -39,29 +39,42 @@ test_that("phylo-only family set is the shared source of truth", {
   )
 })
 
-test_that("bridge family classifier recognises logit binomial, defers otherwise", {
+test_that("bridge family classifier tags admitted binomial links, refuses the rest", {
   # Native drm_family_type() has no plain-binomial branch; the bridge adds it.
   expect_equal(
     drmTMB:::drm_julia_bridge_family_type(stats::binomial()),
     "binomial"
   )
-  # Non-logit binomial must be rejected BY THE BRIDGE ITSELF, with a
-  # bridge-specific message.
-  #
-  # This used to be a bare expect_error(), which passed for the wrong reason:
-  # the rejection came from the native drm_family_type() guard, and the bridge
-  # merely deferred to it. That was safe only while drmTMB was logit-only. Now
-  # that probit and cloglog are admitted natively, a deferring bridge would hand
-  # them to DRM.jl tagged "binomial" and DRM.jl would fit LOGIT -- a silently
-  # wrong model. Asserting the MESSAGE is what makes this test able to fail if
-  # anyone reinstates the deferral.
+  # probit and cloglog are classified "binomial" ON PURPOSE (b87566680): DRM.jl
+  # has probit and cloglog routes for the documented SD regression cells, tagged
+  # per link by drm_julia_structured_family_tag(). The classifier therefore no
+  # longer rejects them. The safety against DRM.jl silently fitting LOGIT now
+  # sits one step up, in drm_julia_refuse_binomial_nonlogit_sd(), which
+  # drmTMB_julia_bridge() runs first and which refuses every probit or cloglog
+  # formula that is not an admitted route, including every fixed-effect one.
+  # Asserting that refusal is what keeps this test able to fail if anyone
+  # removes the guard.
   for (lk in c("probit", "cloglog")) {
-    expect_error(
+    expect_equal(
       drmTMB:::drm_julia_bridge_family_type(stats::binomial(link = lk)),
-      "DRM.jl",
-      fixed = TRUE
+      "binomial",
+      info = lk
+    )
+    expect_error(
+      drmTMB:::drm_julia_refuse_binomial_nonlogit_sd(
+        drmTMB::bf(y ~ x), stats::binomial(link = lk)
+      ),
+      "does not match that route",
+      info = lk
     )
   }
+  # A link with no Julia route at all is still refused by the classifier itself,
+  # with a bridge-specific message.
+  expect_error(
+    drmTMB:::drm_julia_bridge_family_type(stats::binomial(link = "cauchit")),
+    "DRM.jl",
+    fixed = TRUE
+  )
   # A family drm_family_type() does classify is passed straight through.
   expect_equal(
     drmTMB:::drm_julia_bridge_family_type(stats::gaussian()),
@@ -257,7 +270,9 @@ drm_phylo_binom_fit <- function(n_tip = 24L) {
         coef_julia = unname(cj),
         coef_names = names(cj),
         sd_julia = unname(fj$sdpars$mu[["phylo(1 | species)"]]),
-        converged = drmTMB::is_converged(fj)
+        optimizer_converged = identical(as.integer(fj$opt$convergence), 0L),
+        status = drmTMB::convergence_status(fj),
+        bridge_status = fj$bridge[["convergence_status"]]
       )
     },
     args = list(pkg = pkg, jl_path = jl_path, n_tip = as.integer(n_tip)),
@@ -321,5 +336,10 @@ test_that("Binomial phylo fit via engine = 'julia' is finite and sane", {
   expect_equal(res$coef_names, c("(Intercept)", "x"))
   expect_true(is.finite(res$sd_julia))
   expect_gt(res$sd_julia, 0)
-  expect_true(isTRUE(res$converged))
+  # The phylo SD lands near 2.5e-4 on this draw. The bridge covariance, which
+  # includes the log phylo SD, is singular there, so DRModels.jl classifies the
+  # fit "degenerate" and R reads that through the bridge (drmTMB #1564). The
+  # floor is the optimiser flag plus agreement between the two engines.
+  expect_true(isTRUE(res$optimizer_converged))
+  expect_identical(res$status, res$bridge_status)
 })

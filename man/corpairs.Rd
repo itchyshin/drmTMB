@@ -2,10 +2,13 @@
 % Please edit documentation in R/methods.R
 \name{corpairs}
 \alias{corpairs}
+\alias{corpairs.drmTMB_julia}
 \alias{corpairs.drmTMB}
 \title{Extract fitted correlation pairs}
 \usage{
 corpairs(object, ...)
+\method{corpairs}{drmTMB_julia}(object, level = NULL, group = NULL,
+  block = NULL, class = NULL, ...)
 
 \method{corpairs}{drmTMB}(
   object,
@@ -21,10 +24,11 @@ corpairs(object, ...)
 )
 }
 \arguments{
-\item{object}{A \code{drmTMB} fit.}
+\item{object}{A \code{drmTMB} fit or an admitted Julia-backed fit.}
 
-\item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
-\code{conf.int = TRUE}.}
+\item{...}{On native fits, additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}
+when \code{conf.int = TRUE}. On Julia-backed fits, \code{...} must be empty;
+interval controls are unavailable.}
 
 \item{level}{Optional character vector of correlation levels to keep, such
 as \code{"residual"}, \code{"group"}, \code{"phylogenetic"}, or \code{"spatial"}.}
@@ -89,7 +93,12 @@ double-hierarchical, phylogenetic, spatial, animal-model, and lower-level
 relatedness models can contain several scientifically different
 correlations. Profile intervals are opt-in and can be slow; filter with
 \code{level}, \code{group}, \code{block}, or \code{class} before requesting \code{conf.int = TRUE} on
-large models. Bootstrap intervals are not a \code{corpairs()} route.
+large models. Bootstrap intervals are not a \code{corpairs()} route. That
+profile-interval guidance applies to native fits. The Julia-backed method
+returns point rows with default interval provenance; it supports the
+\code{level}, \code{group}, \code{block}, and \code{class} filters but does not calculate
+intervals. Its \code{...} argument does not apply \code{conf.int}, \code{conf.level},
+\code{method}, or \code{trace} to a Julia fit.
 }
 \examples{
 set.seed(1)

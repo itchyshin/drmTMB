@@ -1,0 +1,72 @@
+{
+  "evidence_id": "gaussian-iid-slope-sigma-sd-oracle-b29-20261102d",
+  "evidence_grade": "focused_test",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true taskset -c 222-227 Rscript -e 'pkgload::load_all(\".\", quiet=TRUE); r <- as.data.frame(testthat::test_file(\"tests/testthat/test-gaussian-iid-slope-sigma-sd-oracle-b29.R\", reporter=\"summary\")); cat(sprintf(\"DRM_RECEIPT_COUNTS passed=%d failed=%d errors=%d skipped=%d\\n\", sum(r$passed), sum(r$failed), sum(r$error), sum(r$skipped)))'",
+  "execution_host": "Totoro, clean compiled export ~/hsq_work/exp-9d229de68 of HEAD 9d229de68 (R/, src/, tests/ identical to the worktree; test and helper sha256 compared), cores 222-227",
+  "working_directory": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+  "git_head": "9d229de6836cfc876bf3fcf12f982a3eae38a8fa",
+  "tree_state": "HEAD 9d229de68; tracked changes limited to docs/dev-log/active-lane-split.md and two vignettes (vignettes/implementation-map.Rmd, vignettes/predictor-dependent-random-sd.Rmd); R/, src/ and tests/ identical to HEAD; untracked evidence directories present; unreviewed",
+  "run_started_utc": "2026-11-02T18:15:40Z",
+  "run_ended_utc": "2026-11-02T18:15:54Z",
+  "exit_code": 0,
+  "expectations_passed": 32,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "test_blocks": 3,
+  "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-iid-slope-sigma-sd-oracle-b29-20261102d/test-console.log",
+  "console_log_sha256": "1b3bdf2369412508ead0f61fbb1abddf401a49f11b6986018d06acece6fec9ee",
+  "test_path": "tests/testthat/test-gaussian-iid-slope-sigma-sd-oracle-b29.R",
+  "test_sha256": "4af4bf94e24fb3a02c8fda61d108b0e9aa32c4911899a66653660ac4b605bcd9",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-iid-slope-sigma-sd-oracle-b29-20261102d/source-manifest.json",
+  "source_manifest_sha256": "f05d523cea7345a7d9b6c038d1ce083c6ac6299adbaa4a0aab2b01c94d44b6a3",
+  "live_julia": "not run; native R engine only",
+  "strengthens_evidence_ids": [
+    "gaussian-native-independent-slope-sd-20261024",
+    "gaussian-native-independent-slope-sd-current-20261025",
+    "native-gaussian-sigma-iid-slope-20261025",
+    "native-lognormal-sigma-iid-slope-20261025"
+  ],
+  "strengthens_note": "Companion to the parent id(s); closes reviewer-listed gaps (independent oracle and/or emulated-bug sensitivity) for the linked rows. The parent receipts are recorded in the ledger with the -m26 suffix; the base ids are the ones named in the test header.",
+  "scope": "Gaussian mu slope-only (0 + x | id) with sd(id, coef = \"x\") ~ w against the exact Gaussian marginal (1e-6 on logLik); Gaussian and lognormal sigma slope-only (0 + z | id) with sd(id, dpar = \"sigma\", coef = \"z\") ~ w against a base-R dense Laplace (1e-4; lognormal on log(y) minus sum(log y)); SD vector built by hand from fitted coefficients; reversed-SD, swapped-coefficient, sign-flip, mean-SD and selector-swap sensitivity above a floor of 1. Slope claims are slope-member SD only, without a companion random intercept.",
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"identity\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"gaussian\",\"univariate\",\"sigma\",\"sigma\",\"sigma:x1..xp\",\"x1..xp\",\"identity\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    },
+    {
+      "row_key": "[\"native\",\"lognormal\",\"univariate\",\"sigma\",\"sigma\",\"sigma:x1..xp\",\"x1..xp\",\"identity\",\"iid_numeric_slope\",\"O1\",\"iid\",\"independent random slope\",\"group_factor\",\"separate q1 field, optionally alongside intercept and other terms\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]"
+    }
+  ],
+  "does_not_establish": [
+    "interval calibration",
+    "coverage",
+    "Julia parity",
+    "recovery or estimator-accuracy claims",
+    "a random intercept alongside the slope",
+    "correlated intercept-slope blocks",
+    "other families or links",
+    "any family, link, provider or endpoint not listed in candidate_rows"
+  ],
+  "tolerances": "as fixed in the test file header; none loosened",
+  "review_status": "reviewed_narrow_claim",
+  "review_note": "Reviewed line by line. (1) Oracles are base R and independent of the TMB objective. The Gaussian mu slope is checked against the exact marginal N(Xb, s^2 I + Z diag(tau)^2 Z'), tolerance 1e-6. The Gaussian sigma slope and the lognormal sigma slope (on log y, minus sum log y) are checked against a dense Laplace (b26sa_gauss_laplace), tolerance 1e-4, with the oracle's max_grad < 1e-8 and min_eig > 0 asserted. The helpers contain no drmTMB calls. The SD vector is built by hand as exp(a0 + a1 w) from the fitted sd() coefficients, not from predict(). (2) Bug sensitivity: floor 1. My Totoro rerun gaps were reversed SD 24-128, swapped coefficients 60-132, sign-flipped w 81-966, mean SD 12-26, slope-covariate swap 534-4572 and slope-as-intercept 515, all far above the tolerance. (3) Fitted rows: gaussian mu:x1..xp via (0+x|id) with sd(id, coef='x') ~ w; gaussian sigma:x1..xp via sigma ~ 1 + (0+z|id); lognormal sigma:x1..xp likewise. All are slope-only fits with no companion random intercept, so the claim is the slope-member SD only. (4) All 7 manifest sha256 values and the log, manifest and test hashes match. The console log shows 32 passed, 0 failed, 0 errors, 0 skipped. The 4 parent ids are all covered by these 3 rows. Does NOT establish: calibration, coverage, Julia parity, recovery or estimator accuracy; a random intercept alongside the slope; correlated intercept-slope blocks; other families or links; multi-slope (q>1) fits; or anything beyond likelihood agreement at the fitted parameters.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 30, confirmed by a skeptical verifier",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-iid-slope-sigma-sd-oracle-b29.R",
+    "test_sha256": "4af4bf94e24fb3a02c8fda61d108b0e9aa32c4911899a66653660ac4b605bcd9",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:09:28Z",
+    "ended_utc": "2026-11-03T01:09:48Z",
+    "expectations_passed": 32,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-iid-slope-sigma-sd-oracle-b29-20261102d/test-console-rerun-81553915d.log",
+    "console_log_sha256": "ee767b5d31ab1e2fc6ab82ba3b60d8ebc1be85dbb8265c638846fe85ac71889a",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

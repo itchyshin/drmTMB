@@ -18,8 +18,9 @@
 # matrix is what makes "parity" one measurable claim.
 #
 # RULES THIS FILE ENFORCES (a violation aborts generation, it does not warn):
-#   - exactly one row per capability named in drmTMB's capability-status.md,
-#     and every one of those names exists byte-for-byte in DRM.jl's file;
+#   - exactly one row per capability named in drmTMB's capability-status.md;
+#     explicitly listed pending rows may lack a matching Julia status name and
+#     remain UNCITED until route-specific evidence is reconciled;
 #   - every cell is non-empty;
 #   - a row that is not GREEN (native_R implemented AND native_Julia
 #     implemented AND bridge claim_status covered, with no written override)
@@ -1009,8 +1010,46 @@ pm_state_derived_note <- function(ctx, state, capability, gated) {
   ""
 }
 
+# Named R capability rows awaiting a route-by-route crosswalk. This explicit
+# list keeps new, unreviewed rows fail-closed instead of silently admitting them.
+pm_pending_capabilities <- function() c("Poisson animal slope-only coefficient with predictor-dependent SD",
+"Gaussian ordinary correlated q3 and q4 blocks with one SD formula per coefficient (native only)",
+"Gaussian correlated q2, same-group, relmat/spatial, and mu + sigma joint predictor-dependent SDs (native only)",
+"Poisson phylo/relmat slope-only, same-group/crossed, and ordinary + structured intercept predictor-dependent SDs (native only)",
+"NB2 relmat/spatial intercept, phylo/relmat slope-only, and ordinary + structured intercept predictor-dependent SDs (native only)",
+"Poisson phylo_interaction intercept and slope-only pair-level predictor-dependent SDs (native only)",
+"Gamma crossed (distinct groups) and ordinary + relmat intercept predictor-dependent SDs (native only)",
+"Gamma animal correlated q2 (intercept + slope) with coefficient-specific SDs (native only)",
+"Gamma ordinary + animal/phylo/spatial intercept predictor-dependent SDs (native only)",
+"Gamma and NB2 same-group intercept + slope with `coef`-selected SDs (native only)",
+"Zero-inflated Poisson plain independent slope without `sd()` (native only)",
+"Gaussian structured q2 (animal, relmat, phylo; unlabelled and labelled) with coefficient-specific SDs (native only)",
+"Gaussian structured `sigma` intercept (phylo, animal, relmat, spatial) with predictor-dependent SD (native only)",
+"Gaussian and NB2 phylo_interaction pair-level predictor-dependent SDs (Gaussian slope-only; NB2 intercept and slope-only) (native only)",
+"Poisson and NB2 structured q2 (animal, relmat, phylo, spatial) with coefficient-specific SDs; NB2 labelled animal q2 (native only)",
+"Gamma slope-only phylo, spatial and relmat predictor-dependent SDs (native only)",
+"Binomial phylo and spatial q2 with coefficient-specific SDs (native only)",
+"NB2 and Gamma joint ordinary `mu` plus `sigma` intercepts, each with an SD formula (native only)",
+"Gaussian spatial q2 (unlabelled and labelled) with coefficient-specific SDs (native only)",
+"Poisson and NB2 labelled relmat q2 with coefficient-specific SDs (native only)",
+"Poisson, NB2 and Gamma ordinary `mu` SD regression with `miss_control(response = \"include\")` (native only)",
+"Julia bridge: Poisson, NB2 and Gamma `relmat` slope-only SD, NB2 and Gamma coordinate `spatial` slope-only SD, and NB2 animal slope-only SD (supplied `A`); `K` used as supplied"
+)
+
 pm_build_matrix <- function(ctx) {
-  entries <- pm_capability_entries(ctx)
+  pending <- pm_pending_capabilities()
+  entries <- c(pm_capability_entries(ctx), lapply(pending, function(name) {
+    i <- match(name, ctx$r_status$capability)
+    if (is.na(i)) stop("pending capability absent from R status: ", name, call. = FALSE)
+    list(name = name,
+         bridge_route = "Not yet reconciled against the bridge ledger",
+         r_bridge_status = "unreconciled", claim_status = "unreconciled",
+         boundary = sprintf("R status recorded at %s; route-specific Julia and bridge evidence requires review.",
+                            pm_cite(ctx$files$r_status, ctx$r_status$line[[i]])),
+         next_action = "reconcile each route, source pair, and receipt before making a parity claim",
+         green_override = "pending route-specific reconciliation", gate_ids = character(),
+         r_bridge_status_raw = NA_character_)
+  }))
   names_r <- ctx$r_status$capability
   got <- vapply(entries, `[[`, character(1L), "name")
   if (!identical(sort(got), sort(names_r))) {
@@ -1020,16 +1059,19 @@ pm_build_matrix <- function(ctx) {
   }
   only_j <- setdiff(ctx$j_status$capability, names_r)
   only_r <- setdiff(names_r, ctx$j_status$capability)
-  if (length(only_r)) {
-    stop("drmTMB capability names absent from DRM.jl's file: ", paste(only_r, collapse = ", "), call. = FALSE)
+  unexpected_only_r <- setdiff(only_r, pending)
+  if (length(unexpected_only_r)) {
+    stop("drmTMB capability names absent from DRM.jl's file: ", paste(unexpected_only_r, collapse = ", "), call. = FALSE)
   }
   entries <- entries[match(names_r, got)]
   j_label <- ctx$drmjl_label(ctx$files$j_status)
   rows <- lapply(entries, function(e) {
     nr <- pm_status_cell(ctx$r_status, e$name, ctx$files$r_status)
-    nj <- pm_status_cell(ctx$j_status, e$name, j_label)
-    mechanical_green <- ctx$r_status$status[match(e$name, ctx$r_status$capability)] == "implemented" &&
-      ctx$j_status$status[match(e$name, ctx$j_status$capability)] == "implemented" &&
+    j_index <- match(e$name, ctx$j_status$capability)
+    nj <- if (is.na(j_index)) sprintf("UNCITED -- no row of this name in %s", j_label) else
+      pm_status_cell(ctx$j_status, e$name, j_label)
+    mechanical_green <- !is.na(j_index) && ctx$r_status$status[match(e$name, ctx$r_status$capability)] == "implemented" &&
+      ctx$j_status$status[j_index] == "implemented" &&
       grepl("^covered \\(", e$claim_status)
     green <- mechanical_green && !nzchar(e$green_override)
     boundary <- e$boundary
@@ -1043,7 +1085,7 @@ pm_build_matrix <- function(ctx) {
     }
     gated <- length(e$gate_ids) > 0L && any(nzchar(e$gate_ids))
     native_scope_limited <- ctx$r_status$status[match(e$name, ctx$r_status$capability)] == "scope-limited" ||
-      ctx$j_status$status[match(e$name, ctx$j_status$capability)] == "scope-limited"
+      (!is.na(j_index) && ctx$j_status$status[j_index] == "scope-limited")
     honest_state <- pm_honest_state(
       capability = e$name, green = green, gate_ids = e$gate_ids,
       r_bridge_status = e$r_bridge_status_raw, boundary = boundary,
@@ -1116,7 +1158,8 @@ pm_render <- function(ctx, mat) {
     "|---|---:|",
     sprintf("| rows in drmTMB's file | %d |", nrow(ctx$r_status)),
     sprintf("| rows in DRM.jl's file | %d |", nrow(ctx$j_status)),
-    sprintf("| matched exactly (byte-for-byte row name) | %d |", nrow(mat)),
+    sprintf("| matched exactly (byte-for-byte row name) | %d |", length(intersect(ctx$r_status$capability, ctx$j_status$capability))),
+    sprintf("| present only in drmTMB's file | %d |", length(setdiff(ctx$r_status$capability, ctx$j_status$capability))),
     sprintf("| present only in DRM.jl's file | %d |", length(only_j)),
     "",
     "DRM.jl-only rows:",
@@ -1126,13 +1169,16 @@ pm_render <- function(ctx, mat) {
     "## Reading the table",
     "",
     "- `native_R` / `native_Julia`: the status word each twin's capability-status.md",
-    "  gives the row, with the line it came from.",
+    "  gives the row, with the line it came from. `UNCITED` means the pinned",
+    "  Julia status document has no matching name; it does not establish that",
+    "  the underlying route is absent from Julia.",
     "- `bridge_route`: how `engine = \"julia\"` reaches (or refuses) the capability --",
     "  TSV rows joined on their `syntax` column, gates from the gate registry,",
     "  registry lines, and bridge functions, each cited.",
     "- `r_bridge_status` / `claim_status`: copied from the cited TSV row(s);",
     "  `unledgered` means no TSV row exists; `refused` means the bridge refuses",
-    "  the capability before Julia starts.",
+    "  the capability before Julia starts. `unreconciled` means the route and",
+    "  its receipts still need review, not that support is absent.",
     "- `boundary`: why the row is not GREEN, with a citation or a receipt id, and",
     "  the next action that would move it. Receipt ids name rows in DRM.jl's",
     "  evidence tables at the pin.",

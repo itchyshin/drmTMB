@@ -1,0 +1,3 @@
+# Bounded ownership and coordination
+
+Parent coordinator owns the broader general SD lane and delegated this scoped Beta coordinate-spatial q2 implementation after exact diff review. The worker holds only the listed R/test/example/report/check-fragment/evidence paths. The newest relevant R ref contains separate q1 Beta relatedness work absent this candidate; no foreign code was transplanted or reverted. The parent and independent read-only reviewer found no P0/P1 in the scoped patch. Static Julia refusal remains separate from native evidence. Public map and Julia lanes are coordinated through the parent. No commit, push, merge or release.

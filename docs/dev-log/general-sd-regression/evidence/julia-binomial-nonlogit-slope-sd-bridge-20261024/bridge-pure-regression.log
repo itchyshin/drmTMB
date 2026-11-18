@@ -1,0 +1,23 @@
+ℹ Testing drmTMB
+julia-bridge-coef-labels: ....................................
+julia-bridge-default-labels: .........WW...i engine = "julia" fitted nu ~ z; the TMB engine refuses this shape (tweedie currently supports only intercept-only nu ~ 1), so it has no cross-engine receipt.
+....
+julia-bridge-summary: .............S
+julia-bridge: ...............................................................................................................................................SS
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. drm_skip_live_julia() records a live run when it proceeds ('test-julia-bridge-summary.R:71:3') - Reason: DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)
+
+2. sigma random intercept: a live Julia fit of sigma ~ (1 | g) reports base-R public names matching the TMB engine ('test-julia-bridge.R:879:3') - Reason: DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)
+
+3. sdpars, sigma random intercept: the sigma-side random-effect SD is filed under sdpars$sigma, matching the TMB engine (live) ('test-julia-bridge.R:900:3') - Reason: DRModels.jl / DRM.jl engine not available (set DRMODELS_JL_PATH or DRM_JL_PATH)
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. families with no dpar beyond mu/sigma get no invented extra label ('test-julia-bridge-default-labels.R:39:5') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+
+2. families with no dpar beyond mu/sigma get no invented extra label ('test-julia-bridge-default-labels.R:39:5') - `beta()` was deprecated in drmTMB 0.7.1.
+i Please use `beta_family()` instead.
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 3 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

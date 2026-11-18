@@ -1,0 +1,32 @@
+{
+  "repository": "DRModels.jl paired candidate",
+  "candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "branch": "codex/general-sd-regression",
+  "worktree_state": "dirty shared candidate; five relevant Julia source/test hashes matched before and after the focused run; executed test snapshot retained byte-for-byte",
+  "files": [
+    {
+      "path": "src/DRModels.jl",
+      "sha256": "0cbdfd45584d60ed6489accef52481acb8a350685946bd7e4ed71f8e9d54d0f0"
+    },
+    {
+      "path": "src/inference.jl",
+      "sha256": "e5409d657249f74836d433a80f85d94e29d049b064211c9d5afdde02ebc275fa"
+    },
+    {
+      "path": "src/negbinomial.jl",
+      "sha256": "a1a7962634efd6525d41bf60c7d90f9d18bf6b98168b4d9c72400806412a2460"
+    },
+    {
+      "path": "src/sparse_laplace_glmm.jl",
+      "sha256": "ee3b7618403436f6c32bedc22049e95455e5637bac5357141b1ea301da8b47ac"
+    },
+    {
+      "path": "test/test_nb2_animal_sd_bootstrap.jl",
+      "sha256": "073058dedaedd4a8b7102e035b8856b6ff19cfb1e337cb7c4a50bde05467c7f8"
+    },
+    {
+      "path": "docs/dev-log/general-sd-regression/evidence/julia-nb2-animal-ainv-workflows-20261026/test-snapshot/test_nb2_animal_sd_bootstrap.jl",
+      "sha256": "073058dedaedd4a8b7102e035b8856b6ff19cfb1e337cb7c4a50bde05467c7f8"
+    }
+  ]
+}

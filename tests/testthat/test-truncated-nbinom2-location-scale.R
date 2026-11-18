@@ -363,9 +363,20 @@ test_that("truncated nbinom2 rejects unsupported or invalid inputs", {
     ),
     "random intercepts"
   )
+  # A hurdle model with one ordinary mu random intercept is now deliberately
+  # admitted (fitted in test-hurdle-nbinom2-sd-regression.R:145); hurdle-side
+  # random effects remain refused.
+  expect_s3_class(
+    suppressWarnings(drmTMB(
+      bf(y ~ x + (1 | id), sigma ~ 1, hu ~ 1),
+      family = truncated_nbinom2(),
+      data = dat
+    )),
+    "drmTMB"
+  )
   expect_error(
     drmTMB(
-      bf(y ~ x + (1 | id), sigma ~ 1, hu ~ 1),
+      bf(y ~ x + (1 | id), sigma ~ 1, hu ~ 1 + (1 | id)),
       family = truncated_nbinom2(),
       data = dat
     ),

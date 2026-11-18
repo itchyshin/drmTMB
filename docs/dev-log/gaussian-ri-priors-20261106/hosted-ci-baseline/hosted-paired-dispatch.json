@@ -1,0 +1,14 @@
+{
+  "recorded_at": "2026-11-07T02:57:51.507423+00:00",
+  "run": 42331688804,
+  "job": 128279442304,
+  "status_at_recording": "in_progress",
+  "diagnostic_source": "108792b0d3b34665aebb06a7ff7541e2d8808c5a",
+  "branch": "codex/gaussian-ri-prior-hosted-diagnostic-20261107",
+  "baseline": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+  "candidate": "385fde27d369270afb2353ddf1fbd9f301f2b4ce",
+  "scope": "Four diagnostic attempts on one runner; no full suite claim; no prior PR source edits",
+  "individual_timeout_seconds": 1200,
+  "job_timeout_minutes": 110,
+  "independent_review": "APPROVE bounded diagnostic dispatch only"
+}

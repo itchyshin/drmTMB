@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-phylo-relmat-q-logit-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-phylo-relmat-q-logit-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-sd-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-phylo-relmat-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-phylo-relmat-sd.R",
+      "test_sha256": "894f5f81448b7d97dc9d39ab22b28ed0d273d0c9a199ebdfc19ee571d29833df",
+      "started_utc": "2026-11-02T13:17:19Z",
+      "ended_utc": "2026-11-02T13:18:39Z",
+      "exit_code": 0,
+      "expectations_passed": 32,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-sd-20261027-m26-1da5f2/test-console-test-binomial-phylo-relmat-sd.log",
+      "console_log_sha256": "718c2c0a60a6420d21422028ef1c2737bba8f6630458334ccf8ac49783d84d6e"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-phylo-relmat-sd-20261027-m26-1da5f2/source-manifest.json",
+  "source_manifest_sha256": "da79cb27ccd98ae1446be0103f9719f9462cda354611cb03924d67020342e604",
+  "review_status": "unreviewed"
+}

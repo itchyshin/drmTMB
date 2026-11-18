@@ -1,0 +1,20 @@
+{
+  "scope": "Source identity for native-binomial-relmat-q2-sd-20261028, relinked to the live test at drmTMB 7fd8acec3",
+  "commit": "7fd8acec3",
+  "derived_from_manifest": "tools/general-sd-regression/bernoulli-relmat-q2/source-manifest-linked.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "tests/testthat/test-binomial-relmat-q2-sd.R",
+      "sha256": "680a5017f7aea31b196428aa297ae30fb58c805aa631a722c8a838ebf2bbc8d0"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'src/drmTMB.cpp']"
+}

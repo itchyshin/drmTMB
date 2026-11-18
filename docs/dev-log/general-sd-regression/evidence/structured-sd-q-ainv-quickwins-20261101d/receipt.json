@@ -1,0 +1,68 @@
+{
+  "evidence_id": "native-structured-sd-q-ainv-quickwins-20261101d",
+  "evidence_grade": "focused_test",
+  "claim": "Poisson and NB2 slope-only relmat(0 + x | id, Q = Q) SD regression and ordinary (1 | site) plus animal(1 | id, Ainv = Ainv) intercepts with own SD formulas (also Gaussian, not matched here); dense oracle 1e-4, Ainv-versus-A and Q-versus-K agreement",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\".\"); testthat::test_file(\"tests/testthat/test-structured-sd-q-ainv-quickwins.R\", reporter = \"summary\")'",
+  "working_directory": ".worktrees/general-sd-regression",
+  "git_head": "33e4e966a05f4381ee790b238b41d6d12fa3032c",
+  "tree_state": "dirty shared candidate",
+  "test_path": "tests/testthat/test-structured-sd-q-ainv-quickwins.R",
+  "test_sha256": "b7189ee62347aac3c3c0467f52c8403766751256cd59503579c46158d9e68bfa",
+  "source_manifest_path": "docs/dev-log/general-sd-regression/evidence/structured-sd-q-ainv-quickwins-20261101d/source-manifest.json",
+  "source_manifest_sha256": "ad4e66d4a7f3143c4ddb1839b29bb2362c2126aa8e4d477b37fa0d99add28870",
+  "console_log_path": "docs/dev-log/general-sd-regression/evidence/structured-sd-q-ainv-quickwins-20261101d/test-console.log",
+  "console_log_sha256": "eef5420eadc42f739a482039f6599fe9a420e5d0a20b7757bcacebc4ad43b0d9",
+  "result": {
+    "exit_code": 0,
+    "failures": 0,
+    "skips": 0,
+    "live_julia": false,
+    "note": "summary reporter: no failure or skip section; Julia bridge reported 0 live tests"
+  },
+  "candidate_rows": [
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "Q_precision",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"poisson\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "simultaneous_iid_structured",
+      "provider_input": "iid:group_factor+animal:Ainv_precision",
+      "target_member": "provider_pair"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"mu\",\"mu:x1..xp\",\"x1..xp\",\"log\",\"relmat_numeric_slope\",\"S1/P-temporal\",\"relmat\",\"structured intercept plus one independent numeric slope\",\"Q_precision\",\"independent relatedness fields\",\"q=1\",\"q=1 per coefficient\",\"1\",\"independent\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "relmat_numeric_slope",
+      "provider_input": "Q_precision",
+      "target_member": "mu:x1..xp"
+    },
+    {
+      "row_key": "[\"native\",\"nbinom2\",\"univariate\",\"mu\",\"\",\"provider_pair\",\"I\",\"log\",\"simultaneous_iid_structured\",\"q1_additive_fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive independent latent fields\",\"iid:group_factor+animal:Ainv_precision\",\"additive_independent_pair\",\"q=1 per provider\",\"q=1 per provider field\",\"1\",\"additive_provider_pair\"]",
+      "link_variant": "log",
+      "ledger_status": "required",
+      "mechanism_id": "simultaneous_iid_structured",
+      "provider_input": "iid:group_factor+animal:Ainv_precision",
+      "target_member": "provider_pair"
+    }
+  ],
+  "not_covered": [
+    "Gaussian rows (not in this group)",
+    "relmat slope K input (checked only as comparator)",
+    "animal A and pedigree pairs",
+    "recovery, calibration, Julia parity"
+  ],
+  "limits": [
+    "unreviewed",
+    "no calibration or coverage claim",
+    "native R/TMB only; no Julia parity claim",
+    "direct_sd_claim stays none; receipt is a staleness seal, not a promotion"
+  ]
+}

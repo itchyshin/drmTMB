@@ -1,0 +1,13 @@
+ℹ Loading drmTMB
+Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+Pruning 2 phylogeny tips absent from the data.
+i The fit uses the subtree induced by the observed species.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+ passed  failed   error skipped 
+    409       0       0       0 
+exit=0

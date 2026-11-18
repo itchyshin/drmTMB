@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "26cd0fa78b6fe1e66222c0743557c5b5fa562c2bce494dad5f7d06bd3e57c53a",
+  "draft_version": "v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex Beta q1 finish",
+  "method": "Separate post-revision read against targeted, example, reconstructed-before logs, and scoped source diff",
+  "genre": "technical after-task report",
+  "coverage": "whole saved report",
+  "score": 3,
+  "style_status": "scored",
+  "score_reason": "Concrete file paths and measured values carry the report; section structure follows the required protocol and gives it some repeated rhythm.",
+  "confidence": "medium",
+  "confidence_reason": "Entire report reviewed, but this is a self-assessment of technical prose.",
+  "examples": [
+    {
+      "location": "Goal paragraph",
+      "cue": "three exact native TMB Beta rows",
+      "impact": "The opening states the bounded scientific claim before implementation detail.",
+      "repair": "no change needed",
+      "line": 5,
+      "quote": "Check three exact native TMB Beta rows: a `relmat()` random intercept supplied as"
+    },
+    {
+      "location": "Checks run paragraph",
+      "cue": "success markers from the testthat summary reporter",
+      "impact": "The wording ties the count to what the log actually records.",
+      "repair": "no change needed",
+      "line": 52,
+      "quote": "56 q1, 64 relmat q2, and 47 spatial q2 success markers from the testthat"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Model equation and q1 Laplace constants were checked against the independent scalar oracle and targeted test results.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Times, success markers, estimate bounds, example slope, and prior-builder rejection were compared with local raw logs; no whole-domain claim is made.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no literature claims or bibliographic references.",
+  "date": "2026-10-28",
+  "calibration_status": "Prior style guidance seen; no held-out control evaluation used.",
+  "interpretation": "perceived_style_not_authorship"
+}

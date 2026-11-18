@@ -1,0 +1,26 @@
+{
+  "evidence_id": "binomial-animal-iid-native-independent-laplace-20261024-m26",
+  "rerecord_of_evidence_id": "binomial-animal-iid-native-independent-laplace-20261024",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/binomial-animal-iid-independent-oracle-20261024/console.log",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true DRMODELS_JL_PATH=<paired candidate> DRM_JL_PATH=<paired candidate> JULIA_HOME=<Julia 1.10.0> Rscript -e devtools::test(filter=\"\"julia-binomial-animal-iid-sd-parity\"\", reporter=\"\"summary\"\", stop_on_failure=TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-animal-iid-sd-parity.R",
+      "test_sha256": "a016a371f1b3c3d33b6101491a60fcdf320bd10a0671d53b86ad7d5f10e387e9",
+      "started_utc": "2026-11-02T13:35:08Z",
+      "ended_utc": "2026-11-02T13:36:26Z",
+      "exit_code": 0,
+      "expectations_passed": 39,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/binomial-animal-iid-independent-oracle-20261024-m26-7b08a4/test-console-test-julia-binomial-animal-iid-sd-parity.log",
+      "console_log_sha256": "b9da3d400f2490a1d57182bb4f743a288ae6444a504c33483a6a3d0b4f53758b"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/binomial-animal-iid-independent-oracle-20261024-m26-7b08a4/source-manifest.json",
+  "source_manifest_sha256": "74ba503e7783915ca53bb57773962460002796f4f983bd16b55c757cfef929a5",
+  "review_status": "unreviewed"
+}

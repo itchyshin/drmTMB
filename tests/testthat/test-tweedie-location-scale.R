@@ -427,7 +427,7 @@ test_that("Tweedie rejects unsupported first-slice neighbours", {
       family = tweedie(),
       data = dat
     ),
-    "Random-effect scale"
+    "No random-effect term matches"
   )
 })
 

@@ -1,0 +1,49 @@
+{
+  "evidence_id": "gaussian-native-structured-direct-sd-providers-20261101-20261101d-m26",
+  "rerecord_of_evidence_id": "gaussian-native-structured-direct-sd-providers-20261101-20261101d",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"cd \"\"/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression\"\" && OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NOT_CRAN=true Rscript -e 'pkgload::load_all(\"\".\"\"); testthat::test_file(\"\"tests/testthat/test-gaussian-structured-direct-sd-providers.R\"\", reporter = \"\"summary\"\")'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-gaussian-structured-direct-sd-providers.R",
+      "test_sha256": "60b381afd6ae58d4848f8fd0631796473d9118e4271fecdff25c8ce382379a2c",
+      "started_utc": "2026-11-02T13:18:06Z",
+      "ended_utc": "2026-11-02T13:18:18Z",
+      "exit_code": 0,
+      "expectations_passed": 60,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d-m26-186269/test-console-test-gaussian-structured-direct-sd-providers.log",
+      "console_log_sha256": "2153d222b04841c8b69eeae9b8eca43064bbc9509c23669983a68667c351b6b7"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d-m26-186269/source-manifest.json",
+  "source_manifest_sha256": "f3da61a562eebd95643507cdf103ca609b5842f84ed4d9f85ef31db0d7e346e9",
+  "review_status": "reviewed_narrow_claim",
+  "not_covered": [
+    "rows the test only uses as comparators",
+    "interval calibration or coverage",
+    "provider inputs the test does not fit (not tested; not asserted to be fenced)",
+    "Julia parity (native engine only)"
+  ],
+  "review_note": "Oracle is a dense exact Gaussian marginal in base R (Cholesky of Z cov_u Z' + sigma^2 I) plus an independent L-BFGS-B optimum; the relmat kernel is the analytic Toeplitz (K_true), the animal kernel the analytic geometric A, both handed to the fit in shuffled level order. The spatial kernel is helper-built, but the test compares it by name with a hand-rebuilt ring kernel at 1e-8; that rebuild mirrors the helper's formula (disclosed in the test), so it confirms alignment and the rebuild, not the kernel convention. Sensitivity: asserted positional-misread checks move kernel and oracle logLik by more than 1000 times the tolerance; in my Totoro scratch run, shifting the z predictor moved the oracle by 39.1 (relmat) and 7.1 (animal), reversing 50.1, flipping sign 163.9, loading the intercept instead of the slope 446.8, against 1.5e-4 tolerance. Rows exercised: relmat K intercept, spatial coordinate intercept, and animal A slope; the animal fit is animal(0 + x | id), so it supports the slope-member SD only. Manifest: all 8 entries rehash to current files; receipt 60/0/0/0 and my Totoro rerun 60/0/0/0, 0 skips. Does NOT establish: Q/Ainv/pedigree inputs, spatial slope or relmat slope SDs, the spatial kernel convention, Julia parity, calibration, non-Gaussian families.",
+  "reviewed_at": "2026-11-02",
+  "reviewer": "independent reviewer, batch 27",
+  "rerun_after_first_record": {
+    "test_path": "tests/testthat/test-gaussian-structured-direct-sd-providers.R",
+    "test_sha256": "60b381afd6ae58d4848f8fd0631796473d9118e4271fecdff25c8ce382379a2c",
+    "rerun_at_commit": "81553915d",
+    "started_utc": "2026-11-03T01:10:05Z",
+    "ended_utc": "2026-11-03T01:10:31Z",
+    "expectations_passed": 60,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-refresh-20261101d-m26-186269/test-console-rerun-81553915d.log",
+    "console_log_sha256": "e6e8f8de1ac4b7d47dd36a517d554066f1ac4e8b0a3518b44b5720d8fa09d619",
+    "reason": "source files changed in batch 32; rerun at the new commit and manifest rehashed. The review, if any, is kept: the claim does not depend on the edited lines."
+  }
+}

@@ -23,7 +23,8 @@
 \item{fitted}{A \code{drmTMB} fit.}
 
 \item{parm}{Character or integer vector selecting direct profile targets.
-Use \code{\link[=profile_targets]{profile_targets()}} to inspect available names. Unlike
+Use \code{\link[=profile_targets]{profile_targets()}} to inspect available names. Gaussian temporal AR1
+and OU fits accept mean-model coefficient targets only. Unlike
 \code{\link[=confint.drmTMB]{confint.drmTMB()}}, this helper always uses the full
 \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} curve because the curve itself is the diagnostic.}
 
@@ -32,8 +33,13 @@ interval endpoint annotations.}
 
 \item{trace}{Logical; passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}.}
 
-\item{profile_precision}{Profile-control shortcut. \code{"default"} leaves
-\code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls unchanged. \code{"fast"} supplies
+\item{profile_precision}{Profile-control shortcut. \code{"default"} leaves the
+TMB profile step size unchanged and sets \code{ytol} to at least 0.5 above the
+requested likelihood cutoff, with a minimum of 2, when omitted. This gives
+the profile room to reach the cutoff; endpoint finding can still fail for
+other reasons.
+An explicit \code{ytol} remains in force.
+\code{"fast"} supplies
 \code{ystep = 0.5} and \code{ytol = 2} unless the caller supplies those controls in
 \code{...}.}
 

@@ -3,11 +3,14 @@
 \name{fitted_distribution}
 \alias{fitted_distribution}
 \alias{fitted_distribution.drmTMB}
+\alias{fitted_distribution.drmTMB_julia}
 \title{Fitted distribution accessor}
 \usage{
 fitted_distribution(object, ...)
 
 \method{fitted_distribution}{drmTMB}(object, newdata = NULL, response = NULL, ...)
+
+\method{fitted_distribution}{drmTMB_julia}(object, newdata = NULL, response = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}

@@ -3,6 +3,7 @@
 \name{check_drm}
 \alias{check_drm}
 \alias{check_drm.drmTMB}
+\alias{[.drm_check}
 \alias{check_drm.drmTMB_julia}
 \title{Check convergence and diagnostic flags for a drmTMB fit}
 \usage{
@@ -15,6 +16,8 @@ check_drm(object, ...)
   sd_boundary = 1e-04,
   ...
 )
+
+\method{[}{drm_check}(x, i, j, drop = FALSE)
 
 \method{check_drm}{drmTMB_julia}(object, gradient_tolerance = 0.001, ...)
 }
@@ -32,6 +35,12 @@ which a bivariate Gaussian fit receives a warning.}
 \item{sd_boundary}{Random-effect standard deviation below which a fit
 receives a warning that the variance component is near the lower
 boundary.}
+
+\item{x}{A diagnostic table returned by \code{\link[=check_drm]{check_drm()}}.}
+
+\item{i, j}{Row and column indices, as for data-frame subsetting.}
+
+\item{drop}{Logical; whether to simplify a single selected column.}
 }
 \value{
 A \code{drm_check} data frame. Its stable native reader columns are, in
@@ -47,7 +56,9 @@ fits with random effects, known sampling covariance, phylogenetic location
 effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
-The current checks cover optimizer convergence, finite objective values,
+The current checks cover the three-valued \code{convergence_status}
+(\code{ok} / \code{note} / \code{warning} for \code{"converged"} / \code{"boundary"} /
+\code{"degenerate"}), optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether
 \code{\link[TMB:sdreport]{TMB::sdreport()}} was computed, skipped, or failed, Hessian status from
@@ -64,10 +75,16 @@ only when \code{sdr$cov.fixed} itself is absent or incomplete (for example
 \code{drm_control(se = FALSE)}, or a failed \code{sdreport()}), finite fixed-effect standard errors, standard errors that
 are finite but inflated relative to the others despite a positive-definite
 Hessian (a weakly identified, near-flat direction such as a boundary
-correlation), dropped rows,
+correlation), whether a fixed-effect binomial, Poisson, or NB2 MLE exists
+and whether a continuous location-scale likelihood is unbounded
+(\code{mle_existence}), dropped rows,
 positive scale parameters, random-effect standard deviations near the lower
 boundary, bivariate residual-correlation \code{rho12} values near the boundary,
 Student-t \code{nu} boundary behaviour, skew-normal \code{nu} finite-value checks,
+a flag-only note when at least two quantile residuals and more than 1\% lie
+beyond |3|
+(\code{residual_outliers}, a sign of a damaged response such as a sentinel code;
+it changes no estimate and never flips \code{attr(x, "ok")}),
 known sampling covariance summaries,
 dense known-covariance storage scale, dense fixed-effect design size and
 density, random-effect replication, and random-slope design variation. If a
@@ -127,7 +144,17 @@ fixed-gradient check is reported as a note because the TMB
 automatic-differentiation object is not available. If a fit used
 \code{drm_control(se = FALSE)}, the \code{sdreport_status}, Hessian, and
 finite-standard-error checks are reported as notes. If \code{sdreport()} was
-requested but failed, those rows are warnings.
+requested but failed, those rows are warnings. For Gaussian temporal fits,
+\code{temporal_mean_wald} separately records whether mean-coefficient Wald
+inference is available for this fit, unavailable because its full observed
+Hessian is not usable, or intentionally deferred for OU. The separate
+\code{temporal_mean_profile} row records whether fixed-effect profile intervals
+can be computed and whether the fitted Hessian makes their nuisance
+parameters locally irregular. \code{temporal_boundary} warns when residual
+\code{sigma} collapses below 1e-3 of the response SD, an OU decay leaves
+correlation at about 1 or 0 at every observed lag, or AR1 persistence
+exceeds 0.999 in absolute value; such fits report
+\code{convergence_status() == "boundary"}.
 
 Use \code{check_drm()} before interpreting coefficients, fitted values, or
 response-scale quantities. A \code{note} records something to inspect, such as
@@ -203,6 +230,14 @@ covariance can still carry a negative variance on the diagonal, which
 The \code{gradient_tolerance} argument applies as it does for a native fit; the
 \code{rho_boundary} and \code{sd_boundary} arguments do not, because the
 corresponding rows are not computed for a bridge fit.
+}
+
+\section{Subsetting diagnostics}{
+
+Data-frame subsets retain the \code{drm_check} class and the original overall
+\code{ok} flag. The \code{n_checks_total} attribute retains the original check count,
+using \code{nrow(x)} when that attribute is absent. A simplified non-data-frame
+result is returned unchanged.
 }
 
 \examples{

@@ -1,0 +1,27 @@
+{
+  "repository": "DRModels.jl",
+  "branch": "codex/general-sd-regression",
+  "head": "70dbf564e",
+  "entries": [
+    {
+      "file": "src/poisson.jl",
+      "sha256": "181247b0622d3d2f66730b2e687bdabf31113c5d543501e2e22e1c07366f9377"
+    },
+    {
+      "file": "src/sparse_laplace_glmm.jl",
+      "sha256": "f9b031580ea480be06608d5febe09f6225c70588e0901b3cc681553a0fd2afaf"
+    },
+    {
+      "file": "src/inference.jl",
+      "sha256": "c4a97988f0e005355fce45bdc33dc13ec57458612b1b554a07142e5963cd5b73"
+    },
+    {
+      "file": "test/test_poisson_animal_slope_sd_regression.jl",
+      "sha256": "8d8967219f6935127e8eb82a6ccb460b26629743c1fb30a7e916721f0e1b69c6"
+    }
+  ],
+  "copied_test": {
+    "file": "docs/dev-log/general-sd-regression/evidence/poisson-animal-slope-raw-a-20261024/test_poisson_animal_slope_sd_regression.jl",
+    "sha256": "8d8967219f6935127e8eb82a6ccb460b26629743c1fb30a7e916721f0e1b69c6"
+  }
+}

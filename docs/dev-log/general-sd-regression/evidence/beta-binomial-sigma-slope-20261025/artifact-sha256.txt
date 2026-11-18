@@ -1,0 +1,8 @@
+f13fa4240efc16112b3619d003ac5148b1d407de18ec59c8d126234c7da3850b  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/julia-sources.sha256
+fcefcc56988dc418c575198ac4f3a11e429b31c96c4e7dd2fcb8885ecbfb4f63  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/live-bridge-test.log
+2eadb1b2b09017466b950a6f230d28ed0e72c9a8a0d81ba7f0659c744c94cb9d  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/native-test.log
+9ce36a4179b3bf5877ae75c09d08f48030817a253b90cc0c27964a87d54214a6  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/receipt.json
+656dad0a4e4bf093fb7f848af11e7c20bb98338ada872db71496786dc2cf5754  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/sources-after-native.sha256
+656dad0a4e4bf093fb7f848af11e7c20bb98338ada872db71496786dc2cf5754  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/sources-after.sha256
+656dad0a4e4bf093fb7f848af11e7c20bb98338ada872db71496786dc2cf5754  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/sources-before.sha256
+1610d9286d6871b1a315b376d109d4bf94509072a948dcbe82db98e754845c16  docs/dev-log/general-sd-regression/evidence/beta-binomial-sigma-slope-20261025/vignette-render.log

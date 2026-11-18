@@ -1,0 +1,70 @@
+julia-structured-stored-prediction: ..................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+YAY - stylish code.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+julia-conditional-prediction: ....................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+julia-conditional-components: ...........................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+julia-b34-structured-fitted-bridge: ..........................SSSSSSSSSSSSSSSSSSSSSSSSSS
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. Julia fitted() and residuals() are conditional: gaussian relmat intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+2. Julia fitted() and residuals() are conditional: gaussian animal intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+3. Julia fitted() and residuals() are conditional: gaussian spatial intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+4. Julia fitted() and residuals() are conditional: gaussian relmat slope  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+5. Julia fitted() and residuals() are conditional: poisson relmat intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+6. Julia fitted() and residuals() are conditional: poisson animal intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+7. Julia fitted() and residuals() are conditional: poisson spatial intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+8. Julia fitted() and residuals() are conditional: poisson relmat slope  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+9. Julia fitted() and residuals() are conditional: nbinom2 relmat intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+10. Julia fitted() and residuals() are conditional: nbinom2 animal intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+11. Julia fitted() and residuals() are conditional: nbinom2 spatial intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+12. Julia fitted() and residuals() are conditional: nbinom2 relmat slope  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+13. Julia fitted() and residuals() are conditional: gamma relmat intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+14. Julia fitted() and residuals() are conditional: gamma animal intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+15. Julia fitted() and residuals() are conditional: gamma spatial intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+16. Julia fitted() and residuals() are conditional: gamma relmat slope  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+17. Julia fitted() and residuals() are conditional: binomial relmat intercept logit ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+18. Julia fitted() and residuals() are conditional: binomial animal intercept logit ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+19. Julia fitted() and residuals() are conditional: binomial spatial intercept logit ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+20. Julia fitted() and residuals() are conditional: binomial relmat slope logit ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+21. Julia fitted() and residuals() are conditional: binomial relmat intercept probit ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+22. Julia fitted() and residuals() are conditional: binomial animal intercept cloglog ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+23. Julia fitted() and residuals() are conditional: poisson animalinv intercept  ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+24. Julia fitted() and residuals() are conditional: binomial animalinv intercept logit ('test-julia-b34-structured-fitted-bridge.R:275:7') - Reason: On CRAN
+
+25. exported modes are in first-seen group order and match the row contributions ('test-julia-b34-structured-fitted-bridge.R:294:3') - Reason: On CRAN
+
+26. Julia Binomial animal q2 fitted() equals the dense conditional-mode oracle ('test-julia-b34-structured-fitted-bridge.R:324:3') - Reason: On CRAN
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

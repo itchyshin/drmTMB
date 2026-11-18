@@ -1,0 +1,2 @@
+3de5d1b48d6b5f7bc90f17039e9a1594a6a67380a97797b5cd32952e4a7a9204  tests/testthat/test-fixed-priors-gaussian-ranef.R
+3aead1ed4a821e1e400cc56f78b7c6f37e8ccbf3828134086025c13a7bd81126  /home/snakagaw/hsq_work/drmtmb-ri-priors-final-lib-20261106/drmTMB/libs/drmTMB.so

@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "fb5fe770c10f44b16491c33e37ecac7bc4e6d4a695fc6a24eaa80d1f9d7cfa6e",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex",
+  "method": "Manual post-draft review under writing-naturalness.md; facts checked against the current source diff and test outputs.",
+  "genre": "After-task engineering report",
+  "coverage": "Whole report",
+  "score": 2,
+  "style_status": "scored",
+  "score_reason": "The report is specific to one builder defect and records concrete commands and outcomes. Its required headings create some regular structure, but the prose avoids generic claims.",
+  "confidence": "medium",
+  "confidence_reason": "The report is short and its factual claims were checked against the source diff and command results; perceived style remains a subjective judgment.",
+  "examples": [
+    {
+      "location": "Checks Run",
+      "cue": "The before-fix failure is linked to the missing field.",
+      "impact": "The reader can see why the new test exercises the defect.",
+      "repair": "no change needed",
+      "line": 27,
+      "quote": "Before the fix, the native family run failed three Student assembly tests with `random_scale$phylo$n_models` missing. This was the expected red result."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The narrow scale statement was checked against the Student builder and the SD design; no coverage claim is made.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Commands, pass counts, failure reason, source hash, and issue-search result were checked against current tool outputs.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report uses local code and test evidence and cites no external source.",
+  "date": "2026-10-20",
+  "calibration_status": "No relevant human controls were reviewed; style score is an informal self-assessment.",
+  "interpretation": "perceived_style_not_authorship"
+}

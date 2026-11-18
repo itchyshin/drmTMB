@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "db60af03d2f057695017e3ec94c1daafb52965f68c35a6aa8e8ba1e66beb5eac",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Read the complete saved report against the executed Julia test output, source manifest, reconciler output, and inspected issue records; ran slop_check.py.",
+  "genre": "Technical after-task evidence report",
+  "coverage": "Entire report, all sections",
+  "score": 3,
+  "style_status": "rated",
+  "score_reason": "The report names exact artifacts, commands, results, and limits. The required headings create a somewhat template-driven rhythm, but the prose stays concrete and avoids broad claims.",
+  "confidence": "medium",
+  "confidence_reason": "The passage is a short evidence report with concrete technical anchors; the style score remains an uncertain editorial judgment, not a calibrated measure.",
+  "examples": [
+    {
+      "location": "Goal, paragraph 1",
+      "line": 5,
+      "quote": "Bind the focused Julia NB2 animal-intercept precision-provider test to its exact frozen capability row without changing the 19,118-row inventory or promoting the row to general support.",
+      "cue": "Names a bounded outcome and preserves the inventory boundary.",
+      "impact": "Readers can see immediately what this evidence update does and does not claim.",
+      "repair": "no change needed"
+    },
+    {
+      "location": "Known Limitations, paragraph 1",
+      "line": 54,
+      "quote": "This is one focused Julia route-equivalence and input-validation receipt. It does not establish an independent likelihood oracle, R/TMB parity, profile or bootstrap refitting, interval calibration, or support for other NB2 targets, effects, providers, or distributions.",
+      "cue": "Lists the evidence boundary in specific terms.",
+      "impact": "Prevents this narrow fit comparison from reading as broad support or inference validation.",
+      "repair": "no change needed"
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Claims are limited to the one provider-equivalence and malformed-input test; the report explicitly withholds independent likelihood and calibration claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Assertion count and duration match the Julia test output; evidence-row counts match the reconciler; the test snapshot matches the executed source hash.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no external citations or literature claims.",
+  "date": "2026-10-23",
+  "calibration_status": "Prior project after-task reports were seen; no held-out style controls were used.",
+  "interpretation": "perceived_style_not_authorship"
+}

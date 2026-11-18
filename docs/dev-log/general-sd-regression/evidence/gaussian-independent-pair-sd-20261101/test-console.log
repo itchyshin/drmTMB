@@ -1,0 +1,21 @@
+ℹ Testing drmTMB
+gaussian-independent-pair-sd: ..........
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+=== COUNTS ===
+test_blocks: 2 
+expectations_passed: 10 
+failed: 0 
+errors: 0 
+skipped_blocks: 0 
+warnings: 0 
+                                                                           test
+1 Gaussian independent same-group intercept and slope take separate SD formulas
+2            Gaussian same-group SD without coefficient selectors stays refused
+  nb passed failed skipped error warning
+1  9      9      0   FALSE FALSE       0
+2  1      1      0   FALSE FALSE       0
+EXIT_STATUS: 0 
+NOT_CRAN=true OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 =1    5.51s user 0.29s system 83% cpu 6.966 total

@@ -1,0 +1,18 @@
+TEST_SHA256_BEFORE 351bdddc76858286552101e0930459b919c0f287d12d2e151f3d78e09dd3db1a  tests/testthat/test-poisson-animal-slope-ainv-pedigree-sd-regression.R
+START 2026-11-01T17:00:04Z
+ℹ Testing drmTMB
+poisson-animal-slope-ainv-pedigree-sd-regression: .................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+COUNTS expectations=17 failed=0 skipped=0 errors=0 warnings=0 tests=2
+                                                                     test nb
+1       Poisson animal slope SDs can depend on group predictors with Ainv  9
+2 Poisson animal slope SDs can depend on group predictors with a pedigree  8
+  failed skipped error warning
+1      0   FALSE FALSE       0
+2      0   FALSE FALSE       0
+EXIT_STATUS 0
+END 2026-11-01T17:00:15Z
+TEST_SHA256_AFTER 351bdddc76858286552101e0930459b919c0f287d12d2e151f3d78e09dd3db1a  tests/testthat/test-poisson-animal-slope-ainv-pedigree-sd-regression.R

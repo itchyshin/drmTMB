@@ -1,0 +1,17 @@
+{
+  "scope": "native Binomial q1 phylogenetic tree plus animal A-covariance intercepts with separate predictor-dependent SD regressions under logit, probit, and cloglog links",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "4d1b7b52bc2ef9b7cf16060342116df7dacb79c3e76a5a6f30484f24cefbac12"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "e2bb5b158ca2c5ff13b6ca4d1763b4b2a27eb2ff6bbb665e4a76dc733d9d6f70"
+    },
+    {
+      "file": "tests/testthat/test-binomial-phylo-animal-sd.R",
+      "sha256": "e95360dfda8c7a639fbcbd4e27d1cd3788e0dcf8d8807fd416c78236840b4f09"
+    }
+  ]
+}

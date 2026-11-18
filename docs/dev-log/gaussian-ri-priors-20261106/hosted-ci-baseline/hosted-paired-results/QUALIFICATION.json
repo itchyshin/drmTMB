@@ -1,0 +1,35 @@
+{
+  "recorded_at": "2026-11-07T03:47:45.423026+00:00",
+  "run": 42331688804,
+  "source": "108792b0d3b34665aebb06a7ff7541e2d8808c5a",
+  "outcomes": {
+    "standalone": "both44/44 with bit-identical recorded fit diagnostics",
+    "prefix": "both timeout124 after1200seconds; rawlogs empty; no prefix pass/fail attribution"
+  },
+  "strict_standalone_fields": {
+    "converged=": "converged=true iterations=53",
+    "theta=": "theta=[0.1943639418189246, 0.45234106476909414, -35.316914102114715, 34.17616262509883]",
+    "theta_bits=": "theta_bits=[\"0011111111001000111000001110101011101010110100010010010010001101\", \"0011111111011100111100110010011111101111111101001000110010000111\", \"1100000001000001101010001001000010100100001011000001110010101001\", \"0100000001000001000101101000110001111111001101001100100111011011\"]",
+    "loglik=": "loglik=-532.9732053643258 control=nothing",
+    "data_sha256=": "data_sha256=50282830f7316c3426fd9bb10870ce37dbb7985a99d64aba2b19a691c3ef4ebe",
+    "objective=": "objective=532.9732053643258",
+    "gradient=": "gradient=[3.238247003878314e-9, -6.368950922208683e-9, -8.58932369673937e-10, -8.58932369673937e-10] maxabs=6.368950922208683e-9",
+    "ORIGINAL_VICTIM_SHA256=": "ORIGINAL_VICTIM_SHA256=57788efeecc74c2d7bef374446f2c335194754a22de033da8965feab1e31d5a5"
+  },
+  "paired_environment": "Project and Manifest semantically identical except source checkout paths",
+  "original_CI_failure": "unresolved; no baseline-defect or flake classification",
+  "artifact_hashes": {
+    "baseline-Manifest.toml": "887a14001e8a02a2ccb1e9dccbf0681de1fda6ac18ab15fcdc50a7a154a21f5e",
+    "baseline-Project.toml": "fb897d91c5f9ded1cdd71a46fd1fdd8d834c203bbb6ad0892308b93a3e8c3642",
+    "baseline-prefix.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-standalone.log": "04d1f3852e55ba164ec7af26f192379c9c32bd68c6e2dc9f618c990f6bd1f4bf",
+    "candidate-Manifest.toml": "688527fda8657c3fc4697b8b1e3226e235dc211b1d72342643743f6d81609cff",
+    "candidate-Project.toml": "96c1bf487b4dfec0053defea458da72c4b0dcbb2689b94833ea02cc4aa9dfc25",
+    "candidate-prefix.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-standalone.log": "f3d44119e242411748d39f06280f492cc904e8e181ae01392258e8a69443a4cc",
+    "julia-runtime.txt": "f5f2048650146feaf1c422be38b822702710228ff81d81cef2c6fed3a3748be3",
+    "lscpu.txt": "19cbc5fc01a0a1dec4e80b9683ae70004e922f11b096a4ce38f07fa515468f5e",
+    "results.json": "a8654f23eaf0addec980b04c38d0ed61f7f50c1d95ecb33553315e466c3719a4",
+    "uname.txt": "49e5f217cbf41dab688db6ed9259e6d19a52441b1aaec5d5dcb8c3cbee743ff9"
+  }
+}

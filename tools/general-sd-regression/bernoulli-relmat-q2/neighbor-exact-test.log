@@ -1,0 +1,97 @@
+✔ | F W  S  OK | Context
+
+⠏ |          0 | binomial-relmat-precision-sd                                   
+⠹ |          3 | binomial-relmat-precision-sd                                   
+✔ |          9 | binomial-relmat-precision-sd [13.1s]
+
+⠏ |          0 | binomial-relmat-sd                                             
+⠋ |          1 | binomial-relmat-sd                                             
+⠇ |         19 | binomial-relmat-sd                                             
+⠹ |         23 | binomial-relmat-sd                                             
+⠏ |         30 | binomial-relmat-sd                                             
+⠋ | 1       30 | binomial-relmat-sd                                             
+✖ | 1       30 | binomial-relmat-sd [36.5s]
+────────────────────────────────────────────────────────────────────────────────
+Error ('test-binomial-relmat-sd.R:186:5'): Binomial relmat SD regression supports probit and cloglog links
+Error in `drm_julia_setup()`: `engine = "julia"` needs a local DRModels.jl (or legacy DRM.jl) checkout, and none was found.
+i One-time: `git clone https://github.com/itchyshin/DRModels.jl` then `julia --project=DRModels.jl -e 'using Pkg; Pkg.instantiate()'`.
+i Before the first Julia call, set `DRMODELS_JL_PATH` or `options(drmTMB.DRModels.jl.path = ...)`. Legacy `DRM_JL_PATH` and `options(drmTMB.DRM.jl.path = ...)` also work.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-binomial-relmat-sd.R:186:5
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:343:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:701:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:10711:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:11095:3
+ 6.           └─cli::cli_abort(...) at general-sd-regression/R/julia-bridge.R:6674:5
+ 7.             └─rlang::abort(...)
+────────────────────────────────────────────────────────────────────────────────
+
+⠏ |          0 | binomial-relmat-slope-sd                                       
+⠋ |          1 | binomial-relmat-slope-sd                                       
+⠇ |          9 | binomial-relmat-slope-sd                                       
+⠙ |         12 | binomial-relmat-slope-sd                                       
+⠧ |         18 | binomial-relmat-slope-sd                                       
+✔ |         23 | binomial-relmat-slope-sd [10.3s]
+
+⠏ |          0 | binomial-sd-integration                                        
+⠋ |          1 | binomial-sd-integration                                        
+⠇ |          9 | binomial-sd-integration                                        
+⠋ |         11 | binomial-sd-integration                                        
+⠋ |         21 | binomial-sd-integration                                        
+⠙ |         22 | binomial-sd-integration                                        
+⠸ |         24 | binomial-sd-integration                                        
+⠴ |         26 | binomial-sd-integration                                        
+⠧ |         28 | binomial-sd-integration                                        
+⠏ |         30 | binomial-sd-integration                                        
+⠸ |         64 | binomial-sd-integration                                        
+⠧ |        108 | binomial-sd-integration                                        
+⠇ |        149 | binomial-sd-integration                                        
+⠸ |        194 | binomial-sd-integration                                        
+⠴ |        206 | binomial-sd-integration                                        
+⠏ |        210 | binomial-sd-integration                                        
+⠏ |        240 | binomial-sd-integration                                        
+⠏ |        270 | binomial-sd-integration                                        
+⠙ |        282 | binomial-sd-integration                                        
+⠙ |        302 | binomial-sd-integration                                        
+⠏ |        330 | binomial-sd-integration                                        
+⠧ |        358 | binomial-sd-integration                                        
+⠇ |        359 | binomial-sd-integration                                        
+⠋ |        361 | binomial-sd-integration                                        
+⠸ |        364 | binomial-sd-integration                                        
+⠼ |        365 | binomial-sd-integration                                        
+✔ |        366 | binomial-sd-integration [144.6s]
+
+⠏ |          0 | binomial-sd-target-selectors-integration                       
+⠋ |          1 | binomial-sd-target-selectors-integration                       
+⠇ |          9 | binomial-sd-target-selectors-integration                       
+⠴ |         16 | binomial-sd-target-selectors-integration                       
+✔ |         22 | binomial-sd-target-selectors-integration [6.6s]
+
+⠏ |          0 | binomial-sd-target-selectors                                   
+⠧ |         18 | binomial-sd-target-selectors                                   
+⠇ |         19 | binomial-sd-target-selectors                                   
+⠏ |         30 | binomial-sd-target-selectors                                   
+⠸ |         34 | binomial-sd-target-selectors                                   
+✔ |         34 | binomial-sd-target-selectors [1.2s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 212.2 s
+
+── Failed tests ────────────────────────────────────────────────────────────────
+Error ('test-binomial-relmat-sd.R:186:5'): Binomial relmat SD regression supports probit and cloglog links
+Error in `drm_julia_setup()`: `engine = "julia"` needs a local DRModels.jl (or legacy DRM.jl) checkout, and none was found.
+i One-time: `git clone https://github.com/itchyshin/DRModels.jl` then `julia --project=DRModels.jl -e 'using Pkg; Pkg.instantiate()'`.
+i Before the first Julia call, set `DRMODELS_JL_PATH` or `options(drmTMB.DRModels.jl.path = ...)`. Legacy `DRM_JL_PATH` and `options(drmTMB.DRM.jl.path = ...)` also work.
+Backtrace:
+    ▆
+ 1. └─drmTMB::drmTMB(...) at test-binomial-relmat-sd.R:186:5
+ 2.   └─drmTMB:::drmTMB_julia_bridge(...) at general-sd-regression/R/drmTMB.R:343:5
+ 3.     └─drmTMB:::drmTMB_julia_structured_bridge(...) at general-sd-regression/R/julia-bridge.R:701:5
+ 4.       └─drmTMB:::drm_julia_call_structured(...) at general-sd-regression/R/julia-bridge.R:10711:3
+ 5.         └─drmTMB:::drm_julia_setup() at general-sd-regression/R/julia-bridge.R:11095:3
+ 6.           └─cli::cli_abort(...) at general-sd-regression/R/julia-bridge.R:6674:5
+ 7.             └─rlang::abort(...)
+
+[ FAIL 1 | WARN 0 | SKIP 0 | PASS 484 ]
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

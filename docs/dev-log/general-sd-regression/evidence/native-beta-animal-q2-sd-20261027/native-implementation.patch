@@ -1,0 +1,18 @@
+--- src/drmTMB.cpp
++++ src/drmTMB.cpp
+@@ -3606,7 +3606,14 @@
+           int effect_index = k * n_phylo + phylo_mu_node_index(i);
+           Type field_effect = u_phylo(effect_index);
+           if (has_sd_phylo_model == 1) {
+-            field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
++            if (has_sd_phylo_coef_model == 1) {
++              int sd_row = phylo_mu_sd_row_coef(i, k);
++              if (sd_row >= 0) {
++                field_effect *= sd_phylo_group(sd_row);
++              }
++            } else {
++              field_effect *= sd_phylo_group(phylo_mu_sd_row(i));
++            }
+           }
+           Type contribution = phylo_mu_value(i, k) * field_effect;
+           if (phylo_mu_dpar(k) == 1) {

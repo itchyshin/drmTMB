@@ -1,0 +1,3 @@
+after-task structure check passed
+Warning message:
+Acceptance ledger present (13 file(s)) but NOT RUNNABLE (node or gate-check missing). Gate state is UNKNOWN, not satisfied. 

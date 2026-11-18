@@ -95,6 +95,12 @@ denominator, so they can differ from \code{icc()}/\code{repeatability()} here wh
 a fit has two or more structured components. Their names make the denominator
 explicit so that one label does not refer to two different quantities.
 
+These quantities are Gaussian-only for now: a non-Gaussian fit is refused
+with an error rather than given a value on an unstated scale. A
+non-Gaussian version would have to say which scale it reports (latent,
+liability, or observed data; de Villemereuil et al. 2016, \emph{Genetics}
+204:1281-1294); see \code{docs/design/275-repeatability-scale-and-residual-variance.md}.
+
 Fits must be Gaussian, have a constant residual scale (\code{sigma ~ 1}) or a
 closed-form marginal residual variance, and have at least one structured
 mean random-effect component (\code{(1 | group)}, \code{phylo(...)}, \code{animal(...)},
@@ -121,6 +127,9 @@ working (log-SD) scale: a numeric gradient of the ratio in the log-SD
 parameters, combined with the fixed-parameter covariance
 (\code{object$sdr$cov.fixed}) via the quadratic form, then a Wald interval at
 \code{level}, clamped to \verb{[0, 1]}. This is a delta-method approximation; not a coverage claim.
+For fits with active fixed-effect priors, these interval-returning
+accessors are unavailable. Point-only variance shares remain available in
+\code{summary()$derived}.
 
 \code{method = "profile"} is accepted but is \strong{not implemented}; it aborts
 naming \code{method = "delta"} as

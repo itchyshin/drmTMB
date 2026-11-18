@@ -170,6 +170,37 @@ test_that("Julia marker-slope gate registry row exists and is intentional", {
   expect_match(row$message_pattern, "cannot fit a random slope")
 })
 
+test_that("Gamma animal SD slope admission is limited to its implemented cell", {
+  ids <- c("a", "b", "c")
+  A <- diag(length(ids))
+  dimnames(A) <- list(ids, ids)
+  data <- data.frame(id = factor(ids), x = c(-1, 0, 1), z = c(-1, 0, 1), y = 1:3)
+  formula <- bf(
+    y ~ x + animal(0 + x | id, A = A),
+    sigma ~ 1,
+    sd(id, level = "animal") ~ z
+  )
+  admit <- drmTMB:::drm_julia_gamma_animal_sd_slope_route_admitted
+
+  expect_true(admit(formula, "gamma"))
+  expect_false(admit(formula, "beta"))
+  expect_false(admit(
+    bf(y ~ x + animal(1 + x | id, A = A), sigma ~ 1,
+       sd(id, level = "animal") ~ z),
+    "gamma"
+  ))
+  expect_false(admit(
+    bf(y ~ x + animal(0 + x | id, A = A), sigma ~ z,
+       sd(id, level = "animal") ~ z),
+    "gamma"
+  ))
+  expect_false(admit(
+    bf(y ~ x + animal(0 + x | id, A = A) + (1 | id), sigma ~ 1,
+       sd(id, level = "animal") ~ z),
+    "gamma"
+  ))
+})
+
 test_that("RED CONTROL: removing the guard call lets the marker-slope formula reach further", {
   # This does not remove the guard (nothing here is allowed to edit
   # R/julia-bridge.R for real); it instead directly probes that the guard

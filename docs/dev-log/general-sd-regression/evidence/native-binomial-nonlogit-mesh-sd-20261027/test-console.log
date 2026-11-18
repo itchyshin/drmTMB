@@ -1,0 +1,17 @@
+ℹ Testing drmTMB
+✔ | F W  S  OK | Context
+
+⠏ |          0 | binomial-mesh-sd-regression                                    
+⠋ |          1 | binomial-mesh-sd-regression                                    
+⠇ |          9 | binomial-mesh-sd-regression                                    
+⠋ |         11 | binomial-mesh-sd-regression                                    
+⠙ |         12 | binomial-mesh-sd-regression                                    
+⠹ |         13 | binomial-mesh-sd-regression                                    
+⠧ |         18 | binomial-mesh-sd-regression                                    
+✔ |         22 | binomial-mesh-sd-regression [10.8s]
+
+══ Results ═════════════════════════════════════════════════════════════════════
+Duration: 10.8 s
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 22 ]
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).

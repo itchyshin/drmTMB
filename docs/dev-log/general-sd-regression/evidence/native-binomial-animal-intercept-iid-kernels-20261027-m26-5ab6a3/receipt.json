@@ -1,0 +1,26 @@
+{
+  "evidence_id": "native-binomial-animal-intercept-a-logit-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-animal-intercept-a-logit-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-intercept-iid-kernels-20261027/receipt.md",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e devtools::test(filter = \"\"binomial-animal-(sd-regression|ainv-sd-regression|pedigree-sd-regression)\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-animal-sd-regression.R",
+      "test_sha256": "b2ad9364a2fb49de321dd24d3b36ce9c08ac63364c33917a6e283a313602de4a",
+      "started_utc": "2026-11-02T13:15:21Z",
+      "ended_utc": "2026-11-02T13:15:47Z",
+      "exit_code": 0,
+      "expectations_passed": 12,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-intercept-iid-kernels-20261027-m26-5ab6a3/test-console-test-binomial-animal-sd-regression.log",
+      "console_log_sha256": "c97eae4f5b0b3107a0bdf3924b3edd243c7a092cb32de6c265377b174ca8ad3b"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-intercept-iid-kernels-20261027-m26-5ab6a3/source-manifest.json",
+  "source_manifest_sha256": "cb7dbf56878f9907d2fad892ccbbed764038464524537c6e43a336cbe745785d",
+  "review_status": "unreviewed"
+}

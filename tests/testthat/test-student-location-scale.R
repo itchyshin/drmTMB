@@ -218,7 +218,7 @@ test_that("Student-t models reject unsupported early-phase terms clearly", {
   )
   expect_error(
     drmTMB(bf(y ~ x, sigma ~ 1, sd(id) ~ 1), family = student(), data = dat),
-    "Random-effect scale formulae"
+    "No random-effect term matches"
   )
 })
 

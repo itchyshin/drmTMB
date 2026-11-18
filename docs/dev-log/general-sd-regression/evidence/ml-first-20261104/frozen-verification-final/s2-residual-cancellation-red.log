@@ -1,0 +1,56 @@
+julia-structured-stored-prediction: .........................................................123456.
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-julia-structured-stored-prediction.R:117:5'): structured re
+Expected `residuals(fit)` to equal `expected`.
+Differences:
+  `actual`: -1.0 -1.0 -1.0 -1.0
+`expected`:  0.0  1.0  3.0  7.0
+
+poisson log 40
+
+── 2. Failure ('test-julia-structured-stored-prediction.R:117:5'): structured re
+Expected `residuals(fit)` to equal `expected`.
+Differences:
+  `actual`: NaN NaN NaN NaN
+`expected`: 0.0 1.0 3.0 7.0
+
+poisson log 800
+
+── 3. Failure ('test-julia-structured-stored-prediction.R:117:5'): structured re
+Expected `residuals(fit)` to equal `expected`.
+Differences:
+  `actual`: -1.0 -1.0 -1.0 -1.0
+`expected`:  0.0  1.0  3.0  7.0
+
+gamma log 40
+
+── 4. Failure ('test-julia-structured-stored-prediction.R:117:5'): structured re
+Expected `residuals(fit)` to equal `expected`.
+Differences:
+  `actual`: NaN NaN NaN NaN
+`expected`: 0.0 1.0 3.0 7.0
+
+gamma log 800
+
+── 5. Failure ('test-julia-structured-stored-prediction.R:117:5'): structured re
+Expected `residuals(fit)` to equal `expected`.
+Differences:
+  `actual`: -1.0 -1.0 -1.0 -1.0
+`expected`:  0.0  1.0  3.0  7.0
+
+nbinom2 log 40
+
+── 6. Failure ('test-julia-structured-stored-prediction.R:117:5'): structured re
+Expected `residuals(fit)` to equal `expected`.
+Differences:
+  `actual`: NaN NaN NaN NaN
+`expected`: 0.0 1.0 3.0 7.0
+
+nbinom2 log 800
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted

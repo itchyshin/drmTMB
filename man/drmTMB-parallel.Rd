@@ -85,6 +85,15 @@ that can matter for a single \code{drmTMB} fit, through dense matrix work in
 when you parallelise across jobs.
 }
 
+\section{Dead forked workers}{
+
+\code{\link[parallel:mclapply]{parallel::mclapply()}} returns \code{NULL} for a child that exits without a
+value, for example after \code{quit()} or a crash. \code{rbind()} would then drop
+that element. \code{\link[=profile.drmTMB]{profile.drmTMB()}} and \code{confint(method = "profile")} abort
+with class \code{drmTMB_parallel_worker_died} instead. \code{confint(method = "bootstrap")} records the missing replicate as a failed refit, so
+\code{bootstrap.n + bootstrap.failed} still equals the requested \code{R}.
+}
+
 \section{Windows}{
 
 \code{parallel = "multicore"} is not available on Windows because it relies on

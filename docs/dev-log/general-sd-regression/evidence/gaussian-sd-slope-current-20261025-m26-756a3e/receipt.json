@@ -1,0 +1,27 @@
+{
+  "evidence_id": "gaussian-julia-independent-slope-sd-parity-current-20261025-m26",
+  "rerecord_of_evidence_id": "gaussian-julia-independent-slope-sd-parity-current-20261025",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-current-20261025/gaussian-julia-independent-slope-sd-parity-current-20261025.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"DRMTMB_JULIA_TESTS=true DRM_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' DRM_JL_JULIA_HOME=/Users/z3437171/.juliaup/bin JULIA_DEPOT_PATH=/private/tmp/julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 Rscript -e 'devtools::test(filter = \"\"gaussian-sd-slope-regression\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE); devtools::test(filter = \"\"julia-gaussian-sd-parity\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)' 2>&1 | tee docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-current-20261025/test-console.log\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-gaussian-sd-parity.R",
+      "test_sha256": "1987789bb6949f38ebb702b8195b39fc13a5a150285d84508021c3a35b8a03ee",
+      "started_utc": "2026-11-02T13:35:55Z",
+      "ended_utc": "2026-11-02T13:36:41Z",
+      "exit_code": 0,
+      "expectations_passed": 22,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-current-20261025-m26-756a3e/test-console-test-julia-gaussian-sd-parity.log",
+      "console_log_sha256": "fac490ad74afdf471323325aa98dac75f7f530807bffa0ec2d2214cee26395b6"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-sd-slope-current-20261025-m26-756a3e/source-manifest.json",
+  "source_manifest_sha256": "ceda98a9f47a194f7559bbabe07c0b4b71c12828f1bda3d4f6a07cf2edd6fa70",
+  "review_status": "unreviewed",
+  "claim": "One ordinary independent numeric Gaussian mu slope with predictor-dependent SD in the paired R-to-Julia candidate bridge."
+}

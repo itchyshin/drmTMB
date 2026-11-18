@@ -1,0 +1,18 @@
+TEST_SHA256_BEFORE f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863  tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R
+START 2026-11-01T17:00:40Z
+ℹ Testing drmTMB
+poisson-phylo-relmat-slope-sd-regression: ......................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+
+COUNTS expectations=38 failed=0 skipped=0 errors=0 warnings=0 tests=2
+                                                               test nb failed
+1 Poisson relmat slope SDs can depend on group predictors (K and Q) 24      0
+2            Poisson phylo slope SDs can depend on group predictors 14      0
+  skipped error warning
+1   FALSE FALSE       0
+2   FALSE FALSE       0
+EXIT_STATUS 0
+END 2026-11-01T17:00:51Z
+TEST_SHA256_AFTER f5d3a75a806fc27dc54a4eed264085da40efdc284d4aa080dfe83a910f9c7863  tests/testthat/test-poisson-phylo-relmat-slope-sd-regression.R

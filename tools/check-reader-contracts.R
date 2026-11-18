@@ -5,8 +5,8 @@
 # private whether it is reached through `fit`, `x`, or another object name.
 
 reader_contract_private_fields <- c(
-  "opt", "sdr", "sdpars", "corpars", "optimizer_used", "optimizer_attempts",
-  "obj", "model", "missing_data", "random_effects"
+  "opt", "sdr", "sdpars", "corpars", "decaypars", "optimizer_used",
+  "optimizer_attempts", "obj", "model", "missing_data", "random_effects"
 )
 
 reader_contract_contributor_permissions <- c(

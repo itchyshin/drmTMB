@@ -1,0 +1,3 @@
+| Date | Slice | Focused evidence | Boundary | Status |
+|---|---|---|---|---|
+| 2026-10-24 | Narrow `tools/ci-receipt-staleness.sh` to the runner's call path | Local, from origin/main `5d996e531`; guard output before: 13 STALE plus `R/utils.R` unrecorded, exit 1; after: 10 STALE on path plus `R/utils.R`, 3 NOTE, exit 1 (35 of 58 `R/` files on path); `test_receipt_staleness_narrowing.py` PASS 11 of 11 on Mac and Totoro, 6 of 11 fail against the old script. | Receipt JSON, tolerances and C17 receipt untouched and not regenerated; no live Julia run; no fresh GitHub CI because nothing was pushed. Main stays red until the receipt is regenerated. | Local only |

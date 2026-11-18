@@ -1,0 +1,32 @@
+{
+  "evidence_id": "native-binomial-crossed-nonlogit-sd-20261027-m26",
+  "rerecord_of_evidence_id": "native-binomial-crossed-nonlogit-sd-20261027",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/native-binomial-crossed-nonlogit-20261027/receipt.json",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 Rscript -e 'devtools::test(filter = \"\"binomial-crossed-nonlogit-sd\"\", reporter = \"\"summary\"\", stop_on_failure = TRUE)'\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-binomial-crossed-nonlogit-sd.R",
+      "test_sha256": "24fe5c4b1cfab29c73602ec28541478c0bf9c94e9ff01b2b118908188624d257",
+      "started_utc": "2026-11-02T13:15:47Z",
+      "ended_utc": "2026-11-02T13:16:50Z",
+      "exit_code": 0,
+      "expectations_passed": 18,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/native-binomial-crossed-nonlogit-20261027-m26-e646e4/test-console-test-binomial-crossed-nonlogit-sd.log",
+      "console_log_sha256": "50dd287297069b41a2feca38000b929d94feab0e53a07ad53af28278dc9b531f"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-crossed-nonlogit-20261027-m26-e646e4/source-manifest.json",
+  "source_manifest_sha256": "0bad52e97ab6cd1773a55b41cb7ff45c82852a5c07685466ac689a16124a399d",
+  "review_status": "unreviewed",
+  "checks": [
+    "fit convergence",
+    "signed broad recovery bounds for both SD slopes",
+    "named group SD predictions",
+    "binary marginal simulation"
+  ]
+}

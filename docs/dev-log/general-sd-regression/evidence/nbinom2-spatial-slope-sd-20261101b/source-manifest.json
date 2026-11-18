@@ -1,0 +1,47 @@
+{
+  "scope": "Native NB2(log) mu with a coordinate-spatial slope-only field, spatial(0 + x | site, coords = coords), and sd(site, level = 'spatial') ~ z.",
+  "note": "Dirty shared candidate tree (branch codex/general-sd-regression, HEAD 7309d3cd813f9c0f42da9974470c23d87da5bcf4 plus uncommitted edits); hashes identify test-time files. Test file hashed after the run and compared with its hash taken before the run.",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "aa0aedad162c3018790ead4350dbb2e68efc8203037f8ad923db4cdd0f4c61f5"
+    },
+    {
+      "file": "R/predict-parameters.R",
+      "sha256": "ef79299d4dd607be50067752c643027af55e9814d1e220a37dcdee94957dd8a9"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "R/phylo-utils.R",
+      "sha256": "512195e7c8eab314a876ead4e5a2537b511e2c4acbd5f86900cea5d46b20a0c4"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "tests/testthat/test-nbinom2-spatial-slope-sd-regression.R",
+      "sha256": "9b672d56292ba593fbf4e8ee29d478dff62b15e143979947441864e6a453d4dc"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/nbinom2-spatial-slope-sd-20261101b/test-console.log",
+      "sha256": "6789c88edf4e5faec5fe40e6174d9d2e4bd47063a5570816f6f709e355c7ea08"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
+}

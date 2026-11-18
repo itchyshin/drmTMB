@@ -119,7 +119,7 @@ quantity each `sigma` formula models.
 | Overdispersed count or rate | `nbinom2()` | `mu`, `sigma`, optional `zi` | extra-Poisson dispersion scale | ordinary `mu` effects, a grouped `sigma` intercept, and separate structured `mu` or `sigma` effects are available without zero inflation; see the count tutorial for the permitted formulas |
 | Positive count, zeros absent by design | `truncated_nbinom2()` | `mu`, `sigma` | NB2 dispersion for the untruncated component | ordinary `mu` random intercepts/slopes can be fitted without `hu`; `sigma` random effects and bivariate models are unavailable |
 | Count with a separate zero process | `truncated_nbinom2()` plus `hu ~` | `mu`, `sigma`, `hu` | NB2 dispersion for nonzero counts | start with fixed effects; the relatedness effect in `hu` described below has been checked for fitting only |
-| Ordered categories | `cumulative_logit()` | `mu`, cutpoints | fixed latent logistic scale | ordinary `mu` random intercepts/slopes can be fitted; the single phylogenetic intercept has been checked for fitting only; other structured effects and scale/discrimination formulas are unavailable |
+| Ordered categories | `cumulative_logit()` | `mu`, cutpoints | latent logistic scale fixed at 1, or `disc ~ z` with an intercept-free log link | ordinary `mu` random intercepts/slopes can be fitted; the single phylogenetic intercept has been checked for fitting only; other structured effects and random effects in `disc` are unavailable |
 | Two continuous Gaussian responses | `c(gaussian(), gaussian())` | `mu1`, `mu2`, `sigma1`, `sigma2`, `rho12` | residual SDs for each response | matching labelled `mu1`/`mu2`, `sigma1`/`sigma2`, and same-response `mu`/`sigma` intercept or slope-only covariance pairs implemented; richer covariance planned |
 
 For repeated observations within sites, individuals, or species, consider a
@@ -532,6 +532,13 @@ coverage, joint atom effects, transformed or mismatched atom slopes, structured
 effects, known covariance, denominator syntax, and bivariate bounded-response
 models remain unavailable.
 
+The `coi` probability is identified only when the data contain both exact
+zeroes and exact ones. With only one kind of boundary value, `coi` runs to its
+boundary, `check_drm()` reports the fit as degenerate, and `is_converged()`
+returns `FALSE`. For such data, fit `beta_family()` to the interior values and
+`stats::binomial(link = "logit")` to the exact-boundary indicator; the two parts
+give the same `mu`, `sigma`, and `zoi` estimates (see `?zero_one_beta`).
+
 Poisson mean models are implemented for count responses:
 
 \[
@@ -560,8 +567,10 @@ estimates a rate per trap night while the expected count remains proportional
 to sampling effort.
 Use this path as a baseline count model and as a comparator for later
 overdispersed count families. Biological count data with extra-Poisson
-variation will usually need `nbinom2()`; COM-Poisson remains a later route for
-underdispersion or dispersion patterns that NB2 does not describe well.
+variation will usually need `nbinom2()`. drmTMB has no underdispersed count
+family; for counts whose variance is below the mean, use `glmmTMB` with its
+`compois()` (Conway-Maxwell-Poisson) or `genpois()` (generalized Poisson)
+family.
 
 Zero-inflated Poisson models are implemented by adding a `zi` formula:
 
@@ -803,7 +812,9 @@ independent slopes cover only specific simulation designs; consult
 [Can I fit and report this model?](capability-and-limits.html) before reporting
 an interval. Correlated or labelled slopes remain unsupported. Factor
 responses, proportions with trial weights, structured effects, bivariate
-responses, and `engine = "julia"` remain unsupported.
+responses remain unsupported. `engine = "julia"` supports binomial
+fixed-effect models and the selected large-phylogeny mean route; ordinary
+random-effect and other structured binomial routes remain unavailable there.
 
 Use `beta_binomial()` when the response is still counted successes out of known
 trials but the data show extra-binomial variation. It uses the same
@@ -850,7 +861,9 @@ of successes. The tutorial
 [Proportions and success rates](proportion-beta-binomial.html) gives a plain
 event-probability example and a denominator-aware seed-germination example.
 
-Ordinal models are implemented first as fixed-effect univariate models with
+### Cumulative logit (ordinal)
+
+The proportional-odds baseline is a fixed-effect univariate ordinal model with
 ordered cutpoints and a fixed latent logistic scale:
 
 \[
@@ -867,6 +880,15 @@ ordered cutpoints and a fixed latent logistic scale:
 Although the R formula below is `bf(score ~ habitat)`, the cumulative-logit fit
 drops the location intercept internally because a free location intercept and
 free cutpoints are not identifiable together.
+
+The native TMB engine also accepts a discrimination formula, such as
+`bf(score ~ habitat, disc ~ habitat)`, to let predictors change the latent
+scale. The discrimination intercept is fixed internally at zero and removed from
+the design; keep the intercept in the formula (`disc ~ 0 + habitat` is
+refused). This route does not accept random effects, structured effects, or
+offsets. It is unavailable with
+`engine = "julia"`. See `?cumulative_logit` for its identification restrictions
+and a complete example.
 
 ```r
 set.seed(1)
@@ -953,8 +975,12 @@ profile_targets(fit_ordinal)[, c(
 )]
 ```
 
-Keep ordinal scale fixed: `sigma ~ predictors`, discrimination formulas, and
-bivariate ordinal models are unavailable. Use the category probabilities above
+To let the sharpness of category separation vary, add a fixed-effect
+discrimination formula such as `bf(score ~ habitat, disc ~ observer)`; its
+intercept is fixed at `log(disc) = 0` because the latent scale is otherwise
+not identifiable, so coefficients are log-ratios against the reference row.
+`sigma ~ predictors`, random effects in `disc`, and bivariate ordinal models
+are unavailable. Use the category probabilities above
 to describe how the fitted response changes across habitats. COM-Poisson and
 generalized Poisson models are also unavailable; for overdispersed counts, use
 the NB2 example instead.

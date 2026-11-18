@@ -1,0 +1,10 @@
+julia-cumulative-logit-sd-slope-parity: S
+
+══ Skipped ═════════════════════════════════════════════════════════════════════
+1. cumulative-logit random-slope SD has same-data Julia bridge parity ('test-julia-cumulative-logit-sd-slope-parity.R:22:3') - Reason: Julia bridge tests are opt-in
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+HUZZAH - transcendent code.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+DRM_RECEIPT_COUNTS passed=0 failed=0 errors=0 skipped=1
+DRM_RUN start=2026-11-02T13:22:37Z end=2026-11-02T13:22:43Z rc=0

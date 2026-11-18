@@ -1,0 +1,5 @@
+R: R version 4.6.0 (2026-04-24) 
+TMB: 1.9.21 
+testthat: 3.3.2 
+drmTMB-DLL: /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression/src/drmTMB.so 
+BLAS threads: 1  OMP: 1 

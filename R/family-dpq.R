@@ -90,7 +90,7 @@
 #' column inside `fitted_distribution_params()`, never by changing the
 #' closure signature.
 #'
-#' @param object A `drmTMB` fit.
+#' @param object A native `drmTMB` fit or a Julia-engine `drmTMB_julia` fit.
 #' @return A list with elements `dpars`, `d`, `p`, `q`, `discrete`,
 #'   `has_atom`, `atoms`, `status`.
 #' @keywords internal
@@ -620,7 +620,7 @@ drm_family_dpq_zero_one_beta <- function() {
 # 1 / sigma^2, alpha = mu * phi, beta_shape = (1 - mu) * phi); phi is also
 # the compiled kernel's `phi(i) = exp(-2 * log_sigma(i))`
 # (src/drmTMB.cpp, model_type == 14). `drm_beta_binomial_dpmf()`
-# below reproduces that block's exact lgamma pmf formula (no external
+# below reproduces that block's pmf (no external
 # dependency at runtime -- `extraDistr::dbbinom`/`pbbinom` are used only as
 # the independent DG2 external reference in
 # tests/testthat/test-family-dpq-batchB.R, a Suggests-guarded check, not a
@@ -635,6 +635,31 @@ drm_family_dpq_zero_one_beta <- function() {
 # (1-mu)*phi` inline (flagged in batch A); it now calls `drm_beta_shapes()`
 # too.
 
+# lgamma(x + m) - lgamma(x), the R twin of drm_lgamma_ratio() in
+# src/drm_numeric.h (#1467, #1548). The direct difference loses about
+# eps * x log(x) once x is large (the beta-binomial phi as sigma -> 0). For
+# x >= 100 the Stirling series is differenced analytically instead:
+#   (x - 1/2) log1p(m / x) + m log(x + m) - m + S(x + m) - S(x),
+#   S(z) = 1/(12 z) - 1/(360 z^3) + 1/(1260 z^5),
+# with truncation error below 1/(1680 x^7) = 6e-18 at the switch.
+# Note: x = Inf gives NaN ((Inf - 1/2) * log1p(0) = Inf * 0), as in the C++ twin.
+drm_lgamma_ratio <- function(x, m) {
+  n <- max(length(x), length(m))
+  x <- rep_len(x, n)
+  m <- rep_len(m, n)
+  out <- lgamma(x + m) - lgamma(x)
+  big <- !is.na(x) & x >= 100
+  if (any(big)) {
+    xb <- x[big]
+    mb <- m[big]
+    zb <- xb + mb
+    stirling_s <- function(z) 1 / (12 * z) - 1 / (360 * z^3) + 1 / (1260 * z^5)
+    out[big] <- (xb - 0.5) * log1p(mb / xb) + mb * log(zb) - mb +
+      (stirling_s(zb) - stirling_s(xb))
+  }
+  out
+}
+
 drm_beta_binomial_dpmf <- function(y, params) {
   native <- drm_beta_shapes(params$mu, params$sigma)
   alpha <- native$shape1
@@ -642,15 +667,14 @@ drm_beta_binomial_dpmf <- function(y, params) {
   phi <- alpha + beta_shape
   trials <- params$trials
   failures <- trials - y
+  # Same expression as the compiled drm_beta_binomial_log_density(): the
+  # plain lgamma sum loses about eps * phi log(phi) at large phi (#1548).
   log_density <- lgamma(trials + 1) -
     lgamma(y + 1) -
     lgamma(failures + 1) +
-    lgamma(phi) -
-    lgamma(trials + phi) +
-    lgamma(y + alpha) -
-    lgamma(alpha) +
-    lgamma(failures + beta_shape) -
-    lgamma(beta_shape)
+    drm_lgamma_ratio(alpha, y) +
+    drm_lgamma_ratio(beta_shape, failures) -
+    drm_lgamma_ratio(phi, trials)
   exp(log_density)
 }
 
@@ -759,8 +783,10 @@ drm_family_dpq_binomial <- function() {
 # columns `CP1`..`CP(K-1)` inside [fitted_distribution_params()] (the
 # CP1-sanctioned column-attachment pattern, same shape as binomial `trials`).
 # Matches the compiled density exactly (src/drmTMB.cpp,
-# model_type == 13): `logit(P(Y <= k)) = cutpoints[k] - mu`, i.e.
-# `F(k) = plogis(cutpoints[k] - mu)` for `k = 1..K-1`, `F(K) = 1`, `F(0) = 0`;
+# model_type == 13): `logit(P(Y <= k)) = disc * (cutpoints[k] - mu)`, i.e.
+# `F(k) = plogis(disc * (cutpoints[k] - mu))` for `k = 1..K-1`, `F(K) = 1`,
+# `F(0) = 0`, where `disc = 1` unless the fit has a `disc ~ z` formula (#966)
+# and then rides in an extra `disc` params column;
 # `d(k) = F(k) - F(k - 1)`. `drm_cumulative_logit_cutpoints()` reads the CPk
 # columns back out of `params` (rather than needing the fitted `object`, kept
 # out of the frozen `(y_or_u, params)` closure signature) so the same
@@ -782,8 +808,17 @@ drm_cumulative_logit_p <- function(y, params) {
   ifelse(
     k <= 0,
     0,
-    ifelse(k >= n_categories, 1, stats::plogis(cp_at_k - params$mu))
+    ifelse(
+      k >= n_categories,
+      1,
+      stats::plogis(drm_cumulative_logit_disc(params) * (cp_at_k - params$mu))
+    )
   )
+}
+
+# Discrimination (#966): `disc` column when the fit has `disc ~ z`, else 1.
+drm_cumulative_logit_disc <- function(params) {
+  if (is.null(params$disc)) 1 else params$disc
 }
 
 # Right-inverse quantile: the smallest category k in 1:n_categories with
@@ -795,7 +830,9 @@ drm_cumulative_logit_q <- function(u, params) {
   u <- rep(u, length.out = n)
   cdf <- matrix(1, nrow = n, ncol = n_categories)
   if (ncol(cp) > 0L) {
-    cdf[, seq_len(ncol(cp))] <- stats::plogis(cp - params$mu)
+    cdf[, seq_len(ncol(cp))] <- stats::plogis(
+      drm_cumulative_logit_disc(params) * (cp - params$mu)
+    )
   }
   vapply(seq_len(n), function(i) which(cdf[i, ] >= u[i])[1], integer(1))
 }
@@ -1224,6 +1261,16 @@ fitted_distribution.drmTMB <- function(object, newdata = NULL, response = NULL, 
   )
 }
 
+#' @rdname fitted_distribution
+#' @export
+fitted_distribution.drmTMB_julia <- function(
+  object, newdata = NULL, response = NULL, ...
+) {
+  fitted_distribution.drmTMB(
+    object, newdata = newdata, response = response, ...
+  )
+}
+
 # `response` validation/normalization shared by fitted_distribution.drmTMB()
 # and R/adequacy.R's drm_quantile_residuals() (both need the SAME rule:
 # required + must be 1 or 2 for biv_gaussian, must be NULL otherwise) -- one
@@ -1308,6 +1355,9 @@ fitted_distribution_params <- function(object, newdata, dpars, response = NULL) 
     cutpoints <- unname(object$ordinal$cutpoints)
     for (j in seq_along(cutpoints)) {
       params[[paste0("CP", j)]] <- rep(cutpoints[[j]], nrow(params))
+    }
+    if ("disc" %in% names(object$coefficients)) {
+      params$disc <- predict(object, newdata = newdata, dpar = "disc")
     }
   }
   params

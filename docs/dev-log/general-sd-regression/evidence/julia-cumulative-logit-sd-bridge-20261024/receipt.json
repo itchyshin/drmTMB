@@ -1,0 +1,42 @@
+{
+  "receipt_id": "julia-cumulative-logit-sd-bridge-20261024",
+  "date": "2026-10-24",
+  "scope": "One complete-response cumulative-logit ordinary numeric location-slope SD bridge cell.",
+  "formula": "bf(score ~ x + (0 + x | id), sd(id, coef = \"x\") ~ w)",
+  "synthetic_design": {
+    "groups": 256,
+    "observations_per_group": 30,
+    "seed": 202610205,
+    "true_log_sd_intercept": -1.0,
+    "true_log_sd_slope": 0.5
+  },
+  "engines": {
+    "native": "R/TMB ML-Laplace",
+    "bridge": "R to DRM.jl Julia adaptive quadrature (41 nodes)"
+  },
+  "result": {
+    "passed_expectations": 16,
+    "failed_expectations": 0,
+    "warnings": 0,
+    "elapsed_seconds": 59.7,
+    "checks": [
+      "both fits converged",
+      "both log likelihoods finite",
+      "estimated SD-predictor slope positive and within 0.2 of 0.5 on both engines",
+      "cross-engine slope estimates differ by less than 0.3",
+      "group-level SD predictions increase across w = -1, 0, 1 and agree within 0.35"
+    ]
+  },
+  "limitations": [
+    "one synthetic design and seed",
+    "point recovery and output checks only",
+    "no interval-coverage validation",
+    "no evidence for random intercept, correlated, labelled, structured, missing-response, or other cumulative-logit routes",
+    "TMB Laplace and Julia adaptive quadrature are not asserted to have identical likelihood approximations"
+  ],
+  "command": "TMPDIR=/private/tmp/drmtmb-cumlogit-bridge-20261024 TEMP=/private/tmp/drmtmb-cumlogit-bridge-20261024 TMP=/private/tmp/drmtmb-cumlogit-bridge-20261024 PATH='/Users/z3437171/.juliaup/bin':$PATH OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=4 DRMTMB_JULIA_TESTS=true DRMODELS_JL_PATH='/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia' JULIA_HOME=/Users/z3437171/.juliaup/bin Rscript -e 'devtools::test(filter = \"julia-cumulative-logit-sd-slope-parity\")'",
+  "successful_log": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/test-run-isolated.log",
+  "failed_attempt_log": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/test-run.log",
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-cumulative-logit-sd-bridge-20261024/source-manifest.json",
+  "source_manifest_sha256": "84a0d80255b18b6ce06c2a9e74b973b134b01070bf06d9e7827715d6815e884f"
+}

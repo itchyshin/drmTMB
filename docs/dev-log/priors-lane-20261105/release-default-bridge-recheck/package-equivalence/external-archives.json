@@ -1,0 +1,13 @@
+{
+  "archives": {
+    "baseline.tar.gz": {
+      "path": "/Users/z3437171/.codex/evidence/drmtmb-prior-release-provenance-20261106/package-equivalence/baseline.tar.gz",
+      "sha256": "0122753ce1688a758a15f4ece1563d85564f75cccac9505ea2f52ba68e331061"
+    },
+    "candidate.tar.gz": {
+      "path": "/Users/z3437171/.codex/evidence/drmtmb-prior-release-provenance-20261106/package-equivalence/candidate.tar.gz",
+      "sha256": "538d63c6a723bb81c8a1c7de0451088125237ea4f3f6b861e6483a54b8bd43ea"
+    }
+  },
+  "scope": "Local retention; source archives are not tracked in Git."
+}

@@ -203,6 +203,13 @@ the fitted `sd_relmat` then controls the variance scale of the latent
 deviations. A covariance matrix with non-unit diagonal is also allowed, but then
 the diagonal scale is part of the known structure.
 
+For cross-package comparisons, check the matrix convention as well as the
+formula. DRModels.jl's Beta `relmat()` route rescales a supplied `K` to a
+unit-diagonal correlation matrix. Native `drmTMB` retains the supplied
+covariance scale. The same non-unit-diagonal `K` therefore specifies different
+latent covariance models on those routes. Use the same unit-diagonal matrix
+for a matched Beta comparison; this does not establish general package parity.
+
 Use `Q` when the matrix is easiest to interpret as an inverse covariance or
 precision. This is common when another model, pedigree engine, graph model, or
 Gaussian Markov random-field construction gives a sparse precision matrix. In
@@ -273,7 +280,7 @@ For one response, start with the fitted location-intercept route:
 
 ```r
 fit_relmat <- drmTMB(
-  y ~ treatment + relmat(1 | line, K = K),
+  bf(y ~ treatment + relmat(1 | line, K = K)),
   data = dat,
   family = gaussian()
 )
@@ -609,8 +616,13 @@ one independent slope.
 Separately, `truncated_nbinom2()` (with its hurdle NB2 alias) accepts a
 diagnostic-only intercept-only `hu` model. Use that route only to check that a
 fit and its reported values can be obtained; it does not establish
-point-estimate recovery. The `beta_family()` family and the families with no
-structured layer still reject `relmat()`.
+point-estimate recovery. Native `drmTMB` also admits one unlabelled q1
+`relmat()` intercept on `mu` for strict Beta and Binomial models. The new
+Beta and Binomial routes have fit, recovery, and gradient evidence on one
+simulated fixture per family; they have no interval, coverage, or general
+calibration claim. Structured slopes, labels, multiple providers, and a
+structured mean combined with `mi()` remain refused. Families without a
+separately documented `relmat()` route still reject it.
 
 Known sampling covariance is a different model layer, not a separate
 relatedness route. If the matrix describes known observation-level

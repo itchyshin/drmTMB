@@ -1,0 +1,27 @@
+{
+  "scope": "Source identity for native-binomial-animal-intercept-a-logit-20261027, re-recorded at commit e9c72ab3e",
+  "commit": "e9c72ab3e",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/native-binomial-animal-intercept-iid-kernels-20261027/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-ainv-sd-regression.R",
+      "sha256": "e1760f33392beb5a53ade8ccc32c7299cd034658ef4dd00ff0c3cd4eee4496a1"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-pedigree-sd-regression.R",
+      "sha256": "8baa4c32da15245e298d39942e1b1977c46a027c4656d2e38ad83b59d79716cd"
+    },
+    {
+      "file": "tests/testthat/test-binomial-animal-sd-regression.R",
+      "sha256": "b2ad9364a2fb49de321dd24d3b36ce9c08ac63364c33917a6e283a313602de4a"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "4d25dd8dc4eaea374ed773bbb7f39459b317173738fe475d4bff1d9c4e62f65c",
+  "draft_version": "checkpoint-v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex parent",
+  "method": "Separate whole-draft self-review against inspected source, source-pinned test logs and rendered tutorial; independent reviewers supplied the recorded specific corrections.",
+  "genre": "Technical API and mathematical design",
+  "coverage": "Whole docs/design/drm-fixed-effect-priors-20261105.md",
+  "score": 3,
+  "style_status": "assessed",
+  "score_reason": "Normal and ridge equations and scale definitions are concrete; the guard inventory is necessarily procedural.",
+  "confidence": "medium",
+  "confidence_reason": "Self-assessment with independent scoped code/reader reviews; no human style assessment.",
+  "examples": [
+    {
+      "location": "First substantive paragraph",
+      "cue": "Concrete purpose or source statement",
+      "impact": "Gives the reader an explicit scope",
+      "repair": "no change needed",
+      "line": 3,
+      "quote": "This first slice helps applied users regularize separation and unstable coefficients in ordinary fixed-effect Gaussian and binomial-logit models. Priors select the actual design-matrix column within a named distributional parameter. Random effects, other families, SD priors and posterior sampling are outside this slice."
+    },
+    {
+      "location": "Paragraph beginning For a selected beta_j",
+      "cue": "Specific evidence and scope",
+      "impact": "Connects behavior, evidence and its limit",
+      "repair": "no change needed",
+      "line": 7,
+      "quote": "For a selected beta_j, normal(mean m_j, SD s_j) adds `0.5 * ((beta_j-m_j)/s_j)^2 + log(s_j) + 0.5*log(2*pi)` to the negative data log-likelihood. Its gradient is `(beta_j-m_j)/s_j^2` and diagonal Hessian is `1/s_j^2`. A ridge penalty adds `0.5*lambda*beta_j^2`, with gradient `lambda*beta_j`. It has the same optimum and curvature as a mean-zero normal with SD `1/sqrt(lambda)`; its objective omits the normal density constant. Zero lambda contributes nothing and leaves the estimator labelled ML, while still validating the selector and design rank."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "Equations and coefficient interpretations match the implemented targets; calibration and posterior-sampling claims are explicitly withheld.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Implementation and numerical claims checked against source and logs; pending broad checks are labelled pending.",
+  "references_gate": "pass",
+  "references_gate_reason": "Official glmmTMB prior documentation checked for comparator context.",
+  "date": "2026-11-05",
+  "calibration_status": "No held-out calibration examples used.",
+  "interpretation": "perceived_style_not_authorship"
+}

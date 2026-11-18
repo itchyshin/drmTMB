@@ -1,0 +1,4 @@
+n0050_G20_rep121.csv   y x 1      sd(g) = 8.99e-06 (sd/sd(y) = 9.3e-06)  SE(log sd) = 3.24e+04  status = boundary   is_converged = TRUE  Wald = [0, Inf] (wald_at_boundary)
+n0050_G20_rep121.csv   y x 1000   sd(g) = 5.2e-186 (sd/sd(y) = 5.4e-189)  SE(log sd) = NA  status = degenerate is_converged = FALSE  Wald = [NA, NA] (wald_unavailable)
+n0050_G20_rep445.csv   y x 1      sd(g) = 0.000149 (sd/sd(y) = 0.00015)  SE(log sd) = 3.05e+04  status = converged  is_converged = TRUE  Wald = [0, Inf] (wald)
+n0050_G20_rep445.csv   y x 0.001  sd(g) = 5.89e-07 (sd/sd(y) = 0.00061)  SE(log sd) = NaN  status = degenerate is_converged = FALSE  Wald = [NA, NA] (wald_unavailable)

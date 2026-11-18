@@ -1,0 +1,68 @@
+{
+  "claim_boundary": {
+    "calibration_claim": false,
+    "live_julia_claim": false,
+    "scope": "native TMB Bernoulli test-file checks only"
+  },
+  "data": {
+    "collaborator_data_used": false,
+    "independent_synthetic_fixtures": true
+  },
+  "limitations": [
+    "These focused files do not establish interval coverage calibration.",
+    "Julia engine execution and cross-engine parity are not claimed by this receipt.",
+    "The broad package suite and the second-look calibration remain outstanding."
+  ],
+  "recorded_at_utc": "2026-10-20T08:23:56.292028+00:00",
+  "repository": {
+    "branch": "codex/general-sd-regression",
+    "head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "manifest_file_count": 384,
+    "package_version": "0.7.1",
+    "path": "/Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-regression",
+    "source_manifest": "source-manifest.csv",
+    "source_manifest_sha256": "ac3f5aecdc797f19a7db57a5353409cee3994f3744803e8b10d809d23c3ef1e6",
+    "working_tree_dirty": true
+  },
+  "schema": "drmTMB-native-bernoulli-sd-test-receipt-v1",
+  "source_binding_run": {
+    "command": [
+      "Rscript",
+      "-e",
+      "devtools::load_all(); testthat::test_file(\"tests/testthat/test-binomial-sd-integration.R\", reporter=\"summary\"); testthat::test_file(\"tests/testthat/test-binomial-sd-profile.R\", reporter=\"summary\"); testthat::test_file(\"tests/testthat/test-binomial-sd-simulation.R\", reporter=\"summary\")"
+    ],
+    "elapsed_seconds": 262.95,
+    "exit_code": 0,
+    "purpose": "source-bound retest, not interval calibration",
+    "source_files_unchanged": true,
+    "source_manifest_sha256_after": "ac3f5aecdc797f19a7db57a5353409cee3994f3744803e8b10d809d23c3ef1e6",
+    "source_manifest_sha256_before": "ac3f5aecdc797f19a7db57a5353409cee3994f3744803e8b10d809d23c3ef1e6",
+    "started_at_utc": "2026-10-20T08:24:27.181894+00:00",
+    "test_run_log": "native-test-run.log",
+    "tests_completed": 3
+  },
+  "status": "focused_tests_passed",
+  "tests": [
+    {
+      "command": "Rscript -e 'devtools::load_all(); testthat::test_file(\"tests/testthat/test-binomial-sd-integration.R\", reporter = \"summary\")'",
+      "file": "tests/testthat/test-binomial-sd-integration.R",
+      "result": "PASS",
+      "source_bound_run_status": "PASS",
+      "summary": "testthat completed with DONE; no failures reported"
+    },
+    {
+      "command": "Rscript -e 'devtools::load_all(); testthat::test_file(\"tests/testthat/test-binomial-sd-profile.R\", reporter = \"summary\")'",
+      "file": "tests/testthat/test-binomial-sd-profile.R",
+      "result": "PASS",
+      "source_bound_run_status": "PASS",
+      "summary": "testthat completed with DONE; no failures reported"
+    },
+    {
+      "command": "Rscript -e 'devtools::load_all(); testthat::test_file(\"tests/testthat/test-binomial-sd-simulation.R\", reporter = \"summary\")'",
+      "file": "tests/testthat/test-binomial-sd-simulation.R",
+      "result": "PASS",
+      "source_bound_run_status": "PASS",
+      "summary": "testthat completed with DONE; no failures reported"
+    }
+  ]
+}

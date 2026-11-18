@@ -1,0 +1,19 @@
+julia-binomial-animal-slope-oracle-b31ja: ..................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.0 at location /Users/z3437171/.julia/juliaup/julia-1.10.0+0.aarch64.apple.darwin14/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+.....................b31ja slope A probit: ll=-668.954518 oracle=-668.954513 agreement=5.19e-06; min gap=0.2789 (A_scale_1.3); gaps: selector_slope_sign=-38.496, reversed_sd_vector=-15.049, A_scale_2=-1.896, A_scale_1.3=-0.279, cov2cor_A=-0.649, A_read_by_position=-27.756, A_dimnames_reversed=-29.668, wrong_field_type=-169.516
+.............b31ja slope A cloglog: ll=-693.184732 oracle=-693.184729 agreement=3.06e-06; min gap=0.2427 (A_scale_1.3); gaps: selector_slope_sign=-8.332, reversed_sd_vector=-3.804, A_scale_2=-1.680, A_scale_1.3=-0.243, cov2cor_A=-0.652, A_read_by_position=-25.777, A_dimnames_reversed=-18.179, wrong_field_type=-60.236
+.............b31ja slope Ainv logit: ll=-721.641999 oracle=-721.641994 agreement=5.01e-06; min gap=0.1238 (cov2cor_A); gaps: selector_slope_sign=-9.395, reversed_sd_vector=-5.930, A_scale_2=-2.084, A_scale_1.3=-0.305, cov2cor_A=-0.124, A_read_by_position=-33.142, A_dimnames_reversed=-31.912, wrong_field_type=-88.000
+.............b31ja slope Ainv probit: ll=-722.411209 oracle=-722.411204 agreement=4.87e-06; min gap=0.2365 (A_scale_1.3); gaps: selector_slope_sign=-22.448, reversed_sd_vector=-11.713, A_scale_2=-1.652, A_scale_1.3=-0.236, cov2cor_A=-0.590, A_read_by_position=-13.901, A_dimnames_reversed=-21.071, wrong_field_type=-84.318
+.............b31ja slope Ainv cloglog: ll=-698.196304 oracle=-698.196301 agreement=3.05e-06; min gap=0.2459 (A_scale_1.3); gaps: selector_slope_sign=-19.124, reversed_sd_vector=-10.265, A_scale_2=-1.721, A_scale_1.3=-0.246, cov2cor_A=-0.500, A_read_by_position=-13.030, A_dimnames_reversed=-12.312, wrong_field_type=-67.087
+
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+DRM_RECEIPT_COUNTS passed=91 failed=0 errors=0 skipped=0
+Julia exit.
+  Activating project at `~/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia`
+DRM_RUN start=2026-11-03T01:09:22Z end=2026-11-03T01:09:52Z rc=0

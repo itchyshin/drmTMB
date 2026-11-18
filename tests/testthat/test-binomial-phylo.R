@@ -97,14 +97,19 @@ test_that("the slice's fences hold: slopes, labels, REs, mi all refuse", {
     ),
     "intercept-only"
   )
-  # phylo + ordinary RE: one or the other in this slice
-  expect_error(
+  # phylo + ordinary RE: no longer refused. The general SD-regression branch
+  # deliberately admits an intercept-only phylo term plus an ordinary
+  # intercept (allow_phylo_with_ordinary in R/drmTMB.R); the evidence tests are
+  # test-binomial-ordinary-phylo-sd.R and test-binomial-ordinary-phylo-
+  # nonlogit-sd.R (ordinary group `id`). This pins that the same-group
+  # (1 | species) spelling also assembles.
+  expect_no_error(
     drmTMB(
       bf(y ~ x + phylo(1 | species, tree = tree) + (1 | species)),
       family = stats::binomial(),
-      data = fx$data
-    ),
-    "ordinary random effects"
+      data = fx$data,
+      control = drm_control(se = FALSE)
+    )
   )
 })
 

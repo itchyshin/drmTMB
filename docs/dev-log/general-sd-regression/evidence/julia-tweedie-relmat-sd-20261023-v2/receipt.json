@@ -1,0 +1,24 @@
+{
+  "evidence_id": "julia-tweedie-relmat-sd-20261023-current",
+  "row_key": "[\"Julia\",\"tweedie\",\"univariate\",\"mu\",\"mu\",\"mu:I\",\"I\",\"log\",\"relmat_intercept\",\"S1/P-temporal\",\"relmat\",\"structured random intercept\",\"K_covariance\",\"single known-relatedness field\",\"q=1\",\"q=1\",\"1\",\"independent\"]",
+  "claim": "Focused Julia Tweedie related-matrix mean-intercept predictor-dependent SD route, including simulation/bootstrap workflow, output semantics, constant-SD equivalence, and rejection of unused structured-covariance keywords.",
+  "source_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "source_branch": "codex/general-sd-regression",
+  "source_manifest": "source-manifest.json",
+  "source_manifest_sha256": "d67a15a706e69eb37cb095feacfb546386eab201d37df38e314764c3878b7f1a",
+  "test_path": "docs/dev-log/general-sd-regression/evidence/julia-tweedie-relmat-sd-20261023-v2/test_tweedie_relmat_sd_regression.jl",
+  "test_sha256": "b9d1a1e4b80b2859f3df0e3144e0048bc2f1d9dcafea5c11a4b7735a17be95d3",
+  "test_command": "JULIA_DEPOT_PATH=/private/tmp/drmTMB-julia-depot:/Users/z3437171/.julia OPENBLAS_NUM_THREADS=1 JULIA_NUM_THREADS=2 julia --project=. -e 'using Test; include(\"test/test_tweedie_relmat_sd_regression.jl\")'",
+  "julia_version": "1.10.0",
+  "result": "36/36 assertions passed: 7 mode-polish, 25 related-matrix SD route, 4 unused-keyword refusals.",
+  "console_log": "test-console.log",
+  "console_log_sha256": "84adbef4803c05c13f2e36e051fd5b4f613d4bd34119f93a0357e0194c227d4a",
+  "scientific_scope": "One synthetic Julia related-matrix intercept fixture with a non-unit covariance diagonal. Includes signed coefficient recovery, fixed-parameter likelihood/simulation oracles, prediction multiplier and marginal-scale checks, constant-SD equivalence, one bootstrap refit, and invalid-input guards.",
+  "does_not_establish": [
+    "R/TMB parity",
+    "95% interval coverage or calibrated uncertainty",
+    "other distributions, providers, block shapes, endpoints, or designs"
+  ],
+  "review_status": "unreviewed",
+  "executed_test_path": "test/test_tweedie_relmat_sd_regression.jl in the paired Julia worktree"
+}

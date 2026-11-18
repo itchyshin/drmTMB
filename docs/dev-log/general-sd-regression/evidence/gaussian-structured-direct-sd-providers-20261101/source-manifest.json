@@ -1,0 +1,41 @@
+{
+  "note": "dirty shared candidate; hashes identify test-time files, taken at receipt-writing time",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "949036ae0f57a78b1c9e57175539550b844222b504db73891c4efe2ebc3cb776"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "605267c98663e85f57d254dca8cf9419f77e402139753c4983572224da31ad6c"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "R/formula-markers.R",
+      "sha256": "f84297b7fabe505dde7aacaff0e66b02a8d5be44d9c3ca76769d122df8774240"
+    },
+    {
+      "file": "R/parse-formula.R",
+      "sha256": "c56533272cf2b6e2085de0994ea132011e5cec51ac9cf4f8c5270cbd89f755dc"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "8d42bc8c6e3a6140293f39e1abd85d6c777ee1856a937807e0e66657310f3cac"
+    },
+    {
+      "file": "tests/testthat/test-gaussian-structured-direct-sd-providers.R",
+      "sha256": "8d2518cadf1fd365abee11fe28389377245244560ca5b7bdd85152370fbcd260"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-20261101/run-test.R",
+      "sha256": "60993b25dc35701a013d681729afd8daa6423c96d47579189db0f079f1f8ac4c"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-structured-direct-sd-providers-20261101/test-console.log",
+      "sha256": "fb30a78a1f004447200803ac1066a2f8dc96aa1cd574e6806fe121c16ad1b4e6"
+    }
+  ]
+}

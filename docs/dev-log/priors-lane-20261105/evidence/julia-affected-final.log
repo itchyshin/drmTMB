@@ -1,0 +1,83 @@
+RUN test/test_gaussian_core.jl
+Test Summary:                                                  | Pass  Total   Time
+Gaussian location-scale (univariate, fixed effects) — recovery |    4      4  16.0s
+RUN test/test_binomial.jl
+Test Summary:                               | Pass  Total  Time
+Binomial cbind(s, f) ~ x — logit β recovery |    5      5  7.0s
+Test Summary:                                   | Pass  Total  Time
+Binomial 0/1 Bernoulli y ~ x — logit β recovery |    6      6  0.8s
+RUN test/test_binomial_separation.jl
+Test Summary:                                    | Pass  Total  Time
+binomial separation: detect and warn (#731/#728) |   86     86  6.3s
+RUN test/test_summary.jl
+Test Summary:                     | Pass  Total   Time
+DrmFit summary (show + coeftable) |   20     20  19.8s
+RUN test/test_summary_method.jl
+Test Summary:                               | Pass  Total  Time
+summary(fit) method + coef/vcov/nobs shapes |    5      5  0.2s
+RUN test/test_summary_zp_suppress.jl
+Test Summary:                                                         | Pass  Total  Time
+coeftable/show working-scale z-p and boundary handling (#320, #323.2) |   34     34  1.6s
+RUN test/test_comparison.jl
+Test Summary:                                        | Pass  Total  Time
+comparison: lrtest / anova / aicc / weights / update |   12     12  0.9s
+RUN test/test_inference.jl
+Test Summary:                      | Pass  Total  Time
+Wald inference: stderror + confint |   14     14  0.2s
+Test Summary:                                               | Pass  Total  Time
+Wald SE at a singular boundary (non-PD vcov ⇒ Inf, not NaN) |    6      6  0.0s
+RUN test/test_bridge.jl
+Test Summary:                   | Pass  Total     Time
+drm_bridge primitive R boundary |  136    136  1m07.7s
+Test Summary:                                                  | Pass  Total  Time
+keyed univariate `nu` is not a bivariate discriminator (#1090) |    4      4  5.4s
+Test Summary:                                                   | Pass  Total  Time
+bridge admits skew_normal (drmTMB skew_normal(): mu, sigma, nu) |   10     10  3.5s
+RUN test/test_bridge_coef_labels_echo.jl
+Test Summary:                                 | Pass  Total  Time
+bridge coef_labels echo (design 258 §7, #563) |   42     42  1.9s
+BRIDGE_COEF_LABELS_ECHO_DONE
+RUN test/test_lane_n3_drmcontrol.jl
+Test Summary:                                      | Pass  Total   Time
+lane N3: DRMControl / gradient / hessian / weights |  306    306  34.3s
+RUN test/test_visualization.jl
+Test Summary:                | Pass  Total  Time
+visualization data providers |   23     23  2.4s
+RUN test/test_bias_correct.jl
+Test Summary:                                               | Pass  Total  Time
+bias_correct — identity anchor (linear g ⇒ zero correction) |    9      9  0.8s
+Test Summary:                                          | Pass  Total  Time
+bias_correct — curvature anchor (g = exp, closed form) |   21     21  0.3s
+Test Summary:                                             | Pass  Total  Time
+bias_correct — quadratic g is exact (g = θ², closed form) |    4      4  0.4s
+Test Summary:                                                     | Pass  Total  Time
+bias_correct — cross terms via off-diagonal covariance (g = θ₁θ₂) |    3      3  0.3s
+Test Summary:                                                 | Pass  Total  Time
+bias_correct — level controls CI width; se=0 ⇒ point interval |    4      4  1.3s
+Test Summary:                                                       | Pass  Total  Time
+bias_correct — on a real DrmFit (DrmFit method == manual θ̂,V form)  |   13     13  0.9s
+RUN test/test_api_stability.jl
+┌ Warning: aic on a REML fit: REML log-likelihoods are only comparable across models with the SAME fixed-effect (mean) structure (variance-only differences). For model selection across mean structures, refit with method = :ML.
+└ @ DRModels ~/hsq_work/drm-priors-20261105-01a1ad0b/julia-final2/src/gaussian_core.jl:3462
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "Student"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 2.1105512206006436e-18
+└ @ DRModels ~/hsq_work/drm-priors-20261105-01a1ad0b/julia-final2/src/vcov_guard.jl:103
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "bivariate Student-t"
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     7
+│   rcond = 1.3772991163130786e-16
+└ @ DRModels ~/hsq_work/drm-priors-20261105-01a1ad0b/julia-final2/src/vcov_guard.jl:103
+Test Summary:               | Pass  Total  Time
+API freeze gate (v0.7 line) |  204    204  0.1s

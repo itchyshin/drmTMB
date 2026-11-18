@@ -1,0 +1,14 @@
+{
+  "recorded_at": "2026-11-07T04:13:26.990812+00:00",
+  "run": 42318931694,
+  "source": "86ee1c2a38cd79c55dbbd71afd7374a3095aad3c",
+  "conclusion": "success",
+  "Julia_LTS_shards": 4,
+  "Julia_stable_shards": 4,
+  "all_eight_test_jobs": "success",
+  "scope": "Hosted baseline workflow conclusions; final shard raw package-pass marker verified. No new performance claim.",
+  "hashes": {
+    "Julia-baseline-CI-final-86ee1c2.json": "2d227ccdf31d8f991017a51fbeaa7b8769923b1dd39e2d7e8625f85e62513d88",
+    "Julia-baseline-CI-stable-shard4-86ee1c2.log": "179e1883160a8d606489e520ab04e113b0928cd78704aba96b98836a125e5d69"
+  }
+}

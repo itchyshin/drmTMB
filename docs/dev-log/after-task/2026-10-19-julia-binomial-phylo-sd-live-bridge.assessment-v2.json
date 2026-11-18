@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "8a6990fb79b8b9ba7a7efcf71ccac587e80dbbc61dc22e50f3015e92a15dd17a",
+  "draft_version": "v2",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Manual factual and prose review using the project prose-style checklist and recorded live test outputs.",
+  "genre": "Technical after-task report",
+  "coverage": "Entire saved report, including the formula contract, exact checks, recovery estimates, limitations, and cross-product exclusions.",
+  "score": 2,
+  "style_status": "judged",
+  "score_reason": "The report is specific and evidence-led; repeated headings are required by the after-task contract rather than generic filler.",
+  "confidence": "medium",
+  "confidence_reason": "The source and test outputs were checked directly, but the report concerns dirty candidate worktrees and one recovery seed.",
+  "examples": [
+    {
+      "location": "3a. Decisions and Rejected Alternatives, mathematical contract",
+      "cue": "The test does not change or normalize the package's general kernel convention.",
+      "impact": "This limits what the height-one comparison implies about covariance scaling.",
+      "repair": "no change needed",
+      "line": 15,
+      "quote": "The test does not change or normalize the package's general kernel convention."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report limits the cross-engine claim to a unit-height synthetic phylogenetic comparison and explicitly withholds calibration and broad-recovery claims.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Fit coefficients, log likelihoods, convergence, direct Julia assertions, bridge test outcome, and current candidate pins were checked against the recorded command outputs and test source.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report contains no literature citations or external factual references.",
+  "date": "2026-10-19",
+  "calibration_status": "Informal self-review; prior examples seen; no independent style calibration.",
+  "interpretation": "perceived_style_not_authorship"
+}

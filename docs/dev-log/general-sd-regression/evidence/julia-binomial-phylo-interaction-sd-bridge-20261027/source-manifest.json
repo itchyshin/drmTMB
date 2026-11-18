@@ -1,0 +1,31 @@
+{
+  "drmTMB_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "drmTMB_branch": "codex/general-sd-regression",
+  "paired_DRModels_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "files": [
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "e050c60b6b6b9ce9a556dd0406ecdbfc19929740f967658c1ff7b94fedeb52f2"
+    },
+    {
+      "file": "R/julia-simulate.R",
+      "sha256": "5ad04c591a8c238708afd58b9d3f4a06b8963140c63a4286902215d195957925"
+    },
+    {
+      "file": "tests/testthat/test-julia-binomial-phylo-interaction-sd-bridge.R",
+      "sha256": "f3aa6d8fb4e5c586cd5f4680014418dcf1cc02b09f8984335f38d2176b16db45"
+    },
+    {
+      "file": "../general-sd-julia/src/binomial_sd_regression.jl",
+      "sha256": "cc1a335f47822de07320fddd37ecc58ad592e07171a0e270035959fc1b5bc9fb"
+    },
+    {
+      "file": "../general-sd-julia/src/ordinary_laplace.jl",
+      "sha256": "cceb461455504c97a9968ddf9310db426d9cad7fa34af3176175db192d1f96d2"
+    },
+    {
+      "file": "../general-sd-julia/src/DRModels.jl",
+      "sha256": "7fee20686d05026df3d213bdd8f973d82eb224f7255829629508dcb3f53edaaa"
+    }
+  ]
+}

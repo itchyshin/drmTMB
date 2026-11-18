@@ -1,0 +1,468 @@
+{
+  "scope": "Source identity for gaussian-native-ordinary-sd-parity-20261024-v1, relinked to the live test at drmTMB 7fd8acec3 and DRModels.jl 87a371a667e8823e8f5aca75ed1344145982c532",
+  "commit": "7fd8acec3",
+  "derived_from_manifest": "docs/dev-log/general-sd-regression/evidence/gaussian-ordinary-sd-parity-20261024-v1/source-manifest.json",
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "fa13f332a83023fcc4d88ad399c9a2a7a1d76d0695e0b48cb8041ce4677f0bac"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "47a5e0f1357a9df10ef3293e5cf2f17b53b794f4c574bce5e53b5c9952cbea49"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "de0dc16fbe870b0450a4925b7960ff55efa4a5cacfce8da8347a74e49a4619b9"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "8c89398e9955094a608dd5dc3ce295f95adf67d5ceb363ceea0cb704779293e3"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "07c288e6771f5f5aeeb66115b5f631dd835efdab011351d7df5101b34624ac54"
+    },
+    {
+      "file": "tests/testthat/helper-julia-bridge-path.R",
+      "sha256": "be788198cabc6624e6ce8e37d6d45db9bae963cc5adb1ce244e80edc5f29e093"
+    },
+    {
+      "file": "tests/testthat/helper-julia-options-shape.R",
+      "sha256": "c2c16a8bcf5d866a4345864b7aa9fc4a225f201e8d9fbb21f0e16e8f8de2abfe"
+    },
+    {
+      "file": "tests/testthat/teardown-julia-bridge-summary.R",
+      "sha256": "b8ce5e89a9708852a74b2c99aa581c5506a7c9a85b0e27f85a775ff09e6b480d"
+    },
+    {
+      "file": "tests/testthat/test-julia-gaussian-sd-parity.R",
+      "sha256": "1987789bb6949f38ebb702b8195b39fc13a5a150285d84508021c3a35b8a03ee"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/DRModels.jl",
+      "sha256": "7fee20686d05026df3d213bdd8f973d82eb224f7255829629508dcb3f53edaaa"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/adaptive_ghq.jl",
+      "sha256": "54391c732eb738170ab9acbe3043522ee5a4d08fdaf4f593effc932d3d0cc795"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/aghq_1d.jl",
+      "sha256": "f45ca1aba61fb31a8f8bb007536244ed6b7ff11d2d18e1062a42215b4e7603d1"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/associate_pairs.jl",
+      "sha256": "b9f4b1b17252f197a742016943537e6ecc1026c60cdefb73f8617dd56b385dae"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/beta.jl",
+      "sha256": "d73b75672ad0e470d83fcc8c2bbdaac5dfb2909047976d8b39b0bfc597059004"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/betabinomial.jl",
+      "sha256": "e3f20c6b42bafaa1175a1722651c30d157d64e590a9cd2e826818e3c2178ecc0"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/bias_correct.jl",
+      "sha256": "a5d1c7cb2a93a98fff2ddd90e515353b1d5b740a66cb180ca22e3b36defa1509"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/binomial.jl",
+      "sha256": "c595db76da3397ae4d068d5c6bc6cbe7636babfc722cd8becc261781ed15278a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/binomial_sd_regression.jl",
+      "sha256": "713f54870e3a7784c3cf17c3119b4ff96d88cdbab96aeea3ea782f4f1a3114bd"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/bivariate_lognormal.jl",
+      "sha256": "4b34f5d9f3906ded7438dd81c473cac5e1f31826cb4b40acac4c3c353ce1e610"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/bivariate_student.jl",
+      "sha256": "b080630f96ac59e9d649fde179be3616ad96dc144ed3b10d74dbbc121e506441"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/bootstrap_q4_phylo.jl",
+      "sha256": "1a273cd13533b2c61d09070901d4d20c3eb4838ab40de3e48d9ca188d7753012"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/boundary_diagnostics.jl",
+      "sha256": "80272ce81b2ffa2d997c2845bd0da64836a90a73433a97b49d7ae6a6fa9e5feb"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/bridge.jl",
+      "sha256": "9aa9a44da552a9a3e34e25aefa3c811c98d1b3afa17db0191870e4f732dc0596"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/chibar.jl",
+      "sha256": "701d93ee9e66021fb3dcb82eadbbe44f5474eb5fffc565e3c40f37b7a711d053"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/coevo_accessors.jl",
+      "sha256": "9edb84589ef8499b80decabe1d12fbff1fad2802a4a3fc57d5487eedff99f65c"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/coevolution_q.jl",
+      "sha256": "67dd92b80d224f5db7465d6f3c7ac3087ae816c42cd637a0c6ed0ac43bd36e41"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/comparison.jl",
+      "sha256": "f0d119d8f2badc9599f3005734c8cde1d573cb3f77eb62af8b0098d314d848a7"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/cumulative.jl",
+      "sha256": "b9b1181d13cc2ceeed68db25a4f59493fbe8a21a1339c81e31880e4cfeaf375c"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/README.md",
+      "sha256": "01088ff0f8dc601b449687e66cdf8a0af07940764133b63b5a3cab6a01653eb5"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/em_squarem_fit.jl",
+      "sha256": "27dd32a19ca624dad007c63968f76974e790c29b09acb6767cef3f695f5d51c9"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/estep_armijoguard.jl",
+      "sha256": "19e8eb019a3184db1b13c1cde8ee882ef66b174882de15a96ba02840380cfd13"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/estep_initprior.jl",
+      "sha256": "64231307ede8f6ec71ac7e5eef07bedb0c440e7f52dad5485c9637dadaf59436"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/estep_lm.jl",
+      "sha256": "2550ab9b7edd3c0a21a6f9f0d26c3eddef046c303058569d71dcba7c678140c5"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/estep_trustregion.jl",
+      "sha256": "c4a62576c388238f16a4fb14b812c2074d9bc7999882a8cbd3e8112a6893e9f6"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_em_closed.jl",
+      "sha256": "e21460eb4a5cff018eb826f6b2ec3a638e2a9059eb0db568eea602537d9814cf"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_em_natgrad.jl",
+      "sha256": "5bd1212a764ad8f3025bf8297745ed3c92b8a2f3cc9bd2e2235d1cc453ec518e"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_ml_q4.jl",
+      "sha256": "306ba451fee9ba337edbfc78ef2a402bc295b5a1588c36b5e49876c25461cf67"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_ml_warm.jl",
+      "sha256": "6091d3ff479f9bc3805b3faffd530bf4e675f735628435d7b11a226ad3fbfc2c"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_q4_p100_tmb.jl",
+      "sha256": "269759ce21c31ac167897df3d67f12d53cdb023b0cc3890e24b25610cbb0ee07"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_q4_tmbgrad.jl",
+      "sha256": "188582efc569ba54d141f4b9ac58b8f474e33ddc154ae0a9f8a6cda239eec5a6"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/fit_sparse_direct.jl",
+      "sha256": "f03753b30d303febb3fac1ef89e347234f44878684cf62875d967ca35e2e322a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/location_only.jl",
+      "sha256": "39eac765202c2c7a4ed6bf990ea2214d17845cad4bbc3697a6f26651afd59646"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/experimental/q4_em_dense.jl",
+      "sha256": "f4c64d74d8d975881a9398192976402d688e8ce494b021bc01fb6816fded3bc7"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/fisherz_q4.jl",
+      "sha256": "4ca0e4db63eefe507c32325033fabc79ee2fd5b15bfc08102fdb0b86ec081d08"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/fit_ml_q4.jl",
+      "sha256": "18a1b114a6e97aec907ce3535531f45635b774bc70ed0cfc57152af4ae4d4115"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/fit_q4_sparse_tmb.jl",
+      "sha256": "fe3839fc3469ebfa725c9aab98239ec216a560aa5d65fd73eb27bce386d90734"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gamma.jl",
+      "sha256": "4c3b40ac6d0068725f5434301df0bfcd4acf55ead2e389ae2908d786ca73b861"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_bivariate.jl",
+      "sha256": "52c32a1bb2bac9223e5eafd43d1d612672c2a079fcc29d9bc16a8226b712672a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_core.jl",
+      "sha256": "087abb8d49f90ac5b49a5826708be2457773bb35498c69c415d2b70991580a8a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_locscale_phylo.jl",
+      "sha256": "6a17ea10a4f90bb4d8778e51adbc9ed6c309ccdb1a38ce338cf6f97723826b47"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_lss.jl",
+      "sha256": "7d941e594aba4e9786f308904415d8a3ef0b3a39932c450c04673058164b43bb"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_meta.jl",
+      "sha256": "2b012cb4f73561c4b15049d624b922e9ce853ac67601a19ca0652b0d4a60d145"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_multi_re_sparse.jl",
+      "sha256": "c539e31aca65c551c234c8483046102ed5bdcf5157b2f2d2bd46cd0d98111f02"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_ranef.jl",
+      "sha256": "6ae72f8d9af15c9a2e1d7c1d79d97f5accd5afb348291534ee746ecb7b0cb1df"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_sparse_lss.jl",
+      "sha256": "e40e1e18d4e26fb5b86537cf2cfab54335af29cfc0d4ae2d286693c611156215"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/gaussian_structured.jl",
+      "sha256": "fe98e708f353873a9ed1e688657dc75cf1813061df0fb61f6e8aa43041c61e1d"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/heritability.jl",
+      "sha256": "cb8d654f28d53a800b194f9d9f1428a2cd55e753d5a24dac4f111e29d256b9f0"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/inference.jl",
+      "sha256": "5c4cd6199a7b820294d56714800d4135fe91ff310eb290712fb6d9ae7a3ba1d9"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/introspection.jl",
+      "sha256": "951713d478aeff837bc10818f00908c3f986fe18ee8297820f30d663eded3bae"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_bridge.jl",
+      "sha256": "ffb6feec68b08cb137200ccd1f493df9b40bb67ad46c5edc0d019f59946dd553"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_finite.jl",
+      "sha256": "4f5a7a9399b2acf7a586aa48852424246bb1209dfbe436235e53ba814b7f2405"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_finite_bridge.jl",
+      "sha256": "5536cf92cbc04e1d080b1ae5bb693e3f35d02ebf5142b009699470922f72058a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_frontend.jl",
+      "sha256": "34e715491f4b967ed119a22bd2abce5a76095d69ebfaeca99910d0585fcd4964"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_predictor.jl",
+      "sha256": "8c4f4e9c1da5c919aea428c9b29ffb41cf516fc77dee3503f71d047eaf592808"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_two_predictor.jl",
+      "sha256": "f39c17f2af6dc25667a7fb35686a148e95abf4939afd4adb79e921a10cf795eb"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/joint_missing_uncertainty.jl",
+      "sha256": "2da147052c184cda46e9569290fa4c5e7b722021849c45652845882aa4097e96"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/lc_metric.jl",
+      "sha256": "f096872d4af733271d9f746735fd38c0cb2a59b9f9c61ea90150cc8beae43d1f"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/link_residual.jl",
+      "sha256": "ef69948c94a6a08e3c95f0ffb393f1b3859e1319dec869df92a5350be7b760e2"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/location_only.jl",
+      "sha256": "ea1fee0136031d38c327e4793c5833a01699290793e0c1eb51c662c0751f0bf1"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_corr.jl",
+      "sha256": "5cbd6756ffde3991c407eaa8095fa54b697ad9e3adcf358219f5c5b1990dd452"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_fit.jl",
+      "sha256": "3e226e9536150e1742d59c9acb8aefd8cd69b722f71f2bc5b34a85dafa5dc92b"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_frontend.jl",
+      "sha256": "3133d1132a4fd1ed26950e1d87d4aea4d47873a92bb49edbc4717e2d2e76b1a4"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_grad.jl",
+      "sha256": "823af6134a9cc49a0aa230ff02d24a36b4e8bb3d75312de43592670b3613fb5a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_infer.jl",
+      "sha256": "bbac33c832882e9e73a3a43b0b2f2757e29663ba32bc1cb2ea3d11cecd0d1b9f"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_inner.jl",
+      "sha256": "4868acd8193f86ded324403bca634adb381d42e15ffec8beb800e0e638638c03"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_kernels.jl",
+      "sha256": "b9b64012a776029a44656bf7451ebeca4193d6de815affda60baa6c8d304bd60"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_marginal.jl",
+      "sha256": "58f345ca2a8ae1d15645f1ca8a3ec614f05953aae336e11e872393842d424f5d"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_profile.jl",
+      "sha256": "b0556c318f87d412b6584cd40deeeaa97c02300ea357b6bc29ab8f6fa4e5ee8c"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_sigma.jl",
+      "sha256": "21a4c8adc0514aea5dc68ef372d83d33f28d9be6e66c43c8c368e34c11587d1b"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_simulate.jl",
+      "sha256": "3fecf608b5c10dc6ca7706e2b279013ed0c5eaadfe9806b7f49253eb9b2a289d"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/locscale_whitened.jl",
+      "sha256": "d921dcda90ee57ba0301c5431eccbda0a2b670fbfab0accdd494afb5306eb8fc"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/lognormal.jl",
+      "sha256": "a29447364cd37fb82b892425aa75e02b1d97e2c8e9082ca3ddbc438ce890bc01"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/meta_vcov_bivariate.jl",
+      "sha256": "6540ee951038d0e5daf6eb05fa58aa78fe66fcb385a727ced46df485e618e297"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/missing_data.jl",
+      "sha256": "cbff7fc220c8a376f16c0b193e0586e3ec8eec23eb4dd5edd02a68214d48abb1"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/mixed_family.jl",
+      "sha256": "08b260f5f77ba0f714d81439cfe0d169dac101a7e9380f84018a72586b5e6518"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/mixed_family_postfit.jl",
+      "sha256": "d41ae4907b97a3e15db143bcce8116294f9ff49aea4604cb58daaecdfb774d84"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/negbinomial.jl",
+      "sha256": "5c71e79aec1472cbd354bb4dc4fe37f7a181850ec27674883fb07bee14e591cc"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/optim_minimum_guard.jl",
+      "sha256": "51664505621813b22bc411ab034e88ad1eeff6629741a4260abaf1d38332773c"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/ordinary_laplace.jl",
+      "sha256": "cceb461455504c97a9968ddf9310db426d9cad7fa34af3176175db192d1f96d2"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/phylo_interaction.jl",
+      "sha256": "441f8785b77351459be8f47e9ec0e4adfe59a84f6626f8bf3b93165ef4521873"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/phylo_penalty.jl",
+      "sha256": "8ef33d7b7721ada36c6f48d0c1778d9cbbe75f1a0509d974073747029345eea1"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/plotting_ext.jl",
+      "sha256": "f526f5e8d2007da20c0f05435d58ad9ad951c1c8a74d90dcbec8b96d6bc53e01"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/poisson.jl",
+      "sha256": "7e5e75860b69a1948f1b8ff145c65615e418e5f6a149879dc69f0aee8e03f92f"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/profile_q4_phylo.jl",
+      "sha256": "e7eb4f493bfc77ccdc6b92de0008379f361415a21c961fa42dbc21e160803930"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/quantile_residuals.jl",
+      "sha256": "03f633a108084214c9e62faa35530c1cb5e52688bf7f236c962279fb66643ceb"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/r2.jl",
+      "sha256": "873343aa9982d54d604e09b22147a5621aba3860c927d7fd92e50931101bd133"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/reml_q2.jl",
+      "sha256": "6f70498c445c7b08bd99b457aad765a1ae57249bb463e5eb144ec86f8c1c02ea"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/reml_q4.jl",
+      "sha256": "d132207bd34dd46082ca96bd7ff11065c958e351d6127e31f9c1617adb560383"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/separation.jl",
+      "sha256": "d3bcc5d50776c6061ad95e9065d061ff008ef69b8d58c22999335cdd19c0de1c"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/skewnormal.jl",
+      "sha256": "a18f953c32400f8395b54ae22906896cd4d278f4504075643877d6775e2aebbd"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/sparse_aug_plsm.jl",
+      "sha256": "096ea2d7dac0af2412f8c8c0b0119ed6d3d5c69945cebe30e69e6bad5e203cbf"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/sparse_em_fit.jl",
+      "sha256": "774219f9c6fef12fdcc2fff88b247c590ede57e3060346024d84eb1ed6a84453"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/sparse_laplace_glmm.jl",
+      "sha256": "52f36c759320def1a40404efe10267f32516213893ab254599bd07b323b2fbae"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/sparse_phy.jl",
+      "sha256": "7baeea615092f57e9c0d28818eaab02003abebfaf59ae13630ac13db42fcdf48"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/student.jl",
+      "sha256": "c3b53bc58acc7c1e593aa29810453db69cee492f663b1519f319ab37af4f255f"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/summary.jl",
+      "sha256": "89d73f8b3678b88ce3390813a4f8125e3f15077d7580cbfbb43ff5c4276d424f"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/takahashi_selinv.jl",
+      "sha256": "1ec53baad46c20c0c93d1f70626be5f39d9237e8f62f587741e8b56122214af1"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/temporal.jl",
+      "sha256": "b435a88460ca4f97b3f8d39eb3c167238b6c32fabb05d075da42aa9acbcdddab"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/truncated_poisson.jl",
+      "sha256": "aa2dc03dc71de2cca723af40c8ecc20fd5895f03e35d71e4c7fc4dcb1ff3a29a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/tweedie.jl",
+      "sha256": "ae283206bdace657bf60369f400ab6847ffa36f00b09acc4cc8ce6fe9302ed71"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/variational.jl",
+      "sha256": "c9967802e4f142d15f5eda09b9504a8348be0246bb5f10d31e4ad69ff7f1f4a3"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/vcov_guard.jl",
+      "sha256": "ce17d092a4635cbd405d4d9ce8b67cc93d3d112d22ff433382c70ab461cda38a"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/visualization.jl",
+      "sha256": "4571076d13b6b07479496b5ad73f34f0006366594357451d3a710fb173c9fece"
+    },
+    {
+      "file": "DRModels.jl@87a371a66/src/zeroonebeta.jl",
+      "sha256": "13c03d7620ea05593c524fd32fd1681b32523aac54d26918276814cae401d07b"
+    }
+  ],
+  "drmodels_jl_commit": "87a371a667e8823e8f5aca75ed1344145982c532"
+}

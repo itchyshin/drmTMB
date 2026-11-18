@@ -1,0 +1,27 @@
+{
+  "repository": "DRModels.jl",
+  "branch": "codex/general-sd-regression",
+  "head": "70dbf564e",
+  "slice": "Binomial animal random-slope SD with direct precision input",
+  "command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 JULIA_NUM_THREADS=1 /Users/z3437171/.juliaup/bin/julia --project=. -e 'include(\"test/test_binomial_animal_ainv_slope_sd_regression.jl\")'",
+  "result": {
+    "passed": 10,
+    "total": 10,
+    "elapsed_seconds": 15.3,
+    "exit_code": 0
+  },
+  "source_hashes_stable": true,
+  "source_hashes": {
+    "src/binomial.jl": "63e57b231e683df026b3a0af3025f1a914e77d7c6358c62ab0fd481116377d2b",
+    "src/binomial_sd_regression.jl": "1e4b7ecdf817672817e5e1dee1c8262c503f66a58a39f6c2282c1405c559f145",
+    "src/inference.jl": "c4a97988f0e005355fce45bdc33dc13ec57458612b1b554a07142e5963cd5b73",
+    "test/test_binomial_animal_ainv_slope_sd_regression.jl": "07ee1ce3f6c9ef81aeb444c9d3a51962c22f693799d6505b8aa12e86050ed4fe"
+  },
+  "scope": "Tests Julia Binomial animal random-slope SD fitting with non-unit covariance A and equivalent direct precision Ainv, fitted SD predictions, exact seeded marginal simulator output, and one bootstrap refit. It does not establish R/TMB parity or calibrated coverage.",
+  "evidence_files": [
+    "command.txt",
+    "julia-console.log",
+    "sources-before.json",
+    "sources-after.json"
+  ]
+}

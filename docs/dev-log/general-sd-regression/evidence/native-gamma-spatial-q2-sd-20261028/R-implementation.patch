@@ -1,0 +1,71 @@
+--- /tmp/gamma-spatial-R-before.R	2026-10-28 00:08:34
++++ R/drmTMB.R	2026-10-28 00:08:35
+@@ -6092,11 +6092,13 @@
+     family_label = "Gamma",
+     preserve_gamma_relmat_slope = TRUE,
+     allow_gamma_animal_slope_only = TRUE,
+-    allow_gamma_phylo_slope = TRUE
++    allow_gamma_phylo_slope = TRUE,
++    allow_gamma_spatial_slope = TRUE
+   )
+-  if (include_missing_response && !is.null(mu_phylo$term) &&
+-      structured_term_is_intercept_one_slope(mu_phylo$term)) {
+-    cli::cli_abort("Gamma phylogenetic intercept-slope regression requires complete responses.")
++  if (include_missing_response && !is.null(mu_structured_term) &&
++      structured_mu_type(mu_structured_term) %in% c("phylo", "spatial") &&
++      structured_term_is_intercept_one_slope(mu_structured_term)) {
++    cli::cli_abort("Gamma tree or coordinate-spatial intercept-slope regression requires complete responses.")
+   }
+   mu_re <- extract_random_mu_terms(mu_entry$rhs, mu_entry$dpar)
+   mu_entry$rhs <- mu_re$rhs
+@@ -6315,7 +6317,7 @@
+   sd_mu <- build_sd_mu_structure(sd_mu_entries, sd_mu_targets, re_mu, data_model)
+   allow_gamma_structured_q2_sd <-
+     !is.null(mu_structured_term) &&
+-    structured_mu_type(mu_structured_term) %in% c("animal", "relmat", "phylo") &&
++    structured_mu_type(mu_structured_term) %in% c("animal", "relmat", "phylo", "spatial") &&
+     length(mu_structured_term$coef_names) == 2L &&
+     identical(mu_structured_term$coef_names[[1L]], "(Intercept)") &&
+     length(sd_phylo_entries) > 0L
+@@ -13546,12 +13548,24 @@
+   family_label,
+   preserve_gamma_relmat_slope = FALSE,
+   allow_gamma_animal_slope_only = FALSE,
+-  allow_gamma_phylo_slope = FALSE
++  allow_gamma_phylo_slope = FALSE,
++  allow_gamma_spatial_slope = FALSE
+ ) {
+   if (is.null(term)) {
+     return(invisible(NULL))
+   }
+   marker <- structured_mu_type(term)
++  if (isTRUE(allow_gamma_spatial_slope) && identical(family_label, "Gamma") &&
++      identical(marker, "spatial") && identical(term$structure, "coords") &&
++      structured_term_is_intercept_one_slope(term)) {
++    if (!is.null(term$covariance_label)) {
++      cli::cli_abort(c(
++        "Gamma coordinate-spatial mu effects support only unlabelled independent coefficients.",
++        "i" = "Remove the covariance label from {.code spatial(1 + x | id, coords = coords)}."
++      ))
++    }
++    return(invisible(NULL))
++  }
+   if (isTRUE(allow_gamma_phylo_slope) && identical(family_label, "Gamma") &&
+       identical(marker, "phylo") && structured_term_is_intercept_one_slope(term)) {
+     if (!is.null(term$covariance_label)) {
+@@ -24374,13 +24388,13 @@
+   sd_phylo <- spec$random_scale$phylo
+   if (
+     ((identical(spec$model_type, "gamma") &&
+-        phylo_mu$type %in% c("animal", "relmat", "phylo")) ||
++        phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial")) ||
+        (identical(spec$model_type, "beta") &&
+           (identical(phylo_mu$type, "phylo") ||
+            (phylo_mu$type %in% c("animal", "relmat") &&
+             phylo_mu$structure %in% c("A", "Ainv", "pedigree", "K", "Q"))))) &&
+       is.list(phylo_mu) && isTRUE(phylo_mu$has) &&
+-      phylo_mu$type %in% c("animal", "relmat", "phylo") &&
++      phylo_mu$type %in% c("animal", "relmat", "phylo", "spatial") &&
+       identical(phylo_mu$q, 2L) &&
+       is.list(sd_phylo) && sd_phylo$n_models == 2L &&
+       ncol(sd_phylo$observation_sd_row0_by_coef) == 2L &&

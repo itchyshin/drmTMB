@@ -1,0 +1,26 @@
+{
+  "evidence_id": "julia-binomial-probit-iid_numeric_slope-20261024-m26",
+  "rerecord_of_evidence_id": "julia-binomial-probit-iid_numeric_slope-20261024",
+  "prior_receipt_path": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-slope-sd-bridge-20261024/console.log",
+  "git_head": "e9c72ab3e",
+  "tree_state": "every manifest file committed at e9c72ab3e and unmodified at run time",
+  "command": "\"OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 JULIA_NUM_THREADS=1 DRMTMB_JULIA_TESTS=true DRMODELS_JL_PATH=\"\"../general-sd-julia\"\" Rscript -e devtools::test(filter=focused-link-test)\"",
+  "runs": [
+    {
+      "test_path": "tests/testthat/test-julia-binomial-nonlogit-slope-sd-bridge.R",
+      "test_sha256": "f7f180eda9c0ce9ed5de8241b47ca5103c06955d399874c704d7543c6405498b",
+      "started_utc": "2026-11-02T13:18:31Z",
+      "ended_utc": "2026-11-02T13:18:35Z",
+      "exit_code": 0,
+      "expectations_passed": 7,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1,
+      "console_log": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-slope-sd-bridge-20261024-m26-20cad8/test-console-test-julia-binomial-nonlogit-slope-sd-bridge.log",
+      "console_log_sha256": "73e846f7cd14afa747cccd7cca02eb10cd888f02433a8628e7c8ad3df6f997d0"
+    }
+  ],
+  "source_manifest": "docs/dev-log/general-sd-regression/evidence/julia-binomial-nonlogit-slope-sd-bridge-20261024-m26-20cad8/source-manifest.json",
+  "source_manifest_sha256": "264c01045ac1744ba3a5b364f4c59d69f1800b5d3fd260ebcb52d67ef1399ef3",
+  "review_status": "unreviewed"
+}

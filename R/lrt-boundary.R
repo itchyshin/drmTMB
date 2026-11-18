@@ -215,7 +215,7 @@ drm_lrt_boundary_map_guard <- function(full, reduced) {
   if (any(penalized)) {
     cli::cli_abort(c(
       "{.fn lrt_boundary} cannot compare penalized (MAP) fits.",
-      "i" = "A {.code penalty = drm_phylo_penalty(...)} fit shrinks its variance components, so the likelihood-ratio statistic has no chi-square reference. Refit both without {.arg penalty}."
+      "i" = "A penalized fit optimizes a prior-adjusted objective, so the likelihood-ratio statistic has no standard chi-square reference. Refit both without priors or penalties."
     ))
   }
   invisible(TRUE)

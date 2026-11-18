@@ -1,0 +1,14 @@
+{
+  "design_mode": "qualification",
+  "manifest_sha256": "c707ff66635d4ba95aa14bcf452a83de30e559665a30e6146354b92cce5d8855",
+  "master_seed": 2026101704,
+  "planned_indices": [
+    1,
+    1001,
+    2001
+  ],
+  "planned_subset": 3,
+  "registry_sha256": "1ee65b061c35c401bc38ba4de835e3f3eef0b50bcbb75d1196fc7259bdbb1d35",
+  "source_directory": "/home/snakagaw/hsq_work/drmtmb-general-sd-calibration-20261017-01/qualification-prepared",
+  "subset_copy": "byte-identical full frozen 3000-row manifest"
+}

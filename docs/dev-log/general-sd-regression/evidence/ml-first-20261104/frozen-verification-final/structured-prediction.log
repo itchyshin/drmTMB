@@ -1,0 +1,55 @@
+julia-structured-stored-prediction: ..................................................................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+💅 Your tests are beautiful 💅
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+julia-conditional-prediction: ....................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+julia-conditional-components: ...........................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+julia-b34-structured-fitted-bridge: ...........................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.13.0 at location /Users/z3437171/.julia/juliaup/julia-1.13.0+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..........B34 gaps: fitted 7.15e-12; residuals 1.2e-11; population-level vs native 0.881
+...........B34 gaps: fitted 3.16e-12; residuals 4.98e-12; population-level vs native 0.735
+...........B34 gaps: fitted 2.18e-13; residuals 2.93e-13; population-level vs native 1.1
+...........B34 gaps: fitted 8.84e-12; residuals 1.14e-11; population-level vs native 0.947
+...........B34 gaps: fitted 2.28e-10; residuals 7.26e-10; population-level vs native 0.934
+...........B34 gaps: fitted 1.83e-09; residuals 2.88e-09; population-level vs native 0.828
+...........B34 gaps: fitted 1.65e-08; residuals 1.45e-08; population-level vs native 0.585
+...........B34 gaps: fitted 3.87e-09; residuals 1.33e-08; population-level vs native 0.886
+...........B34 gaps: fitted 3.31e-09; residuals 4.74e-09; population-level vs native 0.934
+...........B34 gaps: fitted 1.37e-08; residuals 6.36e-09; population-level vs native 0.677
+...........B34 gaps: fitted 3.55e-08; residuals 2.5e-08; population-level vs native 0.767
+...........B34 gaps: fitted 1.5e-08; residuals 2.28e-08; population-level vs native 0.97
+...........B34 gaps: fitted 7.42e-08; residuals 1.3e-07; population-level vs native 0.687
+...........B34 gaps: fitted 6.43e-10; residuals 1.8e-09; population-level vs native 0.964
+...........B34 gaps: fitted 5.12e-09; residuals 9.22e-09; population-level vs native 0.74
+.W..........B34 gaps: fitted 1.88e-08; residuals 2.86e-07; population-level vs native 0.994
+...........B34 gaps: fitted 6.83e-09; residuals 7.79e-09; population-level vs native 0.469
+...........B34 gaps: fitted 1.63e-08; residuals 1.65e-08; population-level vs native 0.419
+...........B34 gaps: fitted 6.14e-09; residuals 6.56e-09; population-level vs native 0.427
+...........B34 gaps: fitted 1.03e-08; residuals 1.32e-08; population-level vs native 0.596
+...........B34 gaps: fitted 8.51e-09; residuals 9.48e-09; population-level vs native 0.521
+...........B34 gaps: fitted 1.03e-08; residuals 1.14e-08; population-level vs native 0.474
+...........B34 gaps: fitted 1.88e-09; residuals 1.16e-08; population-level vs native 0.982
+...........B34 gaps: fitted 7.76e-09; residuals 7.55e-09; population-level vs native 0.519
+...................B34 q2 oracle gaps: fitted 3.45e-13; modes 2.37e-12; population-level vs oracle 0.779
+
+
+══ Warnings ════════════════════════════════════════════════════════════════════
+1. Julia fitted() and residuals() are conditional: gamma relmat slope  ('test-julia-b34-structured-fitted-bridge.R:285:7') - NA/NaN function evaluation
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 26 live tests ran; bridge glue was exercised in this configuration.
+Julia exit.
+  Activating project at `~/.codex/worktrees/sd-article-ml-julia/DRM.jl`
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `id` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels ~/.codex/worktrees/sd-article-ml-julia/DRM.jl/src/input_validation.jl:396

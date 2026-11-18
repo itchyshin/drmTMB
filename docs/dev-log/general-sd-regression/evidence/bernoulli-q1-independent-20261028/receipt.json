@@ -1,0 +1,107 @@
+{
+  "observed_at_utc": "2026-10-28T07:32:53Z",
+  "result": "PASS_SCOPED_CANDIDATE",
+  "scope": "One strict Bernoulli trials=1 ordinary group random-intercept selected-SD case on dirty R and Julia candidate worktrees. Native Laplace and Julia AGHQ5 each checked against its own independent objective; existing public outputs, profile, and bootstrap requested with R=3 exercised. Not current-main Julia parity, interval calibration, or general SD capability.",
+  "source": {
+    "r_candidate_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+    "julia_sd_candidate_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+    "julia_current_main_has_selected_sd_route": false,
+    "original_test_sha256": "721658fe990bd3147fd030572320fc7d60bbe78bed4c87f21b928f8d6e60d23f",
+    "fixture_and_laplace_helper_sha256": "acd2153d99bc46d4094cbf5d9a1abd05febd00cb9e9e2a3619d3325925df9018",
+    "source_manifest": "sources-before.sha256",
+    "source_manifest_file_count": 186,
+    "source_manifest_sha256": "07552b89e1a4e611540c2bb1ca0492378441179701d26dbc87b145748f4a4fa9",
+    "source_before_after_byte_identical": true,
+    "source_capsule": "source-capsule.tar.gz",
+    "source_capsule_bytes": 7149787,
+    "source_capsule_sha256": "c15b9f44b2c8a4fe25a5d10c53a18ff30a91516df0e1fa151cb2f33960c63e21",
+    "source_capsule_verified_against_manifest": true,
+    "loaded_dll_sha256": "afde22660f3bc7577f9e6cb261356ceb11c31ef1c50ad27199295e3e1a71b7dc",
+    "source_tree_dll_sha256_matches_loaded": true,
+    "compiled_source_match_limit": "C++ source mtime 2026-10-27T22:48:01; object and DLL mtime 22:48:41. This supports chronological consistency; the receipt does not claim cryptographic rebuild equivalence.",
+    "scratch_project_sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9",
+    "scratch_manifest_sha256": "14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20",
+    "scratch_project_manifest_match_candidate": true,
+    "old_unreviewed_receipt_sha256_unchanged": "d12731890ecd9a9b21fb97e456697ef3f35cc55ea27bee0850239da9a2ac466c"
+  },
+  "runtime": {
+    "R": "4.6.0",
+    "Julia": "1.10.12 aarch64-apple-darwin",
+    "julia_binary_sha256": "e042cffd57bed91eddc60e9ffdfa7a705f71d752c7468100e637f44c99b02a75",
+    "julia_default_aghq_nodes": 5,
+    "threads": "OPENBLAS=1 OMP=1 JULIA=1 JULIA_NUM_PRECOMPILE_TASKS=1",
+    "depot_order": "owned writable overlay; parity scratch read-through; user Julia depot read-through",
+    "scratch_project": "/Users/z3437171/Documents/Codex/2026-10-28/drm-bernoulli-q1.59eBZj/pkg",
+    "full_case_start_utc": "2026-10-28T07:31:26Z",
+    "full_case_end_utc": "2026-10-28T07:32:53Z",
+    "full_case_seconds": 87,
+    "declared_upper_estimate_minutes": 15
+  },
+  "fixture": {
+    "groups": 300,
+    "repeats_per_group": 12,
+    "rows": 3600,
+    "trials_per_row": 1,
+    "seed": 1701,
+    "fixture_rds_sha256": "c24dd2b2a5f776ec5fbc29ffc34fa2120b8707add6fb99ae7d2bb7e80d694ef7"
+  },
+  "selected_test": {
+    "original_ast_statements": 57,
+    "appended_expression": "source independent reference within same test environment; no duplicated fit",
+    "extracted_ast_sha256": "c008278867a2199df4376de5abdda96195cf2bf817630fbdbbddbd879c74ca24",
+    "live_cases": 1,
+    "expectations": 53,
+    "skips": 0,
+    "failures": 0,
+    "exit_code": 0,
+    "log": "live-test.log",
+    "log_sha256": "412eb3dd27834c29e50d9a2b3093b8cebf802d5b2ffe13fdb78e0ca8cf9813cc"
+  },
+  "numerical_reference": {
+    "native_negative_log_likelihood": 2277.245843760257,
+    "native_independent_laplace": 2277.245843748281,
+    "native_absolute_error": 1.19762262e-8,
+    "native_absolute_tolerance": 1e-6,
+    "julia_negative_log_likelihood": 2275.223762651749,
+    "julia_independent_aghq5": 2275.223762651570,
+    "julia_absolute_error": 1.78715709e-10,
+    "julia_absolute_tolerance": 1e-5,
+    "aghq1_vs_independent_laplace_absolute_error": 4.64615368e-9,
+    "optimized_cross_engine_negative_log_likelihood_gap_not_equality_gate": 2.02208111,
+    "cross_engine_gap_interpretation": "The objectives use different approximations and were evaluated at their own fitted parameter vectors; this gap is descriptive, not attributable quantitatively to either cause alone.",
+    "hermite_moments_checked_through_degree": 8,
+    "gaussian_normalization_tau": [0.35, 0.8, 2.0],
+    "maximum_absolute_sd_predictor_native": 0.806234,
+    "maximum_absolute_sd_predictor_julia": 0.782129,
+    "identity_clamp_interior_bound": 9
+  },
+  "workflows": {
+    "profile_interval_sd_w_level_0_80": [0.340069547, 0.6954241],
+    "bootstrap_interval_sd_w_level_0_80_R_3_requested": [0.56271955, 0.671479152],
+    "bootstrap_successful_refit_count": null,
+    "native_pdHess": true,
+    "julia_bridge_converged": true,
+    "interval_interpretation": "Finite ordered endpoints and target routing only; R=3 was requested but successful-refit count was not captured, and no interval calibration is established."
+  },
+  "attempts": [
+    "julia-setup-pilot.log: import failed because parity private depot alone lacked candidate Manifest IrrationalConstants tree; no fit",
+    "julia-setup-pilot-2.log: import succeeded with owned overlay and user depot read-through; no fit",
+    "r-setup-pilot.log: package loaded, then log printer failed on cat(numeric_version); no fit",
+    "r-setup-pilot-2.log: package and actual DLL loaded; no fit",
+    "live-test.log: one selected paired case passed"
+  ],
+  "limits": [
+    "The older 2026-10-24 unreviewed receipt still omitted helper/fixture/oracle binding; this new receipt does not retroactively repair it.",
+    "The original case gates SD coefficient recovery but does not gate fixed beta against truth.",
+    "No full Julia vcov eigenvalue or beta estimates were persisted from the ephemeral fit; no inference readiness is claimed.",
+    "No repeated interval coverage or calibrated uncertainty evidence was run.",
+    "No broad family, provider, current-main, or public capability claim follows from this case.",
+    "Aggregate acceptance is unknown until the parent lane integrates this untracked node into its larger goal ledger."
+  ],
+  "closeout": {
+    "report_compiler": "PASS",
+    "codex_efficiency_gate": "PASS",
+    "handoff_gate": "INCONCLUSIVE: read-only process stopped after about 3 minutes of shared-repository branch enumeration; exit 143",
+    "landing": "Owned artifacts remain untracked in parent-owned dirty R candidate; no commit or push."
+  }
+}

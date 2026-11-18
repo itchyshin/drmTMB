@@ -1,0 +1,3 @@
+# Native Beta relatedness intercept and slope SDs
+
+The scoped native Beta builder admits unlabelled relatedness intercept-plus-one-slope point fitting and separate coefficient-selected SD formulas through K/Q. No native likelihood or compiled artifact changed. The synthetic example converged with SD slopes 0.5332939 and -0.3947029 (truths 0.5 and -0.5). The seven-file regression passed 259 checks with zero failures, errors, warnings or skips in 213.970 seconds. Exact source hashes are in docs/dev-log/general-sd-regression/evidence/native-beta-relmat-q2-sd-20261027/receipt.json. Interval coverage, Julia parity and global capability promotion remain unestablished. See the corresponding after-task report for scope and attempted runs.

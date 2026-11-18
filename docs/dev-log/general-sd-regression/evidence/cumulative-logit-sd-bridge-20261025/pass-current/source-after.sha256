@@ -1,0 +1,3 @@
+b7799d024d6baa91ee74327dbe4c6566d40812dbfa14814460635e51ab5255ba  R/julia-bridge.R
+b120d0311b365efcbc5d9580086bd73580402e87fbfacbacc80dbbd5d66572df  tests/testthat/test-julia-cumulative-logit-sd-intercept-parity.R
+366be76d2c250da1da3321dc58ba7848b620a520c670ccf801fd4415ac29d7fa  tests/testthat/test-julia-cumulative-logit-sd-slope-parity.R

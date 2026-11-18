@@ -31,12 +31,11 @@ penalized / maximum-a-posteriori (MAP) estimator.
 }
 \details{
 The standard-deviation penalty is a penalised-complexity (PC) prior (Simpson
-et al. 2017): an exponential prior on the SD scale with mass at zero, which
-regularises a weakly-identified phylogenetic SD (for example a scale-side
-phylogenetic field at about one observation per tip) toward the simpler
-"no phylogenetic variance" model in the sense that the \emph{prior} places its
-mass there — the reported point estimate itself never reaches it; see
-below. The rate is \code{lambda = -log(sd_alpha) / sd_u}
+et al. 2017): an exponential prior on the SD scale whose density is highest
+at zero, so it shrinks a weakly identified phylogenetic SD (for example a
+scale-side phylogenetic field at about one observation per tip) toward the
+simpler "no phylogenetic variance" model. The reported point estimate itself
+never reaches zero; see below. The rate is \code{lambda = -log(sd_alpha) / sd_u}
 so that, a priori, \code{P(sd > sd_u) = sd_alpha} holds exactly for this prior.
 The optional correlation penalty is a mean-zero normal on the unconstrained
 phylogenetic correlation parameter.
@@ -50,8 +49,8 @@ Jacobian: \code{rate * sd - log(sd) - log(rate)}. Because a maximum-a-posteriori
 prior, and that mode is never zero: the \code{-log(sd)} Jacobian term diverges as
 \code{sd -> 0}, so under a flat likelihood the penalty alone pulls the estimate to
 \code{sd = 1/rate} (\code{0.334} at the defaults \code{sd_u = 1}, \code{sd_alpha = 0.05}, where
-\code{rate = -log(0.05) = 2.996}). The SD-scale prior still has mass at zero as
-documented; only the reported point estimate does not sit there. A
+\code{rate = -log(0.05) = 2.996}). The SD-scale prior density is highest at zero as
+described above; only the reported point estimate does not sit there. A
 penalised \code{sd_phylo} must therefore not be used to test a null hypothesis of
 no phylogenetic signal: a likelihood-ratio or Wald test against zero on a
 MAP fit is not valid, because the estimator cannot report zero regardless of

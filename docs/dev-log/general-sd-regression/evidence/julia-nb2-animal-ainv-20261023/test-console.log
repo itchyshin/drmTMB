@@ -1,0 +1,6 @@
+$ JULIA_DEPOT_PATH=/private/tmp/general-sd-julia-depot:/Users/z3437171/.julia JULIA_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 julia --project=. test/test_nb2_animal_sd_regression.jl
+Working directory: /Users/z3437171/Dropbox/Github Local/drmTMB/.worktrees/general-sd-julia
+Julia version: 1.10.0
+
+Test Summary:                               | Pass  Total   Time
+NB2 animal location-intercept SD regression |   19     19  15.6s

@@ -164,3 +164,55 @@ test_that("check_drm() reports the LOWER clamp arm as a note with lower-bound wo
   expect_match(row$message, "below the clamp band lower bound", fixed = TRUE)
   expect_match(row$message, "tau = 0", fixed = TRUE)
 })
+
+# Issue #1539: the bare log(1e4) scale-spread guard shared with DRModels.jl#1066.
+# Unit-free: a spread of fitted log(sigma) above log(1e4) across observations is
+# flagged whether or not the clamp is hit; sigma ~ 1 (zero spread) never fires.
+
+test_that("drm_logsigma_scale_spread flags a spread above log(1e4) only", {
+  expect_null(drm_logsigma_scale_spread(list(log_sigma = rep(0.3, 10))))
+  expect_null(drm_logsigma_scale_spread(list(log_sigma = c(0, log(1e4)))))
+  info <- drm_logsigma_scale_spread(list(log_sigma = c(-5, 5)))
+  expect_false(is.null(info))
+  expect_equal(info$spread, 10)
+  # shifting every log(sigma) equally (rescaling y) does not change the verdict
+  expect_equal(
+    drm_logsigma_scale_spread(list(log_sigma = c(-5, 5) + 3))$spread,
+    10
+  )
+  # each bivariate scale is judged on its own; _mi imputation scales are ignored
+  expect_null(drm_logsigma_scale_spread(list(
+    log_sigma1 = c(0, 5),
+    log_sigma2 = c(0, 5)
+  )))
+  expect_false(is.null(drm_logsigma_scale_spread(list(
+    log_sigma1 = c(0, 5),
+    log_sigma2 = c(-5, 5)
+  ))))
+  expect_null(drm_logsigma_scale_spread(list(log_sigma_mi = c(-5, 5))))
+  expect_null(drm_logsigma_scale_spread(list()))
+  expect_null(drm_logsigma_scale_spread(list(log_sigma = c(NA_real_, 5, -Inf))))
+})
+
+test_that("a Gaussian sigma ~ x fit with a spread above 10^4 warns without the clamp", {
+  set.seed(1539)
+  n <- 1500
+  x <- stats::runif(n)
+  dat <- data.frame(x = x, y = stats::rnorm(n, 1, exp(-5 + 10 * x)))
+  expect_warning(
+    allow_nonconvergence(
+      drmTMB(bf(y ~ 1, sigma ~ x), family = gaussian(), data = dat)
+    ),
+    class = "drmTMB_scale_spread_warning"
+  )
+})
+
+test_that("a Gaussian sigma ~ x fit with a moderate spread does not warn", {
+  set.seed(1539)
+  n <- 400
+  x <- stats::runif(n)
+  dat <- data.frame(x = x, y = stats::rnorm(n, 1, exp(-1 + 2 * x)))
+  expect_no_warning(
+    drmTMB(bf(y ~ 1, sigma ~ x), family = gaussian(), data = dat)
+  )
+})

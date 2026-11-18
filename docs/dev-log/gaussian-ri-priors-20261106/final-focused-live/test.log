@@ -1,0 +1,18 @@
+NAMESPACE: /home/snakagaw/hsq_work/drmtmb-ri-priors-final-lib-20261106/drmTMB 
+DLL: /home/snakagaw/hsq_work/drmtmb-ri-priors-final-lib-20261106/drmTMB/libs/drmTMB.so 
+R: R version 4.6.1 (2026-06-24)  TMB: 1.9.25 
+fixed-priors-gaussian-ranef: .................................................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.12 at location /home/snakagaw/.julia/juliaup/julia-1.10.12+0.x64.linux.gnu/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+Julia exit.
+  Activating project at `~/hsq_work/drmodels-ri-priors-final-f60eb88e-20261106`
+real 35.05
+user 35.23
+sys 1.18

@@ -1,0 +1,7 @@
+date=2026-10-19
+command=Rscript tools/general-sd-regression/campaign-oc.R 100 20261019
+timed_seconds=7.52
+R_version=4.6.0
+campaign_script_sha256=2565b6414840f5b2cc7021a91124d600e75c21803645fa7328f5da591afa2e39  tools/general-sd-regression/campaign-oc.R
+decision_helper_sha256=c4aeff17732529febbf6a00ca8ba963c188a1b5e935c6be76cecb49c680ba3c9  tools/general-sd-regression/native-calibration/staged-decision.R
+stdout_sha256=ed5b2931546b2ee10ad71a2a3a5b79650a4cd97d22cc8fe840df4ec0815eb37c  docs/dev-log/general-sd-regression/evidence/campaign-oc-20261019/output.txt

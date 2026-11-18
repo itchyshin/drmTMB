@@ -97,6 +97,7 @@ test_that("check_drm() dispatches on a Julia fit and reports max|gradient|, rout
     dc$check,
     c(
       "engine_route",
+      "convergence_status",
       "optimizer_convergence",
       "fixed_gradient",
       "bridge_covariance",
@@ -195,8 +196,8 @@ test_that("check_drm() on a Julia fit prints the same drm_check summary-line sha
     type = "message"
   )
   combined <- paste(c(messages, printed), collapse = "\n")
-  expect_match(combined, "<drm_check: 5 checks>", fixed = TRUE)
-  expect_match(combined, "ok: 4; notes: 1; warnings: 0; errors: 0", fixed = TRUE)
+  expect_match(combined, "<drm_check: 6 checks>", fixed = TRUE)
+  expect_match(combined, "ok: 5; notes: 1; warnings: 0; errors: 0", fixed = TRUE)
 })
 
 test_that("check_drm.drmTMB_julia validates gradient_tolerance and rejects extra dots, like check_drm.drmTMB", {
@@ -235,6 +236,7 @@ test_that("live: a real engine = \"julia\" fit on a route WITHOUT a stored gradi
     dc$check,
     c(
       "engine_route",
+      "convergence_status",
       "optimizer_convergence",
       "fixed_gradient",
       "bridge_covariance",
@@ -303,6 +305,7 @@ test_that("live: a real engine = \"julia\" fit on a route WITH a stored gradient
     dc$check,
     c(
       "engine_route",
+      "convergence_status",
       "optimizer_convergence",
       "fixed_gradient",
       "bridge_covariance",

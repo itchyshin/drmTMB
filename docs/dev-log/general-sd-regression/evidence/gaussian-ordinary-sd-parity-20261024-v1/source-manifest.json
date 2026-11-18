@@ -1,0 +1,56 @@
+{
+  "native_head": "425bee81572c625a634b2b083050c5c57c1dc1f1",
+  "julia_head": "70dbf564eb670144c63c08f61ea099084d95add2",
+  "native_worktree_dirty": true,
+  "julia_worktree_dirty": true,
+  "files": [
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "07942464ae362487c46f0935f6281b582b6f770866b7d7fa17afe5a1085a74dc"
+    },
+    {
+      "file": "R/julia-bridge.R",
+      "sha256": "8147d3d55f6ee31b04d9fd976ab88cbd97895a467920d94fef8310bce529c58a"
+    },
+    {
+      "file": "R/julia-family-registry.R",
+      "sha256": "f5b9377b6de34a85be25927b3096816eb96205213f658289ec8f7181aef8da09"
+    },
+    {
+      "file": "R/random-effect-scale-formulas.R",
+      "sha256": "7c1c005d3e36787f422ee7287498a7847608236473c0ab4627f9e146c8a358e6"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "64600a1b7b85102cfd5006942ed4c4866bfb3dfd061b43053d89ff2b56e345b4"
+    },
+    {
+      "file": "tests/testthat/test-julia-gaussian-sd-parity.R",
+      "sha256": "cf43619c00f4ee87f22cc84e0b034f9174949e66a706778441bec22f1df874bd"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/gaussian-ordinary-sd-parity-20261024-v1/test-snapshot/tests/testthat/test-julia-gaussian-sd-parity.R",
+      "sha256": "cf43619c00f4ee87f22cc84e0b034f9174949e66a706778441bec22f1df874bd"
+    },
+    {
+      "file": "../general-sd-julia/src/gaussian_lss.jl",
+      "sha256": "5cacc09a83929cadfa03422c5cf4b4943ef42d6451b6a06a9fecdbb213f83aaa"
+    },
+    {
+      "file": "../general-sd-julia/test/test_lss_group.jl",
+      "sha256": "a1a665f6deedb02011851481774dfbc3b87fcc3b8e9a66949238c7a7e3400f1d"
+    },
+    {
+      "file": "../general-sd-julia/test/test_lss_sd_slope.jl",
+      "sha256": "d8b225f4aa82792e231184fbebdeec2ab22a4e373dbf9a57e2a1d7f48c641e1e"
+    },
+    {
+      "file": "../general-sd-julia/Project.toml",
+      "sha256": "36b9455e8fcb093e848fe1286432b0ce1c6b9e4e4cafc64e5f460b3818ce1ef9"
+    },
+    {
+      "file": "../general-sd-julia/Manifest.toml",
+      "sha256": "14bc7d62038319d8567a9768cb295cca24b230ad0edbecc4f9d0ef5392c9fd20"
+    }
+  ]
+}

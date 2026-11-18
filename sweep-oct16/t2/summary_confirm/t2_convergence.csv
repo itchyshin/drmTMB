@@ -1,0 +1,13 @@
+"engine","cell","cell_order","n","re","reps_run","errors","converged","conv_rate","statuses","median_time_s","pass_conv"
+"DRModels","n0200_none",2,200,"none",2000,0,2000,1,"converged:2000",0.000353097915649414,TRUE
+"DRModels","n1000_none",3,1000,"none",2000,0,2000,1,"converged:2000",0.001739501953125,TRUE
+"DRModels","n0200_G20",5,200,"G20",2000,0,2000,1,"converged:2000",0.00113487243652344,TRUE
+"DRModels","n1000_G20",6,1000,"G20",2000,0,2000,1,"converged:2000",0.0044635534286499,TRUE
+"DRModels","n0200_G50",8,200,"G50",2000,0,2000,1,"converged:2000",0.00105702877044678,TRUE
+"DRModels","n1000_G50",9,1000,"G50",2000,0,2000,1,"converged:2000",0.00441193580627441,TRUE
+"drmTMB","n0200_none",2,200,"none",2000,0,2000,1,"converged:2000",0.0370000000000061,TRUE
+"drmTMB","n1000_none",3,1000,"none",2000,0,2000,1,"converged:2000",0.0589999999999975,TRUE
+"drmTMB","n0200_G20",5,200,"G20",2000,0,2000,1,"converged:2000",0.141999999999996,TRUE
+"drmTMB","n1000_G20",6,1000,"G20",2000,0,2000,1,"converged:2000",0.458999999999946,TRUE
+"drmTMB","n0200_G50",8,200,"G50",2000,0,2000,1,"converged:2000",0.140000000000015,TRUE
+"drmTMB","n1000_G50",9,1000,"G50",2000,0,2000,1,"converged:2000",0.474000000000103,TRUE

@@ -1,0 +1,22 @@
+NAMESPACE: /home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB 
+DLL: /home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB/libs/drmTMB.so 
+R: R version 4.6.1 (2026-06-24)  TMB: 1.9.25 
+fixed-priors-gaussian-ranef: .................................................i `engine = "julia"` is experimental: it fits only the families and routes listed in `vignette("julia-engine", package = "drmTMB")`, and it is not a drop-in replacement for the default `engine = "tmb"`.
+i This notice is shown once per R session.
+i Starting Julia (first call in a session takes ~30-60 s; later calls are fast)...
+Julia version 1.10.12 at location /home/snakagaw/.julia/juliaup/julia-1.10.12+0.x64.linux.gnu/bin will be used.
+Loading setup script for JuliaCall...
+Finish loading setup script for JuliaCall.
+..............
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 1 live test ran; bridge glue was exercised in this configuration.
+fixed-priors-variance-ratio-guards: ........................
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Julia exit.
+  Activating project at `~/hsq_work/drmodels-ri-priors-guard-final-ff10a2f9-20261106`
+real 47.25
+user 47.39
+sys 1.54

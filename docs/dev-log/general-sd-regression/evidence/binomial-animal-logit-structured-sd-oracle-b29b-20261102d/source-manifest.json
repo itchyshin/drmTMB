@@ -1,0 +1,42 @@
+{
+  "scope": "Source identity for tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R, receipt binomial-animal-logit-structured-sd-oracle-b29b-20261102d (HEAD 9d229de68; hashes identify run-time files)",
+  "files": [
+    {
+      "file": "tests/testthat/test-binomial-animal-logit-structured-sd-oracle-b29b.R",
+      "sha256": "30b9ea55f129c05cdda99988b6bdd129231f33ab855f6a595212cc0677be8102"
+    },
+    {
+      "file": "tests/testthat/helper-b29b-binomial-oracle.R",
+      "sha256": "db29ac36b5b401a01af13e29a7c2cc7527a534f7bf1afc1d892a565c5962516c"
+    },
+    {
+      "file": "tests/testthat/helper-sb26-oracle.R",
+      "sha256": "ebfce0c5517493513d984bd1279ed1f952e7a292830614ad5ecc9578d5c192c5"
+    },
+    {
+      "file": "tests/testthat/helper-b26sa-oracles.R",
+      "sha256": "86297736404a5f49f9e8c498b1513919bc9ddf9b3adf143a76625fe0e16fde5b"
+    },
+    {
+      "file": "R/drmTMB.R",
+      "sha256": "c2988c220d4ee4806cb7e152f088019fd5c9fdef8efb714409842ccf3dec4c5c"
+    },
+    {
+      "file": "R/methods.R",
+      "sha256": "3f51c70753ee5d56b82530ec502ea3e8f702994fbe71050e373e8503c2d38fbe"
+    },
+    {
+      "file": "R/random-effect-targets.R",
+      "sha256": "d9abb42875ee8845083d8d9e4fbcc791e874916f53908cff14595280bd17d858"
+    },
+    {
+      "file": "src/drmTMB.cpp",
+      "sha256": "1a9ac454ddfd50238be6917ee1e39ffb5ab17216a1330e9c659effb96de87009"
+    },
+    {
+      "file": "docs/dev-log/general-sd-regression/evidence/binomial-animal-logit-structured-sd-oracle-b29b-20261102d/test-console.log",
+      "sha256": "fcb7e7563b25438b69f15798ceddcc5e37cee32468be9d1ec63427dc71a8ff84"
+    }
+  ],
+  "re_recorded": "2026-11-03 at 81553915d after a test rerun at 81553915d; entries that differed: ['R/drmTMB.R', 'R/methods.R', 'src/drmTMB.cpp']"
+}

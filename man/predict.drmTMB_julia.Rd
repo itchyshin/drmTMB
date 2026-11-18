@@ -48,11 +48,14 @@ are available; it does not make a general engine-parity claim.
 }
 \details{
 With \code{newdata = NULL}, \code{predict()} reconstructs a fixed-effect stored-data
-prediction, except for a validated Gaussian ordinary mean payload. The earned
-conditional routes are one scalar intercept or slope, one correlated
+prediction, except for validated ordinary Gaussian or structured mean
+payloads. Structured payloads cover Gaussian, Poisson, NB2, Gamma, and
+Binomial fits whose Julia fitter exports a per-row conditional field.
+Ordinary Gaussian conditional routes are one scalar intercept or slope, one correlated
 intercept-and-slope component, or scalar components with distinct grouping
 variables. It refuses repeated groups, multiple correlated components, wider
-slopes, scale random effects, and structured routes. With
+slopes, and scale random effects. Structured fits without a valid retained
+conditional field are also refused. With
 \code{newdata} supplied, it returns a \strong{population-level
 fixed-effect} prediction (\code{RE = 0}) from \code{X \%*\% beta}, using the training
 data to preserve factor contrasts and column order. \code{type = "link"} returns

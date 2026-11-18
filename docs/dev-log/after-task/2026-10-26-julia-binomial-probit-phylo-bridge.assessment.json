@@ -1,0 +1,36 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "5292e683e7f493bfc5305c02e5443ce70be7f8ef6eff0c102a4f13b64e07c492",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "Codex self-review",
+  "method": "Compared the complete report with the retained focused test log, exit code, source manifests, and check-log entry; ran the exact-draft prose lint and after-task structure check.",
+  "genre": "Technical after-task evidence report",
+  "coverage": "Entire report, all sections",
+  "score": 3,
+  "style_status": "rated",
+  "score_reason": "The report names one precise model route, the observed checks, the emitted scale warning, and the limits of the evidence.",
+  "confidence": "medium",
+  "confidence_reason": "The focused run and source binding are retained locally. This style score is an editorial judgment and does not qualify the broader goal.",
+  "examples": [
+    {
+      "location": "Known Residuals",
+      "line": 49,
+      "quote": "This is one seeded point-recovery and cross-engine check. It does not establish interval coverage, repeated-simulation recovery, non-logit correlated blocks, other structured effects, or broad Binomial support.",
+      "cue": "The report names the specific inferences that this fit does not support.",
+      "impact": "The evidence stays bounded to the tested Bernoulli route.",
+      "repair": "No change needed."
+    }
+  ],
+  "evidence_none_reason": null,
+  "science_gate": "pass",
+  "science_gate_reason": "The report is limited to a single seeded TMB/Julia point-recovery and output check, and it describes the kernel-scale warning.",
+  "facts_gate": "pass",
+  "facts_gate_reason": "The focused test output, live bridge count, exit code, and before/after source manifest were checked against retained artifacts.",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "The report makes no external literature claims.",
+  "date": "2026-10-26",
+  "calibration_status": "No human-labelled style calibration control was used.",
+  "interpretation": "perceived_style_not_authorship"
+}

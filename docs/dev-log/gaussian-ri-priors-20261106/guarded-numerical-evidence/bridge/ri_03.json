@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "id": "ri_03",
+  "engine": "R/Julia-bridge",
+  "namespace_path": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB",
+  "dll": "/home/snakagaw/hsq_work/drmtmb-ri-priors-guard-final-lib-5d0f-20261106/drmTMB/libs/drmTMB.so",
+  "dll_sha256": "cb9c54af096bbe03e5994006125e9112cc13d4ec15aff6ae0e79e371301db413",
+  "X_columns": ["(Intercept)", "x"],
+  "W_columns": ["(Intercept)", "scale_x"],
+  "source_formula": "y ~ 1 + x",
+  "transport_formula": "y ~ 1 + x",
+  "column_mapping": {
+    "(Intercept)": "(Intercept)",
+    "x": "x"
+  },
+  "raw_factor_control": "not_applicable",
+  "coordinate_order": ["beta:(Intercept)", "beta:x", "gamma:(Intercept)", "gamma:scale_x", "tau"],
+  "negative_control": "not_requested",
+  "selectors": [
+    {
+      "dpar": "mu",
+      "coefficient": "(Intercept)",
+      "matrix_column": 1,
+      "mean": 0.34999999999999998,
+      "sd": 0.80000000000000004,
+      "precision": 1.5624999999999998,
+      "reason": "exact column",
+      "kind": "normal"
+    },
+    {
+      "dpar": "sigma",
+      "coefficient": "scale_x",
+      "matrix_column": 2,
+      "mean": 0,
+      "sd": 1.1952286093343936,
+      "precision": 0.69999999999999996,
+      "reason": "exact column",
+      "kind": "ridge"
+    }
+  ],
+  "point": {
+    "status": "arbitrary_point_unavailable"
+  },
+  "fit": {
+    "converged": true,
+    "theta": [0.91092396348723903, 0.73937538004915515, -1.6638714383201736, -0.041082312180035704, 1.3634461246533202e-10],
+    "sd_name": "group",
+    "objective": -1.5071342195217374,
+    "data_nll": -2.4493290511542405,
+    "prior": 0.94219483163250317,
+    "gradient_availability": "reported_native_order_unverified",
+    "gradient_native": [-1.4627365985120377e-10, -6.2434297731783772e-09, -1.5383250229206169e-12, -2.5569841036188201e-10, 4.163817387627442e-18],
+    "hessian_availability": "unavailable",
+    "bridge_diagnostics": {
+      "converged": true,
+      "2": {},
+      "3": {},
+      "estim_method": "MAP"
+    }
+  }
+}

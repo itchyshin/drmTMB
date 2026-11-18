@@ -1,0 +1,43 @@
+{
+  "assessment_performed": true,
+  "draft_sha256": "71c425ef4ac0e7ce2e45e6daf284e0749b69fee900d91331fc88d709ce1c5166",
+  "draft_version": "v1",
+  "requested_mode": "independent",
+  "assessor_type": "self",
+  "reviewer": "bounded native Beta phylo worker",
+  "method": "Separate self review after source/result comparison; independent math review separate",
+  "genre": "technical after-task report",
+  "coverage": "whole exact saved draft",
+  "score": 3,
+  "style_status": "known",
+  "score_reason": "Concrete equations and attempted-run results; required report headings add formulaic structure",
+  "confidence": "medium",
+  "confidence_reason": "Self judgment without human calibration",
+  "examples": [
+    {
+      "location": "11",
+      "cue": "specific scoped explanation",
+      "impact": "Separates the two kernel interpretations",
+      "repair": "no change needed",
+      "line": 11,
+      "quote": "This preserves the established phylo correlation convention, which differs from the raw supplied relmat kernel convention."
+    },
+    {
+      "location": "33",
+      "cue": "specific scoped explanation",
+      "impact": "Keeps the evidence boundary explicit",
+      "repair": "no change needed",
+      "line": 33,
+      "quote": "The unused-tip test establishes assembly/extraction; reduced-observation likelihood fitting remains unassessed."
+    }
+  ],
+  "science_gate": "pass",
+  "science_gate_reason": "Claims restricted to independent numerical and fixed-seed point checks; no coverage claim",
+  "facts_gate": "pass",
+  "facts_gate_reason": "Compared final runner logs, example, scoped patch and independent review",
+  "references_gate": "not_applicable",
+  "references_gate_reason": "No external references",
+  "date": "2026-10-27",
+  "calibration_status": "Prior Gamma/Beta reports seen; no held-out writing controls",
+  "interpretation": "perceived_style_not_authorship"
+}
