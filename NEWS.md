@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* Lognormal models now abort before starting-value or optimizer code when a
+  fixed-effect design value is non-finite. `Inf` in a `mu` or `sigma`
+  predictor names the column. `NA` predictors are still dropped by the
+  existing complete-case rule (#1729).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
