@@ -4640,6 +4640,7 @@ summary.drmTMB <- function(
   ...
 ) {
   profile_precision_missing <- missing(profile_precision)
+  convergence_info_native <- drm_convergence_info(object)
   validate_summary_conf_int(conf.int)
   if (isTRUE(conf.int)) {
     drm_abort_mspl_inference(object, "summary(conf.int = TRUE)")
@@ -4785,7 +4786,11 @@ summary.drmTMB <- function(
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
-    convergence_status = convergence_status(object),
+    convergence_status = convergence_info_native$convergence_status,
+    converged = convergence_info_native$converged,
+    boundary_params = convergence_info_native$boundary_params,
+    pd_hessian = convergence_info_native$pd_hessian,
+    max_gradient = convergence_info_native$max_gradient,
     convergence = object$opt$convergence,
     convergence_message = object$opt$message,
     conf.int = conf.int,

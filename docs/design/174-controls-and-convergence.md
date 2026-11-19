@@ -64,11 +64,12 @@ a generic default, validation, docs, and a row in the catalog below.
   or a continuous location-scale likelihood is unbounded. The screen does
   not change estimates. Random-effect, phylogenetic, `mi()` predictor, and
   MSPL routes are not screened.
-- Twin `convergence_status()` — `"converged"`, `"boundary"`, or
-  `"degenerate"`, with identical numeric cuts in drmTMB and DRModels.jl
+- Twin `convergence_status()` — `"converged"`, `"not_converged"`,
+  `"boundary"`, or `"degenerate"`, checked in that order, with the same
+  numeric cuts in drmTMB and DRModels.jl
   (`docs/design/278-twin-convergence-status.md`). `is_converged()` and
   `converged()` are `TRUE` only for `"converged"`. Print, summary, and
-  `check_drm()` show the status.
+  `check_drm()` show the status; `convergence_info()` returns every field.
 
 ## Interval methods — when to use which (findings)
 

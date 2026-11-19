@@ -46,7 +46,7 @@ test_that("is_converged is TRUE only when status is converged (FX3b red-proof)",
   expect_false(converged(boundary))
   chk_b <- check_drm(boundary)
   expect_identical(chk_b$value[chk_b$check == "convergence_status"], "boundary")
-  expect_identical(chk_b$status[chk_b$check == "convergence_status"], "note")
+  expect_identical(chk_b$status[chk_b$check == "convergence_status"], "warning")
 })
 
 test_that("twin inflated-SE and rank predicates match the documented constants", {
@@ -75,10 +75,10 @@ test_that("optimizer failure and skipped SEs keep the documented status", {
   )
   failed <- fit
   failed$opt$convergence <- 1L
-  expect_identical(convergence_status(failed), "degenerate")
+  expect_identical(convergence_status(failed), "not_converged")
   expect_false(is_converged(failed))
   chk <- check_drm(failed)
-  expect_identical(chk$value[chk$check == "convergence_status"], "degenerate")
+  expect_identical(chk$value[chk$check == "convergence_status"], "not_converged")
   expect_identical(chk$status[chk$check == "convergence_status"], "warning")
 
   se_skipped <- fit
@@ -90,4 +90,97 @@ test_that("optimizer failure and skipped SEs keep the documented status", {
   expect_identical(convergence_status(se_skipped), "converged")
   expect_true(is_converged(se_skipped))
   expect_false(is_converged(se_skipped, include_hessian = TRUE))
+})
+
+# Converged rule (SHINICHI-1753-1118): not_converged is split from degenerate,
+# boundary is tested before the Hessian, cut-offs are unit-free, and Heywood
+# folds into boundary with boundary_params (name, kind).
+test_that("convergence_info reports the full field set", {
+  set.seed(20261118)
+  dat <- data.frame(y = rnorm(60), x = rnorm(60))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+  info <- convergence_info(fit)
+  expect_named(
+    info,
+    c(
+      "converged", "convergence_status", "boundary_params", "pd_hessian",
+      "max_gradient", "relative_gradient", "optimizer_code",
+      "optimizer_message"
+    )
+  )
+  expect_true(info$converged)
+  expect_identical(info$convergence_status, "converged")
+  expect_identical(names(info$boundary_params), c("name", "kind"))
+  expect_equal(nrow(info$boundary_params), 0L)
+  expect_true(info$pd_hessian)
+  expect_identical(info$optimizer_code, 0L)
+  sm <- summary(fit)
+  expect_true(sm$converged)
+  expect_identical(sm$pd_hessian, TRUE)
+  expect_error(convergence_info(1), "native")
+})
+
+test_that("boundary is tested before the Hessian and never reads degenerate", {
+  set.seed(20261016)
+  g <- factor(rep(seq_len(8), each = 25))
+  u <- rnorm(nlevels(g), sd = 0.8)
+  re_dat <- data.frame(
+    y = rnorm(length(g), sd = 0.4) + u[g],
+    x = rnorm(length(g)),
+    g = g
+  )
+  fit <- drmTMB(bf(y ~ x + (1 | g), sigma ~ 1), data = re_dat)
+  broken <- fit
+  broken$sdpars$mu[[1L]] <- 1e-8
+  broken$sdr$pdHess <- FALSE
+  expect_identical(convergence_status(broken), "boundary")
+  bp <- convergence_info(broken)$boundary_params
+  expect_identical(bp$kind, "re_sd")
+  expect_identical(bp$name, "(1 | g)")
+  expect_false(convergence_info(broken)$pd_hessian)
+  # Without a boundary the same non-PD Hessian is degenerate.
+  nonpd <- fit
+  nonpd$sdr$pdHess <- FALSE
+  expect_identical(convergence_status(nonpd), "degenerate")
+  # A failed optimiser outranks a boundary.
+  failed <- broken
+  failed$opt$convergence <- 1L
+  expect_identical(convergence_status(failed), "not_converged")
+})
+
+test_that("boundary cut-off is unit-free in y", {
+  set.seed(20261016)
+  g <- factor(rep(seq_len(8), each = 25))
+  u <- rnorm(nlevels(g), sd = 0.8)
+  re_dat <- data.frame(
+    y = rnorm(length(g), sd = 0.4) + u[g],
+    x = rnorm(length(g)),
+    g = g
+  )
+  fit <- drmTMB(bf(y ~ x + (1 | g), sigma ~ 1), data = re_dat)
+  expect_identical(convergence_status(fit), "converged")
+  # Rescale y and the SD together: the ratio, hence the status, is unchanged.
+  scaled <- fit
+  k <- 1e-6
+  scaled$model$y <- fit$model$y * k
+  scaled$sdpars$mu <- fit$sdpars$mu * k
+  expect_identical(convergence_status(scaled), "converged")
+  chk <- check_drm(scaled)
+  expect_identical(
+    chk$status[chk$check == "random_effect_sd_boundary"],
+    "ok"
+  )
+  # A genuinely tiny SD relative to the response SD is still a boundary.
+  tiny <- fit
+  tiny$sdpars$mu[[1L]] <- 1e-6 * stats::sd(fit$model$y)
+  expect_identical(convergence_status(tiny), "boundary")
+})
+
+test_that("rho12 near +/-1 is a boundary kind with its name", {
+  rho_kind <- drmTMB:::drm_boundary_params_from_values(
+    re_sd_values = numeric(),
+    rho12_values = c(rho12 = 0.995)
+  )
+  expect_identical(rho_kind$kind, "rho12")
+  expect_identical(rho_kind$name, "rho12")
 })

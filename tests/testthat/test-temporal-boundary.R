@@ -67,6 +67,10 @@ test_that("each temporal boundary rule fires on its own limit", {
   tiny_sigma <- fit
   tiny_sigma$model$y <- tiny_sigma$model$y * 1e4
   expect_match(drmTMB:::drm_temporal_boundary_findings(tiny_sigma), "^sigma_ratio=")
+  # Heywood folds into boundary with boundary_params (name, kind).
+  bp <- convergence_info(tiny_sigma)$boundary_params
+  expect_identical(convergence_status(tiny_sigma), "boundary")
+  expect_true("heywood" %in% bp$kind[bp$name == "sigma_ratio"])
 
   # Decay so fast that correlation is ~0 at the shortest gap (white noise).
   white <- fit
