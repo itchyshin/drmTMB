@@ -1,5 +1,11 @@
 # drmTMB 0.8.2
 
+* `engine = "julia"` cross-family bivariate models no longer treat a
+  `gaussian()` axis with a non-identity link, such as
+  `gaussian(link = "log")`, as an identity-link Gaussian axis. Such a pair now
+  aborts in R before any Julia call, as a Poisson or binomial axis with an
+  unsupported link already did (#1750).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
