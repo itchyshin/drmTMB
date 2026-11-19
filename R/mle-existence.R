@@ -19,9 +19,12 @@
 #    #1509 verdict, computed here so convergence_status() does not need
 #    a fit-time store).
 #
-# Random-effect, phylogenetic, mi() predictor, and MSPL routes are not
-# screened: a random intercept can absorb part of the ray, and MSPL is
-# already a finite estimator.
+# Ordinary random-effect fits are screened on the fixed-effect design alone
+# (#1754): a ray in X that separates the data stays a ray for the marginal
+# likelihood whatever the random effects do, so the screen is sound there
+# (it can miss a ray only a random effect would create). Phylogenetic, mi()
+# predictor, and MSPL routes are not screened: MSPL is already a finite
+# estimator.
 #
 # This file does not change coefficient values, vcov(), or Inf masking.
 # It only classifies the fit. The 238/750 twin-flag contract (#1554) is
@@ -36,10 +39,6 @@ drm_sep_max_iter <- function(q) 20L * q + 200L
 
 drm_fe_mle_screen_applicable <- function(spec) {
   if (is.null(spec) || drm_is_mspl(spec$estimator)) {
-    return(FALSE)
-  }
-  n_re <- spec$random$mu$n_re
-  if (!is.null(n_re) && !identical(as.integer(n_re), 0L)) {
     return(FALSE)
   }
   if (isTRUE(spec$structured$phylo_mu$has)) {
