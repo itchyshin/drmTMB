@@ -822,6 +822,19 @@ drm_fit_spec <- function(
   spec <- drm_apply_start_override(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
+  # First-slice response rescaling (#1751): fit simple Gaussian / Student-t
+  # location-scale models on y / sd(y), then evaluate on the original data with
+  # the clamp off (it was inactive on the standardised scale). NULL = ordinary path.
+  rescale_pre <- NULL
+  rescale_plan <- drm_rescale_plan(spec, control, REML, estimator, priors, penalty)
+  if (!is.null(rescale_plan)) {
+    rescale_pre <- drm_rescale_prefit(spec, control, rescale_plan)
+    if (!is.null(rescale_pre)) {
+      spec$tmb_data$use_logsigma_clamp <- 0L
+      spec$rescale_y <- list(scale = rescale_plan$scale)
+    }
+  }
+
   mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
   obj <- tryCatch(
     TMB::MakeADFun(
@@ -862,11 +875,16 @@ drm_fit_spec <- function(
       "i" = "Temporal fits use fixed structure-specific starting values instead; inspect {.code fit$temporal_start_attempts}."
     ))
   }
-  optimizer <- drm_optimize_with_preset_retry(
-    obj,
-    control,
-    starts = temporal_starts
-  )
+  if (!is.null(rescale_pre)) {
+    rescale_pre <- drm_rescale_finish(rescale_pre, obj)
+    optimizer <- rescale_pre$optimizer
+  } else {
+    optimizer <- drm_optimize_with_preset_retry(
+      obj,
+      control,
+      starts = temporal_starts
+    )
+  }
   if (!is.null(temporal_starts) && is.data.frame(optimizer$start_attempts)) {
     temporal_structure <- spec$structured$temporal_mu$structure
     theta_position <- match("theta_temporal", names(obj$par))
@@ -894,7 +912,7 @@ drm_fit_spec <- function(
     }
   }
   opt <- optimizer$opt
-  if (isTRUE(control$newton_polish)) {
+  if (isTRUE(control$newton_polish) && is.null(rescale_pre)) {
     opt <- drm_newton_polish(opt, obj$fn, obj$gr)
     optimizer$opt <- opt
     optimizer$selected$objective <- opt$objective
@@ -909,12 +927,12 @@ drm_fit_spec <- function(
       opt$message
     }
   }
-  restarted <- drm_restart_false_convergence(
+  restarted <- if (is.null(rescale_pre)) drm_restart_false_convergence(
     opt,
     obj,
     control = optimizer$selected$control,
     method = control$optimizer_method
-  )
+  ) else opt
   if (!identical(restarted, opt)) {
     opt <- restarted
     optimizer$opt <- opt
@@ -944,6 +962,9 @@ drm_fit_spec <- function(
   # immediately after -- this evaluation must not leak into what `report()`
   # sees below, per the selected-optimum invariant (docs/design/35).
   fit_gradient <- drm_fit_gradient(obj, opt)
+  # A rescaled fit reports the gradient the optimizer actually drove to zero (on
+  # the standardised scale), so the convergence flag does not depend on units.
+  if (!is.null(rescale_pre)) fit_gradient <- rescale_pre$gradient
   drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
   if (!is.null(spec$resolved_sd_prior)) {
     checked <- drm_sd_prior_check_score(opt, fit_gradient$gradient, spec$tmb_data$prior_sd_index + 1L)
@@ -962,7 +983,8 @@ drm_fit_spec <- function(
     obj,
     opt,
     control,
-    estimator = spec$estimator
+    estimator = spec$estimator,
+    hessian_fixed = if (!is.null(rescale_pre)) rescale_pre$hessian else NULL
   )
   sdr <- uncertainty$sdr
   # sdreport() can leave the mutable full parameter vector at a Hessian
@@ -3939,7 +3961,7 @@ drm_fit_df <- function(spec, opt) {
   df
 }
 
-drm_compute_uncertainty <- function(obj, opt, control, estimator = "ML") {
+drm_compute_uncertainty <- function(obj, opt, control, estimator = "ML", hessian_fixed = NULL) {
   if (identical(estimator, "MSPL")) {
     return(list(
       sdr = NULL,
@@ -3984,6 +4006,7 @@ drm_compute_uncertainty <- function(obj, opt, control, estimator = "ML") {
     TMB::sdreport(
       obj,
       par.fixed = opt$par,
+      hessian.fixed = hessian_fixed,
       getReportCovariance = report_covariance,
       skip.delta.method = isTRUE(control$se_skip_delta_method)
     ),
