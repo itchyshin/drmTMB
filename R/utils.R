@@ -30,6 +30,26 @@ drm_suggest_closest_name <- function(x, choices, cutoff = 2L) {
   choices[distances == min_dist]
 }
 
+# Simulation-count guard shared by the residual, Julia-simulate and
+# pair-association entry points. `Inf` and values above the integer range
+# must abort here: `as.integer()` turns them into NA with only a warning.
+drm_validate_nsim <- function(nsim, call = parent.frame()) {
+  if (
+    !is.numeric(nsim) ||
+      length(nsim) != 1L ||
+      !is.finite(nsim) ||
+      nsim < 1 ||
+      nsim > .Machine$integer.max ||
+      nsim != round(nsim)
+  ) {
+    cli::cli_abort(
+      "{.arg nsim} must be one finite positive whole number.",
+      call = call
+    )
+  }
+  as.integer(nsim)
+}
+
 # Documented `stats::nlminb()` control element names (stable across R versions).
 # Keep in sync with `names(stats:::port_cpos)`; `maxiter` is an alias for `iter.max`.
 drm_nlminb_control_names <- function() {

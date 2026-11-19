@@ -86,16 +86,7 @@ drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L, response = NU
   if (!is.null(seed) && (!is.numeric(seed) || length(seed) != 1L || is.na(seed))) {
     cli::cli_abort("{.arg seed} must be {.val NULL} or a single number.")
   }
-  if (
-    !is.numeric(nsim) ||
-      length(nsim) != 1L ||
-      is.na(nsim) ||
-      nsim < 1L ||
-      nsim != round(nsim)
-  ) {
-    cli::cli_abort("{.arg nsim} must be a single positive integer.")
-  }
-  nsim <- as.integer(nsim)
+  nsim <- drm_validate_nsim(nsim)
   response <- drm_validate_fitted_distribution_response(object, response)
 
   fd <- fitted_distribution(object, response = response)

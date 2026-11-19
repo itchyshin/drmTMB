@@ -1,5 +1,12 @@
 # drmTMB 0.8.2
 
+* Quantile residuals (and `qq_plot()` / `worm_plot()`), `simulate()` on a
+  `drm_pair_association`, and the Julia Binomial, Gamma and NB2 marginal
+  simulators now share one `nsim` check. `Inf`, `NaN`, `NA`, values above the
+  integer range, non-whole numbers and non-numeric values abort with "`nsim`
+  must be one finite positive whole number." instead of a coercion warning
+  followed by a base-R `missing value where TRUE/FALSE needed` error (#1719).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
