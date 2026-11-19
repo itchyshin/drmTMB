@@ -218,6 +218,30 @@ interval-calibration campaign is retained, this is a
 point-fit development route: all interval methods,
 variance/decay inference, forecast, and `newdata` prediction are unavailable.
 
+## Internal Response Rescaling (first slice, #1751)
+
+For `gaussian()` and `student()` location-scale fits with fixed effects and
+ordinary `(1 | g)` mean intercepts, `drmTMB()` fits `y* = y / s` (`s = sd(y)`)
+when `s` is outside [0.01, 100] and the default `logsigma_clamp` is on, then
+rebuilds the TMB object on the original data at the mapped optimum. With
+`y = s y*` and offsets `o = s o*`:
+
+| Quantity | Original from standardised |
+|---|---|
+| `beta_mu` | `s * beta_mu*` |
+| `beta_sigma` intercept | `beta_sigma_0* + log(s)`; slopes unchanged |
+| `log_sd_mu` (`(1 | g)`) | `log_sd_mu* + log(s)` |
+| `beta_nu` (Student df) | unchanged |
+| `logLik` | `logLik* - sum(w) log(s)` (original-scale density) |
+| Hessian | `D H* D`, `D = diag(1/s` on `beta_mu`, 1 elsewhere`)` |
+
+The final object, `vcov()`, `predict()`, `fitted()`, `simulate()` and residuals
+therefore need no back-transform. The stored gradient is the standardised one.
+Other shapes (structured, slopes, known V, priors, REML, aggregation,
+`drm_control(start = )`, bivariate, lognormal) are untouched. Lognormal is not
+included: scaling `y` only shifts `log y`, leaving `sigma` and the clamp
+unchanged.
+
 ## Implemented TMB Routing
 
 The R builders use descriptive model labels, such as `"gaussian"`,

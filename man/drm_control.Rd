@@ -104,7 +104,11 @@ a numerical guard against scale overflow on near-degenerate per-group scale
 models. The default \code{c(-12, 12)} is identity for any standardized response;
 widen it for legitimately huge-variance unstandardized data, or set \code{NULL}
 to disable the guard entirely. It is a numerical guard only and does not
-change identifiability.}
+change identifiability. For simple Gaussian and Student-t location-scale
+fits (fixed effects plus ordinary \code{(1 | g)} mean intercepts) whose response
+standard deviation is outside about 0.01 to 100, the model is fitted on
+\code{y / sd(y)} and mapped back, so the band applies on the standardised scale
+and the result does not depend on the units of \code{y}.}
 
 \item{logsigma_clamp_margin}{Positive number; the soft-clamp saturation
 margin beyond \code{logsigma_clamp} (default \code{3}, saturating to \verb{[-15, 15]} for

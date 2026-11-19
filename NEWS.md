@@ -1,5 +1,21 @@
 # drmTMB 0.8.2
 
+* Gaussian and Student-t location-scale fits no longer depend on the units of
+  the response when the default `logsigma_clamp` is on (#1751). First slice: for
+  fixed effects with ordinary `(1 | g)` mean random intercepts, a response whose
+  standard deviation lies outside about 0.01 to 100 is fitted on `y / sd(y)`
+  and mapped back, so a response in other units (for example `1e-6 * y`) no
+  longer hits the absolute `log(sigma)` band, and optimizer tolerances act the
+  same way. Estimates, standard errors, predictions and simulations are on the
+  original scale, offsets are divided by the scale internally, and `logLik()` is
+  the original-scale value (the same number an un-rescaled fit with an inactive
+  clamp gives). Every other model shape (structured, slopes, known sampling
+  variance, priors, REML, aggregation, `drm_control(start = )`, bivariate,
+  lognormal) is fitted on the original scale exactly as before. In rescaled fits
+  `logsigma_clamp` applies on the standardised scale. `check_drm()` still has two
+  absolute rules (standard-error floor, random-effect SD boundary) that can
+  read a rescaled response as non-converged; they are not changed here.
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum

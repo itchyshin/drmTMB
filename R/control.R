@@ -114,7 +114,11 @@
 #'   models. The default `c(-12, 12)` is identity for any standardized response;
 #'   widen it for legitimately huge-variance unstandardized data, or set `NULL`
 #'   to disable the guard entirely. It is a numerical guard only and does not
-#'   change identifiability.
+#'   change identifiability. For simple Gaussian and Student-t location-scale
+#'   fits (fixed effects plus ordinary `(1 | g)` mean intercepts) whose response
+#'   standard deviation is outside about 0.01 to 100, the model is fitted on
+#'   `y / sd(y)` and mapped back, so the band applies on the standardised scale
+#'   and the result does not depend on the units of `y`.
 #' @param logsigma_clamp_margin Positive number; the soft-clamp saturation
 #'   margin beyond `logsigma_clamp` (default `3`, saturating to `[-15, 15]` for
 #'   the default band). Ignored when `logsigma_clamp = NULL`.
