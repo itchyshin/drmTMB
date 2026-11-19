@@ -61,7 +61,7 @@ test_that("random-intercept prior fits preserve update and inference contracts",
   expect_error(confint(fit, method = "bootstrap"), "fixed-effect")
   expect_error(summary(fit, conf.int = TRUE), "fixed-effect")
   expect_error(predict_parameters(fit, conf.int = TRUE), "fixed-effect")
-  expect_error(predict(fit, se.fit = TRUE), "reserved")
+  expect_error(predict(fit, se.fit = TRUE), "se\\.fit.*not available")
   expect_error(AIC(fit), "fixed-effect")
   retained <- update(fit)
   expect_equal(retained$resolved_priors, fit$resolved_priors)
