@@ -569,8 +569,11 @@ drm_boundary_params_from_values <- function(
 #' `convergence_info()` returns every field behind [convergence_status()]:
 #' `converged`, `convergence_status`, `boundary_params` (a data frame with
 #' `name` and `kind`; kinds are `"re_sd"`, `"rho12"`, `"heywood"`,
-#' `"temporal"`), `pd_hessian`, `max_gradient`, `relative_gradient`,
-#' `optimizer_code` and `optimizer_message`. See [convergence_status()] for
+#' `"temporal"`), `pd_hessian`, `max_gradient`,
+#' `optimizer_code` and `optimizer_message`. `max_gradient` is the Newton step
+#' in SE units, `max_i |(H^-1 g)_i| / SE_i`, which is the quantity the
+#' not-converged rule cuts at 1e-3; it is `NA` when no positive-definite
+#' Hessian is stored. See [convergence_status()] for
 #' the rule and its order.
 #'
 #' @param object A native `drmTMB` fit.
@@ -660,9 +663,14 @@ drm_native_boundary_params <- function(object) {
   out
 }
 
-# Relative, unit-free gradient: each component is scaled by the size of its
-# parameter and the whole vector by the size of the objective.
-drm_relative_gradient <- function(object) {
+# Newton step in SE units (CONV-GRADIENT-CUT, Shinichi 19 Nov 2026):
+# max_i |(H^{-1} g)_i| / SE_i with SE_i = sqrt((H^{-1})_ii). H^{-1} is the
+# fixed-effect covariance stored by sdreport. Unit-free: rescaling a parameter
+# rescales the step and its SE alike. Returns NA when no usable covariance is
+# stored (se = FALSE, skipped uncertainty, non-PD Hessian, non-finite entries);
+# those fits are screened by the degenerate steps, not here. Inf when the
+# gradient itself is non-finite.
+drm_newton_step_se <- function(object) {
   gradient <- object$gradient
   if (is.null(gradient) || length(gradient) == 0L) {
     return(NA_real_)
@@ -671,30 +679,39 @@ drm_relative_gradient <- function(object) {
   if (!all(is.finite(gradient))) {
     return(Inf)
   }
-  par <- as.numeric(object$opt$par)
-  par_scale <- if (length(par) == length(gradient) && all(is.finite(par))) {
-    pmax(abs(par), 1)
-  } else {
-    1
+  if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
+    return(NA_real_)
   }
-  objective <- object$opt$objective
-  objective_scale <- if (is.finite(objective)) max(abs(objective), 1) else 1
-  max(abs(gradient) * par_scale) / objective_scale
+  cov_fixed <- object$sdr$cov.fixed
+  if (
+    !is.matrix(cov_fixed) ||
+      nrow(cov_fixed) != length(gradient) ||
+      ncol(cov_fixed) != length(gradient) ||
+      !all(is.finite(cov_fixed))
+  ) {
+    return(NA_real_)
+  }
+  variances <- diag(cov_fixed)
+  if (any(variances <= 0)) {
+    return(NA_real_)
+  }
+  step <- as.numeric(cov_fixed %*% gradient)
+  max(abs(step) / sqrt(variances))
 }
 
-drm_twin_rel_gradient_tol <- 1e-3
+drm_newton_step_se_tol <- 1e-3
 
 # Converged rule (SHINICHI-1753-1118). First match wins and every non-converged
 # status is a warning, never an error:
-#   not_converged: optimiser did not finish, non-finite likelihood, or a large
-#                  relative gradient;
+#   not_converged: optimiser did not finish, non-finite likelihood, or a Newton step
+#                  above 1e-3 SE;
 #   boundary:      SD ~ 0, |rho12| ~ 1, Heywood (collapsed residual SD),
 #                  temporal limits; tested before the Hessian;
 #   degenerate:    non-PD Hessian, non-finite or inflated SEs, aliased design,
 #                  no finite MLE.
 drm_convergence_info <- function(object) {
   optimizer_ok <- drm_optimizer_converged(object)
-  rel_gradient <- drm_relative_gradient(object)
+  newton_step <- drm_newton_step_se(object)
   boundary <- if (optimizer_ok) {
     drm_native_boundary_params(object)
   } else {
@@ -702,8 +719,8 @@ drm_convergence_info <- function(object) {
   }
   status <- if (
     !optimizer_ok ||
-      (is.finite(rel_gradient) && rel_gradient > drm_twin_rel_gradient_tol) ||
-      identical(rel_gradient, Inf)
+      (is.finite(newton_step) && newton_step > drm_newton_step_se_tol) ||
+      identical(newton_step, Inf)
   ) {
     "not_converged"
   } else if (nrow(boundary) > 0L) {
@@ -730,8 +747,7 @@ drm_convergence_info <- function(object) {
     convergence_status = status,
     boundary_params = boundary,
     pd_hessian = pd_hessian,
-    max_gradient = if (is.null(object$gradient)) NA_real_ else max(abs(object$gradient)),
-    relative_gradient = rel_gradient,
+    max_gradient = newton_step,
     optimizer_code = object$opt$convergence,
     optimizer_message = as.character(object$opt$message)[1L]
   )
@@ -1925,7 +1941,7 @@ check_convergence_status <- function(object) {
       ),
       not_converged = paste(
         "The optimizer did not finish, the log-likelihood is not finite, or",
-        "the relative gradient is not near zero.",
+        "the Newton step is above 1e-3 standard errors.",
         "is_converged() and converged() are FALSE."
       ),
       boundary = paste(

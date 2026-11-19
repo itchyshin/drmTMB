@@ -9,7 +9,7 @@ boundary.
 ## Implemented
 
 - `not_converged` is a separate status. It covers optimiser failure, a
-  non-finite log-likelihood and a large relative gradient; it was part of
+  non-finite log-likelihood and a Newton step above 1e-3 SE (`max_gradient` reports `max_i |(H^-1 g)_i| / SE_i`); it was part of
   `degenerate`.
 - Boundary is tested before the Hessian and standard-error steps. A boundary
   fit with a flat Hessian now reads `boundary`, not `degenerate`.
@@ -54,5 +54,5 @@ are not implemented (open questions in the PR body).
 
 1. Dispersion at its limit (NB2 to Poisson, Student nu to infinity) as a
    boundary kind: needs a threshold; still read via covariance steps (#1535).
-2. Relative-gradient tolerance 1e-3 is a first choice, not calibrated.
+2. (Closed 19 Nov 2026, CONV-GRADIENT-CUT) The gradient cut is the Newton step in SE units, <= 1e-3; the uncalibrated relative gradient is gone.
 3. #1751 option 2 (rescale y internally) is not done.

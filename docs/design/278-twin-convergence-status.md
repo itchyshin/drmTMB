@@ -33,7 +33,9 @@ R; `fit.converged` in Julia) is a predicate input, not the public answer.
 `convergence_info(fit)` (R) returns `converged`, `convergence_status`,
 `boundary_params` (a data frame with `name` and `kind`; kinds `"re_sd"`,
 `"rho12"`, `"heywood"`, `"temporal"`), `pd_hessian`, `max_gradient`,
-`relative_gradient`, `optimizer_code` and `optimizer_message`. `summary()`
+`optimizer_code` and `optimizer_message`. `max_gradient` reports the Newton step
+in SE units (below), not the raw gradient; it is `NA` when no positive-definite
+Hessian is stored. `summary()`
 carries the same fields.
 
 ## Numeric predicates (identical on both engines)
@@ -43,7 +45,7 @@ before any Hessian step, so a boundary fit never reads `"degenerate"`.
 
 | Step | Predicate | Cut | Status |
 | --- | --- | --- | --- |
-| 1 | Optimiser gate | integer code `0` (R) / `fit.converged` (Julia); a finite log-likelihood strictly above the sentinel `-1e15`; relative gradient `max_i(\|g_i\| * max(\|theta_i\|, 1)) / max(\|obj\|, 1) <= 1e-3` (R, when the gradient is stored) | else `"not_converged"` |
+| 1 | Optimiser gate | integer code `0` (R) / `fit.converged` (Julia); a finite log-likelihood strictly above the sentinel `-1e15`; Newton step in SE units `max_i \|(H^-1 g)_i\| / SE_i <= 1e-3`, `SE_i = sqrt((H^-1)_ii)` (decided 19 Nov 2026, CONV-GRADIENT-CUT; R, when the gradient and a positive-definite Hessian are stored, otherwise the test is skipped and steps 5-9 screen the fit) | else `"not_converged"` |
 | 2 | Residual correlation | any fitted `rho12` with `\|rho12\| > 0.98` | `"boundary"` (kind `rho12`) |
 | 3 | Random-effect SD | any fitted random-effect SD, divided by its reference scale, `< 1e-4`. The reference scale is the response SD for identity-link location terms (`mu`, `mu1`, `mu2`) and 1 for link-scale terms, so the cut does not depend on the units of `y` (drmTMB #1751) | `"boundary"` (kind `re_sd`) |
 | 4 | Heywood and temporal | residual SD below 1e-3 of the response SD in a temporal model (kind `heywood`); OU decay or AR1 persistence at its limit (kind `temporal`) | `"boundary"` |
@@ -53,6 +55,8 @@ before any Hessian step, so a boundary fit never reads `"degenerate"`.
 | 8 | Inflated SE | a finite SE is inflated when `SE >= 50` **and** `SE >= 1000 x median(SEs that are < 50)`. If every finite SE is `>= 50`, the reference is `min(SE)` (the min-SE fallback). | `"degenerate"` |
 | 9 | Design rank | any fixed-effect block with `qr(X, tol = 1e-8)$rank < ncol(X)` (R). Julia uses the same `1e-8` absolute tolerance on the stored mean design when it is available. | `"degenerate"` |
 | 10 | otherwise | interior, identified, finite-SE optimum | `"converged"` |
+
+Earlier draft (18 Nov 2026) used an uncalibrated relative gradient with cut 1e-3; replaced by the Newton step in SE units, which is unit-free by construction.
 
 Previous table (before 18 November 2026): optimiser failure returned
 `"degenerate"`, boundary rows came after the Hessian and SE steps (so a

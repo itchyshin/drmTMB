@@ -16,8 +16,11 @@ A named list.
 \code{convergence_info()} returns every field behind \code{\link[=convergence_status]{convergence_status()}}:
 \code{converged}, \code{convergence_status}, \code{boundary_params} (a data frame with
 \code{name} and \code{kind}; kinds are \code{"re_sd"}, \code{"rho12"}, \code{"heywood"},
-\code{"temporal"}), \code{pd_hessian}, \code{max_gradient}, \code{relative_gradient},
-\code{optimizer_code} and \code{optimizer_message}. See \code{\link[=convergence_status]{convergence_status()}} for
+\code{"temporal"}), \code{pd_hessian}, \code{max_gradient},
+\code{optimizer_code} and \code{optimizer_message}. \code{max_gradient} is the Newton step
+in SE units, \verb{max_i |(H^-1 g)_i| / SE_i}, which is the quantity the
+not-converged rule cuts at 1e-3; it is \code{NA} when no positive-definite
+Hessian is stored. See \code{\link[=convergence_status]{convergence_status()}} for
 the rule and its order.
 }
 \examples{

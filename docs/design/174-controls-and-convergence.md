@@ -49,6 +49,8 @@ a generic default, validation, docs, and a row in the catalog below.
 ## Convergence diagnostics (read as a table, not one flag)
 
 - `convergence` — `nlminb` code 0 = converged; inspect the message + gradient.
+- `convergence_status()` not-converged gradient test: Newton step in SE units,
+  `max_i |(H^-1 g)_i| / SE_i <= 1e-3` (`convergence_info()$max_gradient`).
 - `max|grad|` (fixed-gradient row of `check_drm()`) — large gradient = an
   optimization problem before any inference; treat first.
 - `pdHess` — positive-definite Hessian from `sdreport()`. `FALSE` means the

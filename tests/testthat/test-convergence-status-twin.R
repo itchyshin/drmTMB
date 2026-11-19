@@ -104,7 +104,7 @@ test_that("convergence_info reports the full field set", {
     info,
     c(
       "converged", "convergence_status", "boundary_params", "pd_hessian",
-      "max_gradient", "relative_gradient", "optimizer_code",
+      "max_gradient", "optimizer_code",
       "optimizer_message"
     )
   )
