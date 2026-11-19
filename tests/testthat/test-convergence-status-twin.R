@@ -164,6 +164,12 @@ test_that("boundary cut-off is unit-free in y", {
   k <- 1e-6
   scaled$model$y <- fit$model$y * k
   scaled$sdpars$mu <- fit$sdpars$mu * k
+  # The mu coefficient SEs carry the units of y too (inflated-SE rule is
+  # unit-free): rescale the mu rows and columns of the covariance with y.
+  mu_idx <- which(names(fit$opt$par) == "beta_mu")
+  scale_vec <- rep(1, nrow(fit$sdr$cov.fixed))
+  scale_vec[mu_idx] <- k
+  scaled$sdr$cov.fixed <- fit$sdr$cov.fixed * tcrossprod(scale_vec)
   expect_identical(convergence_status(scaled), "converged")
   chk <- check_drm(scaled)
   expect_identical(
@@ -183,4 +189,25 @@ test_that("rho12 near +/-1 is a boundary kind with its name", {
   )
   expect_identical(rho_kind$kind, "rho12")
   expect_identical(rho_kind$name, "rho12")
+})
+
+test_that("inflated-SE rule is unit-free: y, 1000 y and 1e-6 y agree", {
+  expect_false(drmTMB:::drm_twin_inflated_se_is_true(c(152, 0.09), c(1000, 1)))
+  expect_true(drmTMB:::drm_twin_inflated_se_is_true(c(8e5, 0.09), c(1000, 1)))
+
+  set.seed(20261119)
+  n <- 80
+  x <- stats::rnorm(n)
+  dat <- data.frame(y0 = stats::rnorm(n) + x, x = x)
+  dat$x2 <- x + 1e-4 * stats::rnorm(n)
+  status <- function(formula, s) {
+    dat$y <- dat$y0 * s
+    fit <- suppressWarnings(drmTMB(bf(formula, sigma ~ 1), data = dat))
+    convergence_status(fit)
+  }
+  scales <- c(1, 1e3, 1e-6)
+  good <- vapply(scales, function(s) status(y ~ x, s), character(1))
+  aliased <- vapply(scales, function(s) status(y ~ x + x2, s), character(1))
+  expect_identical(good, rep("converged", 3L))
+  expect_identical(aliased, rep("degenerate", 3L))
 })

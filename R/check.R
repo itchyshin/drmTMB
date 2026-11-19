@@ -451,7 +451,11 @@ drm_twin_vcov_positive_definite <- function(vcov) {
   isTRUE(all(is.finite(ev)) && min(ev) > 0)
 }
 
-drm_twin_inflated_se_is_true <- function(standard_errors) {
+# Unit-free: each SE is divided by `se_scale` (its parameter's reference scale,
+# default 1) before the absolute floor and the median ratio are applied, so
+# rescaling y by c rescales identity-link location SEs and their scale alike.
+drm_twin_inflated_se_is_true <- function(standard_errors, se_scale = 1) {
+  standard_errors <- standard_errors / se_scale
   finite_standard_errors <- standard_errors[is.finite(standard_errors)]
   if (length(finite_standard_errors) == 0L) {
     return(FALSE)
@@ -1840,6 +1844,21 @@ check_standard_errors_finite <- function(object) {
 inflated_standard_error_floor <- drm_twin_inflated_se_floor
 inflated_standard_error_ratio <- drm_twin_inflated_se_ratio
 
+# Per-coefficient SE reference scale from vcov row labels "<dpar>:<term>":
+# sd(y) for identity-link location terms (mu, mu1, mu2), 1 otherwise.
+drm_se_reference_scales <- function(object, labels) {
+  if (is.null(labels)) {
+    return(1)
+  }
+  dpar <- sub(":.*$", "", labels)
+  vapply(
+    dpar,
+    function(d) drm_re_sd_reference_scale(object, d),
+    numeric(1),
+    USE.NAMES = FALSE
+  )
+}
+
 check_standard_errors_inflated <- function(object) {
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(NULL)
@@ -1852,6 +1871,8 @@ check_standard_errors_inflated <- function(object) {
   standard_errors <- rep(NA_real_, length(variances))
   non_negative <- is.finite(variances) & variances >= 0
   standard_errors[non_negative] <- sqrt(variances[non_negative])
+  standard_errors <- standard_errors /
+    drm_se_reference_scales(object, rownames(vcov))
   finite_standard_errors <- standard_errors[is.finite(standard_errors)]
   if (length(finite_standard_errors) == 0L) {
     return(NULL)

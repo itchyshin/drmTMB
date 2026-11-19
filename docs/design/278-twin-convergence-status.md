@@ -52,7 +52,7 @@ before any Hessian step, so a boundary fit never reads `"degenerate"`.
 | 5 | Geometry screen | R: `drm_mle_nonexistent()` (binomial cone; Poisson/NB2 cone with `s = 1{y > 0}`, `ntr = 1 + s`; unbounded location-scale). Julia: the same Poisson/NB2 cone (`_count_mle_existence_guard`) plus the Gaussian all-sigma collapse already in `_nondegenerate_fit`. | `"degenerate"` |
 | 6 | Covariance | `vcov` is a square matrix, every entry finite, and positive definite (R: `sdr$pdHess` when SEs were requested; Julia: `isposdef(Symmetric(V))`) | else `"degenerate"` |
 | 7 | Finite SEs | every diagonal SE `sqrt(diag(V))` is finite | else `"degenerate"` |
-| 8 | Inflated SE | a finite SE is inflated when `SE >= 50` **and** `SE >= 1000 x median(SEs that are < 50)`. If every finite SE is `>= 50`, the reference is `min(SE)` (the min-SE fallback). | `"degenerate"` |
+| 8 | Inflated SE | a finite SE is inflated when, with `SE_i* = SE_i / s_i` (`s_i = sd(y)` for identity-link location coefficients `mu`, `mu1`, `mu2`; `s_i = 1` for link-scale coefficients, so the rule is unit-free under `y -> c y`), `SE* >= 50` **and** `SE* >= 1000 x median(SE* that are < 50)`. If every finite SE* is `>= 50`, the reference is `min(SE*)` (the min-SE fallback). | `"degenerate"` |
 | 9 | Design rank | any fixed-effect block with `qr(X, tol = 1e-8)$rank < ncol(X)` (R). Julia uses the same `1e-8` absolute tolerance on the stored mean design when it is available. | `"degenerate"` |
 | 10 | otherwise | interior, identified, finite-SE optimum | `"converged"` |
 
