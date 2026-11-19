@@ -778,6 +778,7 @@ drmTMB_julia_bridge <- function(
     data = data
   )
   drm_julia_refuse_ordinary_mean_re_unlabelled(formula, family_type)
+  drm_julia_refuse_poisson_multi_sd_targets(formula, family_type)
   drm_julia_refuse_gaussian_ordinary_re_factor_fe(formula, family_type, data)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
   drm_julia_refuse_unadmitted_predictor_dpars(formula, family_type)
@@ -3192,6 +3193,43 @@ drm_julia_refuse_ordinary_mean_re_unlabelled <- function(formula, family_type) {
     "{.code engine = \"julia\"} does not yet send a residual-SD label for an ordinary mean {.code (1 | g)} term on {.val {family_type}}.",
     x = "Found a random-effect bar term in the {.code mu} formula.",
     i = "Use native {.code engine = \"tmb\"} for this model. Structured {.fn phylo} / {.fn relmat} / {.fn animal} / {.fn spatial} terms keep their existing routes."
+  ))
+}
+
+# #1758: Poisson passes the #1551 fence above when every ordinary mean bar
+# group has an ordinary `sd(<group>)` entry, and R then sends one
+# `sdtarget_<hex>` label block per SD target. The Poisson Julia fitters return
+# a single `:sd` block (independent slope) or a `:resd` block (crossed
+# intercepts), so two or more targets end in a raw `coef_labels ... unknown
+# dpar "sdtarget_<hex>"` Julia error after the fit. One target keeps the
+# existing route (the one-hashed-key adapter in julia-coefficient-labels.R).
+# This fence refuses two or more ordinary SD targets before Julia starts; it
+# changes no fitted route.
+drm_julia_ordinary_sd_target_labels <- function(formula) {
+  labels <- character()
+  for (entry in formula$entries) {
+    if (is.null(entry$lhs) || !is_random_scale_lhs(entry$lhs)) next
+    target <- parse_sd_lhs(entry$lhs)
+    if (identical(target$fun, "sd") && is.na(target$level) &&
+        (is.na(target$target_dpar) || identical(target$target_dpar, "mu"))) {
+      labels <- c(labels, deparse1(entry$lhs))
+    }
+  }
+  unique(labels)
+}
+
+drm_julia_refuse_poisson_multi_sd_targets <- function(formula, family_type) {
+  if (!identical(family_type, "poisson")) {
+    return(invisible(NULL))
+  }
+  labels <- drm_julia_ordinary_sd_target_labels(formula)
+  if (length(labels) < 2L) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code engine = \"julia\"} does not yet fit {.val poisson} with more than one ordinary {.fn sd} target.",
+    x = "Found {length(labels)} ordinary {.fn sd} targets: {.code {labels}}.",
+    i = "Use native {.code engine = \"tmb\"} for this model. A single {.code sd(<group>) ~ ...} target keeps the existing Julia route."
   ))
 }
 
