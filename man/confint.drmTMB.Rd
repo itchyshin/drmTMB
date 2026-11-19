@@ -73,9 +73,13 @@ per-target adaptive-step budget for long or exploratory profile runs.}
 \item{profile_engine}{Profile engine for direct fitted-object targets.
 \code{"auto"} uses a scalar endpoint solver for direct scale, SD, and
 correlation targets when no \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} controls are supplied, and
-otherwise uses \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}. \code{"endpoint"} requires the scalar
-endpoint solver, while \code{"tmbprofile"} preserves the previous full-profile
-route for comparison and debugging.}
+otherwise uses \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}}. When \code{"auto"} uses
+\code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} without user controls, each interval limit is then
+solved on the constrained profile between the two grid points that
+bracket it, rather than read off by linear interpolation. \code{"endpoint"}
+requires the scalar endpoint solver, while \code{"tmbprofile"} preserves the
+previous full-profile route, with interpolated limits, for comparison and
+debugging.}
 
 \item{profile_endpoint_max_eval}{Optional positive whole number limiting
 constrained endpoint evaluations per endpoint side when the scalar

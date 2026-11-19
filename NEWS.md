@@ -1,5 +1,14 @@
 # drmTMB 0.8.2
 
+* `confint(method = "profile")` with the default `profile_engine = "auto"`
+  no longer cuts a fixed-effect interval short when the profile bends between
+  `TMB::tmbprofile()` grid points. Each limit is now solved on the
+  constrained profile between the two grid points that bracket it instead of
+  being read off by linear interpolation. For the skew-normal slant intercept
+  in #1738 the lower 95% limit moves from -0.6137 (profile deviance 3.805) to
+  -0.6261, the exact limit. `profile_engine = "tmbprofile"` and calls that
+  pass `TMB::tmbprofile()` controls keep the interpolated limits (#1738).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
