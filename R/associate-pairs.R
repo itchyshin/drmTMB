@@ -716,15 +716,7 @@ simulate.drm_pair_association <- function(object, nsim = 1, seed = NULL, ...) {
     }, add = TRUE)
     set.seed(seed)
   }
-  if (
-    !is.numeric(nsim) ||
-      length(nsim) != 1L ||
-      is.na(nsim) ||
-      nsim < 1L ||
-      nsim != as.integer(nsim)
-  ) {
-    cli::cli_abort("{.arg nsim} must be one positive integer.")
-  }
+  nsim <- drm_validate_nsim(nsim)
 
   eta <- object$eta_internal
   draws <- lapply(seq_len(as.integer(nsim)), function(i) {
