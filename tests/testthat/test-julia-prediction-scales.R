@@ -220,3 +220,23 @@ test_that("unsupported non-dpar coefficient blocks refuse prediction", {
 
   expect_error(predict(fit, dpar = "sd_group", type = "link"), "canonical prediction link")
 })
+
+test_that("simulate() on a stored Gaussian fixed-effect Julia fit does not need TMB designs", {
+  n <- 4000L
+  dat <- data.frame(y = rep(0, n), x = seq(-1, 1, length.out = n))
+  fit <- julia_prediction_scale_fixture(
+    drmTMB::bf(y ~ x, sigma ~ x), "gaussian", dat,
+    coefficients = list(mu = c("(Intercept)" = 0.3, x = 0.4),
+                        sigma = c("(Intercept)" = -0.2, x = 0.5)),
+    dpars = list(mu = 0.3 + 0.4 * dat$x, sigma = exp(-0.2 + 0.5 * dat$x))
+  )
+
+  draws <- simulate(fit, nsim = 2L, seed = 1L)
+  expect_equal(dim(draws), c(n, 2L))
+  expect_false(anyNA(draws))
+  expect_identical(draws, simulate(fit, nsim = 2L, seed = 1L))
+  # Draws centre on the stored mu and have the stored sigma(x) spread.
+  z <- (draws[[1L]] - (0.3 + 0.4 * dat$x)) / exp(-0.2 + 0.5 * dat$x)
+  expect_lt(abs(mean(z)), 0.1)
+  expect_lt(abs(stats::sd(z) - 1), 0.1)
+})
