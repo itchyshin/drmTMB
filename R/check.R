@@ -599,8 +599,13 @@ convergence_info <- function(object) {
 # Reference scale that turns a random-effect SD into a unit-free ratio.
 # Identity-link location terms (mu, mu1, mu2) live on the response scale, so
 # they are divided by the SD of that response; link-scale terms are already
-# unit-free and keep scale 1.
+# unit-free and keep scale 1. Families whose location lives on the log or latent
+# scale (lognormal, biv_lognormal, cumulative_logit) also keep scale 1, with no
+# division by sd(y) (SHINICHI-0724-1120, item 2).
 drm_re_sd_reference_scale <- function(object, dpar) {
+  if (object$model$model_type %in% c("lognormal", "biv_lognormal", "cumulative_logit")) {
+    return(1)
+  }
   response <- switch(
     dpar,
     mu = object$model$y,

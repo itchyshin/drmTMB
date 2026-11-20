@@ -211,3 +211,66 @@ test_that("inflated-SE rule is unit-free: y, 1000 y and 1e-6 y agree", {
   expect_identical(good, rep("converged", 3L))
   expect_identical(aliased, rep("degenerate", 3L))
 })
+
+test_that("RE-SD / SE reference scale is sd(y) for response-scale families and 1 otherwise (SHINICHI-0724-1120)", {
+  set.seed(20261120)
+  y <- stats::rnorm(30, sd = 7)
+  mock <- function(type, link = "identity") {
+    list(
+      model = list(model_type = type, y = y, y1 = y, y2 = y),
+      family = list(link = link, links = list(mu = link, mu1 = link, mu2 = link))
+    )
+  }
+  scale_of <- function(type, dpar = "mu") {
+    drmTMB:::drm_re_sd_reference_scale(mock(type), dpar)
+  }
+  for (type in c("gaussian", "student", "skew_normal")) {
+    expect_equal(scale_of(type), stats::sd(y), info = type)
+  }
+  for (type in c("biv_gaussian", "biv_student")) {
+    expect_equal(scale_of(type, "mu1"), stats::sd(y), info = type)
+    expect_equal(scale_of(type, "mu2"), stats::sd(y), info = type)
+  }
+  for (type in c("lognormal", "cumulative_logit")) {
+    expect_identical(scale_of(type), 1, info = type)
+  }
+  expect_identical(scale_of("biv_lognormal", "mu1"), 1)
+  expect_identical(scale_of("biv_lognormal", "mu2"), 1)
+  # SE reference scales follow the same rule.
+  expect_identical(
+    drmTMB:::drm_se_reference_scales(mock("lognormal"), c("mu:(Intercept)", "sigma:x")),
+    c(1, 1)
+  )
+  expect_equal(
+    drmTMB:::drm_se_reference_scales(mock("gaussian"), c("mu:(Intercept)", "sigma:x")),
+    c(stats::sd(y), 1)
+  )
+})
+
+test_that("a lognormal fit with a large-variance response is not scaled by sd(y)", {
+  set.seed(20261120)
+  dat <- data.frame(x = stats::rnorm(60))
+  dat$y <- exp(2 + 0.5 * dat$x + stats::rnorm(60, sd = 0.4))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = lognormal(), data = dat)
+  expect_gt(stats::sd(fit$model$y), 1)
+  expect_identical(drmTMB:::drm_re_sd_reference_scale(fit, "mu"), 1)
+  expect_identical(convergence_status(fit), "converged")
+})
+
+test_that("gradient is tested before boundary; non-finite gradient is not_converged", {
+  set.seed(20261120)
+  dat <- data.frame(y = stats::rnorm(40), x = stats::rnorm(40))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+  expect_identical(convergence_status(fit), "converged")
+  bad <- fit
+  bad$gradient[1L] <- NA_real_
+  expect_identical(convergence_status(bad), "not_converged")
+  expect_identical(convergence_info(bad)$max_gradient, Inf)
+  # A fit that is both boundary and off-stationary reports not_converged.
+  both <- fit
+  both$sdpars$mu <- c(`mu:sd1` = 1e-8)
+  both$gradient <- both$gradient + 1
+  expect_identical(convergence_status(both), "not_converged")
+  # The Newton step in SE units is the reported max_gradient, finite here.
+  expect_true(is.finite(convergence_info(fit)$max_gradient))
+})
