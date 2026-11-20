@@ -15572,6 +15572,18 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   data
 }
 
+# Shared by the native TMB builders and the Julia bridge pre-check (#1776) so
+# both engines refuse an all-singleton grouping variable with one wording.
+drm_refuse_all_singleton_groups <- function(group, group_name, implementation) {
+  if (all(tabulate(as.integer(factor(group))) == 1L)) {
+    cli::cli_abort(c(
+      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
+      "x" = "At least one group must have repeated observations in {implementation}."
+    ))
+  }
+  invisible(NULL)
+}
+
 is_random_bar_call <- function(expr) {
   expr <- strip_parens(expr)
   is.call(expr) && identical(expr[[1L]], as.name("|"))
@@ -18806,12 +18818,9 @@ build_random_mu_structure <- function(terms, data,
         "x" = "At least two groups are needed to estimate a random-effect SD."
       ))
     }
-    if (all(tabulate(as.integer(group)) == 1L)) {
-      cli::cli_abort(c(
-        "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-        "x" = "At least one group must have repeated observations in this initial random-effect implementation."
-      ))
-    }
+    drm_refuse_all_singleton_groups(
+      group, group_name, "this initial random-effect implementation"
+    )
 
     variables <- terms[[k]]$variables
     for (variable in variables[!is.na(variables)]) {
@@ -20550,12 +20559,9 @@ build_biv_parameter_random_structure <- function(
       "x" = "At least two groups are needed to estimate a bivariate group-level covariance."
     ))
   }
-  if (all(tabulate(as.integer(group)) == 1L)) {
-    cli::cli_abort(c(
-      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-      "x" = "At least one group must have repeated observations in this bivariate random-effect implementation."
-    ))
-  }
+  drm_refuse_all_singleton_groups(
+    group, group_name, "this bivariate random-effect implementation"
+  )
 
   n_group <- length(levels_group)
   group_index <- as.integer(group)
