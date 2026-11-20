@@ -627,6 +627,33 @@ drm_julia_phase15_admitted_cells <- function() {
 drm_julia_setup_state <- new.env(parent = emptyenv())
 drm_julia_phylo_payload_cache <- new.env(parent = emptyenv())
 
+# #1708: the engine = "julia" Gaussian path returns before the native TMB
+# builder's #1697 finite-value guards, so apply the same checks (same messages,
+# same helper) to the observed response and the fixed-effect mu/sigma designs
+# before handing off to Julia. NA/NaN responses are not checked here.
+drm_julia_abort_if_nonfinite_gaussian <- function(formula, data, env) {
+  for (entry in formula$entries) {
+    dpar <- entry$dpar
+    if (!(dpar %in% c("mu", "sigma"))) next
+    if (identical(dpar, "mu") && !is.null(entry$lhs)) {
+      y <- tryCatch(eval(entry$lhs, data, env), error = function(e) NULL)
+      if (is.numeric(y) && !all(is.finite(y[!is.na(y)]))) {
+        cli::cli_abort(
+          "Gaussian models require finite observed response values."
+        )
+      }
+    }
+    rhs <- drm_strip_structured_terms(entry$rhs)
+    f <- stats::as.formula(paste("~", deparse1(rhs)), env = env)
+    X <- tryCatch(
+      stats::model.matrix(f, stats::model.frame(f, data = data)),
+      error = function(e) NULL
+    )
+    if (!is.null(X)) drm_abort_if_nonfinite_fit_design(X, dpar = dpar)
+  }
+  invisible(NULL)
+}
+
 drmTMB_julia_bridge <- function(
   formula,
   family,
@@ -836,6 +863,9 @@ drmTMB_julia_bridge <- function(
   # check_drm() can report it (#1454). response = "include" does not drop.
   if (identical(missing_control$response, "drop")) {
     data <- drm_julia_drop_missing_rows(data, formula)
+  }
+  if (identical(family_type, "gaussian")) {
+    drm_julia_abort_if_nonfinite_gaussian(formula, data, env)
   }
   bridge_payload <- drm_julia_bridge_payload(
     formula = formula,
