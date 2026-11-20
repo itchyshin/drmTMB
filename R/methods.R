@@ -3075,6 +3075,12 @@ predict.drmTMB <- function(
     dots[["weights"]] <- NULL
   }
   if (length(dots) > 0L) {
+    if ("se.fit" %in% names(dots)) {
+      cli::cli_abort(c(
+        "{.arg se.fit} is not available from {.fn predict}.",
+        "i" = "{.fn predict} does not compute standard errors. Use {.fn predict_parameters} with {.code conf.int = TRUE}."
+      ))
+    }
     cli::cli_abort("{.arg ...} is reserved for future options.")
   }
   type <- match.arg(type)
