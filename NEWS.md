@@ -15,6 +15,12 @@
   optimiser code and message; `summary()` carries the same fields.
   `is_converged()` is unchanged: `TRUE` only for `"converged"`.
 
+* `engine = "julia"` now refuses a random-effect grouping variable whose groups
+  are all singletons, with the same message as `engine = "tmb"`. Before, the
+  Julia route fitted such a model, reported convergence, and gave a precise
+  residual SD although only the sum of the group and residual variances is
+  identified (#1776).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
