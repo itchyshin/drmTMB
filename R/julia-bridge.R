@@ -777,6 +777,7 @@ drmTMB_julia_bridge <- function(
     family_type,
     data = data
   )
+  drm_julia_refuse_all_singleton_groups(formula, data)
   drm_julia_refuse_ordinary_mean_re_unlabelled(formula, family_type)
   drm_julia_refuse_gaussian_ordinary_re_factor_fe(formula, family_type, data)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
@@ -3173,6 +3174,34 @@ drm_julia_ordinary_mean_bars_have_sd <- function(formula, family_type) {
     }
   }
   all(bar_groups %in% sd_groups)
+}
+
+# #1776: native engine = "tmb" refuses a random-effect grouping variable whose
+# groups are all singletons (the SD and sigma split is unidentified); the Julia
+# route used to fit it and report convergence. Same helper, same wording.
+drm_julia_refuse_all_singleton_groups <- function(formula, data) {
+  if (!is.data.frame(data)) {
+    return(invisible(NULL))
+  }
+  for (entry in formula$entries) {
+    if (is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      if (!is_random_bar_call(term)) {
+        next
+      }
+      grp <- strip_parens(term)[[3L]]
+      if (!is.symbol(grp) || !(as.character(grp) %in% names(data))) {
+        next
+      }
+      drm_refuse_all_singleton_groups(
+        data[[as.character(grp)]], as.character(grp),
+        "this initial random-effect implementation"
+      )
+    }
+  }
+  invisible(NULL)
 }
 
 drm_julia_refuse_ordinary_mean_re_unlabelled <- function(formula, family_type) {
