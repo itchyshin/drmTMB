@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* `simulate()` now validates `nsim`: it must be one positive whole number.
+  Invalid values such as `0`, negative numbers, `NA`, non-integers, vectors of
+  length other than one, or non-numeric inputs are refused with a clear error
+  instead of leaking base-R errors or silently truncating (#1696).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum

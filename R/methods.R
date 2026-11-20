@@ -3330,6 +3330,16 @@ simulate.drmTMB <- function(
       "i" = "Use {.fn predict_parameters} with {.arg newdata} to get the distributional parameters for new rows, then draw from the family's {.code r*()} function."
     ))
   }
+  if (
+    !is.numeric(nsim) ||
+      length(nsim) != 1L ||
+      !is.finite(nsim) ||
+      nsim < 1L ||
+      nsim != as.integer(nsim)
+  ) {
+    cli::cli_abort("{.arg nsim} must be one positive whole number.")
+  }
+  nsim <- as.integer(nsim)
   dots <- list(...)
   drm_abort_mi_weights_predict(object, dots)
   if (drm_weights_are_unit(dots[["weights"]])) {
