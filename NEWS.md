@@ -1,5 +1,11 @@
 # drmTMB 0.8.2
 
+* `check_drm()` adds a flag-only `beta_binomial_sigma_boundary` note when a
+  `beta_binomial()` fit with an intercept-only sigma has `log(sigma) <= -8`,
+  the binomial (no-overdispersion) limit where the likelihood is flat in sigma
+  and engines can stop at different points. No estimate, likelihood or
+  `convergence_status()` changes (#1273).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
