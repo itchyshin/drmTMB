@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* `predict(fit, se.fit = TRUE)` now says that `se.fit` is not available and that
+  `predict()` does not compute standard errors. Other unknown arguments still
+  abort as reserved options (#1733).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
