@@ -25,6 +25,7 @@
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
   bootstrap_re_form = NA,
+  bootstrap_interval = c("percentile", "basic"),
   ...
 )
 }
@@ -163,6 +164,13 @@ is not yet implemented, and it makes the resulting intervals
 \strong{anticonservative} because between-group variability is never
 resampled -- it is not a neutral alternative to the default. Earlier
 drmTMB versions gave \code{NULL} and \code{NA} the reverse meaning (#1487).}
+
+\item{bootstrap_interval}{Interval construction when \code{method = "bootstrap"}:
+\code{"percentile"} (default, unchanged) or \code{"basic"}, the reflected interval
+\verb{2 * estimate - q*}, taken on the link scale for log-, logit- and
+atanh-linked targets. The basic interval removes the double counting of
+the ML bias described in the section \emph{Bootstrap intervals and ML bias}.
+BCa is not offered (it needs \code{n} jackknife refits per target).}
 
 \item{...}{Additional arguments passed to \code{\link[TMB:tmbprofile]{TMB::tmbprofile()}} when
 \code{method = "profile"} and the \code{tmbprofile} profile engine is used.
@@ -366,6 +374,23 @@ whose point estimate sits well clear of zero passes every fit-level check
 while its interval is still flagged here. \code{check_drm()} emits an
 \code{interval_reliability_scope} note saying so; read \code{conf.status} before
 reporting an interval.
+}
+
+\section{Bootstrap intervals and ML bias}{
+
+The default \code{bootstrap_interval = "percentile"} takes quantiles of the refit
+draws. Those draws are generated from, and refit on, the maximum-likelihood
+estimate, so a target whose ML estimate is biased (a \code{sigma} intercept at
+small \code{n} is biased low) has refit draws shifted by about the same bias a
+second time. The percentile interval therefore inherits the bias twice and
+can under-cover one-sidedly; in an independent evaluation (Dinnage,
+drmTMB 0.7.0, issue #1315) a \code{sigma} intercept at \code{n = 100} covered 0.85
+against 0.90 (Wald) and 0.91 (profile), while an unbiased \code{mu}
+coefficient showed no such gap. For scale intercepts at small \code{n}, prefer
+\code{method = "wald"} or \code{method = "profile"}, or set
+\code{bootstrap_interval = "basic"}. The default is unchanged, and the
+coverage of the basic interval has not yet been measured by a dedicated
+simulation study.
 }
 
 \section{Profiling a structured \code{sigma} random-effect SD}{
