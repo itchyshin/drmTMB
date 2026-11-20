@@ -69,6 +69,15 @@ simulate.drmTMB_julia <- function(
         "i" = "The current routes are the documented Binomial SD cases, complete-data Gamma animal intercept or intercept-plus-slope SD models, and the NB2 animal slope-only SD model."
       ))
     }
+    # The bridge keeps model_type "poisson"/"nbinom2" for a `zi ~` fit (zero
+    # inflation is a dpar, not a family), so simulate.drmTMB() would draw plain
+    # counts. Give it the native zero-inflated model type.
+    zi_type <- c(poisson = "zi_poisson", nbinom2 = "zi_nbinom2")[
+      object$model$model_type
+    ]
+    if (!is.na(zi_type) && drm_julia_formula_has_dpar(object$formula, "zi")) {
+      object$model$model_type <- unname(zi_type)
+    }
     if (base::missing(re.form)) {
       return(simulate.drmTMB(object, nsim = nsim, seed = seed, ...))
     }

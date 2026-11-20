@@ -17,6 +17,7 @@ julia_prediction_scale_fixture <- function(
         model_type,
         gaussian = stats::gaussian(),
         gamma = stats::Gamma(link = "log"),
+        poisson = stats::poisson(),
         stats::gaussian()
       ),
       model = list(model_type = model_type),
@@ -239,4 +240,19 @@ test_that("simulate() on a stored Gaussian fixed-effect Julia fit does not need 
   z <- (draws[[1L]] - (0.3 + 0.4 * dat$x)) / exp(-0.2 + 0.5 * dat$x)
   expect_lt(abs(mean(z)), 0.1)
   expect_lt(abs(stats::sd(z) - 1), 0.1)
+})
+
+test_that("simulate() on a stored zero-inflated Poisson Julia fit draws structural zeros", {
+  n <- 4000L
+  dat <- data.frame(y = rep(0, n), x = seq(-1, 1, length.out = n))
+  fit <- julia_prediction_scale_fixture(
+    drmTMB::bf(y ~ x, zi ~ 1), "poisson", dat,
+    coefficients = list(mu = c("(Intercept)" = 0.5, x = 0.3),
+                        zi = c("(Intercept)" = stats::qlogis(0.4))),
+    dpars = list(mu = exp(0.5 + 0.3 * dat$x), zi = rep(0.4, n))
+  )
+
+  draws <- simulate(fit, nsim = 1L, seed = 1L)[[1L]]
+  p0 <- 0.4 + 0.6 * mean(exp(-exp(0.5 + 0.3 * dat$x)))
+  expect_lt(abs(mean(draws == 0) - p0), 0.03)
 })
