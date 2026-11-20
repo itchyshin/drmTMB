@@ -492,6 +492,8 @@ test-julia-fe-only-fence.R	runtime-conditional	runtime	depends	3
 test-julia-fe-only-fence.R	suggests-package	environment	runs	4
 test-julia-fitted-definition.R	engine-drm-jl	environment	skips	1
 test-julia-fitted-definition.R	suggests-package	environment	runs	2
+test-julia-fitted-population-refusal.R	engine-drm-jl	environment	skips	2
+test-julia-fitted-population-refusal.R	suggests-package	environment	runs	1
 test-julia-formula-constructs-nongaussian.R	engine-drm-jl	environment	skips	5
 test-julia-formula-constructs-nongaussian.R	locale	environment	depends	4
 test-julia-formula-constructs-nongaussian.R	suggests-package	environment	runs	4
