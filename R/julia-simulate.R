@@ -78,6 +78,22 @@ simulate.drmTMB_julia <- function(
     if (!is.na(zi_type) && drm_julia_formula_has_dpar(object$formula, "zi")) {
       object$model$model_type <- unname(zi_type)
     }
+    # Bridge fits keep no known-variance slot; with no meta_V() term that
+    # means zero known variance. (Not done in known_v_diag(): quantile
+    # prediction relies on NULL there, see drm_julia_quantile_refuse_meta_v.)
+    if (
+      is.null(object$model$V_known_diag) && is.null(object$model$V_known) &&
+        !any(vapply(
+          object$formula$entries,
+          function(entry) {
+            formula_contains_call(entry$rhs, "meta_V") ||
+              formula_contains_call(entry$rhs, "meta_known_V")
+          },
+          logical(1L)
+        ))
+    ) {
+      object$model$V_known_diag <- 0
+    }
     if (base::missing(re.form)) {
       return(simulate.drmTMB(object, nsim = nsim, seed = seed, ...))
     }

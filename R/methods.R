@@ -6621,10 +6621,6 @@ known_v_diag <- function(object) {
   if (is.matrix(object$model$V_known)) {
     return(diag(object$model$V_known))
   }
-  if (is.null(object$model$V_known) && inherits(object, "drmTMB_julia")) {
-    # Julia-bridge fits carry no known-variance slot: no meta-analytic V.
-    return(0)
-  }
   object$model$V_known
 }
 
