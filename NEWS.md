@@ -1,5 +1,13 @@
 # drmTMB 0.8.2
 
+* `confint(method = "bootstrap")` gains an opt-in `bootstrap_interval = "basic"`
+  (reflected interval, `2 * estimate - q*`, on the link scale for log-, logit-
+  and atanh-linked targets), and `?confint.drmTMB` now documents that the
+  default percentile interval inherits the ML bias twice and can under-cover a
+  biased target such as a `sigma` intercept at small n, recommending Wald or
+  profile there. The default is unchanged; BCa is not offered. Thanks to
+  Russell Dinnage for the report (#1315).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise

@@ -160,6 +160,12 @@
 #'   because their coverage is regime dependent; the magnitude is also not
 #'   calibrated for plain labelled covariance blocks. The shift changes the
 #'   centre only; it does not alter the fitted model or a profile endpoint.
+#' @param bootstrap_interval Interval construction when `method = "bootstrap"`:
+#'   `"percentile"` (default, unchanged) or `"basic"`, the reflected interval
+#'   `2 * estimate - q*`, taken on the link scale for log-, logit- and
+#'   atanh-linked targets. The basic interval removes the double counting of
+#'   the ML bias described in the section *Bootstrap intervals and ML bias*.
+#'   BCa is not offered (it needs `n` jackknife refits per target).
 #' @param bootstrap_re_form `re.form` passed through to [stats::simulate()]
 #'   when `method = "bootstrap"`, with the same lme4 meanings as
 #'   [simulate.drmTMB()]. The default, `NA`, redraws random effects for every
@@ -311,6 +317,21 @@
 #' `interval_reliability_scope` note saying so; read `conf.status` before
 #' reporting an interval.
 #'
+#' @section Bootstrap intervals and ML bias:
+#' The default `bootstrap_interval = "percentile"` takes quantiles of the refit
+#' draws. Those draws are generated from, and refit on, the maximum-likelihood
+#' estimate, so a target whose ML estimate is biased (a `sigma` intercept at
+#' small `n` is biased low) has refit draws shifted by about the same bias a
+#' second time. The percentile interval therefore inherits the bias twice and
+#' can under-cover one-sidedly; in an independent evaluation (Dinnage,
+#' drmTMB 0.7.0, issue #1315) a `sigma` intercept at `n = 100` covered 0.85
+#' against 0.90 (Wald) and 0.91 (profile), while an unbiased `mu`
+#' coefficient showed no such gap. For scale intercepts at small `n`, prefer
+#' `method = "wald"` or `method = "profile"`, or set
+#' `bootstrap_interval = "basic"`. The default is unchanged, and the
+#' coverage of the basic interval has not yet been measured by a dedicated
+#' simulation study.
+#'
 #' @section Profiling a structured `sigma` random-effect SD:
 #' A profile of a `sigma`-axis random-effect SD under `phylo()`, `animal()`,
 #' `relmat()`, `spatial()`, or `phylo_interaction()` is computable for
@@ -459,8 +480,10 @@ confint.drmTMB <- function(
   small_sample_df = c("location", "none", "group"),
   bias_correct = c("location", "none", "group"),
   bootstrap_re_form = NA,
+  bootstrap_interval = c("percentile", "basic"),
   ...
 ) {
+  bootstrap_interval <- match.arg(bootstrap_interval)
   drm_abort_mspl_inference(object, "confint")
   drm_abort_fixed_prior_inference(object, "confint")
   if (identical(object$model$model_type, "biv_student")) {
@@ -623,7 +646,8 @@ confint.drmTMB <- function(
       refit_control = refit_control,
       re_form = bootstrap_re_form,
       sd_boundary = sd_boundary,
-      rho_boundary = rho_boundary
+      rho_boundary = rho_boundary,
+      interval_type = bootstrap_interval
     ))
   }
 
@@ -2906,8 +2930,10 @@ drm_bootstrap_confint <- function(
   refit_control,
   re_form = NA,
   sd_boundary = 1e-4,
-  rho_boundary = 0.98
+  rho_boundary = 0.98,
+  interval_type = c("percentile", "basic")
 ) {
+  interval_type <- match.arg(interval_type)
   validate_profile_level(level)
   R <- validate_bootstrap_replicates(R)
   if (isTRUE(object$model$missing_predictor$enabled) ||
@@ -3005,11 +3031,19 @@ drm_bootstrap_confint <- function(
       status <- "bootstrap_unavailable"
       message <- "fewer than two successful bootstrap refits"
     } else {
-      qs <- bootstrap_percentile_interval(
-        target_draws = target_draws[finite, , drop = FALSE],
-        target = target,
-        probs = probs
-      )
+      qs <- if (identical(interval_type, "basic")) {
+        bootstrap_basic_interval(
+          target_draws = target_draws[finite, , drop = FALSE],
+          target = target,
+          probs = probs
+        )
+      } else {
+        bootstrap_percentile_interval(
+          target_draws = target_draws[finite, , drop = FALSE],
+          target = target,
+          probs = probs
+        )
+      }
       lower <- qs[[1L]]
       upper <- qs[[2L]]
       status <- "bootstrap"
@@ -3429,6 +3463,36 @@ bootstrap_percentile_interval <- function(target_draws, target, probs) {
     names = FALSE,
     type = 8
   )
+}
+
+# Basic (reflected) bootstrap interval, `2 * est - q*`, opt-in via
+# `bootstrap_interval = "basic"` (#1315). A percentile interval is centred on
+# the refit distribution, which is itself shifted by the ML bias of the seed
+# estimate, so it re-applies that bias; reflecting the quantiles about the
+# seed estimate removes the shift. Taken on the link scale whenever the target
+# has one (so positive and bounded targets stay in range after back-transform),
+# else on the natural scale. Falls back to the percentile interval when the
+# seed estimate is not finite on the chosen scale.
+bootstrap_basic_interval <- function(target_draws, target, probs) {
+  use_link <- !identical(target$transformation[[1L]], "linear_predictor") &&
+    is.finite(target$link_estimate)
+  if (use_link) {
+    draws <- target_draws$link_estimate
+    centre <- target$link_estimate
+  } else {
+    draws <- target_draws$estimate
+    centre <- target$estimate
+  }
+  draws <- draws[is.finite(draws)]
+  if (!is.finite(centre) || length(draws) < 2L) {
+    return(bootstrap_percentile_interval(target_draws, target, probs))
+  }
+  q <- stats::quantile(draws, probs = probs, names = FALSE, type = 8)
+  reflected <- sort(2 * centre - q)
+  if (use_link) {
+    return(profile_transform_interval(reflected, target))
+  }
+  reflected
 }
 
 bootstrap_percentile_draws <- function(target_draws, target) {
