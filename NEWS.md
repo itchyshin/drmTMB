@@ -13,6 +13,10 @@
   residual SD although only the sum of the group and residual variances is
   identified (#1776).
 
+* `predict(fit, se.fit = TRUE)` now says that `se.fit` is not available and that
+  `predict()` does not compute standard errors. Other unknown arguments still
+  abort as reserved options (#1790).
+
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
   `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
