@@ -384,3 +384,27 @@ test_that("check_drm() existing check names are unchanged by hessian_conditionin
       chk$check
   ))
 })
+
+test_that("hessian_conditioning is unit-free: clean airquality Gaussian location-scale is ok (#1251)", {
+  aq <- stats::na.omit(datasets::airquality[, c("Ozone", "Temp", "Wind")])
+  fit <- drmTMB(
+    bf(Ozone ~ Temp + Wind, sigma ~ Temp),
+    family = gaussian(),
+    data = aq
+  )
+  skip_if_not(isTRUE(fit$sdr$pdHess))
+
+  chk <- check_drm(fit)
+  row <- chk[chk$check == "hessian_conditioning", ]
+  expect_equal(nrow(row), 1L)
+  expect_equal(row$status, "ok")
+
+  # The condition number must not depend on the units of a parameter: a
+  # diagonal rescaling D cov D of the covariance leaves it unchanged.
+  cov <- matrix(c(4, 1.9, 1.9, 1), 2)
+  d <- diag(c(1e4, 1e-4))
+  row1 <- drmTMB:::hessian_conditioning_cov_row(cov, "x")
+  row2 <- drmTMB:::hessian_conditioning_cov_row(d %*% cov %*% d, "x")
+  cond <- function(r) as.numeric(sub(".*cond=", "", r$value))
+  expect_equal(cond(row2), cond(row1), tolerance = 1e-6)
+})

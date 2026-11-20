@@ -1376,7 +1376,23 @@ hessian_conditioning_cov_row <- function(cov, source) {
 
   mu_min_trusted_negative <- mu_min < -tol_cov
   min_eig <- if (mu_min_trusted_negative) 1 / mu_min else 1 / mu_max
-  condition <- if (min_abs_cov <= 0) Inf else max_abs_cov / min_abs_cov
+  # Unit-free conditioning (#1251): rescale to the correlation form
+  # D^{-1/2} cov D^{-1/2}, so a coefficient's units (e.g. an unscaled
+  # predictor next to a log-scale intercept) cannot inflate the number.
+  # `min_eig` stays on the raw Hessian scale; the sign test above is raw.
+  diag_cov <- diag(cov)
+  condition <- if (min_abs_cov <= 0) {
+    Inf
+  } else if (all(is.finite(diag_cov)) && all(diag_cov > 0)) {
+    eig_cor <- eigen(
+      stats::cov2cor((cov + t(cov)) / 2),
+      symmetric = TRUE,
+      only.values = TRUE
+    )$values
+    if (min(abs(eig_cor)) <= 0) Inf else max(abs(eig_cor)) / min(abs(eig_cor))
+  } else {
+    max_abs_cov / min_abs_cov
+  }
 
   status <- if (mu_min_trusted_negative) {
     "warning"
