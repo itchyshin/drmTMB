@@ -27849,6 +27849,52 @@ drm_softclamp_log_sd <- function(eta, tmb_data = NULL) {
   out
 }
 
+# Band for the Tweedie nu logit link (p = 1 + plogis(eta_nu)). Matches
+# drm_softclamp_tweedie_eta_nu() in src/drmTMB.cpp (#1468).
+drm_tweedie_eta_nu_softclamp_bounds <- function() {
+  c(lo = -35, hi = 35, margin = 1.5)
+}
+
+drm_softclamp_tweedie_eta_nu <- function(eta) {
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  x <- as.numeric(eta)
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  margin <- band[["margin"]]
+  out <- x
+  above <- x > hi
+  below <- x < lo
+  out[above] <- hi + margin * tanh((x[above] - hi) / margin)
+  out[below] <- lo - margin * tanh((lo - x[below]) / margin)
+  out
+}
+
+drm_tweedie_eta_nu_cap_active <- function(report) {
+  if (is.null(report$eta_nu)) {
+    return(NULL)
+  }
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  values <- as.numeric(report$eta_nu)
+  values <- values[is.finite(values)]
+  if (!length(values)) {
+    return(NULL)
+  }
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  chosen <- if (hit_hi) which.max(values) else which.min(values)
+  list(
+    value = values[[chosen]],
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
+}
+
 sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
   eta <- sd_mu_group_log_values(par, sd_mu, dpar = dpar)
   out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))

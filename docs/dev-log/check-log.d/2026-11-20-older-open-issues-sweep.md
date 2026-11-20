@@ -18,3 +18,4 @@ Base: `main` @ `d3126d93d4b0ef5b940241bb62ba837d4d44df3a` (local `devtools::load
 | #1129 | — | Still open (inner Newton / closed-form imputed modes) |
 
 Draft fix branch: `cursor/sweep-1468-tweedie-eta-nu-ef39` (refs #1468 only).
+Rework: C1 soft clamp + `tweedie_eta_nu_cap` check_drm row (replaces hard CondExp cap).

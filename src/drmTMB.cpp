@@ -54,13 +54,21 @@ Type drm_softclamp_log_sd(Type eta, int use_logsigma_clamp,
 }
 
 // Tweedie power p = 1 + invlogit(eta_nu) must stay strictly inside (1, 2) for
-// TMB's dtweedie(); at |eta_nu| ~ 37 subtraction forms p = 2 or 1 exactly and
-// the density becomes NaN (#1468).
+// TMB's dtweedie(); at |eta_nu| ~ 37 the logistic rounds to p = 1 or 2 and the
+// density becomes NaN (#1468). Use the same C1 soft clamp as log(sigma): exact
+// identity inside [-35, 35] so well-posed interior fits are unchanged to the bit,
+// and smooth saturation beyond each bound with a nonzero gradient so the optimizer
+// cannot rest on a flat plateau (unlike a hard CondExp cap). REPORT(eta_nu) stays
+// the raw linear predictor; nu() and the likelihood use the clamped value, matching
+// the log_sigma / log_sd_mu_group split documented for logsigma_clamp.
+// Margin 1.5 keeps the asymptotic cap below |eta| ~ 36.7 where dtweedie() breaks.
+// DRModels.jl _logit12 has no matching guard yet (twin gap; see NEWS).
 template<class Type>
-Type drm_clamp_tweedie_eta_nu(Type eta) {
-  const Type cap = Type(35.0);
-  return CppAD::CondExpGt(eta, cap, cap,
-                          CppAD::CondExpLt(eta, -cap, -cap, eta));
+Type drm_softclamp_tweedie_eta_nu(Type eta) {
+  const Type lo = Type(-35.0);
+  const Type hi = Type(35.0);
+  const Type margin = Type(1.5);
+  return drm_softclamp_log_sigma_one(eta, lo, hi, margin);
 }
 
 // Overflow-only guard for regression-predicted random-effect log-SDs. This is
@@ -3962,9 +3970,18 @@ Type objective_function<Type>::operator()()
     vector<Type> sigma = exp(log_sigma);
     vector<Type> phi(y.size());
     vector<Type> nu(y.size());
+    Type tweedie_eta_nu_cap_hit = Type(0.0);
+    const Type tweedie_eta_nu_lo = Type(-35.0);
+    const Type tweedie_eta_nu_hi = Type(35.0);
     for (int i = 0; i < y.size(); ++i) {
       phi(i) = sigma(i) * sigma(i);
-      Type eta_i = drm_clamp_tweedie_eta_nu(eta_nu(i));
+      Type eta_raw = eta_nu(i);
+      Type eta_i = drm_softclamp_tweedie_eta_nu(eta_raw);
+      Type hit_hi =
+        CppAD::CondExpGt(eta_raw, tweedie_eta_nu_hi, Type(1.0), Type(0.0));
+      Type hit_lo =
+        CppAD::CondExpLt(eta_raw, tweedie_eta_nu_lo, Type(1.0), Type(0.0));
+      tweedie_eta_nu_cap_hit += hit_hi + hit_lo;
       nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_i));
       if (observed_y(i) == 1) {
         nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
@@ -3977,6 +3994,7 @@ Type objective_function<Type>::operator()()
     REPORT(phi);
     REPORT(eta_nu);
     REPORT(nu);
+    REPORT(tweedie_eta_nu_cap_hit);
     ADREPORT(beta_mu);
     ADREPORT(beta_sigma);
     ADREPORT(beta_nu);
