@@ -1225,8 +1225,16 @@ drm_optimize_multistart <- function(
       selected = FALSE,
       stringsAsFactors = FALSE
     )
-    if (is.null(best) || obj_value < best$value) {
-      best <- list(opt = res, value = obj_value, index = start_index)
+    # A converged start is never displaced by a non-converged one, however
+    # low its objective: a failed inner solve can fake a better logLik
+    # (issue #1800). Among equally (non-)converged starts, lowest objective.
+    res_ok <- isTRUE(as.integer(res$convergence) == 0L)
+    if (
+      is.null(best) ||
+        (res_ok && !best$ok) ||
+        (res_ok == best$ok && obj_value < best$value)
+    ) {
+      best <- list(opt = res, value = obj_value, index = start_index, ok = res_ok)
     }
   }
   if (is.null(best)) {

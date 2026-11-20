@@ -71,3 +71,28 @@ test_that("a real multi-start fit agrees with the single-start fit at an identif
     tolerance = 1e-6
   )
 })
+
+test_that("a non-converged start with a lower objective never displaces a converged best (#1800)", {
+  obj <- list(par = c(a = 0), fn = function(p) 0, gr = function(p) 0)
+  objs <- c(5, 2, 8)
+  conv <- c(0L, 1L, 0L)
+  calls <- 0L
+  fake_opt <- function(start, objective, gradient, control) {
+    calls <<- calls + 1L
+    list(par = start, objective = objs[calls], convergence = conv[calls], message = "x")
+  }
+  res <- drm_optimize_multistart(obj, fake_opt, list(), n_start = 3L)
+  expect_equal(res$objective, 5)
+  expect_equal(res$convergence, 0L)
+
+  # converged candidate replaces a non-converged best even at higher objective
+  calls <- 0L
+  conv <- c(1L, 0L, 1L)
+  res <- drm_optimize_multistart(obj, fake_opt, list(), n_start = 3L)
+  expect_equal(res$objective, 2 + 0)  # start 2 is the only converged one
+  # all non-converged: lowest objective is kept as before
+  calls <- 0L
+  conv <- c(1L, 1L, 1L)
+  res <- drm_optimize_multistart(obj, fake_opt, list(), n_start = 3L)
+  expect_equal(res$objective, 2)
+})
