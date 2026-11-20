@@ -1493,3 +1493,28 @@ test_that("residual_outliers row does not touch the RNG (#1335)", {
   expect_identical(before, after)
   expect_true("residual_outliers" %in% row$check)
 })
+
+# #1273: flag-only boundary row for beta-binomial sigma near 0 (log sigma <= -8).
+test_that("check_drm() flags beta_binomial sigma at the binomial limit (#1273)", {
+  set.seed(1)
+  n <- 100
+  x <- rnorm(n)
+  y <- pmin(10, pmax(0, round(10 * plogis(0.2 + 0.5 * x) + rnorm(n, 0, 0.4))))
+  dat <- data.frame(y = y, f = 10 - y, x = x)
+  fit <- drmTMB(drm_formula(cbind(y, f) ~ x), family = beta_binomial(), data = dat)
+  expect_lte(unname(fit$opt$par[names(fit$opt$par) == "beta_sigma"]), -8)
+  chk <- check_drm(fit)
+  expect_identical(chk$status[chk$check == "beta_binomial_sigma_boundary"], "note")
+})
+
+test_that("check_drm() has no beta_binomial boundary row when overdispersed (#1273)", {
+  set.seed(2)
+  n <- 150
+  x <- rnorm(n)
+  p <- rbeta(n, 2 * plogis(0.2 + 0.5 * x) * 4, 2 * (1 - plogis(0.2 + 0.5 * x)) * 4)
+  y <- rbinom(n, 20, p)
+  dat <- data.frame(y = y, f = 20 - y, x = x)
+  fit <- drmTMB(drm_formula(cbind(y, f) ~ x), family = beta_binomial(), data = dat)
+  expect_gt(unname(fit$opt$par[names(fit$opt$par) == "beta_sigma"]), -8)
+  expect_false("beta_binomial_sigma_boundary" %in% check_drm(fit)$check)
+})

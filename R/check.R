@@ -659,6 +659,7 @@ check_drm.drmTMB <- function(
     check_temporal_mean_profile(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
+    check_beta_binomial_sigma_boundary(object),
     check_skew_normal_nu(object),
     check_residual_outliers(object),
     check_known_v(object),
@@ -2385,6 +2386,43 @@ check_rho12_boundary <- function(object, rho_boundary) {
         ". A profile interval for residual rho12 at this boundary is usually identical to Wald; read conf.status on confint()."
       )
     }
+  )
+}
+
+# Flag-only (#1273): a beta-binomial fit with an intercept-only sigma whose
+# log-scale estimate has run to the binomial limit (log sigma -> -Inf). The
+# likelihood is flat in that direction, so the sigma estimate is not
+# engine-portable. Emitted only when the boundary is hit; no estimate or
+# likelihood is changed. Same threshold as the nbinom2 Poisson-limit rule
+# (log sigma <= -8).
+drm_betabinom_log_sigma_boundary <- -8
+
+check_beta_binomial_sigma_boundary <- function(object) {
+  if (!identical(object$model$model_type, "beta_binomial")) {
+    return(NULL)
+  }
+  par_names <- names(object$opt$par)
+  if (is.null(par_names) || sum(par_names == "beta_sigma") != 1L) {
+    return(NULL)
+  }
+  log_sigma <- unname(object$opt$par[par_names == "beta_sigma"])
+  if (!isTRUE(is.finite(log_sigma) && log_sigma <= drm_betabinom_log_sigma_boundary)) {
+    return(NULL)
+  }
+  check_row(
+    "beta_binomial_sigma_boundary",
+    "note",
+    paste0(
+      "log_sigma=",
+      format_check_number(log_sigma),
+      "; boundary=",
+      format_check_number(drm_betabinom_log_sigma_boundary)
+    ),
+    paste(
+      "The beta-binomial sigma is at the binomial limit (no overdispersion);",
+      "the likelihood is flat in log(sigma) here, so the sigma estimate and",
+      "its standard error are not interpretable. Consider a binomial() fit."
+    )
   )
 }
 
