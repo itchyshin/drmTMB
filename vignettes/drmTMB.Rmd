@@ -250,9 +250,9 @@ Working in Julia? The DRModels.jl
 [first-model page](https://itchyshin.github.io/DRModels.jl/stable/getting-started)
 is the Julia starting point, and its
 [R and Julia vocabulary page](https://itchyshin.github.io/DRModels.jl/stable/rosetta)
-maps `drmTMB` syntax to Julia syntax. Its first example uses different
-simulated data from this article, so compare syntax rather than numbers. Julia
-is optional for `drmTMB` users.
+maps `drmTMB` syntax to Julia syntax. Its first example is this article's
+habitat-growth model on the same data, so you can compare syntax and numbers.
+Julia is optional for `drmTMB` users.
 
 ## References
 
