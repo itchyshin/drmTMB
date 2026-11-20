@@ -350,6 +350,13 @@ convergence_status.drmTMB <- function(object, ...) {
     return("degenerate")
   }
   if (
+    drm_nb2_poisson_limit(object) &&
+      !drm_fixed_effect_rank_deficient(object) &&
+      !drm_mle_nonexistent_is_true(object)
+  ) {
+    return("boundary")
+  }
+  if (
     drm_inference_degenerate(object) ||
       drm_fixed_effect_rank_deficient(object) ||
       drm_standard_errors_pathological(object) ||
@@ -534,6 +541,29 @@ drm_inference_degenerate <- function(object) {
   non_negative <- is.finite(variances) & variances >= 0
   standard_errors[non_negative] <- sqrt(variances[non_negative])
   !all(is.finite(standard_errors))
+}
+
+# Plain fixed-effect nbinom2 with an intercept-only sigma whose log-scale
+# estimate has run to the Poisson limit (log sigma -> -Inf). The likelihood is
+# flat in that direction, so the reported sigma SE is meaningless; the fit is
+# a valid boundary maximum (no overdispersion), not a failed optimisation.
+# Same threshold as the DRModels.jl NB2 plateau warning (log sigma <= -8).
+drm_nb2_poisson_limit_log_sigma <- -8
+
+drm_nb2_poisson_limit <- function(object) {
+  if (!identical(object$model$model_type, "nbinom2")) {
+    return(FALSE)
+  }
+  par_names <- names(object$opt$par)
+  if (
+    is.null(par_names) ||
+      !all(par_names %in% c("beta_mu", "beta_sigma")) ||
+      sum(par_names == "beta_sigma") != 1L
+  ) {
+    return(FALSE)
+  }
+  log_sigma <- unname(object$opt$par[par_names == "beta_sigma"])
+  isTRUE(is.finite(log_sigma) && log_sigma <= drm_nb2_poisson_limit_log_sigma)
 }
 
 drm_standard_errors_pathological <- function(object) {
@@ -1708,7 +1738,9 @@ check_convergence_status <- function(object) {
       ),
       boundary = paste(
         "The fit converged but variance-component, residual-correlation, or",
-        "temporal parameters are near an interpretability boundary; read",
+        "temporal parameters are near an interpretability boundary, or a",
+        "plain nbinom2 fit has no overdispersion (the Poisson limit, with",
+        "an uninformative sigma SE); read",
         "convergence_status() and boundary rows before inference."
       ),
       degenerate = paste(
