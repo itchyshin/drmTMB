@@ -925,8 +925,8 @@ drmTMB_julia_bridge <- function(
     out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
     out$sd_prior_penalty <- as.numeric(result[["sd_prior_penalty"]])
     if (identical(prior_version, "v3")) {
-      out$sd_prior_penalties <- vapply(result$sd_prior_contributions, `[[`, numeric(1), "penalty")
-      names(out$sd_prior_penalties) <- vapply(result$sd_prior_contributions, `[[`, character(1), "group")
+      out$sd_prior_penalties <- vapply(result[["sd_prior_contributions"]], `[[`, numeric(1), "penalty")
+      names(out$sd_prior_penalties) <- vapply(result[["sd_prior_contributions"]], `[[`, character(1), "group")
     }
     out$penalized_objective <- as.numeric(result[["penalized_objective"]])
     out$prior_gradient <- as.numeric(result[["fixed_prior_gradient"]]) + as.numeric(result[["sd_prior_gradient"]])
@@ -7259,8 +7259,8 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     "estim_method", "infocrit_basis")
   if (identical(version, "v3")) required <- c(setdiff(required, "resolved_priors_v2"), "resolved_priors_v3", "sd_prior_contributions")
   if (!all(required %in% names(result)) || any(vapply(result[required], is.null, logical(1)))) fail("missing result fields")
-  if (!identical(result$prior_contract, paste0("parameter_priors_", version))) fail("contract")
-  if (!identical(result$estim_method, "MAP") || !identical(result$infocrit_basis, "unavailable")) fail("estimator status")
+  if (!identical(result[["prior_contract"]], paste0("parameter_priors_", version))) fail("contract")
+  if (!identical(result[["estim_method"]], "MAP") || !identical(result[["infocrit_basis"]], "unavailable")) fail("estimator status")
   normalize_record <- function(x) {
     if (!is.list(x) || is.null(names(x)) || anyDuplicated(names(x)) || !is.character(x$kind) || length(x$kind) != 1L) fail("invalid prior record")
     common <- c("spec_index", "kind", "class", "dpar", "coef")
@@ -7294,7 +7294,7 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
         !identical(record$measure, "natural_sd") || record$shape <= 1 || record$rate <= 0 ||
         record$spec_index < 1 || record$spec_index != floor(record$spec_index)) fail("SD prior target or parameters")
   }
-  coords <- result$working_coordinates
+  coords <- result[["working_coordinates"]]
   if (!is.character(coords) || !length(coords) || anyNA(coords) || any(!nzchar(coords)) || anyDuplicated(coords)) fail("working coordinates")
   if (!is.null(expected_coordinates) && !identical(coords, expected_coordinates)) fail("working coordinate identities")
   vec <- function(x, n, name) {
@@ -7302,8 +7302,8 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     as.double(x)
   }
   n <- length(coords)
-  working <- vec(result$working_values, n, "working values")
-  reported <- vec(result$coefficients, n, "reported coefficients")
+  working <- vec(result[["working_values"]], n, "working values")
+  reported <- vec(result[["coefficients"]], n, "reported coefficients")
   if (!identical(working, reported)) fail("working values differ from reported coefficients")
   scalars <- c("data_nll", "data_logLik", "loglik", "fixed_prior_penalty", "sd_prior_penalty", "penalized_objective")
   for (k in scalars) vec(result[[k]], 1L, k)
@@ -7313,7 +7313,7 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
   sd_gradient <- numeric(n)
   sd_penalty <- 0
   sd_indices <- integer()
-  contributions <- result$sd_prior_contributions
+  contributions <- result[["sd_prior_contributions"]]
   if (identical(version, "v3") && (!is.list(contributions) || length(contributions) != length(sd_records))) fail("SD contribution count")
   for (i in seq_along(sd_records)) {
     record <- sd_records[[i]]
@@ -7341,8 +7341,8 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     }
     sd_penalty <- sd_penalty + penalty
   }
-  if (!close(result$sd_prior_penalty, sd_penalty)) fail("SD prior penalty")
-  if (!close(result$sd_prior_gradient, sd_gradient)) fail("SD prior gradient")
+  if (!close(result[["sd_prior_penalty"]], sd_penalty)) fail("SD prior penalty")
+  if (!close(result[["sd_prior_gradient"]], sd_gradient)) fail("SD prior gradient")
   fixed_penalty <- 0
   fixed_gradient <- numeric(n)
   fixed_indices <- integer()
@@ -7372,11 +7372,11 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     fixed_gradient[[index]] <- derivative
   }
   if (!is.finite(fixed_penalty)) fail("fixed prior penalty outside numeric range")
-  if (!close(result$fixed_prior_penalty, fixed_penalty)) fail("fixed prior penalty")
-  if (!close(result$fixed_prior_gradient, fixed_gradient)) fail("fixed prior gradient")
-  if (!close(result$data_logLik, -result$data_nll) || !close(result$loglik, result$data_logLik)) fail("data likelihood")
-  if (!close(result$penalized_objective, result$data_nll + result$fixed_prior_penalty + result$sd_prior_penalty)) fail("objective decomposition")
-  if (!close(result$penalized_gradient, result$data_gradient + result$fixed_prior_gradient + result$sd_prior_gradient)) fail("gradient decomposition")
+  if (!close(result[["fixed_prior_penalty"]], fixed_penalty)) fail("fixed prior penalty")
+  if (!close(result[["fixed_prior_gradient"]], fixed_gradient)) fail("fixed prior gradient")
+  if (!close(result[["data_logLik"]], -result[["data_nll"]]) || !close(result[["loglik"]], result[["data_logLik"]])) fail("data likelihood")
+  if (!close(result[["penalized_objective"]], result[["data_nll"]] + result[["fixed_prior_penalty"]] + result[["sd_prior_penalty"]])) fail("objective decomposition")
+  if (!close(result[["penalized_gradient"]], result[["data_gradient"]] + result[["fixed_prior_gradient"]] + result[["sd_prior_gradient"]])) fail("gradient decomposition")
   invisible(TRUE)
 }
 
