@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* New `update()` method for `drmTMB` fits: `update(fit, bf(...))` refits with a new
+  formula and `update(fit, data = ..., REML = TRUE)` replaces other
+  `drmTMB()` arguments, as in lme4 and glmmTMB. Before, `update(fit, ...)`
+  failed with "need an object with call component" (#1241).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
