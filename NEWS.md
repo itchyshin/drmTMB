@@ -1,5 +1,12 @@
 # drmTMB 0.8.2
 
+* `impute_model()` now refuses a stats `family` object whose name collides
+  with a drmTMB constructor, such as a hand-built or `glmmTMB` `nbinom2`
+  family. The message names `drmTMB::nbinom2()` (or `beta_family()`,
+  `tweedie()`, `lognormal()`, `truncated_nbinom2()`) instead of listing that
+  constructor as a supported family. `nbinom2()` itself is unchanged
+  (refs #1717).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
