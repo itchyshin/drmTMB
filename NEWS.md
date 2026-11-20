@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* Lognormal models now abort before starting-value or optimizer code when a
+  fixed-effect design value is non-finite. `Inf` in a `mu` or `sigma`
+  predictor names the column. `NA` predictors are still dropped by the
+  existing complete-case rule (#1729).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
