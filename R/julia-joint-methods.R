@@ -461,7 +461,7 @@ coef.drmTMB_julia_joint <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {
     return(object$coefficients)
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(object$coefficients))
   object$coefficients[[dpar]]
 }
 
