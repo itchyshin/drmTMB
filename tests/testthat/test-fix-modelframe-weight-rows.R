@@ -236,6 +236,30 @@ test_that("bivariate Gaussian meta_V follows rows dropped by log()", {
   }
 })
 
+test_that("poisson sd(mu) aborts when only the sd formula drops log() rows", {
+  set.seed(20261120)
+  n_id <- 8L
+  n <- 4L * n_id
+  d <- data.frame(
+    id = factor(rep(seq_len(n_id), each = 4L)),
+    x = rep(c(0.5, -1, 1.2, 0.8), length.out = n)
+  )
+  d$count <- stats::rpois(n, lambda = 5)
+  f <- bf(
+    count ~ x + (1 | id),
+    sd(id, dpar = "mu") ~ log(x)
+  )
+  expect_error(
+    suppressWarnings(drmTMB(
+      f,
+      family = poisson(),
+      data = d,
+      control = drm_control(se = FALSE)
+    )),
+    class = "drmTMB_model_frame_rows"
+  )
+})
+
 test_that("nbinom2 sd_sigma frames follow rows dropped by log()", {
   set.seed(20261114)
   n_id <- 24L
