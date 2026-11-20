@@ -1,5 +1,12 @@
 # drmTMB 0.8.2
 
+* `check_drm()`'s `hessian_conditioning` condition number is now unit-free: it
+  is computed on the correlation form of the fixed-effect covariance, so an
+  unscaled predictor next to a log-scale intercept no longer raises a spurious
+  note on a clean fit (the `airquality` Gaussian location-scale example read
+  cond = 5e8, now ok). The negative-eigenvalue warning and `min_eig` are
+  unchanged (#1251).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
