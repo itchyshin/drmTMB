@@ -242,12 +242,13 @@ test_that("poisson sd(mu) aborts when only the sd formula drops log() rows", {
   n <- 4L * n_id
   d <- data.frame(
     id = factor(rep(seq_len(n_id), each = 4L)),
-    x = rep(c(0.5, -1, 1.2, 0.8), length.out = n)
+    x = stats::rnorm(n),
+    gid = rep(c(0.5, -1, 1.2, 0.8), length.out = n_id)[rep(seq_len(n_id), each = 4L)]
   )
   d$count <- stats::rpois(n, lambda = 5)
   f <- bf(
     count ~ x + (1 | id),
-    sd(id, dpar = "mu") ~ log(x)
+    sd(id, dpar = "mu") ~ log(gid)
   )
   expect_error(
     suppressWarnings(drmTMB(
