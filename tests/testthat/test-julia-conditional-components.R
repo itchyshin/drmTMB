@@ -228,3 +228,32 @@ test_that("stored multi-component sigma follows the DRM clamp after payload vali
   default_sigma$formula$entries <- default_sigma$formula$entries[1L]
   expect_equal(predict(default_sigma, dpar = "sigma", type = "link"), rep(-0.2, nrow(data)))
 })
+
+test_that("a plain sd(g) ~ x entry keeps the conditional payload in use (#1757)", {
+  data <- data.frame(y = 1:4, x = c(-1, 0, 1, 2), zg = c(1, 2, 1, 2), g = c("b", "a", "b", "a"))
+  fit <- conditional_component_fit(
+    quote(x + (1 | g)), data,
+    c("(Intercept)" = 0.5, x = 0.2),
+    conditional_component_payload(list(list(
+      kind = "scalar", group = "g", loading_source = "(Intercept)",
+      levels = c("b", "a"), gidx = c(1L, 2L, 1L, 2L),
+      loading = rep(1, 4), modes = c(0.6, -0.25)
+    )))
+  )
+  sd_entry <- drm_formula(y ~ x + (1 | g), sd(g) ~ zg)$entries[[2L]]
+  fit$formula$entries <- c(fit$formula$entries[1L], list(sd_entry))
+  fixed_only <- 0.5 + 0.2 * data$x
+  conditional <- fixed_only + c(0.6, -0.25, 0.6, -0.25)
+  fit$fitted <- fixed_only
+  fit$residuals <- data$y - fixed_only
+
+  expect_false(is.null(drm_julia_conditional_gaussian_components_spec(fit$formula, "gaussian")))
+  expect_equal(unname(fitted(fit)), conditional)
+  expect_equal(unname(predict(fit, dpar = "mu")), conditional)
+  expect_equal(unname(residuals(fit)), data$y - conditional)
+
+  # An sd() entry for a group with no mean random effect is not admitted.
+  other <- drm_formula(y ~ x + (1 | g), sd(h) ~ zg)$entries[[2L]]
+  fit$formula$entries <- c(fit$formula$entries[1L], list(other))
+  expect_null(drm_julia_conditional_gaussian_components_spec(fit$formula, "gaussian"))
+})
