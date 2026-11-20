@@ -217,6 +217,7 @@ reference:
       - simulate.drmTMB
       - structured_effects
       - summary.drmTMB
+      - update.drmTMB
       - weights.drmTMB
       - associate_pairs
       - association
