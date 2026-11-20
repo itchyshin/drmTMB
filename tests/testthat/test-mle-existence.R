@@ -148,3 +148,28 @@ test_that("unbounded-scale screen covers the continuous sibling families", {
     c("gaussian", "lognormal", "student", "skew_normal", "gamma")
   )
 })
+
+test_that("ray screen also runs on ordinary (1 | g) fits (#1754)", {
+  set.seed(20262333)
+  G <- 30
+  m <- 8
+  g <- factor(rep(seq_len(G), each = m))
+  u <- rnorm(G, 0, 0.5)[g]
+  f <- factor(sample(1:2, G * m, replace = TRUE))
+  y <- ifelse(f == 1, 0, rpois(G * m, exp(0.5 + u)))
+  d <- data.frame(y = y, f = f, g = g)
+  fit <- suppressWarnings(
+    drmTMB(bf(y ~ 1 + f + (1 | g)), family = poisson(), data = d)
+  )
+  expect_false(is_converged(fit))
+  expect_identical(convergence_status(fit), "degenerate")
+  row <- check_drm(fit)
+  row <- row[row$check == "mle_existence", ]
+  expect_identical(row$status, "warning")
+  expect_identical(row$value, "count_mle_nonexistent")
+
+  # a healthy random-intercept Poisson fit is not flagged
+  d$y <- rpois(G * m, exp(0.5 + 0.3 * (as.integer(d$f) - 1) + u))
+  ok <- drmTMB(bf(y ~ 1 + f + (1 | g)), family = poisson(), data = d)
+  expect_true(is_converged(ok))
+})
