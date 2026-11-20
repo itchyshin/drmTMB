@@ -53,6 +53,16 @@ Type drm_softclamp_log_sd(Type eta, int use_logsigma_clamp,
   return eta;
 }
 
+// Tweedie power p = 1 + invlogit(eta_nu) must stay strictly inside (1, 2) for
+// TMB's dtweedie(); at |eta_nu| ~ 37 subtraction forms p = 2 or 1 exactly and
+// the density becomes NaN (#1468).
+template<class Type>
+Type drm_clamp_tweedie_eta_nu(Type eta) {
+  const Type cap = Type(35.0);
+  return CppAD::CondExpGt(eta, cap, cap,
+                          CppAD::CondExpLt(eta, -cap, -cap, eta));
+}
+
 // Overflow-only guard for regression-predicted random-effect log-SDs. This is
 // deliberately NOT the residual log-sigma soft clamp: it is exactly identity
 // until exp() approaches double overflow. A guard hit makes the likelihood
@@ -3954,7 +3964,8 @@ Type objective_function<Type>::operator()()
     vector<Type> nu(y.size());
     for (int i = 0; i < y.size(); ++i) {
       phi(i) = sigma(i) * sigma(i);
-      nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_nu(i)));
+      Type eta_i = drm_clamp_tweedie_eta_nu(eta_nu(i));
+      nu(i) = Type(1.0) + Type(1.0) / (Type(1.0) + exp(-eta_i));
       if (observed_y(i) == 1) {
         nll -= weights(i) * dtweedie(y(i), mu(i), phi(i), nu(i), true);
       }
