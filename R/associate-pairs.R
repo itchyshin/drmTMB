@@ -980,6 +980,7 @@ quantile.drm_pair_association <- function(x, ...) {
 }
 
 #' @rdname associate_pairs
+#' @usage \method{update}{drm_pair_association}(object, ...)
 #' @param object A frozen-margin association object. Its `update()` method
 #'   always refuses the call; refit the margins and construct a new association.
 #' @param ... Reserved arguments. The association `update()` method refuses
