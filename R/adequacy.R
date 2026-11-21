@@ -258,6 +258,19 @@ drm_reset_adequacy_warning_state <- function() {
   invisible(NULL)
 }
 
+drm_warn_adequacy_nonfinite_quantile <- function(dropped, nsim_col, model_type) {
+  key <- paste0("nonfinite:", model_type)
+  if (exists(key, envir = drm_adequacy_warn_state, inherits = FALSE)) {
+    return(invisible(FALSE))
+  }
+  assign(key, TRUE, envir = drm_adequacy_warn_state)
+  cli::cli_warn(c(
+    "Some quantile residuals with u at 0 or 1 (non-finite on the normal scale) were dropped from the qq_plot/worm_plot order statistics.",
+    "i" = "{dropped} of {nsim_col} residual(s) omitted; those points mark the worst misfit locations and no longer appear in the plot."
+  ))
+  invisible(TRUE)
+}
+
 # ---- shared order-statistic table for worm_plot()/qq_plot() ---------------
 
 # One row per (realization, rank): sorted residual, its N(0,1) order-statistic
@@ -271,7 +284,12 @@ drm_quantile_residual_qq_data <- function(object, seed = NULL, nsim = 1L, respon
     z <- matrix(z, ncol = 1L)
   }
   cols <- lapply(seq_len(ncol(z)), function(j) {
-    zz <- sort(z[is.finite(z[, j]), j])
+    finite <- is.finite(z[, j])
+    dropped <- sum(!finite)
+    if (dropped > 0L) {
+      drm_warn_adequacy_nonfinite_quantile(dropped, length(finite), object$model$model_type)
+    }
+    zz <- sort(z[finite, j])
     m <- length(zz)
     data.frame(
       sim = j,
