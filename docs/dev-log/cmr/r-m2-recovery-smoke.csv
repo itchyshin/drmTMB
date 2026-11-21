@@ -1,0 +1,5 @@
+"cell","replicate","status","converged","gradient_norm","logLik","truth_logLik","reason"
+"survival_coefficients",1,"usable",TRUE,6.34738428750836e-06,-60.6548474528913,-61.5609167037899,"relative convergence (4)"
+"survival_coefficients",2,"usable",TRUE,1.54398102065745e-05,-63.3230033356763,-66.8324063433251,"relative convergence (4)"
+"detection_coefficients",1,"usable",TRUE,5.19056237990867e-07,-61.4564664439929,-64.1968423262562,"relative convergence (4)"
+"detection_coefficients",2,"usable",TRUE,3.61860525988078e-06,-55.661037566236,-56.2502478370928,"relative convergence (4)"

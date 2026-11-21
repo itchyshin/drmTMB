@@ -1,0 +1,17 @@
+cmr-derivatives: 1......
+
+══ Failed ══════════════════════════════════════════════════════════════════════
+── 1. Failure ('test-cmr-derivatives.R:2:3'): CJS objective gradients agree with
+Expected FALSE to be TRUE.
+Differences:
+`actual`:   FALSE
+`expected`: TRUE 
+
+temporary runner-negative probe
+
+══ DONE ════════════════════════════════════════════════════════════════════════
+Error:
+! Test failures.
+Julia bridge: 0 live tests ran, 0 skipped; the LIVE ENGINE was not exercised in this configuration (mock-driven marshalling tests are counted by CI's 'Julia bridge glue executes (mock-driven, no Julia)' step).
+Execution halted
+Wrapper observation for this invocation: process exit code 1; `CMR_DERIVATIVES_OK` was absent.

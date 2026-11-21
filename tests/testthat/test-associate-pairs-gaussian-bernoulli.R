@@ -210,7 +210,9 @@ test_that("Gaussian x Bernoulli association fences unsupported public methods", 
   )
   expect_snapshot(error = TRUE, quantile(association_fit))
   expect_snapshot(error = TRUE, update(association_fit))
-  expect_snapshot(error = TRUE, emmeans::recover_data(association_fit))
+  if (requireNamespace("emmeans", quietly = TRUE)) {
+    expect_snapshot(error = TRUE, emmeans::recover_data(association_fit))
+  }
   expect_snapshot(
     error = TRUE,
     predict(association_fit, newdata = data.frame(x = 0))
