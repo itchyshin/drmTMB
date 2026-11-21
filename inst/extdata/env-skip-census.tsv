@@ -512,6 +512,7 @@ test-julia-gaussian-same-group-ind-slope.R	engine-drm-jl	environment	skips	2
 test-julia-gaussian-same-group-ind-slope.R	suggests-package	environment	runs	1
 test-julia-gaussian-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-gaussian-sd-parity.R	suggests-package	environment	runs	2
+test-julia-host-prepare.R	suggests-package	environment	runs	1
 test-julia-hurdle-nbinom2-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-hurdle-nbinom2-sd-bridge.R	suggests-package	environment	runs	1
 test-julia-iid-discrete-sd-oracle-b31jo.R	suggests-package	environment	runs	1
