@@ -10562,10 +10562,42 @@ drm_julia_fitted_recomputed <- function(object) {
   NULL
 }
 
+# #1775: when nothing above could rebuild the conditional mean, the bridge slot
+# is DRModels.jl's population-level value (random effects at zero). For a
+# non-Gaussian fit with an ordinary `(1 | g)` / `(0 + x | g)` bar in a mean
+# dpar (mu, zi or hu) that differs from engine = "tmb" by whole units (3 to
+# 11 on the #1775 grid), with no warning. Refuse loudly instead, with the same
+# reason predict() already gives for these fits. Gaussian keeps its documented
+# slot fallback (#1566, #1757), and structured phylo/relmat/animal/spatial
+# routes keep theirs (see the comment above drm_julia_fitted_recomputed()).
+drm_julia_refuse_population_fitted <- function(object, fn) {
+  model_type <- tryCatch(
+    drm_julia_predict_model_object(object)$model$model_type,
+    error = function(e) NULL
+  )
+  if (!is.character(model_type) || length(model_type) != 1L ||
+      identical(model_type, "gaussian") || !is.list(object$formula$entries)) {
+    return(invisible(NULL))
+  }
+  dpars <- Filter(
+    function(dpar) drm_julia_dpar_has_ordinary_bar(object$formula, dpar),
+    c("mu", "zi", "hu")
+  )
+  if (length(dpars) == 0L) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.fn {fn}} cannot reconstruct the conditional {.val {model_type}} mean: the Julia bridge did not retain its random-effect payload.",
+    x = "Found an ordinary random-effect bar term in the {.code {dpars}} formula; the stored value has the random effects at zero.",
+    i = "Use native {.code engine = \"tmb\"} for conditional {.fn fitted} and {.fn residuals} on this model. Coefficients, {.fn logLik} and {.code predict(newdata = )} are unaffected."
+  ))
+}
+
 #' @export
 fitted.drmTMB_julia <- function(object, ...) {
   out <- drm_julia_fitted_recomputed(object)
   if (is.null(out)) {
+    drm_julia_refuse_population_fitted(object, "fitted")
     return(object$fitted)
   }
   out
@@ -10617,6 +10649,7 @@ residuals.drmTMB_julia <- function(object, type = c("response"), ...) {
   match.arg(type)
   out <- drm_julia_fitted_recomputed(object)
   if (is.null(out)) {
+    drm_julia_refuse_population_fitted(object, "residuals")
     return(object$residuals)
   }
   response <- drm_julia_structured_retained_response(object)
