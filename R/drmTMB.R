@@ -1795,12 +1795,70 @@ drm_optimizer_selected_record <- function(row) {
   )
 }
 
+# Pre-fit rank check for every dense fixed-effect design in spec$X.
+# The REML-only mu check in drm_validate_reml_spec() left ML and every
+# non-mu dpar (sigma, nu, zi, hu, rho12, ...) untested, so a collinear
+# sigma ~ x + xdup design fitted, reported converged, and only failed
+# later in vcov() (#1478 / #1470).
+#
+# Student, skew-normal, and beta-binomial specs always store sd_mu$X
+# (and beta-binomial also sd_sigma$X). With no sd() formula that object
+# is the 1x1 zero from empty_sd_mu_structure(), not a fixed-effect design.
+# A real sd() design is already refused by check_sd_design_rank().
+drm_is_unused_sd_placeholder <- function(name, block) {
+  name %in% c("sd_mu", "sd_sigma") &&
+    is.matrix(block) &&
+    identical(dim(block), c(1L, 1L)) &&
+    isTRUE(block[[1L]] == 0)
+}
+
+drm_validate_fixed_design_rank <- function(spec) {
+  X <- spec$X
+  if (is.null(X) || length(X) == 0L) {
+    return(invisible(TRUE))
+  }
+  aliased <- character()
+  nms <- names(X)
+  for (i in seq_along(X)) {
+    nm <- if (!is.null(nms) && nzchar(nms[[i]])) nms[[i]] else paste0("X", i)
+    block <- X[[i]]
+    if (
+      is.null(block) ||
+        (!is.matrix(block) && !inherits(block, "Matrix"))
+    ) {
+      next
+    }
+    if (drm_is_unused_sd_placeholder(nm, block)) {
+      next
+    }
+    if (is.list(spec$sparse_fixed) && isTRUE(spec$sparse_fixed[[nm]])) {
+      next
+    }
+    dims <- dim(block)
+    if (is.null(dims) || length(dims) != 2L || dims[[2L]] <= 0L) {
+      next
+    }
+    block_rank <- qr(as.matrix(block), tol = drm_exact_alias_rank_tol)$rank
+    if (block_rank < dims[[2L]]) {
+      aliased <- c(aliased, nm)
+    }
+  }
+  if (length(aliased) == 0L) {
+    return(invisible(TRUE))
+  }
+  cli::cli_abort(c(
+    "Fixed-effect design is rank-deficient for {cli::qty(length(aliased))}distributional parameter{?s} {.code {aliased}}.",
+    "i" = "Remove aliased columns (for example an exact duplicate predictor) before fitting."
+  ))
+}
+
 drm_apply_estimator_spec <- function(
   spec,
   REML = FALSE,
   estimator = "ml"
 ) {
   estimator <- drm_match_estimator(estimator)
+  drm_validate_fixed_design_rank(spec)
   spec$tmb_data$use_mspl <- 0L
   spec$tmb_data$mspl_c_n <- 0
   spec$tmb_data$mspl_q <- 0L
