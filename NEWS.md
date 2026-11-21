@@ -1,5 +1,20 @@
 # drmTMB 0.8.2
 
+* `convergence_status()` now follows the adopted converged rule. It returns
+  `"converged"`, `"not_converged"`, `"boundary"` or `"degenerate"`, checked in
+  that order, and every non-converged status is a warning in `check_drm()`.
+  `"not_converged"` (optimiser failure, non-finite log-likelihood or a Newton
+  step above 1e-3 standard errors, `max_i |(H^-1 g)_i| / SE_i`) is no longer folded into `"degenerate"`. `"boundary"` is
+  tested before the Hessian, so a boundary fit with a flat Hessian reads
+  `"boundary"`, not `"degenerate"`; a collapsed residual SD (the Heywood case)
+  is a boundary kind. The random-effect SD cut-off is now relative to the
+  response SD for identity-link location terms, so rescaling `y` no longer
+  turns an interior SD into a false boundary (#1751). New
+  `convergence_info()` returns `converged`, `convergence_status`,
+  `boundary_params` (name and kind), `pd_hessian`, `max_gradient` (the Newton step in SE units) and the
+  optimiser code and message; `summary()` carries the same fields.
+  `is_converged()` is unchanged: `TRUE` only for `"converged"`.
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau

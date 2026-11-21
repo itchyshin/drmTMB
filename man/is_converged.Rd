@@ -36,9 +36,9 @@ A single logical value.
 \code{is_converged()} is a compact programmatic flag for workflows that need a
 yes/no answer before comparing, displaying, or post-processing a \code{drmTMB}
 fit. It is \code{TRUE} exactly when \code{\link[=convergence_status]{convergence_status()}} is \code{"converged"}.
-\code{"boundary"} and \code{"degenerate"} both return \code{FALSE}; use
-\code{\link[=convergence_status]{convergence_status()}} or \code{\link[=check_drm]{check_drm()}} when a three-valued status is
-needed. \code{converged()} is the same predicate under the name DRModels.jl
+\code{"not_converged"}, \code{"boundary"} and \code{"degenerate"} all return \code{FALSE}; use
+\code{\link[=convergence_status]{convergence_status()}}, \code{\link[=convergence_info]{convergence_info()}} or \code{\link[=check_drm]{check_drm()}} when the
+status is needed. \code{converged()} is the same predicate under the name DRModels.jl
 also exports. A fit can therefore report optimizer code \code{0} while still
 returning \code{FALSE} here.
 }
