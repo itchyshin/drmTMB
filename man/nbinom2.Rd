@@ -42,3 +42,6 @@ data use \code{glmmTMB::compois()} (Conway-Maxwell-Poisson) or
 \examples{
 nbinom2()
 }
+\seealso{
+\link{foreign-inflation-families}
+}
