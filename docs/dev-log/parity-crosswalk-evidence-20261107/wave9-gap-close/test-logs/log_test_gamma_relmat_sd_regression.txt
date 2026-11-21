@@ -1,0 +1,4 @@
+Test Summary:                                          | Pass  Total   Time
+Gamma relmat SD fit reports the low-variation boundary |    5      5  15.0s
+Test Summary:                            | Pass  Total   Time
+Gamma relmat random-effect SD regression |   17     17  14.1s

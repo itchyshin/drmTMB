@@ -1,0 +1,6 @@
+S	1	gaussian|slope|lab0|q1|sd-none|cm0|REML
+R	1	gaussian|slope|lab0|q1|sd-none|cm0|REML	FITS				-522.5169635988	0	pdHess=TRUE;is_converged=TRUE;npar=2	0.11	
+S	2	gaussian|slope|lab0|q1|sd-one|cm0|REML
+R	2	gaussian|slope|lab0|q1|sd-one|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.04	
+S	3	gaussian|slope|lab0|q1|sd-z|cm0|REML
+R	3	gaussian|slope|lab0|q1|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is not implemented with direct ordinary random-effect scale	`REML` is not implemented with direct ordinary random-effect scale formulae yet. ℹ Use a phylogenetic direct-SD scale (`sd_phylo(...) ~ ...`), ordinary location random effects, or set `REML = FALSE`.				0.02	

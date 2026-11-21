@@ -1,0 +1,7 @@
+>>> test_gaussian_ordinary_q2_linesearch.jl done in 42.1 s
+>>> test_gaussian_ordinary_q2_sd.jl done in 29.8 s
+>>> test_gaussian_ordinary_q3_q4_sd.jl done in 77.1 s
+>>> test_gaussian_structured_q2_sd.jl done in 25.3 s
+>>> test_q2_sd_simulate.jl done in 30.0 s
+>>> test_q2_structured_vcov.jl done in 12.1 s
+>>> test_skewnormal.jl done in 5.3 s

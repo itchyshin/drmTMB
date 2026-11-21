@@ -1,0 +1,50 @@
+S	1	beta|spatial|lab0|q1|sd-none|cm0|ML
+R	1	beta|spatial|lab0|q1|sd-none|cm0|ML	FITS				130.6592767578	0	pdHess=TRUE;is_converged=TRUE;npar=6	1.75	
+S	2	beta|spatial|lab0|q1|sd-one|cm0|ML
+R	2	beta|spatial|lab0|q1|sd-one|cm0|ML	FITS				130.6592767578	0	pdHess=TRUE;is_converged=TRUE;npar=6	1.72	
+S	3	beta|spatial|lab0|q1|sd-z|cm0|ML
+R	3	beta|spatial|lab0|q1|sd-z|cm0|ML	FITS				135.7117844157	0	pdHess=TRUE;is_converged=TRUE;npar=7	2.04	
+S	4	beta|spatial|lab0|q2|sd-none|cm0|ML
+R	4	beta|spatial|lab0|q2|sd-none|cm0|ML	FITS				130.6592767573	0	pdHess=TRUE;is_converged=FALSE;npar=7	3.87	
+S	5	beta|spatial|lab1|q2|sd-none|cm0|ML
+R	5	beta|spatial|lab1|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.03	
+S	6	beta|spatial|lab0|q2|sd-one|cm0|ML
+R	6	beta|spatial|lab0|q2|sd-one|cm0|ML	FITS				130.6592767570	0	pdHess=TRUE;is_converged=FALSE;npar=7	3.83	
+S	7	beta|spatial|lab1|q2|sd-one|cm0|ML
+R	7	beta|spatial|lab1|q2|sd-one|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	8	beta|spatial|lab0|q2|sd-z|cm0|ML
+R	8	beta|spatial|lab0|q2|sd-z|cm0|ML	FITS				137.5342473213	0	pdHess=TRUE;is_converged=TRUE;npar=9	2.85	
+S	9	beta|spatial|lab1|q2|sd-z|cm0|ML
+R	9	beta|spatial|lab1|q2|sd-z|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	10	beta|spatial|lab0|q2|sd-first|cm0|ML
+R	10	beta|spatial|lab0|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Beta spatial intercept-slope SD regression requires one SD formula for	Beta spatial intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors.				0.02	
+S	11	beta|spatial|lab1|q2|sd-first|cm0|ML
+R	11	beta|spatial|lab1|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	12	beta|spatial|lab0|q2|sd-last|cm0|ML
+R	12	beta|spatial|lab0|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Beta spatial intercept-slope SD regression requires one SD formula for	Beta spatial intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors.				0.02	
+S	13	beta|spatial|lab1|q2|sd-last|cm0|ML
+R	13	beta|spatial|lab1|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	14	beta|spatial|lab0|q3|sd-none|cm0|ML
+R	14	beta|spatial|lab0|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	`spatial()` currently reserves only intercept and one-slope structured	`spatial()` currently reserves only intercept and one-slope structured terms. ✖ Use `spatial(1 | group, ...)` or `spatial(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.06	
+S	15	beta|spatial|lab1|q3|sd-none|cm0|ML
+R	15	beta|spatial|lab1|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	16	beta|spatial|lab0|q3|sd-z|cm0|ML
+R	16	beta|spatial|lab0|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	`spatial()` currently reserves only intercept and one-slope structured	`spatial()` currently reserves only intercept and one-slope structured terms. ✖ Use `spatial(1 | group, ...)` or `spatial(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.02	
+S	17	beta|spatial|lab1|q3|sd-z|cm0|ML
+R	17	beta|spatial|lab1|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	18	beta|spatial|lab0|q3|sd-first|cm0|ML
+R	18	beta|spatial|lab0|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	`spatial()` currently reserves only intercept and one-slope structured	`spatial()` currently reserves only intercept and one-slope structured terms. ✖ Use `spatial(1 | group, ...)` or `spatial(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	19	beta|spatial|lab1|q3|sd-first|cm0|ML
+R	19	beta|spatial|lab1|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	20	beta|spatial|lab0|q4|sd-none|cm0|ML
+R	20	beta|spatial|lab0|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	`spatial()` currently reserves only intercept and one-slope structured	`spatial()` currently reserves only intercept and one-slope structured terms. ✖ Use `spatial(1 | group, ...)` or `spatial(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	21	beta|spatial|lab1|q4|sd-none|cm0|ML
+R	21	beta|spatial|lab1|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	22	beta|spatial|lab0|q4|sd-z|cm0|ML
+R	22	beta|spatial|lab0|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	`spatial()` currently reserves only intercept and one-slope structured	`spatial()` currently reserves only intercept and one-slope structured terms. ✖ Use `spatial(1 | group, ...)` or `spatial(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	23	beta|spatial|lab1|q4|sd-z|cm0|ML
+R	23	beta|spatial|lab1|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	
+S	24	beta|spatial|lab0|q4|sd-first|cm0|ML
+R	24	beta|spatial|lab0|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	`spatial()` currently reserves only intercept and one-slope structured	`spatial()` currently reserves only intercept and one-slope structured terms. ✖ Use `spatial(1 | group, ...)` or `spatial(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.02	
+S	25	beta|spatial|lab1|q4|sd-first|cm0|ML
+R	25	beta|spatial|lab1|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	Beta coordinate-spatial mu effects require an unlabelled intercept-only	Beta coordinate-spatial mu effects require an unlabelled intercept-only or intercept-plus-one-slope term. ℹ Use `spatial(1 | id, coords = coords)` or `spatial(1 + x | id, coords = coords)`; slope-only, multiple slopes, labels and meshes remain outside this route.				0.01	

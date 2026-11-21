@@ -1,0 +1,5 @@
+FAIL gauss animal q2 coefSD: ArgumentError: drm: `animal(1 + x | g)` is not implemented on the univariate routes; only the intercept form is generally available, and a slope-only or independent intercept-and-slope animal term is available only on an
+FAIL gauss relmat q2 coefSD: ArgumentError: drm: `relmat(1 + x | g)` is not implemented on the univariate routes; only the intercept form is admitted on this route
+FAIL gauss ordinary q2 coefSD: ArgumentError: drm: sd() supports random INTERCEPT terms only.
+FAIL gauss sigma animal intercept: ArgumentError: drm: sd() submodels with a σ-phylo random effect are not supported — the residual scale takes FIXED-effect predictors here.
+FAIL gauss mu+sigma ordinary: ArgumentError: drm: sd() submodels cannot be combined with a random effect on `sigma`.

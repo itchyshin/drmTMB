@@ -1,0 +1,9 @@
+┌ Warning: Gaussian sigma random effect with an SD formula vcov: gradient-difference Hessian is not positive definite at the optimum; reporting a NaN vcov (standard errors unavailable)
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/wt-wave2/src/sparse_laplace_glmm.jl:198
+θJ mode zero         F=1733.2810  halfldet=775.9600  ll=-2141.665676
+θJ mode alt(R-start) F=1732.6423  halfldet=792.2684  ll=-2157.335259
+refit (global-mode rule): conv=false ll=-2155.079053 time=29.7s
+θ̂ = [0.27157265654164003, 0.5001561270742203, -0.720683897201134, -0.5133332292224806, 0.4239083856597068, -1.1627659373877626, 0.45341421530526027]
+SE = [Inf, Inf, Inf, Inf, Inf, Inf, Inf]
+oracle at θ̂ from zero: ll=-2141.341025 g=2.4e-11 eig=2.835e+00
+oracle at θ̂ from alt start: ll=-2155.079053

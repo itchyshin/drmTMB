@@ -1,0 +1,10 @@
+=== poisson_relmat_slope_sd_regression
+Test Summary:                             | Pass  Total   Time
+Poisson relmat random-slope SD regression |   28     28  22.2s
+=== poisson_animal_slope_sd_regression
+Test Summary:                             | Pass  Total   Time
+Poisson animal random-slope SD regression |   25     25  24.9s
+=== poisson_relmat_sd_regression
+Test Summary:                              | Pass  Total   Time
+Poisson relmat random-effect SD regression |   17     17  22.1s
+DONE

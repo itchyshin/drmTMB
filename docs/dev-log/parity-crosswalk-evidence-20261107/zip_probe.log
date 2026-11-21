@@ -1,0 +1,5 @@
+plain REFUSED/ERROR: Poisson() random effects cannot be combined with `zi`/`hu` yet
+constant-sd converged=true blocks=[:mu, :zi, :sd]
+  mu=[0.3344462432346741, 0.2820182901581225] zi=[-1.2592320189494237]
+  sd=[-0.46137500705164414]
+  logLik=-698.6249282073817

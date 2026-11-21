@@ -1,0 +1,16 @@
+.libPaths(c(path.expand("~/drm_campaign_20261108/Rlib"), .libPaths()))
+suppressPackageStartupMessages(library(drmTMB))
+DD <- path.expand("~/drm_gap_20261108/data")
+fmt <- function(v) paste(sprintf("%.12g", v), collapse = ",")
+run <- function(tag, fm, d) {
+  fit <- drmTMB(fm, family = tweedie(), data = d)
+  cat(tag, "ll", sprintf("%.10f", as.numeric(logLik(fit))), "conv", fit$opt$convergence, "\n")
+  cat(tag, "names", paste(names(fit$opt$par), collapse = ";"), "\n")
+  cat(tag, "par", fmt(fit$opt$par), "\n")
+  print(coef(fit))
+}
+d <- read.csv(file.path(DD, "data_tweedie_ordinary.csv")); d$g <- factor(d$g, levels = unique(d$g))
+run("ord_none", bf(y ~ x1 + x2 + x3 + (1 | g), sigma = ~ 1), d)
+run("ord_z", bf(y ~ x1 + x2 + x3 + (1 | g), sigma = ~ 1, sd(g) ~ z), d)
+run("slope_none", bf(y ~ x1 + x2 + x3 + (0 + x1 | g), sigma = ~ 1), d)
+run("slope_z", bf(y ~ x1 + x2 + x3 + (0 + x1 | g), sigma = ~ 1, sd(g, coef = "x1") ~ z), d)

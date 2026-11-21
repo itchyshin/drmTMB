@@ -1,0 +1,493 @@
+cell_id	before	before_sub	after	after_sub
+gaussian|ordinary|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|animal|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gaussian|relmat|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|phylo|lab0|q2|sd-one|cm0|REML	FITS		FITS	
+gaussian|crossed|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|crossed|lab1|q4|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+poisson|phylo|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|ordinary|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|relmat|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gamma|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|spatial|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|animal|lab0|q1|sd-one|cm0|ML	ERRORS	kwarg-MethodError	FITS	
+binomial|phylo|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+beta|animal|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+beta|spatial|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+student|spatial|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q4|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|indep|lab0|q4|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+student|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab1|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|animal|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|relmat|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab1|q2|sd-one|cm0|REML	FITS		FITS	
+gaussian|crossed|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+poisson|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+poisson|animal|lab0|q1|sd-none|cm0|REML	FITS		FITS	
+poisson|phylo|lab0|q1|sd-none|cm0|REML	FITS		FITS	
+nb2|ordinary|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|relmat|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|crossed|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gamma|relmat|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+binomial|animal|lab0|q1|sd-z|cm0|ML	ERRORS	kwarg-MethodError	FITS	
+binomial|phylo|lab1|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|animal|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|spatial|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+tweedie|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+poisson|indep|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+nb2|indep|lab0|q4|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|indep|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+tweedie|slope|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q3|sd-z|cm0|ML	FITS		FITS	
+gaussian|animal|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|relmat|lab0|q1|sd-one|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab0|q2|sd-z|cm0|REML	FITS		FITS	
+gaussian|crossed|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+poisson|relmat|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+poisson|spatial|lab0|q1|sd-none|cm0|ML	NONCONVERGED		NONCONVERGED	
+nb2|ordinary|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+nb2|crossed|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gamma|relmat|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|crossed|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+binomial|animal|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	REFUSES	ArgumentError
+binomial|phylo|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+beta|animal|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|crossed|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|ordinary|lab0|q1|sd-none|cm1|ML	FITS		FITS	
+poisson|indep|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q4|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|indep|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+nb2|slope|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+tweedie|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q3|sd-first|cm0|ML	FITS		FITS	
+gaussian|animal|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|relmat|lab0|q1|sd-z|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab1|q2|sd-z|cm0|REML	FITS		FITS	
+gaussian|crossed|lab1|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+poisson|relmat|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+poisson|spatial|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|ordinary|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|phylo|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gamma|relmat|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|crossed|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+binomial|animal|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	REFUSES	ArgumentError
+binomial|phylo|lab1|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|animal|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|spatial|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+student|crossed|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|ordinary|lab0|q1|sd-z|cm1|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|indep|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|indep|lab0|q2|sd-none|cm0|ML	NONCONVERGED		NONCONVERGED	
+beta|indep|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+nb2|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+tweedie|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|animal|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|relmat|lab0|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|spatial|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|crossed|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+poisson|relmat|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+poisson|spatial|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|animal|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+nb2|phylo|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gamma|relmat|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+binomial|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+binomial|animal|lab0|q2|sd-one|cm0|ML	ERRORS	kwarg-MethodError	FITS	
+binomial|spatial|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+beta|animal|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|spatial|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|spatial|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q1|sd-none|cm1|REML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|indep|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|indep|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+lognormal|indep|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+nb2|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab1|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|animal|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|relmat|lab0|q2|sd-one|cm0|REML	FITS		FITS	
+gaussian|spatial|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|crossed|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|ordinary|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+poisson|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+poisson|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+nb2|animal|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+nb2|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gamma|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gamma|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+binomial|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+binomial|animal|lab1|q2|sd-one|cm0|ML	ERRORS	kwarg-MethodError	REFUSES	ArgumentError
+binomial|spatial|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+beta|relmat|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+beta|spatial|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+tweedie|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+nb2|ordinary|lab0|q1|sd-none|cm1|ML	FITS		FITS	
+poisson|indep|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|indep|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+lognormal|indep|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gamma|slope|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|ordinary|lab0|q4|sd-z|cm0|ML	FITS		FITS	
+gaussian|animal|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|relmat|lab0|q2|sd-z|cm0|REML	FITS		FITS	
+gaussian|spatial|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|crossed|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|ordinary|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+poisson|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+poisson|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+nb2|animal|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+nb2|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+gamma|phylo|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+binomial|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+binomial|animal|lab0|q2|sd-z|cm0|ML	ERRORS	kwarg-MethodError	FITS	
+binomial|spatial|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+beta|relmat|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+lognormal|crossed|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+tweedie|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gamma|ordinary|lab0|q1|sd-none|cm1|ML	FITS		FITS	
+poisson|indep|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gamma|indep|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|indep|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gamma|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q4|sd-first|cm0|ML	FITS		FITS	
+gaussian|animal|lab0|q1|sd-one|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gaussian|crossed|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|ordinary|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+poisson|relmat|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+poisson|spatial|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|animal|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+nb2|phylo|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|animal|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gamma|phylo|lab0|q1|sd-z|cm0|ML	NONCONVERGED		NONCONVERGED	
+binomial|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+binomial|animal|lab1|q2|sd-z|cm0|ML	ERRORS	kwarg-MethodError	REFUSES	ArgumentError
+binomial|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+beta|relmat|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+lognormal|crossed|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+tweedie|animal|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+gaussian|indep|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+poisson|indep|lab0|q3|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|indep|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|indep|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+gamma|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q1|sd-none|cm0|REML	FITS		FITS	
+gaussian|animal|lab0|q1|sd-z|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|crossed|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|ordinary|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+poisson|relmat|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+poisson|spatial|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|animal|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|phylo|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|animal|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gamma|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|ordinary|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+binomial|relmat|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+student|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+tweedie|animal|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+gaussian|indep|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|indep|lab0|q3|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|indep|lab0|q3|sd-none|cm0|ML	FITS		FITS	
+student|indep|lab0|q3|sd-none|cm0|ML	FITS		FITS	
+binomial|slope|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|ordinary|lab0|q1|sd-one|cm0|REML	FITS		FITS	
+gaussian|animal|lab0|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|spatial|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|crossed|lab1|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|ordinary|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|relmat|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+poisson|spatial|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|animal|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|phylo|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|animal|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gamma|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|ordinary|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+binomial|relmat|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+binomial|spatial|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+beta|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+student|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+tweedie|relmat|lab0|q1|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|indep|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gamma|indep|lab0|q4|sd-none|cm0|ML	FITS		FITS	
+student|indep|lab0|q4|sd-none|cm0|ML	FITS		FITS	
+binomial|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|indep|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|indep|lab0|q4|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|indep|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+tweedie|indep|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|slope|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q2|sd-none|cm0|REML	FITS		FITS	
+gaussian|animal|lab0|q2|sd-z|cm0|REML	FITS		FITS	
+gaussian|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|spatial|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|crossed|lab1|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|ordinary|lab0|q1|sd-none|cm0|REML	FITS		FITS	
+poisson|relmat|lab0|q1|sd-none|cm0|REML	FITS		FITS	
+poisson|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+nb2|animal|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|spatial|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gamma|animal|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|phylo|lab1|q2|sd-one|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|ordinary|lab0|q2|sd-last|cm0|ML	FITS		FITS	
+binomial|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+beta|relmat|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q1|sd-z|cm0|REML	FITS		FITS	
+gaussian|animal|lab0|q2|sd-one|cm0|REML	FITS		FITS	
+gaussian|phylo|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+gaussian|spatial|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|crossed|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+poisson|ordinary|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|relmat|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+poisson|spatial|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|animal|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|phylo|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|animal|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gamma|phylo|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|ordinary|lab0|q2|sd-first|cm0|ML	FITS		FITS	
+binomial|relmat|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+binomial|spatial|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+beta|relmat|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+student|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+tweedie|relmat|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|indep|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|indep|lab0|q4|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|indep|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+tweedie|indep|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab1|q2|sd-none|cm0|REML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|relmat|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|phylo|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|spatial|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|crossed|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+poisson|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+poisson|crossed|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|animal|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|spatial|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|animal|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|phylo|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|ordinary|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|crossed|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+beta|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+lognormal|ordinary|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|animal|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q3|sd-none|cm0|ML	FITS		FITS	
+nb2|indep|lab0|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|indep|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+tweedie|indep|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+beta|slope|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q3|sd-none|cm0|REML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|relmat|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|phylo|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|spatial|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|crossed|lab0|q1|sd-one|cm0|REML	FITS		FITS	
+poisson|animal|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+poisson|phylo|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+poisson|crossed|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|relmat|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+nb2|spatial|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|animal|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|phylo|lab1|q2|sd-z|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|ordinary|lab0|q3|sd-z|cm0|ML	NONCONVERGED		NONCONVERGED	
+binomial|relmat|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|crossed|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+beta|phylo|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|animal|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q3|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+binomial|indep|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|slope|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+beta|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab1|q3|sd-none|cm0|REML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|relmat|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|phylo|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|spatial|lab0|q1|sd-one|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|crossed|lab0|q1|sd-z|cm0|REML	FITS		FITS	
+poisson|animal|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+poisson|phylo|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+nb2|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+nb2|relmat|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+nb2|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gamma|animal|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|spatial|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+binomial|ordinary|lab0|q3|sd-first|cm0|ML	FITS		FITS	
+binomial|relmat|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|ordinary|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+beta|phylo|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|ordinary|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|relmat|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|phylo|lab0|q1|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q3|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+binomial|indep|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+beta|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab1|q2|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|ordinary|lab0|q4|sd-none|cm0|REML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gaussian|phylo|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|spatial|lab0|q1|sd-z|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|crossed|lab0|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+poisson|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+nb2|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+nb2|relmat|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+nb2|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gamma|animal|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|spatial|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+binomial|ordinary|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|phylo|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+beta|ordinary|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+beta|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|animal|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+student|relmat|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|phylo|lab0|q1|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q4|sd-none|cm0|ML	FITS		FITS	
+nb2|indep|lab0|q2|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|indep|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+lognormal|slope|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab1|q4|sd-none|cm0|REML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|phylo|lab0|q1|sd-none|cm0|REML	FITS		FITS	
+gaussian|spatial|lab0|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|crossed|lab1|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+poisson|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+nb2|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+nb2|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+nb2|spatial|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|relmat|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gamma|spatial|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+binomial|ordinary|lab0|q4|sd-z|cm0|ML	TIMEOUT		NONCONVERGED	
+binomial|phylo|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+beta|ordinary|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+beta|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|animal|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+student|phylo|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|phylo|lab0|q1|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q4|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q2|sd-last|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|indep|lab0|q3|sd-z|cm0|ML	FITS		FITS	
+gaussian|slope|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|animal|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|relmat|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|phylo|lab0|q1|sd-one|cm0|REML	FITS		FITS	
+gaussian|spatial|lab0|q2|sd-one|cm0|REML	FITS		FITS	
+gaussian|crossed|lab0|q3|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+poisson|phylo|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+nb2|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|spatial|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gamma|relmat|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gamma|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|ordinary|lab0|q4|sd-first|cm0|ML	FITS		FITS	
+binomial|phylo|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+beta|ordinary|lab0|q2|sd-none|cm0|ML	FITS		FITS	
+beta|phylo|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|relmat|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+student|phylo|lab1|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q4|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q3|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+binomial|indep|lab0|q3|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|slope|lab0|q1|sd-one|cm0|REML	FITS		FITS	
+lognormal|slope|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|ordinary|lab0|q2|sd-first|cm0|ML	FITS		FITS	
+gaussian|animal|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+gaussian|relmat|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+gaussian|phylo|lab0|q1|sd-z|cm0|REML	FITS		FITS	
+gaussian|spatial|lab0|q2|sd-z|cm0|REML	FITS		FITS	
+gaussian|crossed|lab1|q3|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+poisson|phylo|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|ordinary|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|relmat|lab0|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|spatial|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|relmat|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gamma|spatial|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|ordinary|lab0|q1|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|phylo|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+beta|animal|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+beta|phylo|lab0|q2|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+lognormal|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|spatial|lab0|q1|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q3|sd-z|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|indep|lab0|q4|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|slope|lab0|q1|sd-z|cm0|REML	FITS		FITS	
+student|slope|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+gaussian|ordinary|lab0|q2|sd-last|cm0|ML	FITS		FITS	
+gaussian|animal|lab0|q1|sd-z|cm0|ML	FITS		FITS	
+gaussian|relmat|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+gaussian|phylo|lab0|q2|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|crossed|lab0|q1|sd-none|cm0|ML	FITS		FITS	
+gaussian|crossed|lab0|q4|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+poisson|animal|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+poisson|phylo|lab0|q2|sd-z|cm0|ML	FITS		FITS	
+nb2|ordinary|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|relmat|lab1|q2|sd-one|cm0|ML	FITS		FITS	
+nb2|spatial|lab1|q2|sd-z|cm0|ML	FITS		FITS	
+gamma|relmat|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	FITS	
+gamma|spatial|lab0|q2|sd-one|cm0|ML	REFUSES	ArgumentError	FITS	
+binomial|animal|lab0|q1|sd-none|cm0|ML	ERRORS	kwarg-MethodError	REFUSES	ErrorException
+binomial|phylo|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+beta|animal|lab0|q1|sd-one|cm0|ML	FITS		FITS	
+beta|spatial|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+lognormal|relmat|lab1|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+student|spatial|lab0|q2|sd-none|cm0|ML	ERRORS	kwarg-MethodError	ERRORS	kwarg
+tweedie|spatial|lab0|q2|sd-none|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+gaussian|indep|lab0|q3|sd-none|cm0|REML	REFUSES	ArgumentError	REFUSES	ArgumentError
+nb2|indep|lab0|q3|sd-first|cm0|ML	REFUSES	ArgumentError	REFUSES	ArgumentError
+binomial|indep|lab0|q4|sd-z|cm0|ML	FITS		FITS	
+poisson|slope|lab0|q1|sd-none|cm0|ML	REFUSES	ErrorException	REFUSES	ErrorException
+student|slope|lab0|q1|sd-one|cm0|ML	FITS		FITS	

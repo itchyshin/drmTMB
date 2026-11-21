@@ -1,0 +1,16 @@
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:457
+┌ Warning: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `mu` block: x (design rank 1 of 2 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+│   aliased_blocks =
+│    1-element Vector{NamedTuple}:
+│     (param = :mu, rank = 1, ncol = 2, aliased = ["x"])
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/design_rank.jl:91
+┌ Warning: fixed_effect_rank_deficiency: a fixed-effect design is rank-deficient, so some coefficients are not identified. Aliased coefficient(s): `mu` block: x (design rank 1 of 2 columns). Drop or recode the aliased column(s). Wald SEs for the aliased coefficient(s) are reported NaN and the fit is flagged not converged (`is_converged`); the log-likelihood and the other estimates are unaffected.
+│   aliased_blocks =
+│    1-element Vector{NamedTuple}:
+│     (param = :mu, rank = 1, ncol = 2, aliased = ["x"])
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/design_rank.jl:91
+Test Summary:                                              | Pass  Total   Time
+Gaussian structured intercept-and-slope SD regression (q2) |   71     71  54.2s
+Test Summary:                                                         | Pass  Total  Time
+Gaussian structured q2: predict / predict_parameters / bridge newdata |   22     22  9.8s

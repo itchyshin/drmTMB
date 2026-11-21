@@ -1,0 +1,63 @@
+{
+ "n_cells": 3008,
+ "class_counts": {
+  "both-fit": 231,
+  "R-only": 181,
+  "both-refuse": 1838,
+  "Julia-only": 23,
+  "nonconverged": 4,
+  "inconclusive": 2,
+  "crash-Julia": 729
+ },
+ "r_outcomes": {
+  "FITS": 427,
+  "REFUSES": 2581
+ },
+ "j_outcomes": {
+  "FITS": 254,
+  "REFUSES": 2019,
+  "NONCONVERGED": 4,
+  "TIMEOUT": 2,
+  "ERRORS": 729
+ },
+ "crash_sides": {
+  "none": 2279,
+  "Julia": 729
+ },
+ "julia_behind": {
+  "refuses": 181,
+  "nonconverged": 4,
+  "timeout": 2,
+  "crashes": 9
+ },
+ "r_behind": {
+  "refuses": 23
+ },
+ "j_sub": {
+  "REFUSES/ErrorException": 248,
+  "REFUSES/ArgumentError": 1771,
+  "ERRORS/kwarg-MethodError": 729
+ },
+ "r_sub": {
+  "REFUSES/cli_abort": 2581
+ },
+ "n_both_fit": 231,
+ "n_ll_disagree": 56,
+ "ll_diffs_sorted": [
+  0.3262,
+  0.5495,
+  0.5804,
+  0.6226,
+  0.8876,
+  0.9409,
+  1.03,
+  1.539,
+  1.553,
+  1.695
+ ],
+ "crash_groups": [
+  "Julia | kwarg-MethodError | MethodError | MethodError: no method matching keyword call drm with keywords (kw) | n=411",
+  "Julia | kwarg-MethodError | MethodError | MethodError: no method matching keyword call _drm_student_fit with keywords (kw) | n=268",
+  "Julia | kwarg-MethodError | MethodError | MethodError: no method matching keyword call _drm_binomial_fit with keywords (kw) | n=50"
+ ]
+}

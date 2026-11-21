@@ -1,0 +1,13 @@
+== BEFORE (baseline source 04581709d, Julia 1.12): fixture fits only
+Gaussian ordinary q2 SD regression survives the first-step overflow (seed 179): Error During Test at /private/tmp/claude-503/-Users-z3437171--claude-spares-spar
+  AssertionError: isfinite(phi_c) && isfinite(dphi_c)
+Test Summary:                                                                  | Error  Total   Time
+Gaussian ordinary q2 SD regression survives the first-step overflow (seed 179) |     1      1  24.4s
+ERROR: LoadError: Some tests did not pass: 0 passed, 0 failed, 1 errored, 0 broken.
+== BEFORE (baseline source 04581709d, Julia 1.10): fixture fits only
+Gaussian ordinary q2 SD regression survives the first-step overflow (seed 179): Error During Test at /private/tmp/claude-503/-Users-z3437171--claude-spares-spar
+  AssertionError: isfinite(phi_c) && isfinite(dphi_c)
+Test Summary:                                                                  | Error  Total   Time
+Gaussian ordinary q2 SD regression survives the first-step overflow (seed 179) |     1      1  17.3s
+ERROR: LoadError: Some tests did not pass: 0 passed, 0 failed, 1 errored, 0 broken.
+== BEFORE toy objective part (unguarded Optim call throws): covered by @test_throws

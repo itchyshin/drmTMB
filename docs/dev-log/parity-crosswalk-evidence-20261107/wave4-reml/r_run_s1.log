@@ -1,0 +1,13 @@
+drmTMB 0.8.1 
+animal_s01 REML ll=-439.52449069 conv=0 pdHess=TRUE t=0.2s
+animal_s01 ML ll=-436.81920218 conv=0 pdHess=TRUE t=0.2s
+relmat_s01 REML ll=-401.29258400 conv=0 pdHess=TRUE t=0.2s
+relmat_s01 ML ll=-402.44691605 conv=0 pdHess=TRUE t=0.2s
+phylo_s01 REML ll=-376.45645010 conv=0 pdHess=TRUE t=0.1s
+phylo_s01 ML ll=-373.85407458 conv=0 pdHess=TRUE t=0.2s
+spatial_s01 REML ll=-406.21551261 conv=0 pdHess=TRUE t=0.2s
+spatial_s01 ML ll=-403.42252326 conv=0 pdHess=TRUE t=0.2s
+phylo_lab_s01 REML ll=-412.51207308 conv=0 pdHess=TRUE t=0.1s
+phylo_lab_s01 ML ll=-408.60043963 conv=0 pdHess=TRUE t=0.2s
+phylo_sx_s01 REML ll=-354.46562535 conv=0 pdHess=TRUE t=0.2s
+phylo_sx_s01 ML ll=-350.93924993 conv=0 pdHess=TRUE t=0.3s

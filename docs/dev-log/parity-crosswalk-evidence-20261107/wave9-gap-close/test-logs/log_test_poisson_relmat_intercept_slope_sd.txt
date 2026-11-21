@@ -1,0 +1,4 @@
+Test Summary:                                                | Pass  Total   Time
+Poisson relmat independent intercept and slope SD regression |    8      8  25.3s
+Test Summary:                                                       | Pass  Total  Time
+Poisson relmat q2: prediction, optimiser movement, refusals, bridge |   28     28  8.5s

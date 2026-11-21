@@ -1,0 +1,8 @@
+R opt: ll -832.5245  conv 0  max|grad| 5.43379e-09 
+R est : 0.778333 0.38593 -0.695849 -1.15969 0.788855 -1.96286 -1.94431 
+J est : 0.77523 0.388795 -0.693988 -1.45738 1.155 -1.93886 -1.75591 
+R objective at Julia estimate (zero inner start): ll -832.5085161977  max|grad| 1.060305e-07 
+R nlminb restarted at Julia estimate: ll -832.5085161977 conv 0
+  vs Julia: max|diff| 0, max|diff|/SE 0, SE rel diff max 7e-05
+   est: 0.77523 0.388795 -0.693988 -1.45738 1.155 -1.93886 -1.75591 
+R objective at R estimate (zero inner start): ll -832.5245 

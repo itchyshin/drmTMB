@@ -1,0 +1,4 @@
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:499
+Test Summary:                             | Pass  Total   Time
+Gamma spatial random-effect SD regression |   10     10  20.0s

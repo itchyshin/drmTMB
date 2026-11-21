@@ -1,0 +1,4 @@
+┌ Warning: drm: this tree's maximum tip height is 1.9, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 1.378405 = sqrt(1.9) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/1.9 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/sparse_phy.jl:751
+Test Summary:                                             | Pass  Total     Time
+phylo/spatial (1 + x | g) q2 with coefficient SD formulas |   33     33  1m11.3s

@@ -1,0 +1,4 @@
+Test Summary:                                                     | Pass  Total   Time
+NegBinomial2 relmat independent intercept and slope SD regression |   11     11  29.0s
+Test Summary:                                                   | Pass  Total  Time
+NB2 relmat q2: prediction, optimiser movement, refusals, bridge |   28     28  9.3s

@@ -1,0 +1,511 @@
+gauss_ord_q2	base fit	pass	ll=-193.2367	34.9
+gauss_ord_q2	perm	pass	dll=0.00e+00 dtheta=2.22e-11 conv=true max|theta|=1.1	0.4
+gauss_ord_q2	relabel	pass	dll=2.84e-14 dtheta=1.80e-10 conv=true max|theta|=1.1	0.1
+gauss_ord_q2	shift_v	pass	dll=0.00e+00 dtheta=2.32e-10 conv=true max|theta|=1.1	0.1
+gauss_ord_q2	shift_w	pass	dll=8.53e-14 dtheta=2.23e-11 conv=true max|theta|=0.7	0.1
+gauss_ord_q2	scale_w	pass	dll=2.84e-14 dtheta=2.39e-11 conv=true max|theta|=1.1	0.1
+gauss_ord_q2	scale_x	pass	dll=2.84e-14 dtheta=1.29e-10 conv=true max|theta|=1.7	0.0
+gauss_ord_q2	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.1	0.1
+gauss_ord_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+0.151 conv=true	0.1
+gauss_ord_q2	shift_x_const	pass	dll=2.84e-14 dbeta=3.83e-11 conv=true/true	12.1
+gauss_ord_q2	scale_y	pass	dll=8.53e-14 dtheta=1.07e-10 conv=true max|theta|=0.6	0.1
+gauss_ord_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	1.2
+gauss_ord_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+gauss_ord_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_ord_q2	simrefit	pass	truth S=5 ok=5 conv=5 |median err| fixed=0.041 SD-coef=0.136; min(nll(truth)-nll(fit))=1.12e+00	1.0
+gauss_ord_q3	base fit	pass	ll=-200.1339	1.2
+gauss_ord_q3	perm	pass	dll=5.68e-14 dtheta=1.99e-10 conv=true max|theta|=0.8	0.1
+gauss_ord_q3	relabel	pass	dll=8.53e-14 dtheta=1.96e-10 conv=true max|theta|=0.8	0.0
+gauss_ord_q3	shift_v	pass	dll=2.84e-14 dtheta=8.11e-10 conv=true max|theta|=0.8	0.0
+gauss_ord_q3	shift_w	pass	dll=2.84e-14 dtheta=5.66e-10 conv=true max|theta|=1.2	0.0
+gauss_ord_q3	scale_w	pass	dll=8.53e-14 dtheta=1.11e-09 conv=true max|theta|=0.8	0.0
+gauss_ord_q3	scale_x	pass	dll=5.68e-14 dtheta=9.68e-10 conv=true max|theta|=1.5	0.0
+gauss_ord_q3	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.8	0.0
+gauss_ord_q3	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+1.146 conv=true	0.0
+gauss_ord_q3	shift_x_const	pass	dll=2.84e-14 dbeta=2.75e-11 conv=true/true	31.6
+gauss_ord_q3	scale_y	pass	dll=8.53e-14 dtheta=6.13e-10 conv=true max|theta|=1.5	0.0
+gauss_ord_q3	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+gauss_ord_q3	swap	NA	needs a q = 2 block	0.0
+gauss_ord_q3	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_ord_q3	simrefit	pass	truth S=5 ok=5 conv=5 |median err| fixed=0.150 SD-coef=0.279; min(nll(truth)-nll(fit))=4.74e+00	0.3
+gauss_ord_q4	base fit	pass	ll=-222.6399	27.6
+gauss_ord_q4	perm	pass	dll=0.00e+00 dtheta=2.44e-09 conv=true max|theta|=1.0	0.1
+gauss_ord_q4	relabel	pass	dll=0.00e+00 dtheta=2.44e-09 conv=true max|theta|=1.0	0.0
+gauss_ord_q4	shift_v	pass	dll=8.53e-14 dtheta=1.59e-09 conv=true max|theta|=1.0	0.0
+gauss_ord_q4	shift_w	pass	dll=0.00e+00 dtheta=1.83e-09 conv=true max|theta|=1.2	0.1
+gauss_ord_q4	scale_w	pass	dll=5.68e-14 dtheta=1.97e-09 conv=true max|theta|=1.0	0.1
+gauss_ord_q4	scale_x	pass	dll=5.68e-14 dtheta=2.06e-09 conv=true max|theta|=1.4	0.0
+gauss_ord_q4	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.0	0.0
+gauss_ord_q4	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-1.116 conv=true	0.0
+gauss_ord_q4	shift_x_const	pass	dll=2.84e-14 dbeta=8.27e-11 conv=true/true	16.0
+gauss_ord_q4	scale_y	pass	dll=5.68e-14 dtheta=7.88e-10 conv=true max|theta|=1.4	0.0
+gauss_ord_q4	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+gauss_ord_q4	swap	NA	needs a q = 2 block	0.0
+gauss_ord_q4	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_ord_q4	simrefit	pass	truth S=5 ok=5 conv=4 |median err| fixed=0.075 SD-coef=0.588; min(nll(truth)-nll(fit))=1.07e+01	1.0
+pois_ord_q2	base fit	pass	ll=-384.7892	5.7
+pois_ord_q2	perm	pass	dll=2.04e-10 dtheta=5.18e-08 conv=true max|theta|=0.8	0.0
+pois_ord_q2	relabel	pass	dll=2.40e-11 dtheta=3.42e-08 conv=true max|theta|=0.8	0.0
+pois_ord_q2	shift_v	pass	dll=3.46e-10 dtheta=5.20e-08 conv=true max|theta|=0.8	0.0
+pois_ord_q2	shift_w	pass	dll=1.87e-10 dtheta=1.16e-07 conv=true max|theta|=0.7	0.1
+pois_ord_q2	scale_w	pass	dll=1.48e-11 dtheta=4.79e-08 conv=true max|theta|=0.8	0.0
+pois_ord_q2	scale_x	pass	dll=1.22e-11 dtheta=3.77e-08 conv=true max|theta|=1.5	0.0
+pois_ord_q2	flip_x	pass	dll=2.08e-10 dtheta=3.43e-08 conv=true max|theta|=0.8	0.1
+pois_ord_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+1.299 conv=true	0.0
+pois_ord_q2	shift_x_const	pass	dll=1.67e-10 dbeta=1.96e-08 conv=true/true	0.1
+pois_ord_q2	scale_y	NA	count/binary response	0.0
+pois_ord_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+pois_ord_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.0
+pois_ord_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_ord_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.126 SD-coef=0.360; min(nll(truth)-nll(fit))=3.88e+00	0.7
+nb2_ord_q2	base fit	pass	ll=-414.9041	6.1
+nb2_ord_q2	perm	pass	dll=1.14e-13 dtheta=3.21e-08 conv=true max|theta|=0.9	0.1
+nb2_ord_q2	relabel	pass	dll=5.68e-14 dtheta=5.29e-08 conv=true max|theta|=0.9	0.1
+nb2_ord_q2	shift_v	pass	dll=5.68e-14 dtheta=3.09e-08 conv=true max|theta|=0.9	0.1
+nb2_ord_q2	shift_w	pass	dll=1.14e-13 dtheta=7.06e-08 conv=true max|theta|=0.9	0.1
+nb2_ord_q2	scale_w	pass	dll=0.00e+00 dtheta=7.08e-08 conv=true max|theta|=0.9	0.1
+nb2_ord_q2	scale_x	pass	dll=2.27e-13 dtheta=3.85e-08 conv=true max|theta|=1.3	0.1
+nb2_ord_q2	flip_x	pass	dll=5.68e-14 dtheta=3.36e-09 conv=true max|theta|=0.9	0.1
+nb2_ord_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.508 conv=true	0.1
+nb2_ord_q2	shift_x_const	pass	dll=3.41e-13 dbeta=6.48e-09 conv=true/true	0.2
+nb2_ord_q2	scale_y	NA	count/binary response	0.0
+nb2_ord_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+nb2_ord_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+nb2_ord_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_ord_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.114 SD-coef=0.634; min(nll(truth)-nll(fit))=3.98e+00	1.2
+gamma_ord_q2	base fit	REFUSED	ArgumentError: Gamma random-effect SD regression requires exactly one SD target.	2.7
+binom_ord_q2	base fit	pass	ll=-729.0263	60.7
+binom_ord_q2	perm	pass	dll=1.14e-13 dtheta=1.11e-16 conv=true max|theta|=0.8	0.2
+binom_ord_q2	relabel	pass	dll=2.27e-13 dtheta=1.11e-16 conv=true max|theta|=0.8	0.2
+binom_ord_q2	shift_v	pass	dll=0.00e+00 dtheta=9.81e-12 conv=true max|theta|=0.8	0.2
+binom_ord_q2	shift_w	pass	dll=0.00e+00 dtheta=2.93e-10 conv=true max|theta|=0.8	0.2
+binom_ord_q2	scale_w	pass	dll=1.14e-13 dtheta=7.18e-12 conv=true max|theta|=0.8	0.2
+binom_ord_q2	scale_x	pass	dll=2.27e-13 dtheta=5.11e-11 conv=true max|theta|=0.8	0.2
+binom_ord_q2	flip_x	pass	dll=0.00e+00 dtheta=1.39e-16 conv=true max|theta|=0.8	0.2
+binom_ord_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+0.161 conv=true	0.2
+binom_ord_q2	shift_x_const	pass	dll=2.27e-13 dbeta=1.56e-10 conv=true/true	16.5
+binom_ord_q2	scale_y	NA	count/binary response	0.0
+binom_ord_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.5
+binom_ord_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.3
+binom_ord_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+binom_ord_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.163 SD-coef=0.129; min(nll(truth)-nll(fit))=1.19e+01	1.9
+gauss_animal_q2	base fit	pass	ll=-194.6927	14.5
+gauss_animal_q2	perm	pass	dll=2.84e-14 dtheta=1.88e-14 conv=true max|theta|=1.0	0.4
+gauss_animal_q2	relabel	pass	dll=0.00e+00 dtheta=2.49e-14 conv=true max|theta|=1.0	0.2
+gauss_animal_q2	shift_v	pass	dll=5.68e-14 dtheta=1.24e-11 conv=true max|theta|=1.0	0.3
+gauss_animal_q2	shift_w	pass	dll=2.84e-14 dtheta=3.09e-11 conv=true max|theta|=0.8	0.2
+gauss_animal_q2	scale_w	pass	dll=0.00e+00 dtheta=4.56e-12 conv=true max|theta|=1.0	0.2
+gauss_animal_q2	scale_x	pass	dll=0.00e+00 dtheta=4.04e-12 conv=true max|theta|=1.7	0.2
+gauss_animal_q2	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.0	0.3
+gauss_animal_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-2.244 conv=true	0.3
+gauss_animal_q2	shift_x_const	NA	needs free correlation	0.0
+gauss_animal_q2	scale_y	pass	dll=0.00e+00 dtheta=4.83e-11 conv=true max|theta|=0.6	0.3
+gauss_animal_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.1
+gauss_animal_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.3
+gauss_animal_q2	reml	pass	REML dll=0.00e+00 dtheta=2.28e-15 (perm, relabel, shift_v)	15.2
+gauss_animal_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.161 SD-coef=0.217; min(nll(truth)-nll(fit))=3.71e+00	1.4
+pois_animal_q2	base fit	pass	ll=-378.3379	0.9
+pois_animal_q2	perm	pass	dll=3.71e-10 dtheta=3.49e-09 conv=true max|theta|=0.9	0.1
+pois_animal_q2	relabel	pass	dll=2.78e-10 dtheta=3.46e-09 conv=true max|theta|=0.9	0.1
+pois_animal_q2	shift_v	pass	dll=1.41e-10 dtheta=1.88e-08 conv=true max|theta|=0.9	0.1
+pois_animal_q2	shift_w	pass	dll=2.45e-10 dtheta=3.76e-08 conv=true max|theta|=0.8	0.1
+pois_animal_q2	scale_w	pass	dll=5.99e-10 dtheta=2.21e-08 conv=true max|theta|=0.9	0.1
+pois_animal_q2	scale_x	pass	dll=1.70e-10 dtheta=3.05e-08 conv=true max|theta|=1.6	0.1
+pois_animal_q2	flip_x	pass	dll=2.45e-10 dtheta=3.46e-09 conv=true max|theta|=0.9	0.1
+pois_animal_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.086 conv=true	0.1
+pois_animal_q2	shift_x_const	NA	needs free correlation	0.0
+pois_animal_q2	scale_y	NA	count/binary response	0.0
+pois_animal_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_animal_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+pois_animal_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_animal_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.135 SD-coef=0.438; min(nll(truth)-nll(fit))=1.42e+00	0.8
+nb2_animal_q2	base fit	pass	ll=-423.8187	1.3
+nb2_animal_q2	perm	pass	dll=2.97e-11 dtheta=1.46e-08 conv=true max|theta|=0.9	0.1
+nb2_animal_q2	relabel	pass	dll=1.92e-11 dtheta=1.48e-08 conv=true max|theta|=0.9	0.1
+nb2_animal_q2	shift_v	pass	dll=8.01e-12 dtheta=4.70e-08 conv=true max|theta|=0.9	0.1
+nb2_animal_q2	shift_w	pass	dll=1.09e-11 dtheta=2.37e-08 conv=true max|theta|=1.1	0.1
+nb2_animal_q2	scale_w	pass	dll=3.44e-11 dtheta=1.45e-08 conv=true max|theta|=0.9	0.1
+nb2_animal_q2	scale_x	pass	dll=2.48e-11 dtheta=7.22e-08 conv=true max|theta|=1.6	0.1
+nb2_animal_q2	flip_x	pass	dll=1.22e-11 dtheta=1.47e-08 conv=true max|theta|=0.9	0.1
+nb2_animal_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-1.025 conv=true	0.1
+nb2_animal_q2	shift_x_const	NA	needs free correlation	0.0
+nb2_animal_q2	scale_y	NA	count/binary response	0.0
+nb2_animal_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+nb2_animal_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+nb2_animal_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_animal_q2	simrefit	pass	simulate S=5 ok=5 conv=4 |median err| fixed=0.091 SD-coef=1.044; min(nll(truth)-nll(fit))=1.82e+00	1.2
+gamma_animal_q2	base fit	pass	ll=-247.8952	2.6
+gamma_animal_q2	perm	pass	dll=3.13e-10 dtheta=1.18e-07 conv=true max|theta|=0.8	0.2
+gamma_animal_q2	relabel	pass	dll=3.24e-11 dtheta=4.80e-08 conv=true max|theta|=0.8	0.3
+gamma_animal_q2	shift_v	pass	dll=2.23e-11 dtheta=4.35e-08 conv=true max|theta|=0.8	0.4
+gamma_animal_q2	shift_w	pass	dll=3.06e-10 dtheta=1.29e-07 conv=true max|theta|=0.8	0.2
+gamma_animal_q2	scale_w	pass	dll=1.36e-10 dtheta=3.46e-08 conv=true max|theta|=0.8	0.2
+gamma_animal_q2	scale_x	pass	dll=2.81e-10 dtheta=3.73e-08 conv=true max|theta|=1.4	0.2
+gamma_animal_q2	flip_x	pass	dll=5.39e-11 dtheta=4.44e-08 conv=true max|theta|=0.8	0.4
+gamma_animal_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-1.923 conv=true	0.2
+gamma_animal_q2	shift_x_const	NA	needs free correlation	0.0
+gamma_animal_q2	scale_y	pass	dll=1.78e-10 dtheta=6.44e-08 conv=true max|theta|=1.4	0.4
+gamma_animal_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+gamma_animal_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.5
+gamma_animal_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+gamma_animal_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.066 SD-coef=0.184; min(nll(truth)-nll(fit))=1.31e+00	2.4
+binom_animal_q2	base fit	pass	ll=-551.3126	1.9
+binom_animal_q2	perm	pass	dll=6.56e-10 dtheta=1.92e-07 conv=true max|theta|=4.9	0.3
+binom_animal_q2	relabel	pass	dll=2.59e-07 dtheta=1.01e-07 conv=true max|theta|=4.9	0.3
+binom_animal_q2	shift_v	pass	dll=2.16e-09 dtheta=6.80e-05 conv=true max|theta|=4.9	0.4
+binom_animal_q2	shift_w	pass	dll=2.75e-07 dtheta=9.44e-04 conv=true max|theta|=4.9	0.3
+binom_animal_q2	scale_w	pass	dll=1.29e-07 dtheta=9.36e-04 conv=true max|theta|=3.6	0.3
+binom_animal_q2	scale_x	pass	dll=1.06e-07 dtheta=1.05e-04 conv=true max|theta|=4.9	0.3
+binom_animal_q2	flip_x	pass	dll=3.65e-08 dtheta=5.27e-05 conv=true max|theta|=4.9	0.3
+binom_animal_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+4.684 conv=false	0.4
+binom_animal_q2	shift_x_const	NA	needs free correlation	0.0
+binom_animal_q2	scale_y	NA	count/binary response	0.0
+binom_animal_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+binom_animal_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.3
+binom_animal_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+binom_animal_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.124 SD-coef=0.582; min(nll(truth)-nll(fit))=2.78e+00	2.4
+gauss_phylo_q2	base fit	pass	ll=-269.7775	3.6
+gauss_phylo_q2	perm	pass	dll=1.14e-13 dtheta=6.13e-12 conv=true max|theta|=1.1	1.0
+gauss_phylo_q2	relabel	pass	dll=1.71e-13 dtheta=2.38e-12 conv=true max|theta|=1.1	0.9
+gauss_phylo_q2	shift_v	pass	dll=5.68e-14 dtheta=8.42e-12 conv=true max|theta|=1.1	1.0
+gauss_phylo_q2	shift_w	pass	dll=5.68e-14 dtheta=1.62e-12 conv=true max|theta|=0.9	1.0
+gauss_phylo_q2	scale_w	pass	dll=5.68e-14 dtheta=5.56e-12 conv=true max|theta|=1.1	0.9
+gauss_phylo_q2	scale_x	pass	dll=5.68e-14 dtheta=1.64e-12 conv=true max|theta|=1.8	1.1
+gauss_phylo_q2	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.1	1.0
+gauss_phylo_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-2.182 conv=true	1.0
+gauss_phylo_q2	shift_x_const	NA	needs free correlation	0.0
+gauss_phylo_q2	scale_y	pass	dll=5.68e-14 dtheta=5.66e-11 conv=true max|theta|=0.6	1.0
+gauss_phylo_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+gauss_phylo_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	1.0
+gauss_phylo_q2	reml	pass	REML dll=3.41e-13 dtheta=1.14e-12 (perm, relabel, shift_v)	2.6
+gauss_phylo_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.029 SD-coef=0.132; min(nll(truth)-nll(fit))=1.02e+00	5.3
+gauss_spatial_q2	base fit	pass	ll=-251.2388	1.9
+gauss_spatial_q2	perm	pass	dll=1.14e-13 dtheta=1.55e-15 conv=true max|theta|=1.0	1.0
+gauss_spatial_q2	relabel	pass	dll=1.42e-13 dtheta=4.88e-15 conv=true max|theta|=1.0	1.0
+gauss_spatial_q2	shift_v	pass	dll=2.84e-14 dtheta=1.96e-12 conv=true max|theta|=1.0	1.1
+gauss_spatial_q2	shift_w	pass	dll=2.84e-14 dtheta=1.95e-10 conv=true max|theta|=1.0	1.0
+gauss_spatial_q2	scale_w	pass	dll=0.00e+00 dtheta=8.64e-12 conv=true max|theta|=1.0	0.9
+gauss_spatial_q2	scale_x	pass	dll=1.14e-13 dtheta=1.77e-11 conv=true max|theta|=1.7	1.0
+gauss_spatial_q2	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.0	1.0
+gauss_spatial_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-3.104 conv=true	1.0
+gauss_spatial_q2	shift_x_const	NA	needs free correlation	0.0
+gauss_spatial_q2	scale_y	pass	dll=1.14e-13 dtheta=2.76e-12 conv=true max|theta|=0.6	1.1
+gauss_spatial_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+gauss_spatial_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	1.0
+gauss_spatial_q2	reml	pass	REML dll=2.27e-13 dtheta=3.89e-15 (perm, relabel, shift_v)	2.8
+gauss_spatial_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.097 SD-coef=0.181; min(nll(truth)-nll(fit))=1.07e+00	5.9
+pois_phylo_q2	base fit	pass	ll=-518.1135	0.8
+pois_phylo_q2	perm	pass	dll=1.07e-10 dtheta=1.74e-07 conv=true max|theta|=1.4	0.1
+pois_phylo_q2	relabel	pass	dll=1.62e-10 dtheta=1.04e-08 conv=true max|theta|=1.4	0.1
+pois_phylo_q2	shift_v	pass	dll=1.55e-10 dtheta=2.65e-07 conv=true max|theta|=1.4	0.1
+pois_phylo_q2	shift_w	pass	dll=2.54e-11 dtheta=1.24e-07 conv=true max|theta|=1.7	0.1
+pois_phylo_q2	scale_w	pass	dll=7.23e-11 dtheta=6.82e-08 conv=true max|theta|=1.4	0.1
+pois_phylo_q2	scale_x	pass	dll=2.47e-10 dtheta=4.40e-07 conv=true max|theta|=2.1	0.1
+pois_phylo_q2	flip_x	pass	dll=1.63e-10 dtheta=7.92e-09 conv=true max|theta|=1.4	0.1
+pois_phylo_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-2.629 conv=true	0.1
+pois_phylo_q2	shift_x_const	NA	needs free correlation	0.0
+pois_phylo_q2	scale_y	NA	count/binary response	0.0
+pois_phylo_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_phylo_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+pois_phylo_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_phylo_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.064 SD-coef=0.308; min(nll(truth)-nll(fit))=2.10e+00	0.7
+pois_spatial_q2	base fit	pass	ll=-490.1567	0.7
+pois_spatial_q2	perm	pass	dll=1.58e-10 dtheta=1.50e-08 conv=true max|theta|=0.9	0.2
+pois_spatial_q2	relabel	pass	dll=2.62e-10 dtheta=1.50e-08 conv=true max|theta|=0.9	0.2
+pois_spatial_q2	shift_v	pass	dll=1.20e-11 dtheta=1.14e-08 conv=true max|theta|=0.9	0.2
+pois_spatial_q2	shift_w	pass	dll=7.26e-11 dtheta=3.00e-08 conv=true max|theta|=1.0	0.3
+pois_spatial_q2	scale_w	pass	dll=4.29e-10 dtheta=2.00e-08 conv=true max|theta|=0.9	0.2
+pois_spatial_q2	scale_x	pass	dll=9.20e-11 dtheta=3.10e-08 conv=true max|theta|=1.6	0.2
+pois_spatial_q2	flip_x	pass	dll=1.25e-12 dtheta=2.70e-10 conv=true max|theta|=0.9	0.2
+pois_spatial_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-2.205 conv=true	0.3
+pois_spatial_q2	shift_x_const	NA	needs free correlation	0.0
+pois_spatial_q2	scale_y	NA	count/binary response	0.0
+pois_spatial_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_spatial_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.2
+pois_spatial_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_spatial_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.205 SD-coef=0.466; min(nll(truth)-nll(fit))=2.43e+00	1.8
+nb2_phylo_q2	base fit	pass	ll=-548.9243	0.7
+nb2_phylo_q2	perm	pass	dll=1.99e-11 dtheta=1.86e-07 conv=true max|theta|=1.6	0.2
+nb2_phylo_q2	relabel	pass	dll=3.14e-11 dtheta=1.99e-07 conv=true max|theta|=1.6	0.2
+nb2_phylo_q2	shift_v	pass	dll=9.89e-12 dtheta=1.57e-07 conv=true max|theta|=1.6	0.2
+nb2_phylo_q2	shift_w	pass	dll=7.96e-12 dtheta=4.91e-07 conv=true max|theta|=1.8	0.2
+nb2_phylo_q2	scale_w	pass	dll=2.56e-11 dtheta=7.52e-07 conv=true max|theta|=1.6	0.1
+nb2_phylo_q2	scale_x	pass	dll=2.02e-11 dtheta=2.15e-07 conv=true max|theta|=2.3	0.2
+nb2_phylo_q2	flip_x	pass	dll=2.06e-11 dtheta=2.01e-07 conv=true max|theta|=1.6	0.2
+nb2_phylo_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.251 conv=true	0.2
+nb2_phylo_q2	shift_x_const	NA	needs free correlation	0.0
+nb2_phylo_q2	scale_y	NA	count/binary response	0.0
+nb2_phylo_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+nb2_phylo_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.2
+nb2_phylo_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_phylo_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.047 SD-coef=9.067; min(nll(truth)-nll(fit))=3.31e+00	1.6
+nb2_spatial_q2	base fit	pass	ll=-532.1789	0.8
+nb2_spatial_q2	perm	pass	dll=1.65e-11 dtheta=2.89e-08 conv=true max|theta|=1.1	0.2
+nb2_spatial_q2	relabel	pass	dll=1.11e-11 dtheta=6.06e-09 conv=true max|theta|=1.1	0.2
+nb2_spatial_q2	shift_v	pass	dll=6.72e-11 dtheta=3.61e-08 conv=true max|theta|=1.1	0.2
+nb2_spatial_q2	shift_w	pass	dll=1.57e-10 dtheta=1.66e-08 conv=true max|theta|=1.3	0.1
+nb2_spatial_q2	scale_w	pass	dll=2.84e-12 dtheta=3.14e-07 conv=true max|theta|=1.1	0.2
+nb2_spatial_q2	scale_x	pass	dll=4.72e-11 dtheta=6.01e-08 conv=true max|theta|=1.8	0.2
+nb2_spatial_q2	flip_x	pass	dll=5.85e-11 dtheta=1.25e-10 conv=true max|theta|=1.1	0.2
+nb2_spatial_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-1.015 conv=true	0.4
+nb2_spatial_q2	shift_x_const	NA	needs free correlation	0.0
+nb2_spatial_q2	scale_y	NA	count/binary response	0.0
+nb2_spatial_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+nb2_spatial_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.2
+nb2_spatial_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_spatial_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.057 SD-coef=1.120; min(nll(truth)-nll(fit))=2.20e+00	1.6
+binom_phylo_q2	base fit	pass	ll=-477.4373	1.1
+binom_phylo_q2	perm	pass	dll=3.18e-09 dtheta=3.99e-09 conv=true max|theta|=0.7	0.1
+binom_phylo_q2	relabel	pass	dll=2.77e-09 dtheta=4.00e-09 conv=true max|theta|=0.7	0.1
+binom_phylo_q2	shift_v	pass	dll=3.83e-07 dtheta=1.53e-05 conv=true max|theta|=0.7	0.1
+binom_phylo_q2	shift_w	pass	dll=6.30e-09 dtheta=9.52e-05 conv=true max|theta|=0.7	0.1
+binom_phylo_q2	scale_w	pass	dll=1.49e-07 dtheta=4.07e-05 conv=true max|theta|=0.7	0.1
+binom_phylo_q2	scale_x	pass	dll=1.04e-07 dtheta=4.99e-06 conv=true max|theta|=1.4	0.1
+binom_phylo_q2	flip_x	pass	dll=2.11e-09 dtheta=7.06e-06 conv=true max|theta|=0.7	0.1
+binom_phylo_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+5.025 conv=true	0.1
+binom_phylo_q2	shift_x_const	NA	needs free correlation	0.0
+binom_phylo_q2	scale_y	NA	count/binary response	0.0
+binom_phylo_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+binom_phylo_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+binom_phylo_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+binom_phylo_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.073 SD-coef=0.318; min(nll(truth)-nll(fit))=1.84e+00	1.1
+binom_spatial_q2	base fit	pass	ll=-485.6821	1.0
+binom_spatial_q2	perm	pass	dll=1.97e-10 dtheta=7.54e-10 conv=true max|theta|=1.0	0.4
+binom_spatial_q2	relabel	pass	dll=7.73e-10 dtheta=6.54e-10 conv=true max|theta|=1.0	0.4
+binom_spatial_q2	shift_v	pass	dll=7.91e-08 dtheta=8.98e-06 conv=true max|theta|=1.0	0.2
+binom_spatial_q2	shift_w	pass	dll=1.67e-07 dtheta=2.77e-05 conv=true max|theta|=1.0	0.4
+binom_spatial_q2	scale_w	pass	dll=2.56e-07 dtheta=2.12e-06 conv=true max|theta|=0.5	0.4
+binom_spatial_q2	scale_x	pass	dll=2.00e-07 dtheta=1.74e-05 conv=true max|theta|=1.2	0.3
+binom_spatial_q2	flip_x	pass	dll=6.74e-09 dtheta=1.36e-05 conv=true max|theta|=1.0	0.4
+binom_spatial_q2	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+1.751 conv=true	0.4
+binom_spatial_q2	shift_x_const	NA	needs free correlation	0.0
+binom_spatial_q2	scale_y	NA	count/binary response	0.0
+binom_spatial_q2	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+binom_spatial_q2	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.4
+binom_spatial_q2	reml	NA	REML structured q2 is Gaussian only	0.0
+binom_spatial_q2	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.527 SD-coef=0.846; min(nll(truth)-nll(fit))=1.82e+00	2.0
+pois_lab_ord	base fit	pass	ll=-379.5618	0.2
+pois_lab_ord	perm	pass	dll=1.89e-10 dtheta=1.48e-07 conv=true max|theta|=0.8	0.0
+pois_lab_ord	relabel	pass	dll=1.95e-10 dtheta=9.93e-09 conv=true max|theta|=0.8	0.0
+pois_lab_ord	shift_v	pass	dll=1.94e-10 dtheta=2.67e-08 conv=true max|theta|=0.8	0.0
+pois_lab_ord	shift_w	pass	dll=8.05e-11 dtheta=1.73e-08 conv=true max|theta|=0.7	0.0
+pois_lab_ord	scale_w	pass	dll=3.24e-11 dtheta=1.22e-08 conv=true max|theta|=0.8	0.0
+pois_lab_ord	scale_x	pass	dll=2.00e-10 dtheta=3.09e-07 conv=true max|theta|=1.5	0.0
+pois_lab_ord	flip_x	pass	dll=5.55e-11 dtheta=2.93e-08 conv=true max|theta|=0.8	0.0
+pois_lab_ord	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+0.224 conv=true	0.0
+pois_lab_ord	shift_x_const	pass	dll=2.23e-10 dbeta=8.10e-09 conv=true/true	0.0
+pois_lab_ord	scale_y	NA	count/binary response	0.0
+pois_lab_ord	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_lab_ord	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.0
+pois_lab_ord	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_lab_ord	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.089 SD-coef=0.321; min(nll(truth)-nll(fit))=1.74e+00	0.2
+nb2_lab_ord	base fit	pass	ll=-415.8733	0.2
+nb2_lab_ord	perm	pass	dll=1.80e-10 dtheta=9.75e-09 conv=true max|theta|=0.9	0.1
+nb2_lab_ord	relabel	pass	dll=1.93e-10 dtheta=1.12e-07 conv=true max|theta|=0.9	0.1
+nb2_lab_ord	shift_v	pass	dll=2.60e-10 dtheta=1.01e-08 conv=true max|theta|=0.9	0.1
+nb2_lab_ord	shift_w	pass	dll=1.17e-10 dtheta=1.37e-08 conv=true max|theta|=0.9	0.1
+nb2_lab_ord	scale_w	pass	dll=1.80e-10 dtheta=8.29e-09 conv=true max|theta|=0.9	0.1
+nb2_lab_ord	scale_x	pass	dll=2.11e-10 dtheta=1.14e-07 conv=true max|theta|=1.1	0.1
+nb2_lab_ord	flip_x	pass	dll=2.38e-10 dtheta=1.02e-08 conv=true max|theta|=0.9	0.1
+nb2_lab_ord	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+0.672 conv=true	0.1
+nb2_lab_ord	shift_x_const	pass	dll=3.72e-10 dbeta=9.45e-09 conv=true/true	0.1
+nb2_lab_ord	scale_y	NA	count/binary response	0.0
+nb2_lab_ord	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+nb2_lab_ord	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+nb2_lab_ord	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_lab_ord	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.051 SD-coef=0.248; min(nll(truth)-nll(fit))=1.63e+00	0.4
+pois_lab_animal	base fit	pass	ll=-335.0007	0.2
+pois_lab_animal	perm	pass	dll=6.30e-11 dtheta=1.90e-08 conv=true max|theta|=0.7	0.1
+pois_lab_animal	relabel	pass	dll=2.84e-13 dtheta=1.03e-10 conv=true max|theta|=0.7	0.1
+pois_lab_animal	shift_v	pass	dll=5.78e-10 dtheta=3.49e-08 conv=true max|theta|=0.7	0.1
+pois_lab_animal	shift_w	pass	dll=6.73e-10 dtheta=4.78e-08 conv=true max|theta|=1.1	0.1
+pois_lab_animal	scale_w	pass	dll=5.12e-10 dtheta=7.28e-08 conv=true max|theta|=0.7	0.1
+pois_lab_animal	scale_x	pass	dll=1.08e-09 dtheta=4.35e-08 conv=true max|theta|=1.0	0.1
+pois_lab_animal	flip_x	pass	dll=1.88e-12 dtheta=3.06e-11 conv=true max|theta|=0.7	0.1
+pois_lab_animal	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+0.464 conv=true	0.1
+pois_lab_animal	shift_x_const	pass	dll=1.53e-10 dbeta=3.26e-09 conv=true/true	0.2
+pois_lab_animal	scale_y	NA	count/binary response	0.0
+pois_lab_animal	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_lab_animal	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+pois_lab_animal	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_lab_animal	simrefit	pass	simulate S=5 ok=5 conv=4 |median err| fixed=0.172 SD-coef=0.594; min(nll(truth)-nll(fit))=2.89e+00	1.1
+nb2_lab_animal	base fit	pass	ll=-376.5212	0.3
+nb2_lab_animal	perm	pass	dll=2.48e-11 dtheta=2.89e-08 conv=true max|theta|=0.8	0.2
+nb2_lab_animal	relabel	pass	dll=1.42e-11 dtheta=3.83e-10 conv=true max|theta|=0.8	0.2
+nb2_lab_animal	shift_v	pass	dll=1.34e-10 dtheta=4.96e-08 conv=true max|theta|=0.8	0.2
+nb2_lab_animal	shift_w	pass	dll=1.40e-10 dtheta=1.14e-07 conv=true max|theta|=1.0	0.2
+nb2_lab_animal	scale_w	pass	dll=5.65e-11 dtheta=5.40e-08 conv=true max|theta|=0.8	0.2
+nb2_lab_animal	scale_x	pass	dll=7.02e-11 dtheta=5.96e-08 conv=true max|theta|=1.5	0.2
+nb2_lab_animal	flip_x	pass	dll=9.66e-13 dtheta=4.53e-09 conv=true max|theta|=0.8	0.2
+nb2_lab_animal	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=+0.274 conv=true	0.2
+nb2_lab_animal	shift_x_const	pass	dll=2.05e-10 dbeta=1.26e-08 conv=true/true	0.2
+nb2_lab_animal	scale_y	NA	count/binary response	0.0
+nb2_lab_animal	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+nb2_lab_animal	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.2
+nb2_lab_animal	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_lab_animal	simrefit	WEAK	simulate S=5 ok=5 conv=5 |median err| fixed=0.291 SD-coef=0.835; min(nll(truth)-nll(fit))=2.59e+00	1.5
+gauss_lab_animal	base fit	pass	ll=-191.2680	15.1
+gauss_lab_animal	perm	pass	dll=0.00e+00 dtheta=6.22e-15 conv=true max|theta|=0.9	0.5
+gauss_lab_animal	relabel	pass	dll=5.68e-14 dtheta=3.00e-15 conv=true max|theta|=0.9	0.3
+gauss_lab_animal	shift_v	pass	dll=0.00e+00 dtheta=3.22e-10 conv=true max|theta|=0.9	0.3
+gauss_lab_animal	shift_w	pass	dll=0.00e+00 dtheta=2.62e-11 conv=true max|theta|=0.9	0.3
+gauss_lab_animal	scale_w	pass	dll=5.68e-14 dtheta=2.78e-11 conv=true max|theta|=0.9	0.3
+gauss_lab_animal	scale_x	pass	dll=2.84e-14 dtheta=1.65e-11 conv=true max|theta|=1.6	0.3
+gauss_lab_animal	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.9	0.3
+gauss_lab_animal	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.628 conv=true	0.3
+gauss_lab_animal	shift_x_const	pass	dll=0.00e+00 dbeta=2.99e-12 conv=true/true	10.0
+gauss_lab_animal	scale_y	pass	dll=0.00e+00 dtheta=1.95e-10 conv=true max|theta|=0.9	0.3
+gauss_lab_animal	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+gauss_lab_animal	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.3
+gauss_lab_animal	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_lab_animal	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.209 SD-coef=0.378; min(nll(truth)-nll(fit))=4.19e+00	2.0
+pois_lab_phylo	base fit	pass	ll=-571.3684	0.2
+pois_lab_phylo	perm	pass	dll=3.93e-10 dtheta=1.21e-07 conv=true max|theta|=1.1	0.1
+pois_lab_phylo	relabel	pass	dll=8.78e-11 dtheta=1.12e-07 conv=true max|theta|=1.1	0.1
+pois_lab_phylo	shift_v	pass	dll=2.25e-10 dtheta=1.28e-07 conv=true max|theta|=1.1	0.1
+pois_lab_phylo	shift_w	pass	dll=5.06e-11 dtheta=2.00e-07 conv=true max|theta|=1.4	0.2
+pois_lab_phylo	scale_w	pass	dll=1.24e-10 dtheta=6.51e-08 conv=true max|theta|=1.1	0.1
+pois_lab_phylo	scale_x	pass	dll=1.62e-10 dtheta=1.68e-07 conv=true max|theta|=1.6	0.1
+pois_lab_phylo	flip_x	pass	dll=3.85e-11 dtheta=1.72e-10 conv=true max|theta|=1.1	0.1
+pois_lab_phylo	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.380 conv=false	0.2
+pois_lab_phylo	shift_x_const	pass	dll=7.20e-11 dbeta=9.47e-09 conv=true/true	0.2
+pois_lab_phylo	scale_y	NA	count/binary response	0.0
+pois_lab_phylo	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_lab_phylo	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.1
+pois_lab_phylo	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_lab_phylo	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.088 SD-coef=0.088; min(nll(truth)-nll(fit))=1.75e+00	1.1
+pois_lab_spatial	base fit	pass	ll=-575.6754	0.5
+pois_lab_spatial	perm	pass	dll=1.14e-13 dtheta=1.51e-07 conv=true max|theta|=1.0	0.3
+pois_lab_spatial	relabel	pass	dll=1.78e-10 dtheta=4.40e-08 conv=true max|theta|=1.0	0.3
+pois_lab_spatial	shift_v	pass	dll=1.76e-10 dtheta=1.93e-07 conv=true max|theta|=1.0	0.3
+pois_lab_spatial	shift_w	pass	dll=1.86e-10 dtheta=1.49e-07 conv=true max|theta|=1.3	0.3
+pois_lab_spatial	scale_w	pass	dll=1.14e-13 dtheta=3.64e-08 conv=true max|theta|=1.0	0.3
+pois_lab_spatial	scale_x	pass	dll=1.26e-10 dtheta=3.26e-08 conv=true max|theta|=1.7	0.4
+pois_lab_spatial	flip_x	pass	dll=7.73e-12 dtheta=1.04e-07 conv=true max|theta|=1.0	0.4
+pois_lab_spatial	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.993 conv=true	0.4
+pois_lab_spatial	shift_x_const	pass	dll=5.13e-10 dbeta=7.78e-08 conv=true/true	0.5
+pois_lab_spatial	scale_y	NA	count/binary response	0.0
+pois_lab_spatial	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+pois_lab_spatial	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.3
+pois_lab_spatial	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_lab_spatial	simrefit	pass	simulate S=5 ok=5 conv=4 |median err| fixed=0.221 SD-coef=0.630; min(nll(truth)-nll(fit))=2.37e+00	3.1
+nb2_lab_phylo	base fit	pass	ll=-567.2470	0.4
+nb2_lab_phylo	perm	pass	dll=1.78e-10 dtheta=2.31e-08 conv=true max|theta|=0.9	0.2
+nb2_lab_phylo	relabel	pass	dll=4.13e-10 dtheta=4.30e-08 conv=true max|theta|=0.9	0.2
+nb2_lab_phylo	shift_v	pass	dll=2.65e-10 dtheta=3.00e-07 conv=true max|theta|=0.9	0.2
+nb2_lab_phylo	shift_w	pass	dll=3.17e-10 dtheta=8.54e-08 conv=true max|theta|=1.2	0.2
+nb2_lab_phylo	scale_w	pass	dll=3.76e-10 dtheta=1.10e-07 conv=true max|theta|=0.9	0.1
+nb2_lab_phylo	scale_x	pass	dll=3.28e-10 dtheta=4.18e-08 conv=true max|theta|=1.6	0.3
+nb2_lab_phylo	flip_x	pass	dll=2.72e-10 dtheta=7.72e-08 conv=true max|theta|=0.9	0.2
+nb2_lab_phylo	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-0.481 conv=true	0.6
+nb2_lab_phylo	shift_x_const	pass	dll=3.76e-10 dbeta=7.14e-09 conv=true/true	0.3
+nb2_lab_phylo	scale_y	NA	count/binary response	0.0
+nb2_lab_phylo	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+nb2_lab_phylo	swap	pass	dll=0.00e+00 dtheta=0.00e+00	0.3
+nb2_lab_phylo	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_lab_phylo	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.062 SD-coef=0.304; min(nll(truth)-nll(fit))=1.91e+00	1.8
+gauss_lab_phylo	base fit	pass	ll=-321.5740	2.0
+gauss_lab_phylo	perm	pass	dll=0.00e+00 dtheta=3.24e-14 conv=true max|theta|=1.0	2.0
+gauss_lab_phylo	relabel	pass	dll=2.84e-13 dtheta=2.41e-14 conv=true max|theta|=1.0	2.1
+gauss_lab_phylo	shift_v	pass	dll=1.14e-13 dtheta=4.70e-12 conv=true max|theta|=1.0	2.0
+gauss_lab_phylo	shift_w	pass	dll=2.27e-13 dtheta=2.76e-11 conv=true max|theta|=1.2	2.1
+gauss_lab_phylo	scale_w	pass	dll=5.68e-14 dtheta=8.63e-12 conv=true max|theta|=1.0	1.9
+gauss_lab_phylo	scale_x	pass	dll=2.84e-13 dtheta=2.18e-10 conv=true max|theta|=1.7	2.0
+gauss_lab_phylo	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.0	2.0
+gauss_lab_phylo	shift_x	EXPECTED	random slope on x with `sd ~ w`: not shift-equivariant; dll=-2.098 conv=true	1.9
+gauss_lab_phylo	shift_x_const	pass	dll=1.71e-13 dbeta=7.24e-13 conv=true/true	2.5
+gauss_lab_phylo	scale_y	pass	dll=1.71e-13 dtheta=1.29e-11 conv=true max|theta|=0.9	2.0
+gauss_lab_phylo	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+gauss_lab_phylo	swap	pass	dll=0.00e+00 dtheta=0.00e+00	2.2
+gauss_lab_phylo	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_lab_phylo	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.042 SD-coef=0.175; min(nll(truth)-nll(fit))=1.97e+00	10.4
+gauss_q1	base fit	pass	ll=-210.4731	2.5
+gauss_q1	perm	pass	dll=8.24e-13 dtheta=1.15e-13 conv=true max|theta|=0.7	0.1
+gauss_q1	relabel	pass	dll=4.26e-13 dtheta=3.40e-14 conv=true max|theta|=0.7	0.0
+gauss_q1	shift_v	pass	dll=5.68e-14 dtheta=1.91e-11 conv=true max|theta|=0.7	0.0
+gauss_q1	shift_w	pass	dll=0.00e+00 dtheta=1.71e-11 conv=true max|theta|=1.0	0.0
+gauss_q1	scale_w	pass	dll=7.39e-13 dtheta=1.20e-11 conv=true max|theta|=0.7	0.0
+gauss_q1	scale_x	pass	dll=4.55e-13 dtheta=7.53e-12 conv=true max|theta|=0.7	0.0
+gauss_q1	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.7	0.0
+gauss_q1	shift_x	pass	dll=0.00e+00 dtheta=1.87e-11 conv=true max|theta|=0.7	0.0
+gauss_q1	shift_x_const	NA	needs free correlation	0.0
+gauss_q1	scale_y	pass	dll=4.55e-13 dtheta=1.87e-11 conv=true max|theta|=1.0	0.0
+gauss_q1	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+gauss_q1	swap	NA	needs a q = 2 block	0.0
+gauss_q1	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_q1	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.098 SD-coef=0.172; min(nll(truth)-nll(fit))=1.58e+00	0.4
+pois_q1	base fit	pass	ll=-307.8107	2.1
+pois_q1	perm	pass	dll=5.68e-14 dtheta=5.55e-17 conv=true max|theta|=0.7	0.0
+pois_q1	relabel	pass	dll=5.68e-14 dtheta=1.11e-16 conv=true max|theta|=0.7	0.0
+pois_q1	shift_v	pass	dll=0.00e+00 dtheta=1.58e-10 conv=true max|theta|=0.7	0.0
+pois_q1	shift_w	pass	dll=5.68e-14 dtheta=2.83e-11 conv=true max|theta|=1.1	0.0
+pois_q1	scale_w	pass	dll=5.68e-14 dtheta=3.11e-11 conv=true max|theta|=0.7	0.0
+pois_q1	scale_x	pass	dll=5.68e-14 dtheta=6.66e-11 conv=true max|theta|=0.7	0.0
+pois_q1	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.7	0.0
+pois_q1	shift_x	pass	dll=1.71e-13 dtheta=1.48e-12 conv=true max|theta|=0.7	0.0
+pois_q1	shift_x_const	NA	needs free correlation	0.0
+pois_q1	scale_y	NA	count/binary response	0.0
+pois_q1	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.2
+pois_q1	swap	NA	needs a q = 2 block	0.0
+pois_q1	reml	NA	REML structured q2 is Gaussian only	0.0
+pois_q1	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.081 SD-coef=0.398; min(nll(truth)-nll(fit))=1.68e+00	0.3
+gauss_sigma_ord	base fit	pass	ll=-142.8682	2.4
+gauss_sigma_ord	perm	pass	dll=1.14e-13 dtheta=4.72e-16 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	relabel	pass	dll=2.84e-14 dtheta=1.67e-10 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	shift_v	pass	dll=2.84e-14 dtheta=7.28e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	shift_w	pass	dll=5.68e-14 dtheta=3.21e-10 conv=true max|theta|=1.0	0.0
+gauss_sigma_ord	scale_w	pass	dll=2.84e-14 dtheta=1.61e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	scale_x	pass	dll=8.53e-14 dtheta=2.20e-10 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	shift_x	pass	dll=2.84e-14 dtheta=1.07e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_ord	shift_x_const	NA	needs free correlation	0.0
+gauss_sigma_ord	scale_y	pass	dll=0.00e+00 dtheta=2.71e-10 conv=true max|theta|=1.1	0.0
+gauss_sigma_ord	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+gauss_sigma_ord	swap	NA	needs a q = 2 block	0.0
+gauss_sigma_ord	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_sigma_ord	simrefit	pass	truth S=5 ok=5 conv=5 |median err| fixed=0.074 SD-coef=0.079; min(nll(truth)-nll(fit))=1.40e+00	0.0
+gauss_sigma_animal	base fit	pass	ll=-135.4365	1.5
+gauss_sigma_animal	perm	pass	dll=0.00e+00 dtheta=6.66e-16 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	relabel	pass	dll=2.84e-14 dtheta=4.44e-16 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	shift_v	pass	dll=5.68e-14 dtheta=2.57e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	shift_w	pass	dll=2.84e-14 dtheta=2.12e-09 conv=true max|theta|=1.0	0.0
+gauss_sigma_animal	scale_w	pass	dll=2.84e-14 dtheta=2.05e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	scale_x	pass	dll=8.53e-14 dtheta=2.05e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	shift_x	pass	dll=8.53e-14 dtheta=2.08e-09 conv=true max|theta|=0.6	0.0
+gauss_sigma_animal	shift_x_const	NA	needs free correlation	0.0
+gauss_sigma_animal	scale_y	pass	dll=3.41e-13 dtheta=2.36e-09 conv=true max|theta|=1.1	0.0
+gauss_sigma_animal	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.0
+gauss_sigma_animal	swap	NA	needs a q = 2 block	0.0
+gauss_sigma_animal	reml	NA	REML structured q2 is Gaussian only	0.0
+gauss_sigma_animal	simrefit	pass	truth S=5 ok=5 conv=5 |median err| fixed=0.072 SD-coef=0.068; min(nll(truth)-nll(fit))=1.59e+00	0.2
+nb2_sigma_animal	base fit	pass	ll=-362.0437	2.8
+nb2_sigma_animal	perm	pass	dll=2.27e-13 dtheta=3.31e-08 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	relabel	pass	dll=0.00e+00 dtheta=3.05e-08 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	shift_v	pass	dll=5.68e-14 dtheta=3.05e-08 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	shift_w	pass	dll=1.71e-13 dtheta=5.30e-08 conv=true max|theta|=1.9	0.0
+nb2_sigma_animal	scale_w	pass	dll=5.68e-14 dtheta=3.25e-08 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	scale_x	pass	dll=5.68e-14 dtheta=4.01e-08 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	shift_x	pass	dll=1.14e-13 dtheta=3.05e-08 conv=true max|theta|=1.6	0.0
+nb2_sigma_animal	shift_x_const	NA	needs free correlation	0.0
+nb2_sigma_animal	scale_y	NA	count/binary response	0.0
+nb2_sigma_animal	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+nb2_sigma_animal	swap	NA	needs a q = 2 block	0.0
+nb2_sigma_animal	reml	NA	REML structured q2 is Gaussian only	0.0
+nb2_sigma_animal	simrefit	pass	simulate S=5 ok=5 conv=3 |median err| fixed=0.042 SD-coef=0.707; min(nll(truth)-nll(fit))=2.23e+00	1.3
+gamma_sigma_animal	base fit	pass	ll=-155.7461	2.4
+gamma_sigma_animal	perm	pass	dll=3.69e-13 dtheta=1.62e-08 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	relabel	pass	dll=3.69e-13 dtheta=1.63e-08 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	shift_v	pass	dll=9.09e-13 dtheta=6.51e-09 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	shift_w	pass	dll=1.71e-13 dtheta=1.46e-08 conv=true max|theta|=1.4	0.0
+gamma_sigma_animal	scale_w	pass	dll=3.98e-13 dtheta=1.62e-08 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	scale_x	pass	dll=2.56e-13 dtheta=1.99e-08 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	flip_x	pass	dll=0.00e+00 dtheta=0.00e+00 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	shift_x	pass	dll=4.26e-13 dtheta=1.55e-08 conv=true max|theta|=0.8	0.0
+gamma_sigma_animal	shift_x_const	NA	needs free correlation	0.0
+gamma_sigma_animal	scale_y	pass	dll=1.14e-12 dtheta=1.64e-08 conv=true max|theta|=1.3	0.0
+gamma_sigma_animal	predict	pass	|predict-fitted|=0.0e+00 |predict_parameters-scales|=0.0e+00 |row-perm|=0.0e+00	0.3
+gamma_sigma_animal	swap	NA	needs a q = 2 block	0.0
+gamma_sigma_animal	reml	NA	REML structured q2 is Gaussian only	0.0
+gamma_sigma_animal	simrefit	pass	simulate S=5 ok=5 conv=5 |median err| fixed=0.024 SD-coef=0.454; min(nll(truth)-nll(fit))=3.26e+00	0.5

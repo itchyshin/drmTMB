@@ -1,0 +1,5 @@
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/drmjl-q2/src/input_validation.jl:396
+time=20.961319917 converged=true ll=-246.60448411003904
+[:mu, :sigma, :sdtarget_677c616e696d616c7c6d757c696e746572636570747c6e6f6e65, :sdtarget_677c616e696d616c7c6d757c787c6e6f6e65]
+len se=7 theta=7

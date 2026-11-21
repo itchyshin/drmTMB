@@ -1,0 +1,16 @@
+drmTMB 0.8.1 
+## gauss same-group joint SD : OK ll=-665.363290 conv=0 
+## gauss same-group joint no SD : OK ll=-667.952909 conv=0 
+## gauss same-group correlated (1|p|id) : OK ll=-667.671524 conv=0 
+## gauss same-group correlated + SD : ERROR: Gaussian sigma-endpoint SD regression currently supports one independent
+## gauss phylo sigma + SD : ERROR: `level` must name a supported random-effect scale dependence level.
+## gauss phylo sigma no SD : OK ll=-931.835020 conv=0 
+## gauss spatial sigma + SD : OK ll=-937.005363 conv=0 
+## gauss spatial sigma no SD : OK ll=-938.099310 conv=0 
+## nb2 joint diff group : OK ll=-1746.845035 conv=0 
+## nb2 joint same group : OK ll=-1746.019299 conv=0 
+## gamma joint diff group : OK ll=-840.441933 conv=0 
+## gamma joint same group : OK ll=-839.966220 conv=0 
+## nb2 joint no SD : ERROR: NB2 `sigma` random intercepts cannot be combined with `mu` random
+## gamma joint no SD : ERROR: {.fn Gamma} `sigma` random intercepts cannot be combined with `mu`
+## nb2 joint sigma slope : ERROR: NB2 `sigma` random intercepts cannot be combined with `mu` random

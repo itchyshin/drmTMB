@@ -1,0 +1,1 @@
+test_gaussian_structured_q2_sd exit=0 secs=68

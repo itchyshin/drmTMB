@@ -1,0 +1,42 @@
+"route","seed","reason","julia_converged","r_converged","r_pdHess","ll_diff","max_abs_coef_diff","max_coef_diff_r_se"
+"gauss_ord",24,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",39,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",40,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",53,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",62,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",63,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",66,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",69,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",82,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",96,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",105,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",109,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",112,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",114,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",144,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",145,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",149,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",156,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",171,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",179,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",180,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",197,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",201,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",212,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",243,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",244,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",253,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",256,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",269,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",273,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",279,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",281,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",282,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",284,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",291,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"gauss_ord",294,"Julia error, no result",FALSE,TRUE,TRUE,NA,NA,NA
+"poisson_spatial",20,"R pdHess FALSE (both converged)",TRUE,TRUE,FALSE,0.00127417406952191,1.17376312267935,0.0256100827064759
+"poisson_spatial",153,"R pdHess FALSE (both converged)",TRUE,TRUE,FALSE,8.16953615867533e-09,2.49841533715839,0.000472547105058934
+"poisson_spatial",253,"R pdHess FALSE (both converged)",TRUE,TRUE,FALSE,7.99172994447872e-09,5.18736059727527,2.04087167902228e-06
+"lord_nb2",232,"Julia converged = FALSE (result returned)",FALSE,TRUE,TRUE,-2.11705173569499e-06,1.6631572554019,0.000393704088207847
+"lord_nb2",276,"Julia converged = FALSE (result returned)",FALSE,TRUE,TRUE,-1.65843448485248e-06,1.80835078636894,0.000357360227038386

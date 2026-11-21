@@ -1,0 +1,23 @@
+=== nb2_structured_sd_plateau_restart
+Test Summary:                                                       | Pass  Total   Time
+NB2 relmat intercept SD: no stall on the clamped dispersion plateau |   32     32  20.1s
+=== poisson_structured_sd_offsets
+Test Summary:                                     | Pass  Total   Time
+Poisson animal SD regression includes row offsets |    7      7  23.3s
+Test Summary:                                           | Pass  Total  Time
+Poisson animal-slope SD regression includes row offsets |    4      4  0.8s
+Test Summary:                                           | Pass  Total  Time
+Poisson phylogenetic SD regression includes row offsets |    4      4  2.7s
+Test Summary:                                             | Pass  Total  Time
+Poisson related-matrix SD regression includes row offsets |    5      5  0.7s
+=== binomial_animal_q2_sd
+Test Summary:                     | Pass  Total   Time
+Bernoulli animal q2 SD regression |   33     33  26.8s
+Test Summary:                               | Pass  Total  Time
+Non-logit Bernoulli animal q2 SD regression |   20     20  2.0s
+=== binomial_phylo_interaction_sd
+Test Summary:                                       | Pass  Total  Time
+Binomial phylogenetic-interaction SD formula target |   10     10  0.7s
+Test Summary:                                       | Pass  Total   Time
+Binomial phylogenetic-interaction SD fit and output |   35     35  17.9s
+DONE

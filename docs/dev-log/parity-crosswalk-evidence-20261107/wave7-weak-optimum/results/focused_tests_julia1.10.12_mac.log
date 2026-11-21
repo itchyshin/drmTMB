@@ -1,0 +1,12 @@
+test_binomial_animal_q2_sd.jl rc=0 wall=43s Test Summary:                               | Pass  Total  Time
+test_binomial_phylo_spatial_q2_sd.jl rc=1 wall=4s 
+test_phylo_spatial_q2_sd.jl rc=1 wall=3s 
+test_nb2_animal_intercept_slope_sd.jl rc=0 wall=44s Test Summary:                                                   | Pass  Total   Time
+test_nb2_relmat_intercept_slope_sd.jl rc=0 wall=40s Test Summary:                                                   | Pass  Total  Time
+test_labelled_phylo_spatial_q2_sd.jl rc=0 wall=96s Test Summary:             | Pass  Total     Time
+test_stored_loglik_at_optimum.jl rc=1 wall=5s 
+test_q2_weak_optimum.jl rc=0 wall=38s Test Summary:                                      | Pass  Total  Time
+test_binomial_phylo_spatial_q2_sd.jl rc=0 wall=38s Test Summary:                                                      | Pass  Total   Time
+test_phylo_spatial_q2_sd.jl rc=0 wall=74s Test Summary:                                             | Pass  Total     Time
+test_stored_loglik_at_optimum.jl rc=0 wall=56s Test Summary:                               | Pass  Total   Time
+test_binomial_animal_slope_iid_sd_regression.jl rc=1 wall=27s Test Summary:                                | Pass  Error  Total   Time
