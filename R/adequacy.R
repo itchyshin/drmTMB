@@ -6,13 +6,13 @@
 # logic is re-derived here.
 #
 # Honesty (Fisher + Rose, DO-T0a CP1 / DO-T1 goal): fitted_distribution()
-# evaluates F at predict_parameters()'s FIXED-EFFECT, population-level
-# parameter estimates. For a fit with random effects or other structured
-# components this makes the residual conditional on the fixed-effect
-# prediction, not marginal on the full model -- it is not guaranteed to be
-# marginally N(0,1) even when the fixed-effect distributional form is
-# correctly specified. A departure (or its absence) is evidence about
-# fixed-effect adequacy only. Everywhere in this file and its documentation:
+# evaluates F at predict_parameters()'s parameter estimates on the fitted
+# rows. For a fit with random effects these include the random-effect modes,
+# so the residual is conditional on the modes, not marginal on the full
+# model -- it is not guaranteed to be marginally N(0,1) even when the
+# conditional distributional form is correctly specified. A departure (or its
+# absence) is evidence about the conditional model only (issue #1568).
+# Everywhere in this file and its documentation:
 # "no detectable departure", never "adequate"/"valid"/"correct" -- a DG tick
 # never promotes a family's inference tier.
 
@@ -76,7 +76,8 @@
 #'
 #' @return A numeric vector (`nsim = 1`) or an `n`-by-`nsim` matrix
 #'   (`nsim > 1`) of approximately N(0,1) residuals under a correctly
-#'   specified fixed-effect model. Missing-response rows (see
+#'   specified conditional model (for a random-effect fit, conditional on the
+#'   random-effect modes). Missing-response rows (see
 #'   `drm_mask_missing_response_values()`) are `NA`.
 #' @keywords internal
 drm_quantile_residuals <- function(object, seed = NULL, nsim = 1L, response = NULL) {
