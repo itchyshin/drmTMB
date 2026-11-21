@@ -27849,6 +27849,13 @@ drm_softclamp_log_sd <- function(eta, tmb_data = NULL) {
   out
 }
 
+sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
+  eta <- sd_mu_group_log_values(par, sd_mu, dpar = dpar)
+  out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
+  names(out) <- names(eta)
+  out
+}
+
 # Band for the Tweedie nu logit link (p = 1 + plogis(eta_nu)). Matches
 # drm_softclamp_tweedie_eta_nu() in src/drmTMB.cpp (#1468).
 drm_tweedie_eta_nu_softclamp_bounds <- function() {
@@ -27893,13 +27900,6 @@ drm_tweedie_eta_nu_cap_active <- function(report) {
     lo = lo,
     hi = hi
   )
-}
-
-sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
-  eta <- sd_mu_group_log_values(par, sd_mu, dpar = dpar)
-  out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
-  names(out) <- names(eta)
-  out
 }
 
 sd_sigma_group_log_values <- function(par, spec, dpar = NULL) {
