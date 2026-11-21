@@ -11531,7 +11531,13 @@ predict.drmTMB_julia <- function(
   type <- match.arg(type)
   object <- drm_julia_predict_model_object(object)
   if (is.null(dpar)) {
-    dpar <- names(object$coefficients)[[1L]]
+    # Default to the location parameter like the native engine; the bridge
+    # lists blocks in the engine's own order (a hurdle fit starts with "hu").
+    dpar <- if ("mu" %in% names(object$coefficients)) {
+      "mu"
+    } else {
+      names(object$coefficients)[[1L]]
+    }
   }
   sd_aliases <- drm_julia_lss_dpar_aliases(object)
   sd_target <- if (length(dpar) == 1L && dpar %in% names(sd_aliases)) {
