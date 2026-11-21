@@ -963,7 +963,11 @@ drm_julia_conditional_gaussian_components_spec <- function(formula, family_type,
   }
   dpars <- vapply(entries, `[[`, character(1L), "dpar")
   mu_pos <- which(dpars == "mu")
-  if (length(mu_pos) != 1L || any(!dpars %in% c("mu", "sigma"))) {
+  # Plain `sd(g) ~ x` scales an ordinary mu random effect; admit the entry so
+  # conditional fitted/residuals/predict paths stay active (refs #1757).
+  sd_groups <- lapply(entries, drm_julia_plain_sd_group)
+  is_sd <- !vapply(sd_groups, is.null, logical(1L))
+  if (length(mu_pos) != 1L || any(!(dpars %in% c("mu", "sigma") | is_sd))) {
     return(NULL)
   }
   if (any(vapply(entries, function(entry) {
@@ -1015,7 +1019,25 @@ drm_julia_conditional_gaussian_components_spec <- function(formula, family_type,
       (any(kinds == "correlated") && length(components) != 1L)) {
     return(NULL)
   }
+  if (any(is_sd) && !all(unlist(sd_groups[is_sd]) %in% groups)) {
+    return(NULL)
+  }
   list(dpar = "mu", components = unname(components))
+}
+
+## Group name of a plain `sd(g) ~ x` random-effect scale entry (no `level`,
+## `dpar`, `coef` or `block` selectors), or NULL for any other entry.
+drm_julia_plain_sd_group <- function(entry) {
+  lhs <- entry$lhs
+  if (is.null(lhs) || !is_random_scale_lhs(lhs)) {
+    return(NULL)
+  }
+  parsed <- parse_sd_lhs(lhs)
+  if (!identical(parsed$fun, "sd") || isTRUE(parsed$explicit) ||
+      !is.na(parsed$level)) {
+    return(NULL)
+  }
+  parsed$group
 }
 
 # Validate only the source columns that this adapter will serialize. This runs
