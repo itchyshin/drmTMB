@@ -10277,7 +10277,8 @@ summary.drmTMB_julia <- function(
     nobs = object$nobs,
     convergence_status = convergence_status(object),
     converged = identical(convergence_status(object), "converged"),
-    uncertainty = object$uncertainty
+    uncertainty = object$uncertainty,
+    se_convention = drm_reml_se_convention(object)
   )
   if (drm_has_fixed_priors(object)) {
     out$covariance_interpretation <- object$covariance_interpretation
@@ -10400,6 +10401,9 @@ print.summary.drmTMB_julia <- function(x, ...) {
   )
   if (!is.null(x$uncertainty) && !is.null(x$uncertainty$status)) {
     cli::cli_text("  uncertainty: {x$uncertainty$status}")
+  }
+  if (!is.null(se_note <- drm_reml_se_convention_note(x$se_convention))) {
+    cli::cli_text("  {se_note}")
   }
   cli::cli_text("")
   cli::cli_text("Fixed effects (link scale):")
