@@ -6887,8 +6887,10 @@ Type objective_function<Type>::operator()()
       REPORT(log_sd_phylo);
       REPORT(sd_phylo);
       if (has_sd_phylo_model == 1) {
+        REPORT(beta_sd_mu);
         REPORT(log_sd_phylo_group);
         REPORT(sd_phylo_group);
+        ADREPORT(beta_sd_mu);
         if (report_group_sd == 1) {
           ADREPORT(log_sd_phylo_group);
           ADREPORT(sd_phylo_group);
