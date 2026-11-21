@@ -280,8 +280,9 @@ test_that("the CondExp enumeration this suite audits has not silently drifted", 
   # x = 1e-5, used for the OU transition variance. It is counted
   # together with its paired C1 continuity test below.
   #
-  # Main (46L) plus the AR1 (7) and OU (1) sites is 54L.
-  expect_equal(n_cpp, 54L)
+  # Main (46L) plus the AR1 (7) and OU (1) sites, and +2 for the Tweedie
+  # eta_nu cap-hit indicators (#1795), is 56L.
+  expect_equal(n_cpp, 56L)
   # #1504 (f12) adds eleven sites for the large-argument helpers in
   # drm_numeric.h: three each in drm_expm1_minus_x() (|w| = 0.5),
   # drm_log1p_pos() (x = 0.01) and drm_stirling_remainder() (x = 30), and two
