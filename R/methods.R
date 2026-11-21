@@ -8131,12 +8131,23 @@ drm_marginal_predict <- function(
   type = c("response", "link")
 ) {
   type <- match.arg(type)
-  eta <- drm_fixed_effect_basis(object, newdata = NULL, dpar = dpar)$eta
+  # Julia-bridge fixed-effect fits keep no TMB design matrices or tmb_data
+  # (object$model has only model_type, dpars and data); rebuild the linear
+  # predictor from the retained formula via predict(), as the conditional
+  # simulate path already does.
+  julia_stub <- inherits(object, "drmTMB_julia") && is.null(object$model$X)
+  eta <- if (julia_stub) {
+    predict(object, dpar = dpar, type = "link")
+  } else {
+    drm_fixed_effect_basis(object, newdata = NULL, dpar = dpar)$eta
+  }
   contrib <- re_draws[[dpar]]
   if (!is.null(contrib)) {
     eta <- eta + contrib
   }
-  eta <- drm_clamped_sigma_eta(object, dpar, eta)
+  if (!julia_stub) {
+    eta <- drm_clamped_sigma_eta(object, dpar, eta)
+  }
   if (identical(type, "link")) {
     return(eta)
   }

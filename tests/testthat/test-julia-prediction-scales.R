@@ -17,6 +17,7 @@ julia_prediction_scale_fixture <- function(
         model_type,
         gaussian = stats::gaussian(),
         gamma = stats::Gamma(link = "log"),
+        poisson = stats::poisson(),
         stats::gaussian()
       ),
       model = list(model_type = model_type),
@@ -219,4 +220,39 @@ test_that("unsupported non-dpar coefficient blocks refuse prediction", {
   fit$coefficients$sd_group <- c("(Intercept)" = 0.1)
 
   expect_error(predict(fit, dpar = "sd_group", type = "link"), "canonical prediction link")
+})
+
+test_that("simulate() on a stored Gaussian fixed-effect Julia fit does not need TMB designs", {
+  n <- 4000L
+  dat <- data.frame(y = rep(0, n), x = seq(-1, 1, length.out = n))
+  fit <- julia_prediction_scale_fixture(
+    drmTMB::bf(y ~ x, sigma ~ x), "gaussian", dat,
+    coefficients = list(mu = c("(Intercept)" = 0.3, x = 0.4),
+                        sigma = c("(Intercept)" = -0.2, x = 0.5)),
+    dpars = list(mu = 0.3 + 0.4 * dat$x, sigma = exp(-0.2 + 0.5 * dat$x))
+  )
+
+  draws <- simulate(fit, nsim = 2L, seed = 1L)
+  expect_equal(dim(draws), c(n, 2L))
+  expect_false(anyNA(draws))
+  expect_identical(draws, simulate(fit, nsim = 2L, seed = 1L))
+  # Draws centre on the stored mu and have the stored sigma(x) spread.
+  z <- (draws[[1L]] - (0.3 + 0.4 * dat$x)) / exp(-0.2 + 0.5 * dat$x)
+  expect_lt(abs(mean(z)), 0.1)
+  expect_lt(abs(stats::sd(z) - 1), 0.1)
+})
+
+test_that("simulate() on a stored zero-inflated Poisson Julia fit draws structural zeros", {
+  n <- 4000L
+  dat <- data.frame(y = rep(0, n), x = seq(-1, 1, length.out = n))
+  fit <- julia_prediction_scale_fixture(
+    drmTMB::bf(y ~ x, zi ~ 1), "poisson", dat,
+    coefficients = list(mu = c("(Intercept)" = 0.5, x = 0.3),
+                        zi = c("(Intercept)" = stats::qlogis(0.4))),
+    dpars = list(mu = exp(0.5 + 0.3 * dat$x), zi = rep(0.4, n))
+  )
+
+  draws <- simulate(fit, nsim = 1L, seed = 1L)[[1L]]
+  p0 <- 0.4 + 0.6 * mean(exp(-exp(0.5 + 0.3 * dat$x)))
+  expect_lt(abs(mean(draws == 0) - p0), 0.03)
 })
