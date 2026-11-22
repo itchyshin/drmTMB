@@ -15572,6 +15572,18 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   data
 }
 
+# Shared by the native TMB builders and the Julia bridge pre-check (#1776) so
+# both engines refuse an all-singleton grouping variable with one wording.
+drm_refuse_all_singleton_groups <- function(group, group_name, implementation) {
+  if (all(tabulate(as.integer(factor(group))) == 1L)) {
+    cli::cli_abort(c(
+      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
+      "x" = "At least one group must have repeated observations in {implementation}."
+    ))
+  }
+  invisible(NULL)
+}
+
 is_random_bar_call <- function(expr) {
   expr <- strip_parens(expr)
   is.call(expr) && identical(expr[[1L]], as.name("|"))
@@ -18806,12 +18818,9 @@ build_random_mu_structure <- function(terms, data,
         "x" = "At least two groups are needed to estimate a random-effect SD."
       ))
     }
-    if (all(tabulate(as.integer(group)) == 1L)) {
-      cli::cli_abort(c(
-        "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-        "x" = "At least one group must have repeated observations in this initial random-effect implementation."
-      ))
-    }
+    drm_refuse_all_singleton_groups(
+      group, group_name, "this initial random-effect implementation"
+    )
 
     variables <- terms[[k]]$variables
     for (variable in variables[!is.na(variables)]) {
@@ -20550,12 +20559,9 @@ build_biv_parameter_random_structure <- function(
       "x" = "At least two groups are needed to estimate a bivariate group-level covariance."
     ))
   }
-  if (all(tabulate(as.integer(group)) == 1L)) {
-    cli::cli_abort(c(
-      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-      "x" = "At least one group must have repeated observations in this bivariate random-effect implementation."
-    ))
-  }
+  drm_refuse_all_singleton_groups(
+    group, group_name, "this bivariate random-effect implementation"
+  )
 
   n_group <- length(levels_group)
   group_index <- as.integer(group)
@@ -27848,6 +27854,52 @@ sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
   out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
   names(out) <- names(eta)
   out
+}
+
+# Band for the Tweedie nu logit link (p = 1 + plogis(eta_nu)). Matches
+# drm_softclamp_tweedie_eta_nu() in src/drmTMB.cpp (#1468).
+drm_tweedie_eta_nu_softclamp_bounds <- function() {
+  c(lo = -35, hi = 35, margin = 1.5)
+}
+
+drm_softclamp_tweedie_eta_nu <- function(eta) {
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  x <- as.numeric(eta)
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  margin <- band[["margin"]]
+  out <- x
+  above <- x > hi
+  below <- x < lo
+  out[above] <- hi + margin * tanh((x[above] - hi) / margin)
+  out[below] <- lo - margin * tanh((lo - x[below]) / margin)
+  out
+}
+
+drm_tweedie_eta_nu_cap_active <- function(report) {
+  if (is.null(report$eta_nu)) {
+    return(NULL)
+  }
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  values <- as.numeric(report$eta_nu)
+  values <- values[is.finite(values)]
+  if (!length(values)) {
+    return(NULL)
+  }
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  chosen <- if (hit_hi) which.max(values) else which.min(values)
+  list(
+    value = values[[chosen]],
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
 }
 
 sd_sigma_group_log_values <- function(par, spec, dpar = NULL) {
