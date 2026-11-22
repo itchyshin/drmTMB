@@ -309,8 +309,8 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #'
 #' \describe{
 #'   \item{`"not_converged"`}{The optimizer did not finish, the
-#'     log-likelihood is not finite, or the relative (unit-free) gradient is
-#'     not near zero.}
+#'     log-likelihood is not finite, or the Newton step in SE units from the
+#'     stored gradient, `max_i |(H^-1 g)_i| / SE_i`, exceeds 1e-3.}
 #'   \item{`"boundary"`}{The optimizer finished but a random-effect SD is
 #'     near zero, a residual correlation is near +/-1, a temporal parameter
 #'     is at its limit, or the residual SD has collapsed (the Heywood case).
