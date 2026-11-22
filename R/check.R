@@ -309,10 +309,14 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' continuous location-scale likelihood are included in that geometry.
 #' `"boundary"` marks an optimizer-converged fit with variance-component,
 #' residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
-#' parameters near an interpretability boundary. [is_converged()] and
+#' parameters near an interpretability boundary. The same status covers a
+#' plain fixed-effect `nbinom2` fit with intercept-only `sigma` whose
+#' log-sigma estimate is at or below -8 (the Poisson limit: no
+#' overdispersion). [is_converged()] and
 #' [converged()] are the same plain logical: they are `TRUE` only for
-#' `"converged"`. Numeric predicates are identical in DRModels.jl
-#' (`docs/design/278-twin-convergence-status.md`).
+#' `"converged"`. The shared numeric table in
+#' `docs/design/278-twin-convergence-status.md` matches DRModels.jl. The
+#' nbinom2 Poisson-limit step is R-only until that twin adopts it.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.

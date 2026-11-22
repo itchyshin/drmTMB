@@ -33,10 +33,14 @@ separation, Poisson / NB2 rays with no finite MLE, and an unbounded
 continuous location-scale likelihood are included in that geometry.
 \code{"boundary"} marks an optimizer-converged fit with variance-component,
 residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
-parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} and
+parameters near an interpretability boundary. The same status covers a
+plain fixed-effect \code{nbinom2} fit with intercept-only \code{sigma} whose
+log-sigma estimate is at or below -8 (the Poisson limit: no
+overdispersion). \code{\link[=is_converged]{is_converged()}} and
 \code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
-\code{"converged"}. Numeric predicates are identical in DRModels.jl
-(\code{docs/design/278-twin-convergence-status.md}).
+\code{"converged"}. The shared numeric table in
+\code{docs/design/278-twin-convergence-status.md} matches DRModels.jl. The
+nbinom2 Poisson-limit step is R-only until that twin adopts it.
 }
 \examples{
 set.seed(20260916)
