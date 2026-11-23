@@ -1,5 +1,8 @@
 # drmTMB 0.8.2
 
+* The Julia cross-family bridge no longer tags `gaussian(link = ...)` with a
+  non-identity link as an identity Gaussian axis (#1750).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
