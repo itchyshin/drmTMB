@@ -67,7 +67,7 @@ test_that("normal priors resolve for a phylogenetic SD-regression model", {
   expect_identical(fit$estimator, 'MAP')
   expect_equal(fit$penalized_objective, -fit$logLik + fit$fixed_prior_penalty, tolerance = 1e-8)
   expect_error(confint(fit), 'fixed-effect')
-  expect_error(AIC(fit), 'fixed-effect')
+  expect_warning(AIC(fit), class = "drmTMB_ic_map_warning")
   retained <- update(fit)
   expect_equal(retained$resolved_priors, fit$resolved_priors)
   removed <- update(fit, priors = NULL)

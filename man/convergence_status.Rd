@@ -21,29 +21,29 @@ convergence_status(object, ...)
 \item{...}{Reserved for future options.}
 }
 \value{
-One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}; prior fits
-can also return \code{"not_converged"} when the optimizer or scaled-gradient
-requirement fails.
+One of \code{"converged"}, \code{"not_converged"}, \code{"boundary"}, or
+\code{"degenerate"}.
 }
 \description{
 \code{convergence_status()} returns a short character label for programmatic
-workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit can report
-optimizer code \code{0} while the likelihood geometry is degenerate (no proper
-maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
-when \code{multi_start} selected among several starts. Fixed-effect binomial
-separation, Poisson / NB2 rays with no finite MLE, and an unbounded
-continuous location-scale likelihood are included in that geometry.
-\code{"boundary"} marks an optimizer-converged fit with variance-component,
-residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
-parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} and
+workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit is
+\code{"converged"} only when the optimizer finished, its relative gradient is
+small, no fitted parameter is at a boundary, and the active objective has
+positive-definite curvature. These four checks define numerical convergence;
+\code{check_drm()} reports likelihood-existence and fixed-effect-rank warnings
+separately, so a numerically converged fit can still need caution before
+inference.
+\code{"boundary"} marks an optimizer-converged fit with a parameter at a
+variance-component, residual-scale clamp, residual-correlation, or temporal
+(OU decay, AR1 persistence) boundary. \code{\link[=is_converged]{is_converged()}} and
 \code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
-\code{"converged"}. For an active prior, status additionally requires a small
-scaled gradient and a positive-definite Hessian of the penalized objective.
-The unpenalized Hessian is reported separately; directions supported only
-by prior curvature appear in \code{fit$prior_held_params} and do not by themselves
-change a penalized fit's status. The stricter optimizer, gradient, boundary,
-and Hessian rule applies to prior and no-prior native TMB fits. Julia-engine
-bridge parity remains a separate integration gate.
+\code{"converged"}. Prior fits use the penalized objective for the same four
+numerical checks. The unpenalized Hessian is reported separately; directions
+supported only by prior curvature appear in \code{fit$prior_held_params} and do
+not by themselves change a penalized fit's status. Large but finite standard
+errors remain visible through their uncertainty diagnostics; they are not an
+additional convergence criterion. Julia-engine bridge parity remains a
+separate integration gate.
 }
 \examples{
 set.seed(20260916)

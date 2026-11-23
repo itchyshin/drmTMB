@@ -142,7 +142,7 @@ test_that("live conditional bridge preserves an SD prior", {
   expect_identical(fit$estimator, "MAP")
   expect_equal(fit$penalized_objective, -fit$logLik + fit$fixed_prior_penalty + fit$sd_prior_penalty, tolerance=1e-10)
   expect_equal(nrow(fit$resolved_sd_prior), 1L)
-  expect_error(AIC(fit), "prior")
+  expect_warning(AIC(fit), class = "drmTMB_ic_map_warning")
 })
 
 test_that("public Julia bridge replays mixed SD and fixed priors", {
@@ -159,7 +159,7 @@ test_that("public Julia bridge replays mixed SD and fixed priors", {
   expect_equal(nrow(fit$resolved_sd_prior), 1L)
   expect_equal(nrow(fit$resolved_priors), 2L)
   expect_error(confint(fit), "prior")
-  expect_error(AIC(fit), "prior")
+  expect_warning(AIC(fit), class = "drmTMB_ic_map_warning")
   replay <- update(fit)
   expect_equal(replay$resolved_priors, fit$resolved_priors)
   expect_equal(replay$resolved_sd_prior, fit$resolved_sd_prior)
@@ -237,7 +237,7 @@ test_that("public Julia SD fit matches the eligible frozen dense oracle", {
   expect_lt(max(abs(fit$penalized_gradient)), 1e-6)
   expect_equal(as.numeric(fit$bridge$working_values), unlist(ref$coordinates), tolerance=1e-5)
   expect_error(drmTMB(bf(y ~ x + (1 | site), sigma ~ x), data=d, priors=p, engine="julia", weights=c(2, rep(1, nrow(d)-1))), "unit weights")
-  expect_error(BIC(fit), "prior")
+  expect_warning(BIC(fit), class = "drmTMB_ic_map_warning")
   expect_error(confint(fit, method="profile"), "prior")
   expect_error(confint(fit, method="bootstrap"), "prior")
   expect_error(summary(fit, conf.int=TRUE), "prior")

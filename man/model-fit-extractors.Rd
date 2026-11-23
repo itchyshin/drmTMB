@@ -52,6 +52,11 @@ comparison helpers.
 \code{logLik()} returns a \code{"logLik"} object with \code{df} and \code{nobs} attributes so
 \code{\link[stats:AIC]{stats::AIC()}} and \code{\link[stats:BIC]{stats::BIC()}} use the fitted likelihood, optimized
 top-level parameter count, and fitted-row count consistently.
+For penalized / MAP fits, \code{\link[stats:AIC]{stats::AIC()}} and \code{\link[stats:BIC]{stats::BIC()}} return a
+warning-labeled diagnostic based on the unpenalized data log-likelihood at
+the penalized estimate and the nominal parameter count. Effective degrees
+of freedom are not estimated; refit without priors or penalties for ordinary
+model selection.
 \code{nobs()} returns the number of fitted rows after complete-case filtering.
 \code{df.residual()} returns \code{nobs - df}, where \code{df} is the number of optimized
 top-level parameters recorded in \code{logLik()}. \code{deviance()} returns

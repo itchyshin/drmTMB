@@ -131,7 +131,7 @@ test_that("SD and fixed penalties compose and keep likelihood separate", {
   expect_equal(f$penalized_objective, -f$logLik + f$fixed_prior_penalty + f$sd_prior_penalty, tolerance = 1e-8)
   expect_equal(f$estimator, "MAP")
   expect_error(confint(f), "prior")
-  expect_error(AIC(f), "prior")
+  expect_warning(AIC(f), class = "drmTMB_ic_map_warning")
   expect_error(drmTMB:::drm_abort_fixed_prior_inference(f, "bootstrap"), "prior")
   sd_only <- f
   sd_only$resolved_priors <- NULL

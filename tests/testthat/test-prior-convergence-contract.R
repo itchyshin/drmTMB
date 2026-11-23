@@ -27,6 +27,21 @@ test_that("prior convergence requires optimizer, relative score, interior, and P
   ), "converged")
 })
 
+test_that("an active log-sigma clamp counts as a fitted boundary", {
+  testthat::local_mocked_bindings(
+    check_logsigma_clamp_active = function(object) data.frame(
+      check = "logsigma_clamp_active", status = "note", value = "-690",
+      message = "The fitted log(sigma) reached the lower clamp."
+    ),
+    check_rho12_boundary = function(...) NULL,
+    check_random_effect_sd_boundary = function(...) NULL,
+    check_tweedie_eta_nu_cap = function(...) NULL,
+    check_temporal_boundary = function(...) NULL,
+    .package = "drmTMB"
+  )
+  expect_true(drmTMB:::drm_convergence_at_boundary(list()))
+})
+
 test_that("prior-held parameters come from unsupported unpenalized curvature", {
   held <- drmTMB:::drm_prior_held_parameters(
     penalized_hessian = diag(c(2, 1)),
@@ -50,7 +65,7 @@ test_that("prior-held parameters come from unsupported unpenalized curvature", {
   expect_equal(indefinite, data.frame(name = character(), kind = character()))
 })
 
-test_that("convergence uses four checks without geometry or standard-error gates", {
+test_that("convergence status uses four numerical checks, not extra geometry gates", {
   fit <- structure(list(
     penalised = TRUE,
     estimator = "ML",

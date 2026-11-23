@@ -30,6 +30,9 @@
 #' vanishes as \eqn{n \to \infty}. Prefer AICc over AIC when \eqn{n / k} is
 #' small (a common rule of thumb is \eqn{n / k < 40}). Like AIC, AICc compares
 #' models fit by maximum likelihood on the same data; lower is better.
+#' For penalized / MAP fits, AICc is returned with a warning as a diagnostic:
+#' it uses the unpenalized data log-likelihood at the penalized estimate and a
+#' nominal parameter count, not an estimated effective degrees of freedom.
 #'
 #' This is the R port of DRM.jl's `aicc(fit)` (`src/comparison.jl`); the two
 #' agree to `1e-8` on the same fit.
@@ -50,7 +53,11 @@
 #' identical fixed effects. This holds for both engines: `engine = "julia"`
 #' fits have their own `aicc()`, [AIC()] and [BIC()] methods that run the same
 #' REML guard before computing the value. Experimental MSPL fits do not expose a likelihood
-#' and error, as they do for [AIC()].
+#' and error, as they do for [AIC()]. For penalized / MAP fits, AICc, [AIC()],
+#' and [BIC()] return warning-labeled diagnostics, not standard ML information
+#' criteria; ordinary model selection requires refits without priors or
+#' penalties. Likelihood-ratio tests warn and refuse penalized fits because
+#' their usual reference distributions do not apply.
 #'
 #' @seealso [AIC()], [BIC()], [logLik()]
 #'
@@ -127,6 +134,7 @@ drm_aicc_from_loglik <- function(loglik, k, n, what = "object") {
 drm_lrtest <- function(reduced, full) {
   drm_abort_mspl_inference(reduced, "lrtest")
   drm_abort_mspl_inference(full, "lrtest")
+  drm_lrtest_map_guard(reduced, full)
   ll_reduced <- stats::logLik(reduced)
   ll_full <- stats::logLik(full)
   n_reduced <- attr(ll_reduced, "nobs")
@@ -137,7 +145,6 @@ drm_lrtest <- function(reduced, full) {
     )
   }
   drm_lrtest_reml_guard(reduced, full)
-  drm_lrtest_map_guard(reduced, full)
   df <- as.numeric(attr(ll_full, "df")) - as.numeric(attr(ll_reduced, "df"))
   if (!isTRUE(df > 0)) {
     cli::cli_abort(
@@ -193,6 +200,7 @@ drm_lrtest_map_guard <- function(reduced, full) {
   if (!("MAP" %in% c(drm_fit_estimator(reduced), drm_fit_estimator(full)))) {
     return(invisible(NULL))
   }
+  drm_lrtest_map_warning()
   cli::cli_abort(
     c(
       "{.fn lrtest}: cannot compare penalized (MAP) fits.",
@@ -200,6 +208,17 @@ drm_lrtest_map_guard <- function(reduced, full) {
     ),
     class = "drmTMB_lrtest_map_error"
   )
+}
+
+drm_lrtest_map_warning <- function(what = "lrtest") {
+  cli::cli_warn(
+    c(
+      "{.fn {what}}: penalized (MAP) fits have no usual chi-square reference distribution.",
+      "i" = "Refit without priors or penalties for an ordinary likelihood-ratio test."
+    ),
+    class = "drmTMB_lrtest_map_warning"
+  )
+  invisible(NULL)
 }
 
 # Variance-component labels (DRM.jl `_variance_component_blocks`,
@@ -320,12 +339,23 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
   }
   estimators <- vapply(fits, drm_fit_estimator, character(1L))
   if (length(unique(estimators)) > 1L) {
+    if ("MAP" %in% estimators) drm_lrtest_map_warning("anova")
     cli::cli_abort(
       c(
         "{.fn anova} cannot mix fits with different estimators ({.val {unique(estimators)}}).",
         "i" = "Refit all models with the same {.arg REML}/{.arg estimator} setting."
       ),
       class = "drmTMB_anova_estimator_error"
+    )
+  }
+  if ("MAP" %in% estimators) {
+    drm_lrtest_map_warning("anova")
+    cli::cli_abort(
+      c(
+        "{.fn anova} cannot compare penalized (MAP) fits.",
+        "i" = "Refit without priors or penalties for an ordinary likelihood-ratio test."
+      ),
+      class = "drmTMB_anova_map_error"
     )
   }
 

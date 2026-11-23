@@ -116,8 +116,11 @@ testthat::test_that("the generalized table fits fixed, residual-SD, and random-S
   testthat::expect_equal(replay$resolved_residual_sd_prior, fit$resolved_residual_sd_prior)
   testthat::expect_equal(replay$penalized_objective, fit$penalized_objective, tolerance = 1e-7)
   testthat::expect_equal(replay$log_prior, fit$log_prior, tolerance = 1e-7)
-  testthat::expect_error(stats::AIC(fit), "prior")
-  testthat::expect_error(drmTMB:::drm_lrtest(fit, fit), "MAP")
+  testthat::expect_warning(stats::AIC(fit), class = "drmTMB_ic_map_warning")
+  testthat::expect_warning(
+    testthat::expect_error(drmTMB:::drm_lrtest(fit, fit), "MAP"),
+    class = "drmTMB_lrtest_map_warning"
+  )
 
   plain_fit <- drmTMB::drmTMB(formula, data = dat,
     control = drmTMB::drm_control(logsigma_clamp = NULL))

@@ -50,7 +50,7 @@ test_that("the committed env-skip census matches the test suite", {
   expect_identical(derived, committed)
 })
 
-test_that("every skip_if_not_installed() target is a declared Suggests", {
+test_that("every skip_if_not_installed() target is a declared dependency", {
   # THIS is the disease guard, not bookkeeping.
   #
   # `skip_if_not_installed("foo")` on a package the CI runner installs costs
@@ -58,18 +58,19 @@ test_that("every skip_if_not_installed() target is a declared Suggests", {
   # skips on every run forever, prints inside the green summary, and the
   # capability it guards is claimed but never exercised.
   #
-  # setup-r-dependencies@v2 installs the DESCRIPTION dependencies, Suggests
-  # included, so "declared in Suggests" is exactly the condition under which
-  # the runner has the package. A target outside Suggests is a permanent skip
-  # by construction -- caught here, on the first run, rather than years later.
+  # setup-r-dependencies installs DESCRIPTION dependencies, including
+  # Depends, Imports, LinkingTo, and Suggests. A target outside those fields
+  # is a permanent skip by construction -- caught on the first run.
   census <- drm_skip_census(".")
   targets <- drm_skip_installed_targets(census)
   expect_gt(length(targets), 0L)
 
   desc <- utils::packageDescription("drmTMB")
-  suggests <- desc$Suggests
-  skip_if(is.null(suggests), "DESCRIPTION has no Suggests field in this install")
-  declared <- trimws(gsub("\\s*\\(.*?\\)", "", strsplit(suggests, ",")[[1]]))
+  dependency_fields <- c("Depends", "Imports", "LinkingTo", "Suggests")
+  dependencies <- unlist(desc[dependency_fields], use.names = FALSE)
+  dependencies <- dependencies[!is.na(dependencies) & nzchar(dependencies)]
+  skip_if(!length(dependencies), "DESCRIPTION has no dependency fields in this install")
+  declared <- trimws(gsub("\\s*\\(.*?\\)", "", unlist(strsplit(dependencies, ","))))
   declared <- declared[nzchar(declared)]
 
   # drmTMB itself is always available inside its own test suite.
@@ -78,9 +79,9 @@ test_that("every skip_if_not_installed() target is a declared Suggests", {
     undeclared, character(0),
     info = paste0(
       "skip_if_not_installed() names ", paste(undeclared, collapse = ", "),
-      ", which DESCRIPTION does not Suggest. CI never installs those, so the ",
-      "guarded tests skip permanently on every runner. Add them to Suggests, ",
-      "or delete the tests that cannot run."
+      ", which is not declared in Depends, Imports, LinkingTo, or Suggests. ",
+      "CI never installs that package, so the guarded test skips permanently. ",
+      "Declare the dependency or remove the unreachable guard."
     )
   )
 })

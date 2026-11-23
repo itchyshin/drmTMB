@@ -106,9 +106,14 @@ testthat::test_that('table priors preserve constructor inference guards', {
    expect_error(summary(fit,conf.int=TRUE),'fixed-effect')
    expect_error(predict_parameters(fit,conf.int=TRUE),'fixed-effect')
    expect_error(profile(fit),'fixed-effect')
-   expect_error(AIC(fit),'fixed-effect')
-   expect_error(BIC(fit),'fixed-effect')
-   expect_error(drm_lrtest(fit,fit),'MAP')
+   expect_warning(aic_value <- AIC(fit), class = "drmTMB_ic_map_warning")
+   expect_warning(bic_value <- BIC(fit), class = "drmTMB_ic_map_warning")
+   expect_equal(aic_value, -2 * fit$logLik + 2 * fit$df)
+   expect_equal(bic_value, -2 * fit$logLik + log(fit$nobs) * fit$df)
+   expect_warning(
+     expect_error(drm_lrtest(fit,fit),'MAP'),
+     class = "drmTMB_lrtest_map_warning"
+   )
   }
   expect_equal(a$resolved_priors,b$resolved_priors)
 })

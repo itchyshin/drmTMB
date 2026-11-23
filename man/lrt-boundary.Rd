@@ -79,7 +79,8 @@ holds for them.
 \item Maximum-likelihood fits. REML log-likelihoods are comparable only across
 variance structures with the same fixed effects, so \code{lrt_boundary()}
 aborts when either fit is REML and the two mean structures differ, or
-when one fit is REML and the other ML. A penalized (\code{penalty = drm_phylo_penalty(...)}, MAP) fit aborts too: its variance components
+when one fit is REML and the other ML. A penalized (\code{penalty = drm_phylo_penalty(...)}, MAP) comparison warns and then aborts because its
+variance components
 are shrunk by the prior, so the likelihood ratio has no chi-square
 reference. Experimental MSPL fits abort as for every likelihood method.
 }

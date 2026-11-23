@@ -39,7 +39,8 @@
 #'   variance structures with the same fixed effects, so `lrt_boundary()`
 #'   aborts when either fit is REML and the two mean structures differ, or
 #'   when one fit is REML and the other ML. A penalized (`penalty =
-#'   drm_phylo_penalty(...)`, MAP) fit aborts too: its variance components
+#'   drm_phylo_penalty(...)`, MAP) comparison warns and then aborts because its
+#'   variance components
 #'   are shrunk by the prior, so the likelihood ratio has no chi-square
 #'   reference. Experimental MSPL fits abort as for every likelihood method.
 #'
@@ -213,6 +214,7 @@ drm_lrt_boundary_map_guard <- function(full, reduced) {
     logical(1L)
   )
   if (any(penalized)) {
+    drm_lrtest_map_warning("lrt_boundary")
     cli::cli_abort(c(
       "{.fn lrt_boundary} cannot compare penalized (MAP) fits.",
       "i" = "A penalized fit optimizes a prior-adjusted objective, so the likelihood-ratio statistic has no standard chi-square reference. Refit both without priors or penalties."

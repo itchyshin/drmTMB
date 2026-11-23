@@ -40,10 +40,13 @@ test_that("prior workflow retains targets and guards unsupported inference", {
   expect_error(summary(f,conf.int=TRUE),"fixed-effect")
   expect_error(summary(f,conf.int=TRUE,method="profile"),"fixed-effect")
   expect_error(profile(f),"fixed-effect")
-  expect_error(AIC(f),"fixed-effect")
-  expect_error(BIC(f),"fixed-effect")
+  expect_warning(AIC(f), class = "drmTMB_ic_map_warning")
+  expect_warning(BIC(f), class = "drmTMB_ic_map_warning")
   expect_error(predict_parameters(f,conf.int=TRUE),"fixed-effect")
-  expect_error(drm_lrtest(f,f),"MAP")
+  expect_warning(
+    expect_error(drm_lrtest(f,f),"MAP"),
+    class = "drmTMB_lrtest_map_warning"
+  )
   u <- update(f)
   expect_equal(u$resolved_priors,f$resolved_priors)
   expect_equal(unlist(u$coefficients),unlist(f$coefficients),tolerance=1e-7)

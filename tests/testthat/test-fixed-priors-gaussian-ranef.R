@@ -62,7 +62,7 @@ test_that("random-intercept prior fits preserve update and inference contracts",
   expect_error(summary(fit, conf.int = TRUE), "fixed-effect")
   expect_error(predict_parameters(fit, conf.int = TRUE), "fixed-effect")
   expect_error(predict(fit, se.fit = TRUE), "reserved")
-  expect_error(AIC(fit), "fixed-effect")
+  expect_warning(AIC(fit), class = "drmTMB_ic_map_warning")
   retained <- update(fit)
   expect_equal(retained$resolved_priors, fit$resolved_priors)
   removed <- update(fit, priors = NULL)

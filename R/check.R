@@ -6,8 +6,7 @@
 #' effects, or bivariate residual correlation `rho12`.
 #'
 #' The current checks cover `convergence_status` (`ok` / `note` / `warning` for
-#' `"converged"` / `"boundary"` / `"degenerate"`; prior fits can also be
-#' `"not_converged"`), optimizer convergence, finite objective values,
+#' `"converged"` / `"boundary"` / `"degenerate"` / `"not_converged"`), optimizer convergence, finite objective values,
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
@@ -301,30 +300,30 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' Convergence status for a drmTMB fit
 #'
 #' `convergence_status()` returns a short character label for programmatic
-#' workflows that need more detail than [is_converged()]. A fit can report
-#' optimizer code `0` while the likelihood geometry is degenerate (no proper
-#' maximum or non-finite uncertainty); such fits return `"degenerate"` even
-#' when `multi_start` selected among several starts. Fixed-effect binomial
-#' separation, Poisson / NB2 rays with no finite MLE, and an unbounded
-#' continuous location-scale likelihood are included in that geometry.
-#' `"boundary"` marks an optimizer-converged fit with variance-component,
-#' residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
-#' parameters near an interpretability boundary. [is_converged()] and
+#' workflows that need more detail than [is_converged()]. A fit is
+#' `"converged"` only when the optimizer finished, its relative gradient is
+#' small, no fitted parameter is at a boundary, and the active objective has
+#' positive-definite curvature. These four checks define numerical convergence;
+#' `check_drm()` reports likelihood-existence and fixed-effect-rank warnings
+#' separately, so a numerically converged fit can still need caution before
+#' inference.
+#' `"boundary"` marks an optimizer-converged fit with a parameter at a
+#' variance-component, residual-scale clamp, residual-correlation, or temporal
+#' (OU decay, AR1 persistence) boundary. [is_converged()] and
 #' [converged()] are the same plain logical: they are `TRUE` only for
-#' `"converged"`. For an active prior, status additionally requires a small
-#' scaled gradient and a positive-definite Hessian of the penalized objective.
-#' The unpenalized Hessian is reported separately; directions supported only
-#' by prior curvature appear in `fit$prior_held_params` and do not by themselves
-#' change a penalized fit's status. The stricter optimizer, gradient, boundary,
-#' and Hessian rule applies to prior and no-prior native TMB fits. Julia-engine
-#' bridge parity remains a separate integration gate.
+#' `"converged"`. Prior fits use the penalized objective for the same four
+#' numerical checks. The unpenalized Hessian is reported separately; directions
+#' supported only by prior curvature appear in `fit$prior_held_params` and do
+#' not by themselves change a penalized fit's status. Large but finite standard
+#' errors remain visible through their uncertainty diagnostics; they are not an
+#' additional convergence criterion. Julia-engine bridge parity remains a
+#' separate integration gate.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
-#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`; prior fits
-#'   can also return `"not_converged"` when the optimizer or scaled-gradient
-#'   requirement fails.
+#' @return One of `"converged"`, `"not_converged"`, `"boundary"`, or
+#'   `"degenerate"`.
 #' @export
 #'
 #' @examples
@@ -371,15 +370,13 @@ convergence_status.drmTMB <- function(object, ...) {
   } else {
     !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
   }
-  # The adopted convergence rule has the same four checks for prior and
-  # no-prior fits. Geometry and standard-error diagnostics remain available
-  # through their dedicated checks, but must not add convergence criteria.
+  # Convergence is defined by the same four numerical checks for every fit.
+  # MLE-existence and design-rank findings remain separate check_drm() rows.
   drm_convergence_status_from_parts(
     optimizer_ok = optimizer_ok,
     relative_gradient = relative_gradient,
     at_boundary = drm_convergence_at_boundary(object),
-    pd_hessian = pd_hessian,
-    geometry_degenerate = FALSE
+    pd_hessian = pd_hessian
   )
 }
 
@@ -400,7 +397,6 @@ drm_convergence_status_from_parts <- function(
   relative_gradient,
   at_boundary,
   pd_hessian,
-  geometry_degenerate = FALSE,
   gradient_tolerance = 1e-3
 ) {
   if (
@@ -410,18 +406,28 @@ drm_convergence_status_from_parts <- function(
     return("not_converged")
   }
   if (isTRUE(at_boundary)) return("boundary")
-  if (!isTRUE(pd_hessian) || isTRUE(geometry_degenerate)) return("degenerate")
+  if (!isTRUE(pd_hessian)) return("degenerate")
   "converged"
 }
 
 drm_convergence_at_boundary <- function(object) {
+  logsigma <- check_logsigma_clamp_active(object)
+  logsigma_value <- if (!is.null(logsigma) &&
+    identical(logsigma$check, "logsigma_clamp_active") &&
+    length(logsigma$value) == 1L) {
+    suppressWarnings(as.numeric(logsigma$value))
+  } else {
+    NA_real_
+  }
+  logsigma_at_boundary <- length(logsigma_value) == 1L &&
+    is.finite(logsigma_value)
   rows <- list(
     check_rho12_boundary(object, drm_twin_rho12_boundary),
     check_random_effect_sd_boundary(object, drm_twin_re_sd_boundary),
     check_tweedie_eta_nu_cap(object),
     check_temporal_boundary(object)
   )
-  any(vapply(rows, function(row) {
+  logsigma_at_boundary || any(vapply(rows, function(row) {
     !is.null(row) && any(row$status %in% c("warning", "error"))
   }, logical(1L)))
 }
@@ -937,7 +943,12 @@ check_scale_phylo_identifiability <- function(object) {
 check_penalized_fit <- function(object) {
   if (drm_has_fixed_priors(object)) {
     return(check_row("penalized_map", "note", "fixed-effect or SD priors",
-      "Point estimates use the penalized objective. Covariance is local penalized-Hessian curvature; confidence intervals and likelihood comparisons are not implemented."))
+      paste(
+        "Point estimates use the penalized objective. Covariance is local",
+        "penalized-Hessian curvature; ordinary confidence intervals are not",
+        "implemented. AIC, BIC, and AICc are warning-labeled diagnostics,",
+        "while likelihood-ratio tests warn and are refused for penalized fits."
+      )))
   }
   if (is.null(object$penalty)) {
     return(NULL)
@@ -1862,13 +1873,13 @@ check_convergence_status <- function(object) {
         "convergence_status() and boundary rows before inference."
       ),
       degenerate = paste(
-        "The optimizer reported success but the likelihood geometry or",
-        "uncertainty is degenerate (no reliable maximum or non-finite",
-        "standard errors). multi_start cannot clear this state;",
+        "The optimizer reported success, but the active objective Hessian is",
+        "not positive definite. Local curvature does not support a stable",
+        "optimum; multi_start cannot clear this state.",
         "is_converged() and converged() are FALSE."
       ),
       not_converged = paste(
-        "The penalized fit did not meet the optimizer or relative-gradient",
+        "The active objective did not meet the optimizer or relative-gradient",
         "convergence criterion. Inspect the stored score and optimizer",
         "diagnostics before interpreting estimates."
       ),

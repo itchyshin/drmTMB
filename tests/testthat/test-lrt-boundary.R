@@ -178,7 +178,10 @@ test_that("lrt_boundary refuses malformed comparisons", {
   # comparison.jl:151-158). Exercise the guard on the estimator label.
   map_fit <- fits$full
   map_fit$estimator <- "MAP"
-  expect_error(lrt_boundary(map_fit, fits$reduced), "penalized")
+  expect_warning(
+    expect_error(lrt_boundary(map_fit, fits$reduced), "penalized"),
+    class = "drmTMB_lrtest_map_warning"
+  )
 })
 
 test_that("lrt_boundary applies the REML guard (DRM.jl comparison.jl:133-142)", {

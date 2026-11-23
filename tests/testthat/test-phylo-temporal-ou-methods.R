@@ -151,17 +151,14 @@ test_that("a paired fit whose residual SD collapses is reported as a boundary fi
   boundary <- rows[rows$check == "temporal_boundary", , drop = FALSE]
   expect_identical(boundary$status, "warning")
   expect_match(boundary$value, "sigma_ratio=")
-  # convergence_status() ranks "degenerate" above "boundary". Near this
-  # collapsed-SD boundary, optimizer code 1 is platform-sensitive; it must
-  # classify the fit as degenerate rather than as a clean boundary fit.
-  irregular <- !drmTMB:::drm_optimizer_converged(fit) ||
-    drmTMB:::drm_inference_degenerate(fit) ||
-    drmTMB:::drm_fixed_effect_rank_deficient(fit) ||
-    drmTMB:::drm_standard_errors_pathological(fit) ||
-    drmTMB:::drm_mle_nonexistent_is_true(fit)
-  expect_identical(convergence_status(fit), if (irregular) "degenerate" else "boundary")
-  if (identical(as.integer(fit$opt$convergence), 1L)) {
-    expect_identical(convergence_status(fit), "degenerate")
+  # The new status distinguishes optimizer/gradient failure from a fitted
+  # boundary. Large standard errors are reported separately and do not turn a
+  # boundary fit into a degenerate one.
+  if (!drmTMB:::drm_optimizer_converged(fit) ||
+      fit$relative_gradient > 1e-3) {
+    expect_identical(convergence_status(fit), "not_converged")
+  } else {
+    expect_identical(convergence_status(fit), "boundary")
   }
   expect_false(identical(convergence_status(fit), "converged"))
 })
