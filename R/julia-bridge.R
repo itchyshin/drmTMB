@@ -7921,6 +7921,8 @@ new_drmTMB_julia <- function(
   effective_REML = NULL
 ) {
   result <- as.list(result)
+  fit_failed <- drm_julia_bridge_fit_failed_flag(result)
+  drm_julia_bridge_fit_failed_warn(result)
   public_coef_labels <- drm_julia_bridge_coef_labels(result)
   coef_names <- as.character(result[["coef_names"]])
   if (!is.null(public_coef_labels)) {
@@ -8087,9 +8089,19 @@ new_drmTMB_julia <- function(
     structured_sd_scales = structured_sd_scales,
     corpars = structured_parameters$corpars,
     vcov = V,
-    logLik = as.numeric(result[["loglik"]]),
+    logLik = if (fit_failed) {
+      NaN
+    } else {
+      as.numeric(result[["loglik"]])
+    },
     aic = as.numeric(result[["aic"]]),
     bic = as.numeric(result[["bic"]]),
+    fit_failed = fit_failed,
+    fit_failed_message = if (fit_failed) {
+      drm_julia_bridge_fit_failed_message(result)
+    } else {
+      NULL
+    },
     df = as.integer(result[["df"]]),
     nobs = as.integer(result[["nobs"]]),
     missing_rows = drm_julia_missing_rows_slot(data),
@@ -8973,7 +8985,48 @@ drm_julia_vcov <- function(x, coef_names) {
 # route does not record it" -- NOT zero. There is no Optim.jl message string on
 # the wire, so `message` is composed here from the two facts that did cross, and
 # says so; it is never presented as a verbatim optimiser message.
+drm_julia_bridge_fit_failed_flag <- function(result) {
+  isTRUE(result[["fit_failed"]])
+}
+
+drm_julia_bridge_fit_failed_message <- function(result) {
+  msg <- result[["fit_failed_message"]] %||% ""
+  msg <- as.character(msg)
+  if (length(msg) < 1L || !nzchar(msg[[1L]])) {
+    return("DRM.jl reported a failed fit with no additional message.")
+  }
+  msg[[1L]]
+}
+
+drm_julia_bridge_fit_failed_warn <- function(result) {
+  if (!drm_julia_bridge_fit_failed_flag(result)) {
+    return(invisible(FALSE))
+  }
+  cli::cli_warn(c(
+    "DRM.jl reported that this fit failed.",
+    "x" = drm_julia_bridge_fit_failed_message(result),
+    "i" = "logLik is NaN; try {.code engine = \"tmb\"} or check data scaling."
+  ), class = "drmTMB_julia_fit_failed")
+  invisible(TRUE)
+}
+
 drm_julia_opt_slot <- function(result) {
+  if (drm_julia_bridge_fit_failed_flag(result)) {
+    iterations <- suppressWarnings(
+      as.integer(result[["iterations"]] %||% NA_integer_)
+    )
+    if (length(iterations) != 1L || is.na(iterations) || iterations < 0L) {
+      iterations <- NA_integer_
+    }
+    return(list(
+      convergence = 1L,
+      iterations = iterations,
+      message = paste(
+        "DRM.jl reported a failed fit.",
+        drm_julia_bridge_fit_failed_message(result)
+      )
+    ))
+  }
   converged <- isTRUE(result[["converged"]])
   iterations <- suppressWarnings(as.integer(result[["iterations"]] %||% NA_integer_))
   if (length(iterations) != 1L || is.na(iterations) || iterations < 0L) {
@@ -9101,6 +9154,9 @@ drm_julia_conditional_structured_plain <- function(x) {
 #' @export
 print.drmTMB_julia <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine fit>")
+  if (isTRUE(x$fit_failed)) {
+    cli::cli_text("  FAILED FIT: {x$fit_failed_message}")
+  }
   if (drm_has_fixed_priors(x)) {
     cli::cli_text("  covariance: local penalized-Hessian curvature; confidence intervals are not implemented")
   }
@@ -10414,7 +10470,11 @@ print.summary.drmTMB_julia <- function(x, ...) {
 
 #' @export
 logLik.drmTMB_julia <- function(object, ...) {
-  out <- object$logLik
+  out <- if (isTRUE(object$fit_failed)) {
+    NaN
+  } else {
+    object$logLik
+  }
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
   # Same estimator attributes as logLik.drmTMB(), so code reading the logLik
@@ -13449,6 +13509,8 @@ new_drmTMB_julia_xfam <- function(
   requested_REML = FALSE
 ) {
   result <- as.list(result)
+  fit_failed <- drm_julia_bridge_fit_failed_flag(result)
+  drm_julia_bridge_fit_failed_warn(result)
   scalar <- function(x) as.numeric(x)[[1L]]
   rho_latent <- scalar(result[["rho_latent"]])
   rho_ci_wald <- c(
@@ -13540,7 +13602,11 @@ new_drmTMB_julia_xfam <- function(
   # linear-predictor coefficients. rho_latent is derived from those loadings
   # and the fitted dispersion, so it is not an additional free parameter.
   df <- length(coef_vector) + 2L
-  logLik <- scalar(result[["loglik"]])
+  logLik <- if (fit_failed) {
+    NaN
+  } else {
+    scalar(result[["loglik"]])
+  }
   aic <- -2 * logLik + 2 * df
   bic <- -2 * logLik + log(length(axes$mu1$y)) * df
 
@@ -13584,6 +13650,12 @@ new_drmTMB_julia_xfam <- function(
     logLik = logLik,
     aic = aic,
     bic = bic,
+    fit_failed = fit_failed,
+    fit_failed_message = if (fit_failed) {
+      drm_julia_bridge_fit_failed_message(result)
+    } else {
+      NULL
+    },
     df = df,
     nobs = length(axes$mu1$y),
     missing_rows = list(
@@ -13608,6 +13680,9 @@ new_drmTMB_julia_xfam <- function(
 #' @export
 print.drmTMB_julia_xfam <- function(x, ...) {
   cli::cli_text("<drmTMB Julia-engine cross-family fit>")
+  if (isTRUE(x$fit_failed)) {
+    cli::cli_text("  FAILED FIT: {x$fit_failed_message}")
+  }
   cli::cli_text(
     "  families: {x$families[[1]]} \u{00d7} {x$families[[2]]}"
   )
@@ -13659,7 +13734,11 @@ vcov.drmTMB_julia_xfam <- function(object, ...) {
 
 #' @export
 logLik.drmTMB_julia_xfam <- function(object, ...) {
-  out <- object$logLik
+  out <- if (isTRUE(object$fit_failed)) {
+    NaN
+  } else {
+    object$logLik
+  }
   attr(out, "nobs") <- object$nobs
   attr(out, "df") <- object$df
   class(out) <- "logLik"
