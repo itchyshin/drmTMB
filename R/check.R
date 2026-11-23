@@ -5,9 +5,9 @@
 #' fits with random effects, known sampling covariance, phylogenetic location
 #' effects, or bivariate residual correlation `rho12`.
 #'
-#' The current checks cover the three-valued `convergence_status`
-#' (`ok` / `note` / `warning` for `"converged"` / `"boundary"` /
-#' `"degenerate"`), optimizer convergence, finite objective values,
+#' The current checks cover `convergence_status` (`ok` / `note` / `warning` for
+#' `"converged"` / `"boundary"` / `"degenerate"`; prior fits can also be
+#' `"not_converged"`), optimizer convergence, finite objective values,
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
 #' [TMB::sdreport()] was computed, skipped, or failed, Hessian status from
@@ -311,13 +311,20 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
 #' parameters near an interpretability boundary. [is_converged()] and
 #' [converged()] are the same plain logical: they are `TRUE` only for
-#' `"converged"`. Numeric predicates are identical in DRModels.jl
-#' (`docs/design/278-twin-convergence-status.md`).
+#' `"converged"`. For an active prior, status additionally requires a small
+#' scaled gradient and a positive-definite Hessian of the penalized objective.
+#' The unpenalized Hessian is reported separately; directions supported only
+#' by prior curvature appear in `fit$prior_held_params` and do not by themselves
+#' change a penalized fit's status. The stricter optimizer, gradient, boundary,
+#' and Hessian rule applies to prior and no-prior native TMB fits. Julia-engine
+#' bridge parity remains a separate integration gate.
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
-#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`.
+#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`; prior fits
+#'   can also return `"not_converged"` when the optimizer or scaled-gradient
+#'   requirement fails.
 #' @export
 #'
 #' @examples
@@ -346,21 +353,133 @@ convergence_status.drmTMB <- function(object, ...) {
       "{.arg ...} is reserved for future {.fn convergence_status} options."
     )
   }
-  if (!drm_optimizer_converged(object)) {
-    return("degenerate")
+  relative_gradient <- object$relative_gradient
+  if (is.null(relative_gradient)) {
+    relative_gradient <- drm_convergence_relative_gradient(
+      object$gradient, object$opt$par, object$opt$objective
+    )
   }
+  optimizer_ok <- identical(as.integer(object$opt$convergence), 0L) &&
+    isTRUE(is.finite(object$opt$objective)) &&
+    (drm_is_mspl(object) || isTRUE(is.finite(object$logLik)))
+  pd_hessian <- if (drm_is_mspl(object)) {
+    isTRUE(object$mspl$numerical$hessian_positive_definite)
+  } else if (isTRUE(object$penalised)) {
+    object$pd_hessian_penalised
+  } else if (!is.null(object$pd_hessian)) {
+    object$pd_hessian
+  } else {
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  }
+  # The adopted convergence rule has the same four checks for prior and
+  # no-prior fits. Geometry and standard-error diagnostics remain available
+  # through their dedicated checks, but must not add convergence criteria.
+  drm_convergence_status_from_parts(
+    optimizer_ok = optimizer_ok,
+    relative_gradient = relative_gradient,
+    at_boundary = drm_convergence_at_boundary(object),
+    pd_hessian = pd_hessian,
+    geometry_degenerate = FALSE
+  )
+}
+
+drm_convergence_relative_gradient <- function(gradient, par, objective) {
   if (
-    drm_inference_degenerate(object) ||
-      drm_fixed_effect_rank_deficient(object) ||
-      drm_standard_errors_pathological(object) ||
-      drm_mle_nonexistent_is_true(object)
+    !is.numeric(gradient) || length(gradient) == 0L ||
+      !is.numeric(par) || length(par) != length(gradient) ||
+      any(!is.finite(gradient)) || any(!is.finite(par)) ||
+      length(objective) != 1L || !is.finite(objective)
   ) {
-    return("degenerate")
+    return(Inf)
   }
-  if (drm_inference_at_boundary(object)) {
-    return("boundary")
+  max(abs(gradient) * pmax(1, abs(par))) / max(1, abs(objective))
+}
+
+drm_convergence_status_from_parts <- function(
+  optimizer_ok,
+  relative_gradient,
+  at_boundary,
+  pd_hessian,
+  geometry_degenerate = FALSE,
+  gradient_tolerance = 1e-3
+) {
+  if (
+    !isTRUE(optimizer_ok) || length(relative_gradient) != 1L ||
+      !is.finite(relative_gradient) || relative_gradient > gradient_tolerance
+  ) {
+    return("not_converged")
   }
+  if (isTRUE(at_boundary)) return("boundary")
+  if (!isTRUE(pd_hessian) || isTRUE(geometry_degenerate)) return("degenerate")
   "converged"
+}
+
+drm_convergence_at_boundary <- function(object) {
+  rows <- list(
+    check_rho12_boundary(object, drm_twin_rho12_boundary),
+    check_random_effect_sd_boundary(object, drm_twin_re_sd_boundary),
+    check_tweedie_eta_nu_cap(object),
+    check_temporal_boundary(object)
+  )
+  any(vapply(rows, function(row) {
+    !is.null(row) && any(row$status %in% c("warning", "error"))
+  }, logical(1L)))
+}
+
+drm_prior_held_parameters <- function(
+  penalized_hessian,
+  unpenalized_hessian,
+  parameter_names,
+  tolerance = 1e-8
+) {
+  empty <- data.frame(name = character(), kind = character())
+  if (
+    !is.matrix(penalized_hessian) || !is.matrix(unpenalized_hessian) ||
+      nrow(penalized_hessian) == 0L ||
+      !identical(dim(penalized_hessian), dim(unpenalized_hessian)) ||
+      nrow(penalized_hessian) != length(parameter_names) ||
+      any(!is.finite(penalized_hessian)) ||
+      any(!is.finite(unpenalized_hessian))
+  ) {
+    return(empty)
+  }
+  penalty_symmetric <- (penalized_hessian + t(penalized_hessian)) / 2
+  likelihood_symmetric <- (unpenalized_hessian + t(unpenalized_hessian)) / 2
+  penalty_eigen <- tryCatch(
+    eigen(penalty_symmetric, symmetric = TRUE),
+    error = function(e) NULL
+  )
+  likelihood_eigen <- tryCatch(
+    eigen(likelihood_symmetric, symmetric = TRUE),
+    error = function(e) NULL
+  )
+  if (is.null(penalty_eigen) || is.null(likelihood_eigen)) return(empty)
+  penalty_scale <- max(1, max(abs(penalty_eigen$values)))
+  likelihood_scale <- max(1, max(abs(likelihood_eigen$values)))
+  if (min(penalty_eigen$values) <= tolerance * penalty_scale) {
+    return(empty)
+  }
+  # A genuinely indefinite data Hessian is not evidence that the prior alone
+  # held a parameter. Treat only a numerically positive-semidefinite Hessian
+  # with near-zero eigenvalues as prior-held.
+  if (min(likelihood_eigen$values) < -tolerance * likelihood_scale) {
+    return(empty)
+  }
+  null <- which(likelihood_eigen$values <= tolerance * likelihood_scale)
+  if (length(null) == 0L) {
+    return(empty)
+  }
+  implicated <- rowSums(likelihood_eigen$vectors[, null, drop = FALSE]^2) > tolerance
+  names <- as.character(parameter_names[implicated])
+  counts <- ave(seq_along(parameter_names), parameter_names, FUN = seq_along)
+  names <- paste0(names, "[", counts[implicated], "]")
+  kinds <- ifelse(
+    grepl("^beta_mu", names), "fixed_effect",
+    ifelse(grepl("^log_sd_", names), "random_effect_sd",
+      ifelse(grepl("^eta_cor_", names), "random_effect_correlation",
+        ifelse(grepl("^beta_sigma", names), "residual_sd_coefficient",
+          ifelse(grepl("^beta_rho", names), "residual_correlation_coefficient", "other")))))
+  data.frame(name = names, kind = kinds, stringsAsFactors = FALSE)
 }
 
 #' @rdname convergence_status
@@ -657,6 +776,7 @@ check_drm.drmTMB <- function(
     check_dropped_rows(object),
     check_scale_positive(object),
     check_random_effect_sd_boundary(object, sd_boundary = sd_boundary),
+    check_prior_held_params(object),
     check_interval_reliability_scope(object),
     check_temporal_boundary(object),
     check_temporal_mean_wald(object),
@@ -833,6 +953,30 @@ check_penalized_fit <- function(object) {
       "penalized fits are not standard. logLik() returns the unpenalized data ",
       "log-likelihood; the penalty contribution is stored as fit$phylo_penalty."
     )
+  )
+}
+
+check_prior_held_params <- function(object) {
+  if (!isTRUE(object$penalised)) return(NULL)
+  held <- object$prior_held_params
+  if (is.data.frame(held) && nrow(held) > 0L) {
+    labels <- paste0(held$name, " (", held$kind, ")")
+    return(check_row(
+      "prior_held_params",
+      "note",
+      paste(labels, collapse = ", "),
+      paste(
+        "The unpenalized data Hessian is singular in these directions;",
+        "the penalized Hessian supports them only through prior curvature.",
+        "Treat their estimates as prior-held, not as data-identified."
+      )
+    ))
+  }
+  check_row(
+    "prior_held_params",
+    "ok",
+    "none",
+    "No parameter direction is held only by prior curvature according to the unpenalized Hessian."
   )
 }
 
@@ -1702,6 +1846,7 @@ check_convergence_status <- function(object) {
       converged = "ok",
       boundary = "note",
       degenerate = "warning",
+      not_converged = "warning",
       "note"
     ),
     status,
@@ -1721,6 +1866,11 @@ check_convergence_status <- function(object) {
         "uncertainty is degenerate (no reliable maximum or non-finite",
         "standard errors). multi_start cannot clear this state;",
         "is_converged() and converged() are FALSE."
+      ),
+      not_converged = paste(
+        "The penalized fit did not meet the optimizer or relative-gradient",
+        "convergence criterion. Inspect the stored score and optimizer",
+        "diagnostics before interpreting estimates."
       ),
       "Convergence status could not be classified."
     )

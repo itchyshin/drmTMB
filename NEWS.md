@@ -30,9 +30,9 @@
 
 * The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.
 
-* Add an opt-in prior table for supported fixed effects and Gaussian random-intercept standard deviations.
+* Add an opt-in prior table for supported fixed effects, natural-scale random-effect standard deviations, and supported correlations. Coefficients accept Normal and Student-t priors; positive SD targets accept Gamma priors; supported correlation targets accept LKJ priors. `drm_resolve_priors()` previews resolved targets, and the Julia bridge uses versioned contracts for supported combinations.
 
-* In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Confidence intervals and information criteria remain unavailable for active-prior fits. The Julia bridge requires a DRModels.jl version containing the two-intercept prior-table support. Random slopes and correlation priors remain outside this slice.
+* In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Active-prior fits report the unpenalized data likelihood separately from the penalized objective; intervals and information criteria remain unavailable. Unsupported targets and model combinations are refused explicitly.
 
 * A formula transform that produces `NA` or `NaN`, such as `log(x)` or
   `sqrt(x)` on a negative predictor, drops those rows from the response and the

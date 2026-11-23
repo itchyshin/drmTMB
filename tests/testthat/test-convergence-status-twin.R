@@ -75,10 +75,10 @@ test_that("optimizer failure and skipped SEs keep the documented status", {
   )
   failed <- fit
   failed$opt$convergence <- 1L
-  expect_identical(convergence_status(failed), "degenerate")
+  expect_identical(convergence_status(failed), "not_converged")
   expect_false(is_converged(failed))
   chk <- check_drm(failed)
-  expect_identical(chk$value[chk$check == "convergence_status"], "degenerate")
+  expect_identical(chk$value[chk$check == "convergence_status"], "not_converged")
   expect_identical(chk$status[chk$check == "convergence_status"], "warning")
 
   se_skipped <- fit

@@ -383,7 +383,7 @@ drmTMB <- function(
     priors <- drm_normalize_prior_table(priors, formula, family, data,
       REML = REML, estimator = estimator, penalty = penalty, impute = impute, control = control)
     # Save exact model-matrix targets so update cannot re-expand broad rules.
-    prior_preview <- drm_resolve_priors(formula, family, data, priors)
+    prior_preview <- drm_resolve_priors_native(formula, family, data, priors)
     fit_call$priors <- drm_freeze_table_prior_specs(priors, prior_preview)
   }
   drm_validate_fixed_prior_request(priors, formula, family, data,
@@ -407,6 +407,12 @@ drmTMB <- function(
     ))
   }
   if (identical(engine, "julia")) {
+    if (drm_prior_uses_native_only_targets(priors)) {
+      cli::cli_abort(c(
+        "The Julia bridge prior-table contract does not support this combination of prior targets.",
+        "i" = "Use {.code engine = \"tmb\"} for prior combinations outside the admitted bridge contract."
+      ))
+    }
     if (drm_is_mspl(estimator)) {
       cli::cli_abort(
         "Experimental MSPL is implemented only for {.code engine = \"tmb\"}."
@@ -418,8 +424,10 @@ drmTMB <- function(
       )
     }
     drm_julia_experimental_notice()
-    has_sd_prior <- !is.null(priors) && any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
-    if (has_sd_prior && !base::missing(weights)) {
+    has_prior_sd_target <- !is.null(priors) && any(vapply(priors, function(p) {
+      inherits(p, c("drm_sd_prior", "drm_residual_sd_prior"))
+    }, logical(1)))
+    if (has_prior_sd_target && !base::missing(weights)) {
       bridge_weights <- drm_julia_sd_prior_weights(substitute(weights), data, parent.frame())
       return(drmTMB_julia_bridge(
         formula = formula, family = family, data = data, env = formula_env,
@@ -755,6 +763,128 @@ drmTMB <- function(
   )
 }
 
+drm_prior_penalty_hessian <- function(spec, opt) {
+  n <- length(opt$par)
+  hessian <- matrix(0, n, n)
+  parameter_names <- names(opt$par)
+  add_diagonal <- function(position, value) {
+    if (length(position) == 1L && !is.na(position) &&
+        is.finite(value) && position >= 1L && position <= n) {
+      hessian[position, position] <<- hessian[position, position] + value
+    }
+  }
+
+  fixed <- spec$resolved_priors
+  if (is.data.frame(fixed) && nrow(fixed) > 0L) {
+    for (i in seq_len(nrow(fixed))) {
+      positions <- which(parameter_names == paste0("beta_", fixed$dpar[[i]]))
+      column <- as.integer(fixed$matrix_column[[i]])
+      if (length(positions) < column) next
+      position <- positions[[column]]
+      delta <- opt$par[[position]] - fixed$mean[[i]]
+      value <- if (identical(fixed$kind[[i]], "student_t")) {
+        df <- fixed$df[[i]]
+        scale2 <- fixed$sd[[i]]^2
+        (df + 1) * (df * scale2 - delta^2) / (df * scale2 + delta^2)^2
+      } else {
+        fixed$precision[[i]]
+      }
+      add_diagonal(position, value)
+    }
+  }
+
+  sd_count <- length(spec$tmb_data$prior_sd_index)
+  if (sd_count > 0L) {
+    for (i in seq_len(sd_count)) {
+      dpar_code <- spec$tmb_data$prior_sd_dpar[[i]]
+      parameter <- if (dpar_code == 0L) "log_sd_mu" else "beta_sigma"
+      index <- spec$tmb_data$prior_sd_index[[i]] + 1L
+      positions <- which(parameter_names == parameter)
+      if (length(positions) < index) next
+      position <- positions[[index]]
+      add_diagonal(position,
+        spec$tmb_data$prior_sd_rate[[i]] * exp(opt$par[[position]]))
+    }
+  }
+
+  correlation_priors <- spec$resolved_correlation_prior
+  if (is.data.frame(correlation_priors) && nrow(correlation_priors) > 0L) {
+    for (i in seq_len(nrow(correlation_priors))) {
+      target <- correlation_priors[i, , drop = FALSE]
+      is_rho12 <- identical(target$dpar[[1L]], "rho12")
+      parameter <- if (is_rho12) "beta_rho12" else "eta_cor_mu"
+      positions <- which(parameter_names == parameter)
+      index <- if (is_rho12) 1L else match(target$block[[1L]], spec$random$mu$cor_labels)
+      if (is.na(index) || length(positions) < index) next
+      position <- positions[[index]]
+      bound <- if (is_rho12) 0.999999 else 0.99999999
+      gradient <- function(x) {
+        rho <- bound * tanh(x)
+        2 * (target$eta[[1L]] - 1) * rho * bound * (1 - tanh(x)^2) /
+          (1 - rho^2)
+      }
+      step <- 1e-5 * max(1, abs(opt$par[[position]]))
+      curvature <- (gradient(opt$par[[position]] + step) -
+        gradient(opt$par[[position]] - step)) / (2 * step)
+      add_diagonal(position, curvature)
+    }
+  }
+  hessian
+}
+
+drm_fit_hessian_diagnostics <- function(obj, opt, sdr, spec) {
+  diagnostic_sdr <- sdr
+  if (is.null(diagnostic_sdr) || is.null(diagnostic_sdr$cov.fixed)) {
+    diagnostic_sdr <- tryCatch(
+      suppressWarnings(TMB::sdreport(
+        obj,
+        par.fixed = opt$par,
+        getReportCovariance = FALSE,
+        skip.delta.method = TRUE
+      )),
+      error = function(e) NULL
+    )
+  }
+  covariance <- if (is.null(diagnostic_sdr)) NULL else diagnostic_sdr$cov.fixed
+  hessian_penalized <- if (
+    is.matrix(covariance) && nrow(covariance) == length(opt$par) &&
+      ncol(covariance) == length(opt$par) && all(is.finite(covariance))
+  ) {
+    tryCatch(solve(covariance), error = function(e) NULL)
+  } else {
+    NULL
+  }
+  if (!is.null(hessian_penalized) && all(is.finite(hessian_penalized))) {
+    prior_hessian <- drm_prior_penalty_hessian(spec, opt)
+    hessian_unpenalized <- hessian_penalized - prior_hessian
+    held <- drm_prior_held_parameters(
+      hessian_penalized,
+      hessian_unpenalized,
+      names(opt$par)
+    )
+    values <- tryCatch(
+      eigen((hessian_unpenalized + t(hessian_unpenalized)) / 2,
+        symmetric = TRUE, only.values = TRUE)$values,
+      error = function(e) numeric()
+    )
+    scale <- if (length(values) > 0L) max(1, max(abs(values))) else Inf
+    pd_unpenalized <- length(values) == length(opt$par) &&
+      all(is.finite(values)) && min(values) > 1e-8 * scale
+  } else {
+    hessian_unpenalized <- NULL
+    held <- data.frame(name = character(), kind = character())
+    pd_unpenalized <- FALSE
+  }
+  list(
+    pd_penalized = isTRUE(diagnostic_sdr$pdHess) &&
+      !is.null(hessian_penalized),
+    pd_unpenalized = isTRUE(pd_unpenalized),
+    prior_held_params = held,
+    hessian_penalized = hessian_penalized,
+    hessian_unpenalized = hessian_unpenalized
+  )
+}
+
 drm_fit_spec <- function(
   spec,
   formula,
@@ -796,7 +926,7 @@ drm_fit_spec <- function(
     drm_validate_fixed_prior_request(priors, formula, family, spec$data,
       REML = REML, estimator = estimator, penalty = penalty, control = control)
     drm_validate_fixed_prior_designs(spec)
-    spec <- drm_apply_fixed_priors_spec(spec, priors)
+    spec <- drm_apply_fixed_priors_spec(spec, priors, formula = formula, family = family)
     spec$priors <- priors
     if (drm_fixed_priors_active(priors)) spec$estimator <- "MAP"
   }
@@ -965,6 +1095,14 @@ drm_fit_spec <- function(
     estimator = spec$estimator
   )
   sdr <- uncertainty$sdr
+  prior_active <- drm_fixed_priors_active(priors)
+  prior_hessian <- drm_fit_hessian_diagnostics(obj, opt, sdr, spec)
+  drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
+  relative_gradient <- drm_convergence_relative_gradient(
+    fit_gradient$gradient,
+    opt$par,
+    opt$objective
+  )
   # sdreport() can leave the mutable full parameter vector at a Hessian
   # perturbation. Use the selected pre-SE state for random/marginalized entries;
   # parList still takes fixed parameters from opt$par and does not mutate obj.
@@ -998,9 +1136,15 @@ drm_fit_spec <- function(
     as.numeric(objective_report$fixed_prior_penalty)
   sd_prior_value <- if (is.null(objective_report$sd_prior_penalty)) 0 else
     as.numeric(objective_report$sd_prior_penalty)
+  residual_sd_prior_value <- if (is.null(objective_report$residual_sd_prior_penalty)) 0 else
+    as.numeric(objective_report$residual_sd_prior_penalty)
+  correlation_prior_value <- if (is.null(objective_report$correlation_prior_penalty)) 0 else
+    as.numeric(objective_report$correlation_prior_penalty)
   sd_prior_values <- numeric()
   if (!is.null(spec$resolved_sd_prior)) {
-    sd_eta <- opt$par[which(names(opt$par) == "log_sd_mu")[spec$tmb_data$prior_sd_index + 1L]]
+    random_prior_index <- which(spec$tmb_data$prior_sd_dpar == 0L)
+    random_sd_index <- spec$tmb_data$prior_sd_index[random_prior_index] + 1L
+    sd_eta <- opt$par[which(names(opt$par) == "log_sd_mu")[random_sd_index]]
     sd_prior_values <- -stats::dgamma(exp(sd_eta), shape = spec$resolved_sd_prior$shape,
                                      rate = spec$resolved_sd_prior$rate, log = TRUE)
     names(sd_prior_values) <- spec$resolved_sd_prior$group
@@ -1012,13 +1156,41 @@ drm_fit_spec <- function(
     for (i in if (is.null(resolved)) integer() else which(resolved$precision > 0)) {
       positions <- which(names(opt$par) == paste0("beta_", resolved$dpar[[i]]))
       pos <- positions[[resolved$matrix_column[[i]]]]
-      prior_gradient[[pos]] <-
-        (opt$par[[pos]] - resolved$mean[[i]]) * resolved$precision[[i]]
+      delta <- opt$par[[pos]] - resolved$mean[[i]]
+      prior_gradient[[pos]] <- if (identical(resolved$kind[[i]], "student_t")) {
+        (resolved$df[[i]] + 1) * delta /
+          (resolved$df[[i]] * resolved$sd[[i]]^2 + delta^2)
+      } else if (identical(resolved$kind[[i]], "normal")) {
+        delta * resolved$precision[[i]]
+      } else {
+        prior_gradient[[pos]] + delta * resolved$precision[[i]]
+      }
     }
     if (!is.null(spec$resolved_sd_prior)) {
-      pos <- which(names(opt$par) == "log_sd_mu")[spec$tmb_data$prior_sd_index + 1L]
+      random_prior_index <- which(spec$tmb_data$prior_sd_dpar == 0L)
+      pos <- which(names(opt$par) == "log_sd_mu")[
+        spec$tmb_data$prior_sd_index[random_prior_index] + 1L]
       prior_gradient[pos] <- spec$resolved_sd_prior$rate * exp(opt$par[pos]) -
         (spec$resolved_sd_prior$shape - 1)
+    }
+    if (!is.null(spec$resolved_residual_sd_prior)) {
+      pos <- which(names(opt$par) == "beta_sigma")[[1L]]
+      prior_gradient[pos] <- spec$resolved_residual_sd_prior$rate * exp(opt$par[pos]) -
+        (spec$resolved_residual_sd_prior$shape - 1)
+    }
+    if (!is.null(spec$resolved_correlation_prior)) {
+      for (i in seq_len(nrow(spec$resolved_correlation_prior))) {
+        target <- spec$resolved_correlation_prior[i, , drop = FALSE]
+        is_rho12 <- identical(target$dpar[[1L]], "rho12")
+        parameter <- if (is_rho12) "beta_rho12" else "eta_cor_mu"
+        index <- if (is_rho12) 1L else match(target$block[[1L]], spec$random$mu$cor_labels)
+        pos <- which(names(opt$par) == parameter)[[index]]
+        bound <- target$support_guard[[1L]]
+        rho <- bound * tanh(opt$par[[pos]])
+        prior_gradient[pos] <- prior_gradient[pos] +
+          2 * (target$eta[[1L]] - 1) * rho * bound * (1 - tanh(opt$par[[pos]])^2) /
+          (1 - rho^2)
+      }
     }
     likelihood_gradient <- fit_gradient$gradient - prior_gradient
   }
@@ -1031,7 +1203,8 @@ drm_fit_spec <- function(
   stored_loglik <- if (identical(spec$estimator, "MSPL")) {
     NA_real_
   } else {
-    -opt$objective + phylo_penalty_value + fixed_prior_value + sd_prior_value
+    -opt$objective + phylo_penalty_value + fixed_prior_value + sd_prior_value +
+      residual_sd_prior_value + correlation_prior_value
   }
 
   fit <- list(
@@ -1064,8 +1237,14 @@ drm_fit_spec <- function(
     priors = spec$priors,
     resolved_priors = spec$resolved_priors,
     resolved_sd_prior = spec$resolved_sd_prior,
+    resolved_residual_sd_prior = spec$resolved_residual_sd_prior,
+    resolved_correlation_prior = spec$resolved_correlation_prior,
     fixed_prior_penalty = fixed_prior_value,
     sd_prior_penalty = sd_prior_value,
+    residual_sd_prior_penalty = if (drm_fixed_priors_active(priors)) residual_sd_prior_value else NULL,
+    correlation_prior_penalty = if (drm_fixed_priors_active(priors)) correlation_prior_value else NULL,
+    log_prior = if (drm_fixed_priors_active(priors))
+      -(fixed_prior_value + sd_prior_value + residual_sd_prior_value + correlation_prior_value) else NULL,
     prior_gradient = prior_gradient,
     likelihood_gradient = likelihood_gradient,
     penalized_objective = if (!is.null(priors)) opt$objective else NULL,
@@ -1088,6 +1267,18 @@ drm_fit_spec <- function(
     fit$temporal_start_attempts <- NULL
   }
   class(fit) <- "drmTMB"
+  fit$relative_gradient <- relative_gradient
+  fit$pd_hessian <- prior_hessian$pd_penalized
+  if (prior_active) {
+    fit$penalized <- TRUE
+    fit$penalised <- TRUE
+    fit$objective <- -as.numeric(opt$objective)
+    fit$relative_gradient <- relative_gradient
+    fit$pd_hessian_penalised <- prior_hessian$pd_penalized
+    fit$pd_hessian_unpenalised <- prior_hessian$pd_unpenalized
+    fit$prior_held_params <- prior_hessian$prior_held_params
+    fit$se_type <- "penalised"
+  }
   drm_apply_storage_control(fit, control)
 }
 
@@ -26300,10 +26491,17 @@ make_tmb_data <- function(spec) {
   out$prior_beta_mean <- numeric(0)
   out$prior_beta_sd <- numeric(0)
   out$prior_beta_normalized <- integer(0)
+  out$prior_beta_df <- numeric(0)
   out$prior_sd_index <- integer(0)
+  out$prior_sd_dpar <- integer(0)
   out$prior_sd_shape <- numeric(0)
   out$prior_sd_rate <- numeric(0)
   out$prior_sd_lgamma <- numeric(0)
+  out$prior_cor_parameter <- integer(0)
+  out$prior_cor_index <- integer(0)
+  out$prior_cor_eta <- numeric(0)
+  out$prior_cor_guard <- numeric(0)
+  out$prior_cor_log_normalizer <- numeric(0)
   out$phylo_mu_sd_row_coef <- matrix(-1L, nrow = 1L, ncol = 1L)
   out$has_sd_phylo_coef_model <- 0L
   phylo_mu <- spec$structured$phylo_mu

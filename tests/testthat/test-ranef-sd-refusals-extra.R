@@ -34,7 +34,7 @@ test_that("SD prior admission refuses unsupported models before fitting", {
                  bf(y ~ x, sigma ~ 1 + (1 | g)))) {
     expect_error(validate(p, f, gaussian(), d), "fixed-effect-only")
   }
-  expect_error(validate(p, simple, binomial(), d), "Gaussian mean random intercept")
+  expect_error(validate(p, simple, binomial(), d), "univariate Gaussian identity model")
   expect_error(validate(p, simple, gaussian(), d, REML = TRUE), "REML")
   expect_error(validate(p, simple, gaussian(), d, weights = c(2, rep(1, 11))), "unit weights")
   for (column in c("y", "x", "g")) {

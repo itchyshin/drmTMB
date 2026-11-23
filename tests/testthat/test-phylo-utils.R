@@ -112,7 +112,7 @@ phylo_prior_tmb_data <- function(precision) {
       has_sd_phylo_model = 0L,
       # Per-group direct-SD ADREPORT is opt-in; see `drm_control(se_group_sd = )`.
       # This hand-built list mirrors the `DATA_*` contract of src/drmTMB.cpp, so
-      # every new `DATA_INTEGER` there must be added here too or `MakeADFun()`
+      # every new `DATA_*` field there must be added here too or `MakeADFun()`
       # aborts with "Error when reading the variable".
       report_group_sd = 0L,
       sd_phylo_beta_offset = 0L,
@@ -184,12 +184,20 @@ phylo_prior_tmb_data <- function(precision) {
       prior_beta_mean = numeric(0),
       prior_beta_sd = numeric(0),
       prior_beta_normalized = integer(0),
+      prior_beta_df = numeric(0),
       # The SD-prior data are also global TMB inputs; empty vectors keep
       # these hand-built phylogeny probes unpenalized.
       prior_sd_index = integer(0),
+      prior_sd_dpar = integer(0),
       prior_sd_shape = numeric(0),
       prior_sd_rate = numeric(0),
       prior_sd_lgamma = numeric(0),
+      # Bivariate residual-correlation prior inputs are likewise empty.
+      prior_cor_parameter = integer(0),
+      prior_cor_index = integer(0),
+      prior_cor_eta = numeric(0),
+      prior_cor_guard = numeric(0),
+      prior_cor_log_normalizer = numeric(0),
       penalize_phylo = 0L,
       phylo_sd_penalty_rate = numeric(0),
       phylo_cor_penalty_sd = numeric(0),

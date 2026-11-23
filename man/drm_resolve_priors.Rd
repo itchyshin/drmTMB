@@ -9,31 +9,41 @@ drm_resolve_priors(formula, family = stats::gaussian(), data, priors)
 \arguments{
 \item{formula}{A \code{\link[=drm_formula]{drm_formula()}} or \code{\link[=bf]{bf()}} specification.}
 
-\item{family}{Gaussian identity or binomial logit family.}
+\item{family}{Gaussian identity, binomial logit, or bivariate Gaussian family
+for the documented target classes.}
 
 \item{data}{A data frame with complete model variables.}
 
 \item{priors}{A collection created by \code{\link[=drm_priors]{drm_priors()}}, or a data frame with
-\code{prior}, \code{class}, and \code{coef} columns. The table supports \code{normal(mean, sd)}
-and \code{ridge(lambda)} for \code{class = "fixef"}, and \code{gamma(mean, shape)} for
-\code{class = "ranef_sd"}. Optional \code{dpar} defaults to \code{"mu"} and optional
-\code{group} names a grouping factor. A blank fixed-effect coefficient selects
-non-intercept coefficients; a blank SD selector selects all supported
-mean random-intercept SDs. Overlapping targets and a coefficient literally
-named \code{"all"} are rejected. The Gamma table uses mean and shape, so
-\code{rate = shape / mean}; the constructor uses shape and rate. The table
-covers a subset of glmmTMB's prior classes and distributions. Random
-slopes and correlation priors are not supported. Fitted objects retain
-the original table in \code{attr(fit$priors, "input_table")}; \code{update()}
-replays the resolved targets without expanding broad selectors again.}
+\code{prior}, \code{class}, and \code{coef} columns. \code{class = "fixef"} accepts
+\code{normal(mean, sd)}, \code{student_t(location, scale, df)}, or \code{ridge(lambda)};
+\code{class = "ranef_sd"} accepts \code{gamma(mean, shape)} for a named independent
+Gaussian mean-intercept SD; \code{class = "residual_sd"} accepts that Gamma
+form for the residual SD with \code{dpar = "sigma"} and \code{coef = "(Intercept)"};
+and \code{class = "correlation"} accepts \code{lkj(eta)}. Correlation targets use
+\code{dpar = "rho12"}, \code{coef = "(Intercept)"} for bivariate residual
+correlation, or \code{dpar = "mu"}, \code{group}, \code{from_coef}, and \code{to_coef} for
+the exact intercept/slope pair in one unlabelled Gaussian q=2 block.
+Optional \code{dpar} defaults to \code{"mu"}; optional \code{group} names a grouping
+factor. A blank fixed-effect coefficient selects non-intercept coefficients;
+a blank random-SD selector selects all supported mean-intercept SDs.
+Gamma table rows use mean and shape, so \code{rate = shape / mean}; the
+constructor uses shape and rate. Normal, Student-t, Gamma, and LKJ
+densities are normalized; natural-SD and natural-correlation priors add
+no transform Jacobian. Overlapping targets, unsupported models, and a
+coefficient literally named \code{"all"} are rejected. Fitted objects retain
+the input table and \code{update()} replays resolved targets.}
 }
 \value{
 A data frame identifying the resolved targets. Fixed-effect rows
 report the distributional parameter, coefficient, matrix column, prior
 mean, SD, precision and selection reason. An SD-prior row reports the
 distributional parameter, group, random-effect block, coefficient,
-SD scale, shape and rate. Mixed results combine these fields, with
-unavailable fields recorded as \code{NA}.
+SD scale, shape and rate. Residual-SD rows identify the natural SD target;
+correlation rows identify the exact pair and LKJ eta. Previews use the
+classes \code{fixef}, \code{ranef_sd}, \code{residual_sd}, and \code{correlation},
+with scales \code{link}, \code{natural_sd}, or \code{natural_correlation}. Mixed results
+combine these fields, with unavailable fields recorded as \code{NA}.
 }
 \description{
 Resolve selectors against the same Gaussian or binomial design builders used
@@ -46,10 +56,13 @@ coefficients, not the phylogenetic SD-regression coefficients. The
 R-to-Julia bridge is not yet qualified for this phylogenetic prior route.
 Other structured combinations and random slopes are not supported with priors.
 A Gamma SD prior identifies the exact group and intercept and reports shape
-and rate on the natural SD scale. The native and Julia engines support this
-prior for the Gaussian mean random-intercept model described above.
-The Julia bridge does not yet accept factor predictors in this mixed model.
-No automatic centring or scaling is performed.
+and rate on the natural SD scale. The native engine also supports a Gamma
+prior for the residual SD and LKJ priors for \code{rho12} in an intercept-only
+bivariate Gaussian model or for the correlation in one unlabelled Gaussian
+mean random-intercept/random-slope block. No automatic centring or scaling
+is performed. Student-t coefficient, residual-SD, and correlation table
+rows are native-engine only; the Julia bridge refuses them until its
+versioned contract supports those targets.
 }
 \examples{
 d <- data.frame(y = c(1, 2, 1, 3), x = c(0, 1, 2, 3))
@@ -62,6 +75,25 @@ drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, p)
 sd_table <- data.frame(prior = "gamma(0.6666666666666666,2)",
                        class = "ranef_sd", coef = "group")
 drm_resolve_priors(bf(mu = y ~ x + (1 | group), sigma = ~ 1), gaussian(), d, sd_table)
+\dontrun{
+d$group <- factor(rep(seq_len(12), each = 10))
+d$x <- rep(seq(-1, 1, length.out = 10), 12)
+d$y <- 0.4 + 0.6 * d$x + rnorm(nrow(d))
+f <- bf(mu = y ~ x + (1 + x | group), sigma = ~ 1)
+prior_table <- data.frame(
+  prior = c("normal(0,2)", "student_t(0,1.5,4)", "gamma(0.8,2)", "lkj(2)"),
+  class = c("fixef", "fixef", "residual_sd", "correlation"),
+  dpar = c("mu", "mu", "sigma", "mu"),
+  coef = c("(Intercept)", "x", "(Intercept)", ""),
+  group = c("", "", "", "group"),
+  from_coef = c("", "", "", "(Intercept)"),
+  to_coef = c("", "", "", "x"),
+  scale = c("link", "link", "natural_sd", "natural_correlation")
+)
+drm_resolve_priors(f, gaussian(), d, prior_table)
+fit <- drmTMB(f, data = d, priors = prior_table)
+c(logLik = as.numeric(logLik(fit)), penalized_objective = fit$penalized_objective)
+}
 \dontrun{
 tree <- ape::read.tree(text = "((a:0.5,b:0.5):0.5,(c:0.5,d:0.5):0.5);")
 dat <- data.frame(y = c(.2,.7,.35,1.1,.8,1.25,1.4,1.1,1.9,1.5,2.15,.5),

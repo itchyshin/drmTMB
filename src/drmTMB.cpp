@@ -770,10 +770,17 @@ Type objective_function<Type>::operator()()
   DATA_VECTOR(prior_beta_mean);
   DATA_VECTOR(prior_beta_sd);
   DATA_IVECTOR(prior_beta_normalized);
+  DATA_VECTOR(prior_beta_df);
   DATA_IVECTOR(prior_sd_index);
+  DATA_IVECTOR(prior_sd_dpar);
   DATA_VECTOR(prior_sd_shape);
   DATA_VECTOR(prior_sd_rate);
   DATA_VECTOR(prior_sd_lgamma);
+  DATA_IVECTOR(prior_cor_parameter);
+  DATA_IVECTOR(prior_cor_index);
+  DATA_VECTOR(prior_cor_eta);
+  DATA_VECTOR(prior_cor_guard);
+  DATA_VECTOR(prior_cor_log_normalizer);
   DATA_INTEGER(penalize_phylo);
   DATA_VECTOR(phylo_sd_penalty_rate);
   DATA_VECTOR(phylo_cor_penalty_sd);
@@ -6413,7 +6420,12 @@ Type objective_function<Type>::operator()()
     vector<Type> log_sigma1 = X_sigma1 * beta_sigma1;
     vector<Type> log_sigma2 = X_sigma2 * beta_sigma2;
     vector<Type> eta_rho12 = X_rho12 * beta_rho12;
-    vector<Type> rho12 = Type(0.999999) * tanh(eta_rho12);
+    Type rho12_bound = Type(0.999999);
+    if (model_type == 2 && prior_cor_index.size() == 1 &&
+        prior_cor_parameter(0) == 0) {
+      rho12_bound = Type(prior_cor_guard(0));
+    }
+    vector<Type> rho12 = rho12_bound * tanh(eta_rho12);
     vector<Type> eta_nu(1);
     vector<Type> nu(1);
     if (model_type == 20) {
@@ -7217,10 +7229,24 @@ Type objective_function<Type>::operator()()
     sd_logscale_overflow_guard_hit, Type(0.0), Type(R_PosInf), nll);
   Type fixed_prior_penalty = Type(0.0);
   for (int i = 0; i < prior_beta_index.size(); ++i) {
-    Type beta = prior_beta_block(i) == 0 ? beta_mu(prior_beta_index(i)) :
-      beta_sigma(prior_beta_index(i));
+    Type beta;
+    if (prior_beta_block(i) == 0) {
+      beta = beta_mu(prior_beta_index(i));
+    } else if (prior_beta_block(i) == 1) {
+      beta = beta_sigma(prior_beta_index(i));
+    } else if (prior_beta_block(i) == 2) {
+      beta = beta_mu1(prior_beta_index(i));
+    } else {
+      beta = beta_mu2(prior_beta_index(i));
+    }
     if (prior_beta_normalized(i) == 1) {
       fixed_prior_penalty -= dnorm(beta, prior_beta_mean(i), prior_beta_sd(i), true);
+    } else if (prior_beta_normalized(i) == 2) {
+      Type df = prior_beta_df(i);
+      Type z = (beta - prior_beta_mean(i)) / prior_beta_sd(i);
+      fixed_prior_penalty += lgamma(df / Type(2.0)) - lgamma((df + Type(1.0)) / Type(2.0)) +
+        Type(0.5) * log(df * Type(3.14159265358979323846)) + log(prior_beta_sd(i)) +
+        ((df + Type(1.0)) / Type(2.0)) * log(Type(1.0) + z * z / df);
     } else {
       Type z = (beta - prior_beta_mean(i)) / prior_beta_sd(i);
       fixed_prior_penalty += Type(0.5) * z * z;
@@ -7229,12 +7255,28 @@ Type objective_function<Type>::operator()()
   nll += fixed_prior_penalty;
   REPORT(fixed_prior_penalty);
   Type sd_prior_penalty = Type(0.0);
+  Type residual_sd_prior_penalty = Type(0.0);
   for (int i = 0; i < prior_sd_index.size(); ++i) {
-    Type eta = log_sd_mu(prior_sd_index(i));
-    sd_prior_penalty += prior_sd_rate(i) * exp(eta) - (prior_sd_shape(i) - Type(1)) * eta -
+    Type eta = prior_sd_dpar(i) == 0 ? log_sd_mu(prior_sd_index(i)) : beta_sigma(prior_sd_index(i));
+    Type contribution = prior_sd_rate(i) * exp(eta) - (prior_sd_shape(i) - Type(1)) * eta -
       prior_sd_shape(i) * log(prior_sd_rate(i)) + prior_sd_lgamma(i);
+    if (prior_sd_dpar(i) == 0) sd_prior_penalty += contribution;
+    else residual_sd_prior_penalty += contribution;
   }
   nll += sd_prior_penalty;
+  nll += residual_sd_prior_penalty;
   REPORT(sd_prior_penalty);
+  REPORT(residual_sd_prior_penalty);
+  Type correlation_prior_penalty = Type(0.0);
+  for (int i = 0; i < prior_cor_index.size(); ++i) {
+    Type eta = prior_cor_parameter(i) == 0 ? beta_rho12(prior_cor_index(i)) : eta_cor_mu(prior_cor_index(i));
+    Type bound = Type(prior_cor_guard(i));
+    Type rho = bound * tanh(eta);
+    Type lkj_eta = prior_cor_eta(i);
+    correlation_prior_penalty += Type(prior_cor_log_normalizer(i)) -
+      (lkj_eta - Type(1.0)) * log(Type(1.0) - rho * rho);
+  }
+  nll += correlation_prior_penalty;
+  REPORT(correlation_prior_penalty);
   return nll;
 }

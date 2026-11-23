@@ -21,7 +21,9 @@ convergence_status(object, ...)
 \item{...}{Reserved for future options.}
 }
 \value{
-One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}.
+One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}; prior fits
+can also return \code{"not_converged"} when the optimizer or scaled-gradient
+requirement fails.
 }
 \description{
 \code{convergence_status()} returns a short character label for programmatic
@@ -35,8 +37,13 @@ continuous location-scale likelihood are included in that geometry.
 residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
 parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} and
 \code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
-\code{"converged"}. Numeric predicates are identical in DRModels.jl
-(\code{docs/design/278-twin-convergence-status.md}).
+\code{"converged"}. For an active prior, status additionally requires a small
+scaled gradient and a positive-definite Hessian of the penalized objective.
+The unpenalized Hessian is reported separately; directions supported only
+by prior curvature appear in \code{fit$prior_held_params} and do not by themselves
+change a penalized fit's status. The stricter optimizer, gradient, boundary,
+and Hessian rule applies to prior and no-prior native TMB fits. Julia-engine
+bridge parity remains a separate integration gate.
 }
 \examples{
 set.seed(20260916)
