@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* `nsim` on quantile residuals, pair-association simulation, and Julia
+  random-effect simulation routes now rejects non-finite values such as
+  `Inf` and `NaN`, matching the stricter `simulate()` guard (#1719).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau

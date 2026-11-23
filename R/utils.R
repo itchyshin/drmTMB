@@ -44,3 +44,17 @@ drm_nlminb_control_names <- function() {
 drm_optimizer_julia_bridge_names <- function() {
   c("g_tol", "algorithm", "q4_vcov")
 }
+
+# Reject non-finite, non-integer, and non-positive whole-number counts.
+drm_abort_unless_positive_finite_whole <- function(x, arg = rlang::caller_arg(x)) {
+  if (
+    !is.numeric(x) ||
+      length(x) != 1L ||
+      !is.finite(x) ||
+      x < 1L ||
+      x != as.integer(x)
+  ) {
+    cli::cli_abort("{.arg {arg}} must be one positive whole number.")
+  }
+  as.integer(x)
+}
