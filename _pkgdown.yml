@@ -66,7 +66,7 @@ navbar:
           href: articles/drmTMB.html
         - text: When variance carries signal, Part 1
           href: articles/location-scale.html
-        - text: Regularize selected fixed effects
+        - text: Use priors for coefficients and covariance parameters
           href: articles/fixed-effect-priors.html
         - text: When variance carries signal, Part 2
           href: articles/location-scale-scale.html
