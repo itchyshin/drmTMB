@@ -7,8 +7,10 @@
 # including reuse of its one-time spike warning, drm_warn_adequacy_spike()).
 #
 # Honesty (Fisher, DO-T0a CP1 / DO-T2 goal): fitted_distribution() evaluates
-# {d,p,q} at predict_parameters()'s FIXED-EFFECT, population-level parameter
-# estimates theta_hat -- these are distributional (plug-in) outputs, not
+# {d,p,q} at predict_parameters()'s parameter estimates theta_hat: on the
+# fitted rows of a random-effect fit these are conditional on the
+# random-effect modes, and with newdata they are fixed-effect, population-level
+# (issue #1568) -- these are distributional (plug-in) outputs, not
 # calibrated-coverage intervals, and they do not propagate theta_hat
 # uncertainty. Every predict(type = "quantile") and exceedance() result
 # carries attr(., "calibrated") <- FALSE. centile_chart() is a
@@ -122,7 +124,11 @@ drm_biv_gaussian_response_index <- function(dpar) {
 #' continuous mass below the atom.
 #'
 #' This is a distributional (plug-in) output at [predict_parameters()]'s
-#' fixed-effect, population-level parameter estimates `theta_hat`: the result
+#' parameter estimates `theta_hat`. With `newdata = NULL` (the fitted rows) of
+#' a random-effect fit, `theta_hat` is conditional on the random-effect modes,
+#' as for [predict.drmTMB()]'s fitted-row predictions, so the exceedance
+#' probabilities are conditional on the modes, not marginal; with `newdata`
+#' supplied, `theta_hat` is fixed-effect and population-level. The result
 #' carries `attr(., "calibrated") <- FALSE` and does not propagate `theta_hat`
 #' uncertainty. See [fitted_distribution()] for the `"spike"`/`"unimplemented"`
 #' status rules this inherits (a `"spike"`-status family emits a one-time
