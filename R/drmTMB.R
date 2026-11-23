@@ -5124,6 +5124,7 @@ drm_build_gaussian_ls_spec <- function(
   keep <- aligned$keep
   V_known <- aligned$V_known
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Gaussian")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && any(!observed_y)) {
@@ -5918,6 +5919,7 @@ drm_build_student_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Student-t")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
@@ -6286,6 +6288,7 @@ drm_build_skew_normal_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "skew-normal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -21755,6 +21758,17 @@ prepare_betabinomial_response <- function(y, response) {
     success_name = response_names[[1L]],
     failure_name = response_names[[2L]]
   )
+}
+
+drm_reject_factor_response <- function(y, response, family) {
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "{family} response values must be numeric, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+    ))
+  }
+  invisible(y)
 }
 
 prepare_binomial_response <- function(y, response, has_weights = FALSE) {
