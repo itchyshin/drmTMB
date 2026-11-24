@@ -335,6 +335,9 @@ pass `threads = TRUE`, for example
 `confint(fit, method = "bootstrap", R = 199, threads = TRUE)`. Without enough
 Julia threads, `threads = TRUE` runs the refits serially and prints a one-time
 message. Avoid combining many Julia workers with many BLAS threads.
+For native TMB fits and `parallel = "multicore"` profile or bootstrap jobs,
+see the [parallel and thread policy](drmTMB-parallel.html) page for the
+recommended `OPENBLAS_NUM_THREADS` / `OMP_NUM_THREADS` / `TMB_NTHREADS` pin.
 
 ## Current boundaries
 
