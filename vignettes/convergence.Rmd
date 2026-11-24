@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE, purl=FALSE, eval=TRUE}
+```{r, include = FALSE, eval=TRUE}
 library(drmTMB)
 
 has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
@@ -108,7 +108,7 @@ three small fitted examples: a Gaussian fit with default settings, the same mode
 `drm_control(se = FALSE)`, and a deliberately under-budgeted random-effect fit.
 The colours are diagnostic statuses, not uncertainty intervals.
 
-```{r convergence-check-map, eval=has_ggplot2, warning=FALSE, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a default-budget fit, the same model without standard errors, and a deliberately low-budget random-effect fit. Passing checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
+```{r convergence-check-map, eval=requireNamespace("ggplot2", quietly = TRUE), warning=FALSE, fig.width=8.2, fig.height=4.8, fig.cap="`check_drm()` status map for three tiny fitted examples. Tiles show diagnostic statuses; they are not confidence intervals or posterior probabilities.", fig.alt="Tile plot of check_drm diagnostic statuses for a default-budget fit, the same model without standard errors, and a deliberately low-budget random-effect fit. Passing checks are green, skipped Hessian and standard-error checks are blue notes, and low-budget optimizer and gradient checks are orange warnings."}
 set.seed(20260523)
 diagnostic_data <- data.frame(
   y = 0.5 + 0.7 * stats::rnorm(80) + stats::rnorm(80, sd = 0.35),
