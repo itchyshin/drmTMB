@@ -1,5 +1,13 @@
 # drmTMB 0.8.2
 
+* A plain fixed-effect `nbinom2()` fit with intercept-only `sigma` now
+  reports `convergence_status()` `"boundary"` when the estimated log-sigma
+  is at or below -8. That is the Poisson limit: the negative binomial
+  likelihood matches a Poisson fit with no overdispersion. `is_converged()`
+  stays `FALSE`, and `check_drm()` records the status as a note. The
+  printed sigma standard error is still the Wald value from `sdreport()`
+  (refs #1535).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau

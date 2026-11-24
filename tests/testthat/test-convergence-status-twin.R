@@ -91,3 +91,36 @@ test_that("optimizer failure and skipped SEs keep the documented status", {
   expect_true(is_converged(se_skipped))
   expect_false(is_converged(se_skipped, include_hessian = TRUE))
 })
+
+# #1535: plain nbinom2 at the Poisson limit is a valid boundary maximum, not a
+# degenerate fit. Same shared rule as the RE-SD boundary: status "boundary",
+# is_converged() FALSE (converged only at an interior optimum).
+test_that("nbinom2 at the Poisson limit is boundary, not degenerate (#1535)", {
+  skip_if_not_installed("HSAUR3")
+  data(bladdercancer, package = "HSAUR3", envir = environment())
+  dat <- data.frame(
+    number = bladdercancer$number,
+    tumorsize = as.character(bladdercancer$tumorsize),
+    time = bladdercancer$time
+  )
+  nb <- drmTMB(drm_formula(number ~ tumorsize + time), family = nbinom2(), data = dat)
+  pois <- drmTMB(drm_formula(number ~ tumorsize + time), family = poisson(), data = dat)
+  expect_equal(as.numeric(logLik(nb)), as.numeric(logLik(pois)), tolerance = 1e-6)
+  expect_lte(unname(fixef(nb)$sigma[["(Intercept)"]]), -8)
+  expect_identical(convergence_status(nb), "boundary")
+  expect_false(is_converged(nb))
+  chk <- check_drm(nb)
+  expect_identical(chk$status[chk$check == "convergence_status"], "note")
+  expect_identical(chk$value[chk$check == "convergence_status"], "boundary")
+  # The Poisson fit stays interior.
+  expect_identical(convergence_status(pois), "converged")
+})
+
+test_that("nbinom2 with real overdispersion stays converged (#1535 guard)", {
+  set.seed(1535)
+  x <- rnorm(200)
+  y <- rnbinom(200, mu = exp(0.5 + 0.3 * x), size = 2)
+  fit <- drmTMB(drm_formula(y ~ x), family = nbinom2(), data = data.frame(y = y, x = x))
+  expect_identical(convergence_status(fit), "converged")
+  expect_true(is_converged(fit))
+})

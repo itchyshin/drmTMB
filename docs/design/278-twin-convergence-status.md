@@ -63,10 +63,19 @@ example a log phylogenetic SD) that the R object's fixed-effect `vcov`
 drops. Step 6 is not applied. A DRModels.jl without the key leaves step 2
 empty, as before drmTMB #1564.
 
-Dispersion or shape parameters that run to a limit (NB2 Poisson limit,
-Student `ν → ∞`) are classified by steps 3–5, not by a separate shape
-boundary. That is the present shared rule; #1535 remains a follow-up if
-those cases should read `"boundary"` instead of `"degenerate"`.
+Student `ν → ∞` is still classified by steps 3–5, not by a separate shape
+boundary. On the R engine, a plain fixed-effect `nbinom2` fit with
+intercept-only `sigma` and estimated log-sigma at or below -8 returns
+`"boundary"` after the optimiser gate and before the inflated-SE screen,
+unless the fixed-effect design is rank deficient or the count
+MLE-existence screen applies. `is_converged()` stays `FALSE`. Shinichi's
+18 Nov 2026 ruling on #1554 is the rule this step follows: a dispersion at
+its limit is `"boundary"`, checked before the Hessian, and a fit is
+`"converged"` only when no parameter is at a boundary. The 25 Oct 2026
+note on #1535 also asked for Poisson-equal location standard errors and a
+missing phi standard error; those covariance changes are not in this step,
+and the printed sigma standard error is unchanged. Covariate `sigma`
+formulas (#1496) and the Julia twin still use steps 3–5 for this limit.
 
 ## Print, summary, and `check_drm()`
 
