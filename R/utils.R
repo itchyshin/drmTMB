@@ -46,7 +46,7 @@ drm_optimizer_julia_bridge_names <- function() {
 }
 
 # Reject non-finite, non-integer, and non-positive whole-number counts.
-drm_abort_unless_positive_finite_whole <- function(x, arg = rlang::caller_arg(x)) {
+drm_abort_unless_positive_finite_whole <- function(x, arg = deparse(substitute(x))) {
   if (
     !is.numeric(x) ||
       length(x) != 1L ||
