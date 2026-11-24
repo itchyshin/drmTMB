@@ -5,6 +5,13 @@
   length other than one, or non-numeric inputs are refused with a clear error
   instead of leaking base-R errors or silently truncating (#1696).
 
+* Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
+  predictor before calling `dtweedie()`, so interior fits are unchanged while
+  extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
+  (#1468). `check_drm()` reports `tweedie_eta_nu_cap` when the optimum lies in
+  the saturated tail. DRModels.jl's `_logit12` link has no matching guard yet
+  (twin gap).
+
 * `engine = "julia"` now refuses a random-effect grouping variable whose groups
   are all singletons, with the same message as `engine = "tmb"`. Before, the
   Julia route fitted such a model, reported convergence, and gave a precise
