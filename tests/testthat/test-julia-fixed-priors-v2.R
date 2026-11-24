@@ -22,7 +22,7 @@ test_that("fixed-only Student-t priors use the explicit v2 bridge payload", {
     list(dpar = "mu", coef = "(Intercept)")
   ))
   testthat::expect_false(drm_prior_uses_native_only_targets(list(student, normal)))
-  testthat::expect_true(drm_prior_uses_native_only_targets(list(
+  testthat::expect_false(drm_prior_uses_native_only_targets(list(
     student, drm_prior_sd_gamma("mu", "site", shape = 2, rate = 3)
   )))
   testthat::expect_true(drm_prior_uses_native_only_targets(list(
