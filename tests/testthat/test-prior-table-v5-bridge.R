@@ -55,6 +55,79 @@ test_that("v5 serializer emits residual-SD natural-scale semantics", {
     "exact fixed-effect coefficient targets")
 })
 
+test_that("v5 composes Student-t coefficients with a random-intercept SD prior", {
+  student <- drm_prior_student_t(dpar = "mu", coef = "x", mean = 0.25,
+    scale = 1.4, df = 4)
+  sd_prior <- drm_prior_sd_gamma(dpar = "mu", group = "site", shape = 2, rate = 3)
+  priors <- list(student, sd_prior)
+  resolved <- data.frame(
+    class = c("fixed", "sd_gamma"), dpar = c("mu", "mu"),
+    group = c(NA_character_, "site"), block = c(NA_character_, "mu:site"),
+    coefficient = c("x", "(Intercept)"), scale = c("link", "natural_sd"),
+    kind = c("student_t", "gamma"), shape = c(NA_real_, 2),
+    rate = c(NA_real_, 3), from_coef = NA_character_, to_coef = NA_character_,
+    eta = NA_real_, support_guard = NA_real_, log_normalizer = NA_real_,
+    reason = c("exact column", NA_character_), precision = c(1 / 1.4^2, NA_real_),
+    mean = c(0.25, NA_real_), sd = c(1.4, NA_real_), df = c(4, NA_real_),
+    stringsAsFactors = FALSE
+  )
+
+  expect_true(drm_julia_has_student_t_with_sd_prior(priors))
+  expect_false(drm_prior_uses_native_only_targets(priors))
+  expect_false(drm_julia_has_student_t_with_sd_prior(list(student)))
+  expect_false(drm_julia_has_student_t_with_sd_prior(list(sd_prior)))
+  expect_false(drm_prior_uses_native_only_targets(list(student),
+    formula = bf(mu = y ~ x, sigma = ~1)))
+  expect_true(drm_prior_uses_native_only_targets(list(student),
+    formula = bf(mu = y ~ x + (1 | site), sigma = ~1)))
+  expect_true(drm_prior_uses_native_only_targets(list(student, sd_prior,
+    drm_correlation_prior_lkj(dpar = "mu", group = "site",
+      from_coef = "(Intercept)", to_coef = "x", eta = 2))))
+  options <- drm_julia_prior_v5_options(priors, resolved,
+    list(mu = c("(Intercept)", "x"), sigma = "(Intercept)"), "site")
+  expect_identical(options$prior_contract, "parameter_priors_v5")
+  expect_identical(vapply(options$priors_v5, `[[`, character(1), "kind"),
+    c("fixed_student_t", "ranef_sd_gamma"))
+  expect_equal(vapply(options$prior_expected_v5, `[[`, character(1), "class"),
+    c("fixed", "ranef_sd"))
+  expect_equal(options$prior_expected_v5[[1L]][c("location", "scale", "df")],
+    list(location = 0.25, scale = 1.4, df = 4))
+  expect_identical(options$prior_expected_v5[[1L]][c("index", "matrix_column")],
+    list(index = 2L, matrix_column = 2L))
+  expect_identical(options$prior_expected_v5[[2L]]$index, 4L)
+  expect_false("jacobian" %in% names(options$prior_expected_v5[[2L]]))
+
+  result <- v5_mock_result(options$prior_expected_v5)
+  expect_no_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5))
+  result$resolved_priors_v5[[1L]]$index <- 1L
+  expect_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5),
+    "resolved prior records differ")
+  result <- v5_mock_result(options$prior_expected_v5)
+  result$resolved_priors_v5[[2L]]$index <- NULL
+  expect_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5),
+    "invalid resolved prior record fields")
+
+  two_sd <- list(student,
+    drm_prior_sd_gamma(dpar = "mu", group = "site", shape = 2, rate = 3),
+    drm_prior_sd_gamma(dpar = "mu", group = "observer", shape = 3, rate = 4))
+  two_resolved <- rbind(resolved, transform(resolved[2L, , drop = FALSE],
+    group = "observer", block = "mu:observer", shape = 3, rate = 4))
+  two_options <- drm_julia_prior_v5_options(two_sd, two_resolved,
+    list(mu = c("(Intercept)", "x"), sigma = "(Intercept)"),
+    c("site", "observer"))
+  expect_equal(vapply(two_options$prior_expected_v5[-1L], `[[`, integer(1), "index"),
+    c(4L, 5L))
+  result <- v5_mock_result(two_options$prior_expected_v5, n = 5L)
+  result$resolved_priors_v5[[2L]]$index <- 5L
+  result$resolved_priors_v5[[3L]]$index <- 4L
+  expect_error(drm_julia_validate_prior_v5_result(result, two_options$prior_expected_v5),
+    "resolved prior records differ")
+  result <- v5_mock_result(two_options$prior_expected_v5, n = 5L)
+  result$resolved_priors_v5[[2L]]$group <- "observer"
+  expect_error(drm_julia_validate_prior_v5_result(result, two_options$prior_expected_v5),
+    "resolved prior records differ")
+})
+
 test_that("v5 composes fixed, residual-SD, random-SD and q2 correlation targets", {
   priors <- list(
     drm_prior_normal(dpar = "mu", coef = "x", mean = 0.25, sd = 1.5),
@@ -85,13 +158,17 @@ test_that("v5 composes fixed, residual-SD, random-SD and q2 correlation targets"
   expect_equal(vapply(options$prior_expected_v5, `[[`, character(1), "class"),
     c("fixed", "residual_sd", "ranef_sd", "random_effect_correlation"))
   expect_equal(options$prior_expected_v5[[2]]$index, 3L)
-  expect_false("index" %in% names(options$prior_expected_v5[[3]]))
+  expect_equal(options$prior_expected_v5[[3]]$index, 4L)
   expect_equal(options$prior_expected_v5[[4]]$index, 4L)
 
   result <- v5_mock_result(options$prior_expected_v5)
   result$resolved_priors_v5[[3]]$index <- 4L
   result$resolved_priors_v5[[4]]$support_guard <- result$resolved_priors_v5[[4]]$guard
   expect_no_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5))
+  result$resolved_priors_v5[[3]]$index <- 5L
+  expect_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5),
+    "resolved prior records differ")
+  result <- v5_mock_result(options$prior_expected_v5)
   result$resolved_priors_v5[[2]]$log_normalizer <- result$resolved_priors_v5[[2]]$log_normalizer + 0.1
   expect_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5),
     "resolved prior records differ")
@@ -141,9 +218,9 @@ test_that("v5 serializes mixed bivariate fixed priors with rho12 LKJ", {
 
   result <- v5_mock_result(options$prior_expected_v5)
   result$resolved_priors_v5[[1L]]$index <- 2L
-  result$resolved_priors_v5[[1L]]$matrix_column <- "mu1_x"
+  result$resolved_priors_v5[[1L]]$matrix_column <- 2L
   result$resolved_priors_v5[[2L]]$index <- 3L
-  result$resolved_priors_v5[[2L]]$matrix_column <- "mu2_intercept"
+  result$resolved_priors_v5[[2L]]$matrix_column <- 1L
   result$resolved_priors_v5[[3L]]$guard <- 0.999999
   result$resolved_priors_v5[[3L]]$index <- 5L
   expect_no_error(drm_julia_validate_prior_v5_result(result, options$prior_expected_v5))
@@ -168,6 +245,9 @@ test_that("live v5 residual and mixed q2 fixtures agree through the Julia bridge
   actual_sha <- system2("git", c("-C", shQuote(julia_path), "rev-parse", "HEAD"),
     stdout = TRUE, stderr = FALSE)
   expect_identical(trimws(actual_sha[[1L]]), expected_sha)
+  source_status <- system2("git", c("-C", shQuote(julia_path), "status",
+    "--porcelain", "--untracked-files=normal"), stdout = TRUE, stderr = FALSE)
+  expect_identical(trimws(paste(source_status, collapse = "")), "")
 
   set.seed(27051)
   data <- data.frame(x = rep(c(-1, 0, 1), 16),
@@ -184,6 +264,21 @@ test_that("live v5 residual and mixed q2 fixtures agree through the Julia bridge
     "parameter_priors_v5")
   expect_true(is.finite(residual_fit$residual_sd_prior_penalty))
   expect_equal(residual_fit$bridge_payload$options$prior_expected_v5[[1L]]$index, 3L)
+
+  mixed_sd <- drm_priors(
+    drm_prior_student_t(dpar = "mu", coef = "x", mean = 0, scale = 1.5, df = 4),
+    drm_prior_sd_gamma(dpar = "mu", group = "site", shape = 2, rate = 3)
+  )
+  mixed_sd_fit <- suppressWarnings(drmTMB(
+    bf(mu = y ~ x + (1 | site), sigma = ~1), data = data,
+    priors = mixed_sd, engine = "julia"
+  ))
+  expect_identical(mixed_sd_fit$bridge_payload$options$prior_contract,
+    "parameter_priors_v5")
+  expect_true(is.finite(mixed_sd_fit$fixed_prior_penalty))
+  expect_true(is.finite(mixed_sd_fit$random_effect_sd_prior_penalty))
+  expect_equal(mixed_sd_fit$penalized_objective,
+    -mixed_sd_fit$logLik + mixed_sd_fit$prior_penalty, tolerance = 1e-8)
 
   mixed <- data.frame(
     prior = c("normal(0.25,1.5)", "gamma(2,3)", "lkj(2)"),
@@ -217,16 +312,9 @@ test_that("live v5 residual and mixed q2 fixtures agree through the Julia bridge
     coef = c("x", "(Intercept)", "(Intercept)"),
     scale = c("link", "link", "natural_correlation")
   )
-  biv_fit <- suppressWarnings(drmTMB(
+  expect_error(drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, rho12 = ~1),
     family = biv_gaussian(), data = biv_data,
     priors = biv_priors, engine = "julia"
-  ))
-  expect_identical(biv_fit$bridge_payload$options$prior_contract,
-    "parameter_priors_v5")
-  expect_identical(vapply(biv_fit$bridge_payload$options$priors_v5,
-    `[[`, character(1), "kind"),
-    c("fixed_normal", "fixed_student_t", "lkj_residual_correlation"))
-  expect_true(is.finite(biv_fit$fixed_prior_penalty))
-  expect_true(is.finite(biv_fit$correlation_prior_penalty))
+  ), "does not support this combination of prior targets")
 })

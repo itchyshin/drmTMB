@@ -11,7 +11,7 @@ drm_fixed_priors_active <- function(priors) {
   }, logical(1)))
 }
 
-drm_prior_uses_native_only_targets <- function(priors) {
+drm_prior_uses_native_only_targets <- function(priors, formula = NULL) {
   if (is.null(priors)) return(FALSE)
   # The bivariate fixed-effect + rho12 table is admitted natively first; keep
   # Julia fail-closed until its matching mixed bivariate bridge contract lands.
@@ -25,6 +25,29 @@ drm_prior_uses_native_only_targets <- function(priors) {
   has_student_t <- any(vapply(priors, function(p) {
     inherits(p, "drm_fixed_prior") && identical(p$kind, "student_t")
   }, logical(1)))
+  has_sd_prior <- any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
+  has_rho12_prior <- any(vapply(priors, function(p) {
+    inherits(p, "drm_correlation_prior") && identical(p$dpar, "rho12")
+  }, logical(1)))
+  # v5 can verify a Student-t coefficient and one or more mean random-intercept
+  # SD rows together. Keep rho12 out of that composition; its v5 route has a
+  # separate bivariate target contract.
+  if (has_student_t && has_sd_prior) {
+    supported <- !has_rho12_prior && !has_q2_correlation &&
+      all(vapply(priors, function(p) inherits(p,
+        c("drm_fixed_prior", "drm_sd_prior")), logical(1)))
+    return(!supported)
+  }
+  # The fixed-only v2 contract has no random-effect block. A Student-t fixed
+  # prior on a model with random terms must either include the matching SD
+  # prior under v5 or be refused before Julia starts.
+  if (has_student_t && all(vapply(priors, inherits, logical(1), "drm_fixed_prior")) &&
+      !has_q2_correlation && !is.null(formula) &&
+      any(vapply(formula$entries, function(entry) {
+        length(entry$structured) > 0L || any(vapply(
+          flatten_plus_terms(entry$rhs), is_random_bar_call, logical(1L)
+        ))
+      }, logical(1)))) return(TRUE)
   if (has_residual_sd) {
     supported <- all(vapply(priors, function(p) {
       inherits(p, c("drm_fixed_prior", "drm_sd_prior", "drm_residual_sd_prior",

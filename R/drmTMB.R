@@ -407,7 +407,7 @@ drmTMB <- function(
     ))
   }
   if (identical(engine, "julia")) {
-    if (drm_prior_uses_native_only_targets(priors)) {
+    if (drm_prior_uses_native_only_targets(priors, formula = formula)) {
       cli::cli_abort(c(
         "The Julia bridge prior-table contract does not support this combination of prior targets.",
         "i" = "Use {.code engine = \"tmb\"} for prior combinations outside the admitted bridge contract."

@@ -862,7 +862,8 @@ drmTMB_julia_bridge <- function(
         p$dpar %in% c("mu1", "mu2"), logical(1))) &&
       any(vapply(priors, function(p) inherits(p, "drm_correlation_prior") &&
         identical(p$dpar, "rho12"), logical(1)))
-    if (has_residual_sd_prior || has_bivariate_rho12_fixed) {
+    if (has_residual_sd_prior || has_bivariate_rho12_fixed ||
+        drm_julia_has_student_t_with_sd_prior(priors)) {
       prior_version <- "v5"
       mu <- formula$entries[[which(vapply(formula$entries, function(e) identical(e$dpar, "mu"), logical(1)))]]
       sd_groups <- vapply(extract_random_mu_terms(mu$rhs, "mu")$terms, `[[`, character(1), "group")
@@ -1048,6 +1049,17 @@ drmTMB_julia_bridge <- function(
   out
 }
 
+# Student-t coefficient rows use the v2 fixed-only handshake when they stand
+# alone. When combined with a random-intercept SD prior, route them through
+# the compositional v5 handshake so the fixed and SD targets are checked and
+# penalized together.
+drm_julia_has_student_t_with_sd_prior <- function(priors) {
+  is_fixed_t <- vapply(priors, function(p) inherits(p, "drm_fixed_prior") &&
+    identical(p$kind, "student_t"), logical(1))
+  is_sd <- vapply(priors, inherits, logical(1), "drm_sd_prior")
+  any(is_fixed_t) && any(is_sd)
+}
+
 # Build the v5 compositional prior-table handshake. Packed target indices are
 # independently reconstructed from the bridge coefficient labels and random-
 # intercept term order, then echoed and checked by the Julia resolver.
@@ -1061,8 +1073,12 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
   if (length(correlation_at) > 1L) fail("Julia prior-table v5 supports at most one random-effect correlation prior")
   rho12_mixed <- length(correlation_at) == 1L &&
     identical(priors[[correlation_at]]$dpar, "rho12")
-  if (!length(residual_at) && !length(correlation_at))
-    fail("Julia prior-table v5 requires a residual-SD or supported correlation prior")
+  has_sd_prior <- any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
+  has_student_t_prior <- any(vapply(priors, function(p) inherits(p, "drm_fixed_prior") &&
+    identical(p$kind, "student_t"), logical(1)))
+  if (!length(residual_at) && !length(correlation_at) &&
+      !(has_sd_prior && has_student_t_prior))
+    fail("Julia prior-table v5 requires a residual-SD, supported correlation, or mixed Student-t/random-effect-SD prior")
   if (length(correlation_at) && !rho12_mixed && !identical(priors[[correlation_at]]$dpar, "mu"))
     fail("Julia prior-table v5 supports only q=2 random-effect or bivariate residual correlation priors")
   if (any(!vapply(priors, function(p) inherits(p, c("drm_fixed_prior", "drm_sd_prior",
@@ -1086,6 +1102,18 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
 
   fixed_count <- if (rho12_mixed) length(coef_labels$mu1) + length(coef_labels$mu2) else
     length(coef_labels$mu) + length(coef_labels$sigma)
+  fixed_identity <- function(dpar, coefficient) {
+    dpar_position <- match(dpar, names(coef_labels))
+    if (length(dpar_position) != 1L || is.na(dpar_position))
+      fail("Fixed prior preview distributional parameter is absent from bridge labels")
+    labels <- coef_labels[[dpar]]
+    column <- match(coefficient, labels)
+    if (length(column) != 1L || is.na(column))
+      fail("Fixed prior preview target is absent from bridge coefficient labels")
+    offset <- sum(vapply(coef_labels[seq_len(dpar_position - 1L)],
+      length, integer(1)))
+    list(index = as.integer(offset + column), matrix_column = as.integer(column))
+  }
   residual_rows <- which(resolved$class == "residual_sd" & resolved$dpar == "sigma" &
     resolved$coefficient == "(Intercept)" & resolved$scale == "natural_sd")
   if (length(residual_at) && (length(residual_rows) != 1L ||
@@ -1121,6 +1149,7 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
         rows <- resolved[resolved$class == "fixed" & resolved$dpar == p$dpar &
           resolved$coefficient == p$coef, , drop = FALSE]
         if (nrow(rows) != 1L) fail("Bivariate fixed-prior target is missing or ambiguous")
+        identity <- fixed_identity(p$dpar, p$coef)
         if (identical(p$kind, "normal")) {
           spec <- list(kind = "fixed_normal", dpar = p$dpar, coef = p$coef,
             mean = as.double(p$mean), sd = as.double(p$sd))
@@ -1132,7 +1161,8 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
         }
         specs[[i]] <- spec
         records[[length(records) + 1L]] <- c(list(spec_index = as.integer(i),
-          kind = spec$kind, class = "fixed", dpar = p$dpar, coef = p$coef), extra)
+          kind = spec$kind, class = "fixed", dpar = p$dpar, coef = p$coef),
+          extra, identity)
       }
     } else {
     local_at <- c(correlation_at, setdiff(which(vapply(priors, inherits, logical(1), "drm_fixed_prior")), correlation_at))
@@ -1148,6 +1178,11 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
       local_index <- row$spec_index
       original_index <- local_at[[local_index]]
       row$spec_index <- as.integer(original_index)
+      if (identical(row$class, "fixed")) {
+        identity <- fixed_identity(row$dpar, row$coef)
+        row$index <- identity$index
+        row$matrix_column <- identity$matrix_column
+      }
       if (identical(row$class, "random_effect_correlation")) {
         row$guard <- row$support_guard
         row$index <- as.integer(fixed_count + 1L)
@@ -1182,7 +1217,8 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
       records[[length(records) + 1L]] <- list(spec_index = as.integer(i),
         kind = "ranef_sd_gamma", class = "ranef_sd", dpar = "mu", group = p$group,
         coef = "(Intercept)", block_kind = "iid_random_intercept",
-        shape = as.double(p$shape), rate = as.double(p$rate), measure = "natural_sd")
+        shape = as.double(p$shape), rate = as.double(p$rate), measure = "natural_sd",
+        index = as.integer(fixed_count + group_position))
     } else if (inherits(p, "drm_fixed_prior") && !length(correlation_at)) {
       if (identical(p$coef, "all"))
         fail("Julia prior-table v5 currently requires exact fixed-effect coefficient targets")
@@ -1209,7 +1245,8 @@ drm_julia_prior_v5_options <- function(priors, resolved, coef_labels, sd_groups 
       specs[[i]] <- spec
       for (coef in rows$coefficient) records[[length(records) + 1L]] <- c(
         list(spec_index = as.integer(i), kind = spec$kind, class = "fixed",
-          dpar = p$dpar, coef = as.character(coef)), expected_extra)
+          dpar = p$dpar, coef = as.character(coef)), expected_extra,
+        fixed_identity(p$dpar, as.character(coef)))
     } else if (inherits(p, "drm_fixed_prior")) {
       # With q2 correlation, v4 has already produced the fixed rows in exactly
       # the same supported Normal/Student-t/ridge wire format.
@@ -1245,9 +1282,9 @@ drm_julia_validate_prior_v5_result <- function(result, expected) {
     lhs <- actual[[i]]; rhs <- expected[[i]]
     if (!is.list(lhs) || is.null(names(lhs)) || anyDuplicated(names(lhs))) fail("invalid resolved prior record")
     kind <- rhs[["kind"]]
-    extra <- switch(kind, fixed_normal = c("index", "matrix_column"),
-      fixed_student_t = c("index", "matrix_column"), fixed_ridge = c("index", "matrix_column"),
-      ranef_sd_gamma = "index", residual_sd_gamma = character(),
+    extra <- switch(kind, fixed_normal = character(),
+      fixed_student_t = character(), fixed_ridge = character(),
+      ranef_sd_gamma = character(), residual_sd_gamma = character(),
       lkj_random_effect_correlation = character(),
       lkj_residual_correlation = c("guard", "index"),
       fail("unsupported resolved prior kind"))
