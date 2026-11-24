@@ -97,7 +97,6 @@ test_that("the methods are registered against nlme, not merely present", {
 })
 
 test_that("nlme's fixef generic dispatches to drmTMB_julia after nlme masks the export", {
-  skip_if_not_installed("nlme")
   fit <- julia_fixef_fixture()
   library(nlme)
   expect_identical(nlme::fixef(fit), drmTMB::fixef(fit))
