@@ -2305,6 +2305,82 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
   fallback
 }
 
+drm_model_frame_primary_dpar <- function(object) {
+  frames <- object$model$model_frame
+  if (!is.list(frames)) {
+    cli::cli_abort(c(
+      "This {.cls drmTMB} fit has no model frames.",
+      i = "Refit with {.fn drmTMB} and check {.code miss_control()} row selection."
+    ))
+  }
+  if (!is.null(frames$mu1) && is.data.frame(frames$mu1)) {
+    return("mu1")
+  }
+  if (!is.null(frames$mu) && is.data.frame(frames$mu)) {
+    return("mu")
+  }
+  for (dpar in drm_location_dpars()) {
+    mf <- frames[[dpar]]
+    if (is.data.frame(mf)) {
+      return(dpar)
+    }
+  }
+  cli::cli_abort(c(
+    "Could not find a location formula model frame on this {.cls drmTMB} fit.",
+    i = "Available frames: {.val {names(frames)}}."
+  ))
+}
+
+drm_model_frame_location_frame <- function(object) {
+  dpar <- drm_model_frame_primary_dpar(object)
+  mf <- object$model$model_frame[[dpar]]
+  if (!is.data.frame(mf)) {
+    cli::cli_abort(c(
+      "The {.val {dpar}} model frame is not a data frame.",
+      i = "This usually means the fit object is incomplete or from an unsupported route."
+    ))
+  }
+  mf
+}
+
+#' Model frame for drmTMB fits
+#'
+#' `model.frame()` returns the data frame of rows used for the primary location
+#' formula (`mu` for univariate fits, `mu1` for bivariate fits). This matches
+#' what generic tools expect from `lm()`/`glm()` fits instead of exposing the
+#' internal TMB specification list stored at `fit$model`.
+#'
+#' @param formula A `drmTMB` fit (the generic passes the fit as its first argument).
+#' @param ... Not used.
+#' @return A data frame with a `terms` attribute.
+#' @export
+model.frame.drmTMB <- function(formula, ...) {
+  drm_model_frame_location_frame(formula)
+}
+
+#' Terms for the primary location formula of a drmTMB fit
+#'
+#' @param x A `drmTMB` fit.
+#' @param use.offset Passed to [stats::terms()].
+#' @param ... Not used.
+#' @return A `terms` object for the primary location formula.
+#' @export
+terms.drmTMB <- function(x, use.offset = TRUE, ...) {
+  mf <- drm_model_frame_location_frame(x)
+  stats::terms(mf, use.offset = use.offset)
+}
+
+#' Model matrix for the primary location formula of a drmTMB fit
+#'
+#' @param object A `drmTMB` fit.
+#' @param ... Passed to [stats::model.matrix()].
+#' @return A model matrix for the fitted location rows.
+#' @export
+model.matrix.drmTMB <- function(object, ...) {
+  mf <- drm_model_frame_location_frame(object)
+  stats::model.matrix(stats::terms(mf), data = mf, ...)
+}
+
 #' Extract fitted response values
 #'
 #' `fitted()` returns fitted response values from a `drmTMB` model. For
