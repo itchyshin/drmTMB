@@ -2343,38 +2343,20 @@ drm_model_frame_location_frame <- function(object) {
   mf
 }
 
-#' Model frame for drmTMB fits
-#'
-#' `model.frame()` returns the data frame of rows used for the primary location
-#' formula (`mu` for univariate fits, `mu1` for bivariate fits). This matches
-#' what generic tools expect from `lm()`/`glm()` fits instead of exposing the
-#' internal TMB specification list stored at `fit$model`.
-#'
-#' @param formula A `drmTMB` fit (the generic passes the fit as its first argument).
-#' @param ... Not used.
-#' @return A data frame with a `terms` attribute.
+#' @rdname model-fit-extractors
 #' @export
 model.frame.drmTMB <- function(formula, ...) {
   drm_model_frame_location_frame(formula)
 }
 
-#' Terms for the primary location formula of a drmTMB fit
-#'
-#' @param x A `drmTMB` fit.
-#' @param use.offset Passed to [stats::terms()].
-#' @param ... Not used.
-#' @return A `terms` object for the primary location formula.
+#' @rdname model-fit-extractors
 #' @export
 terms.drmTMB <- function(x, use.offset = TRUE, ...) {
   mf <- drm_model_frame_location_frame(x)
   stats::terms(mf, use.offset = use.offset)
 }
 
-#' Model matrix for the primary location formula of a drmTMB fit
-#'
-#' @param object A `drmTMB` fit.
-#' @param ... Passed to [stats::model.matrix()].
-#' @return A model matrix for the fitted location rows.
+#' @rdname model-fit-extractors
 #' @export
 model.matrix.drmTMB <- function(object, ...) {
   mf <- drm_model_frame_location_frame(object)
@@ -2696,6 +2678,10 @@ drm_standard_error_status <- function(object) {
 #' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
 #' top-level parameter count, and fitted-row count consistently.
 #' `nobs()` returns the number of fitted rows after complete-case filtering.
+#' `model.frame()`, `terms()`, and `model.matrix()` return the primary location
+#' formula frame (`mu` for univariate fits, `mu1` for bivariate fits), its
+#' `terms` object, and the corresponding model matrix, rather than exposing the
+#' internal TMB specification list stored at `fit$model`.
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
 #' `-2 * logLik`; for these likelihood-based distributional models this is an
