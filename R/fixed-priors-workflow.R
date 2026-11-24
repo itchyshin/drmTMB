@@ -37,7 +37,8 @@ drm_prior_uses_native_only_targets <- function(priors) {
       }, logical(1)))
     return(!supported)
   }
-  has_student_t && !has_q2_correlation
+  has_student_t && !has_q2_correlation &&
+    !all(vapply(priors, inherits, logical(1), "drm_fixed_prior"))
 }
 
 drm_prior_control <- function(control) {
@@ -380,6 +381,10 @@ drm_fixed_prior_bridge_options <- function(priors, resolved) {
     if (identical(p$kind, "normal")) {
       row$mean <- p$mean
       row$sd <- p$sd
+    } else if (identical(p$kind, "student_t")) {
+      row$location <- p$mean
+      row$scale <- p$sd
+      row$df <- p$df
     } else row$lambda <- p$precision
     row
   })

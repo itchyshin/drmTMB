@@ -10,7 +10,7 @@ test_that("Julia prior admission allows correlation rows but keeps unsupported r
 
   expect_false(drm_prior_uses_native_only_targets(list(rho12)))
   expect_false(drm_prior_uses_native_only_targets(list(random_slope)))
-  expect_true(drm_prior_uses_native_only_targets(list(student_t)))
+  expect_false(drm_prior_uses_native_only_targets(list(student_t)))
   expect_false(drm_prior_uses_native_only_targets(list(residual_sd)))
   expect_false(drm_prior_uses_native_only_targets(list(residual_sd, student_t)))
   expect_false(drm_prior_uses_native_only_targets(list(residual_sd, random_slope)))

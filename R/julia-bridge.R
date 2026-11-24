@@ -884,7 +884,13 @@ drmTMB_julia_bridge <- function(
         prior_options$prior_expected_v3 <- prior_options$prior_expected_v2
         prior_options$priors_v2 <- prior_options$prior_expected_v2 <- NULL
       }
-    } else prior_options <- drm_fixed_prior_bridge_options(priors, resolved_priors)
+    } else {
+      prior_options <- drm_fixed_prior_bridge_options(priors, resolved_priors)
+      if (any(vapply(priors, function(p) inherits(p, "drm_fixed_prior") &&
+          identical(p$kind, "student_t"), logical(1)))) {
+        prior_version <- "fixed_v2"
+      }
+    }
     bridge_payload$options <- utils::modifyList(bridge_payload$options, prior_options)
   }
 
@@ -926,6 +932,8 @@ drmTMB_julia_bridge <- function(
       paste0("sigma_", bridge_payload$coef_labels$sigma),
       paste0("eta_sd[mu|", sd_groups, "|(Intercept)]"))
     drm_julia_validate_prior_v2_result(result, expected_prior, expected_coordinates, version = prior_version)
+  } else if (identical(prior_version, "fixed_v2")) {
+    drm_julia_validate_fixed_priors_v2_result(result, resolved_priors)
   } else if (!is.null(priors)) {
     if (!identical(as.character(result[["fixed_prior_contract"]]), "fixed_effect_priors_v1")) {
       cli::cli_abort("The Julia backend did not confirm the fixed-effect prior target; use a DRModels.jl build supporting fixed_effect_priors_v1.")
@@ -1409,6 +1417,112 @@ drm_julia_prior_v4_options <- function(priors, resolved) {
 # Verify Julia's semantic v4 echo and additive objective decomposition. An
 # implementation-specific packed coordinate may be returned, but R neither
 # predicts nor requires its value.
+drm_julia_validate_fixed_priors_v2_result <- function(result, expected) {
+  fail <- function(message) {
+    stop(paste("Invalid Julia fixed-effect-priors v2 result:", message), call. = FALSE)
+  }
+  required <- c("fixed_prior_contract", "resolved_priors", "fixed_prior_penalty",
+    "penalized_objective", "loglik", "coef", "coef_names", "estim_method",
+    "likelihood_gradient", "prior_gradient", "penalized_gradient")
+  if (!is.list(result) || !all(required %in% names(result)) ||
+      any(vapply(result[required], is.null, logical(1)))) fail("missing result fields")
+  if (!identical(result$fixed_prior_contract, "fixed_effect_priors_v2") ||
+      !identical(toupper(as.character(result$estim_method)), "MAP")) {
+    fail("contract or estimator")
+  }
+  actual <- result$resolved_priors
+  if (!is.data.frame(expected) || !nrow(expected) || !is.list(actual) ||
+      length(actual) != nrow(expected)) fail("resolved prior record count")
+  for (i in seq_len(nrow(expected))) {
+    row <- expected[i, , drop = FALSE]
+    record <- actual[[i]]
+    kind <- as.character(row$kind[[1L]])
+    fields <- switch(kind,
+      normal = c("dpar", "coef", "index", "matrix_column", "mean", "sd", "precision", "kind", "reason"),
+      student_t = c("dpar", "coef", "index", "matrix_column", "location", "scale", "df", "kind", "reason"),
+      ridge = c("dpar", "coef", "index", "matrix_column", "mean", "sd", "precision", "kind", "reason"),
+      fail("unsupported returned prior kind"))
+    if (!is.list(record) || is.null(names(record)) || anyDuplicated(names(record)) ||
+        length(record) != length(fields) || !setequal(names(record), fields)) {
+      fail("invalid prior record")
+    }
+    if (!identical(as.character(record$dpar), as.character(row$dpar[[1L]])) ||
+        !identical(as.character(record$coef), as.character(row$coefficient[[1L]])) ||
+        !identical(as.character(record$kind), kind) ||
+        !identical(as.integer(record$matrix_column), as.integer(row$matrix_column[[1L]]))) {
+      fail("prior target")
+    }
+    if (length(record$index) != 1L || !is.numeric(record$index) ||
+        !is.finite(record$index) || record$index < 1 || record$index != floor(record$index)) {
+      fail("prior index")
+    }
+    numerical <- switch(kind,
+      normal = c(mean = row$mean[[1L]], sd = row$sd[[1L]], precision = row$precision[[1L]]),
+      student_t = c(location = row$mean[[1L]], scale = row$sd[[1L]], df = row$df[[1L]]),
+      ridge = c(mean = row$mean[[1L]], sd = row$sd[[1L]], precision = row$precision[[1L]])
+    )
+    for (key in names(numerical)) {
+      value <- record[[key]]
+      same_infinity <- is.numeric(value) && length(value) == 1L &&
+        identical(as.double(value), as.double(numerical[[key]]))
+      same_finite <- is.numeric(value) && length(value) == 1L && is.finite(value) &&
+        is.finite(numerical[[key]]) &&
+        abs(value - numerical[[key]]) <= 1e-12 * max(1, abs(value), abs(numerical[[key]]))
+      if (!same_infinity && !same_finite) fail("prior record parameters")
+    }
+  }
+  coefficients <- result$coef
+  if ((!is.numeric(coefficients) && !is.list(coefficients)) ||
+      is.null(names(coefficients)) || anyDuplicated(names(coefficients))) {
+    fail("coefficient values")
+  }
+  coef_names <- result$coef_names
+  if (!is.character(coef_names) || anyNA(coef_names) || anyDuplicated(coef_names)) {
+    fail("coefficient names")
+  }
+  penalty <- 0
+  for (i in seq_len(nrow(expected))) {
+    row <- expected[i, , drop = FALSE]
+    key <- paste0(row$dpar[[1L]], "_", row$coefficient[[1L]])
+    index <- match(key, coef_names)
+    if (length(index) != 1L || is.na(index) ||
+        as.integer(actual[[i]]$index) != as.integer(index)) fail("prior index identity")
+    beta <- coefficients[[key]]
+    if (is.null(beta) || length(beta) != 1L || !is.finite(beta)) fail("coefficient target")
+    kind <- as.character(row$kind[[1L]])
+    contribution <- switch(kind,
+      normal = -stats::dnorm(beta, mean = row$mean[[1L]], sd = row$sd[[1L]], log = TRUE),
+      student_t = log(row$sd[[1L]]) - stats::dt(
+        (beta - row$mean[[1L]]) / row$sd[[1L]], df = row$df[[1L]], log = TRUE
+      ),
+      ridge = 0.5 * row$precision[[1L]] * beta^2,
+      fail("unsupported returned prior kind"))
+    if (!is.finite(contribution)) fail("prior penalty")
+    penalty <- penalty + contribution
+  }
+  close <- function(a, b) is.numeric(a) && length(a) == 1L && is.finite(a) &&
+    abs(a - b) <= 1e-9 * max(1, abs(a), abs(b))
+  if (!close(result$fixed_prior_penalty, penalty)) fail("fixed prior penalty")
+  if (!is.numeric(result$penalized_objective) || length(result$penalized_objective) != 1L ||
+      !is.finite(result$penalized_objective) || !is.numeric(result$loglik) ||
+      length(result$loglik) != 1L || !is.finite(result$loglik) ||
+      !close(result$penalized_objective, -result$loglik + penalty)) {
+    fail("objective decomposition")
+  }
+  gradients <- result[c("likelihood_gradient", "prior_gradient", "penalized_gradient")]
+  if (any(!vapply(gradients, is.numeric, logical(1))) ||
+      length(unique(vapply(gradients, length, integer(1)))) != 1L ||
+      any(!vapply(gradients, function(x) all(is.finite(x)), logical(1)))) {
+    fail("gradient components")
+  }
+  expected_gradient <- result$likelihood_gradient + result$prior_gradient
+  if (any(abs(result$penalized_gradient - expected_gradient) >
+      1e-8 * pmax(1, abs(result$penalized_gradient), abs(expected_gradient)))) {
+    fail("gradient decomposition")
+  }
+  invisible(TRUE)
+}
+
 drm_julia_validate_prior_v4_result <- function(result, expected) {
   fail <- function(message) stop(paste("Invalid Julia v4 prior result:", message), call. = FALSE)
   required <- c("prior_contract", "resolved_priors_v4", "working_coordinates",
