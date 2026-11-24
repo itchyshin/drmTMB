@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* `check_drm()` now records a note for `skew_normal()` fits whose `nu` submodel
+  carries covariates beyond the intercept, warning that Wald standard errors on
+  those slopes are unreliable near the Gaussian null (`nu = 0`). `?skew_normal`
+  states the same caveat (Dinnage audit A-6, #1336).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau

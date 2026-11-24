@@ -23,6 +23,11 @@ parameterization: \code{\link[=fitted]{fitted()}} returns \code{E[y] = mu}, \cod
 \code{SD[y] = sigma}, and \code{predict(..., dpar = "nu")} returns the residual slant.
 Positive \code{nu} gives right-skewed residuals, negative \code{nu} gives left-skewed
 residuals, and \code{nu = 0} reduces to the Gaussian location-scale likelihood.
+When \code{nu} carries covariates (\code{nu ~ x}), Wald standard errors on those
+slopes are unreliable near the Gaussian null because the information matrix
+is singular at \code{nu = 0}. \code{\link[=check_drm]{check_drm()}} records a note on such fits;
+compare a Gaussian model and use profile- or likelihood-ratio intervals when
+nu uncertainty matters.
 
 Ordinary unlabelled random intercepts and independent numeric slopes such as
 \code{(1 | id)} and \code{(0 + x | id)} may enter \code{mu}. Correlated or labelled \code{mu}

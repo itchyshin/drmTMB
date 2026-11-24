@@ -163,6 +163,11 @@ student <- function() {
 #' `SD[y] = sigma`, and `predict(..., dpar = "nu")` returns the residual slant.
 #' Positive `nu` gives right-skewed residuals, negative `nu` gives left-skewed
 #' residuals, and `nu = 0` reduces to the Gaussian location-scale likelihood.
+#' When `nu` carries covariates (`nu ~ x`), Wald standard errors on those
+#' slopes are unreliable near the Gaussian null because the information matrix
+#' is singular at `nu = 0`. [check_drm()] records a note on such fits;
+#' compare a Gaussian model and use profile- or likelihood-ratio intervals when
+#' nu uncertainty matters.
 #'
 #' Ordinary unlabelled random intercepts and independent numeric slopes such as
 #' `(1 | id)` and `(0 + x | id)` may enter `mu`. Correlated or labelled `mu`

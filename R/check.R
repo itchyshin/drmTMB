@@ -2518,13 +2518,33 @@ check_skew_normal_nu <- function(object) {
   }
 
   max_abs <- max(abs(nu), 0)
-  value <- paste0("max_abs=", format_check_number(max_abs))
+  nu_X <- object$model$X$nu
+  has_nu_covariates <- !is.null(nu_X) && ncol(nu_X) > 1L
+  value <- paste0(
+    "max_abs=",
+    format_check_number(max_abs),
+    if (has_nu_covariates) "; nu_regression=TRUE" else ""
+  )
   if (max_abs > 10) {
     return(check_row(
       "skew_normal_nu",
       "note",
       value,
       "At least one fitted skew-normal slant value is large; inspect the profile target, residual shape, and Gaussian or Student-t sensitivity models before interpreting skewness."
+    ))
+  }
+  if (has_nu_covariates) {
+    return(check_row(
+      "skew_normal_nu",
+      "note",
+      value,
+      paste(
+        "The nu submodel has covariates beyond the intercept.",
+        "Wald standard errors on nu slopes are unreliable near the Gaussian null",
+        "(nu = 0) because the information matrix is singular there;",
+        "treat them as descriptive, compare a Gaussian model, and prefer",
+        "profile- or likelihood-ratio-based intervals if nu uncertainty matters."
+      )
     ))
   }
   check_row(
