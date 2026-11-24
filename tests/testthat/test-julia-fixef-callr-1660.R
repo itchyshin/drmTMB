@@ -2,16 +2,19 @@
 # mirroring live Julia family tests that attach nothing but hit a masked generic.
 
 julia_callr_fixef_result <- function() {
-  if (!requireNamespace("callr", quietly = TRUE)) {
-    return(list(ok = FALSE, skip = "callr not installed"))
-  }
-  pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
-  if (!file.exists(file.path(pkg, "DESCRIPTION"))) {
-    return(list(ok = FALSE, skip = "source tree unavailable"))
+  # The child must load the same drmTMB this suite is testing: the source tree
+  # under devtools::test() (pkgload), the installed copy under R CMD check or
+  # covr, where callr inherits .libPaths().
+  dev_path <- if (pkgload::is_dev_package("drmTMB")) {
+    getNamespaceInfo("drmTMB", "path")
   }
   callr::r(
-    function(pkg) {
-      pkgload::load_all(pkg, compile = FALSE, export_all = FALSE, quiet = TRUE)
+    function(dev_path) {
+      if (is.null(dev_path)) {
+        loadNamespace("drmTMB")
+      } else {
+        pkgload::load_all(dev_path, compile = FALSE, export_all = FALSE, quiet = TRUE)
+      }
       result <- list(
         coef_names = c("mu_(Intercept)", "mu_x"),
         coefficients = c(0.2, 0.3),
@@ -39,7 +42,7 @@ julia_callr_fixef_result <- function() {
       invisible(library(nlme))
       drmTMB::fixef(fit)
     },
-    args = list(pkg = pkg),
+    args = list(dev_path = dev_path),
     show = FALSE
   )
 }
@@ -47,7 +50,6 @@ julia_callr_fixef_result <- function() {
 test_that("fixef() on drmTMB_julia works in a callr subprocess (#1660)", {
   skip_if_not_installed("callr")
   skip_if_not_installed("pkgload")
-  skip_if_not_installed("nlme")
   ans <- julia_callr_fixef_result()
   expect_type(ans, "list")
   expect_true("mu" %in% names(ans))
