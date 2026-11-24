@@ -64,6 +64,9 @@ latent_normal <- function() {
 #'   association summary when the boundary is unresolved). `simulate(object)`
 #'   returns one paired-response data frame for `nsim = 1`, or a list of such
 #'   data frames for larger `nsim`.
+#' @usage
+#' associate_pairs(fit_1, fit_2, kernel, association)
+#' \method{update}{drm_pair_association}(object, ...)
 #' @export
 #'
 #' @examples
