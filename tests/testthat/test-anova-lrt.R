@@ -126,7 +126,7 @@ test_that("anova() refuses unsafe comparisons with a message that says what to d
   map1 <- m1
   map0$estimator <- map1$estimator <- "MAP"
   expect_warning(
-    expect_error(anova(map0, map1), class = "drmTMB_lrtest_map_error"),
+    expect_error(anova(map0, map1), class = "drmTMB_anova_map_error"),
     class = "drmTMB_lrtest_map_warning"
   )
   # engine = "julia" fits are not mixed in.
