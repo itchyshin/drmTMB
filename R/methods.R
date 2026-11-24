@@ -2305,64 +2305,6 @@ response_name_from_model_frame <- function(object, dpar, fallback) {
   fallback
 }
 
-drm_model_frame_primary_dpar <- function(object) {
-  frames <- object$model$model_frame
-  if (!is.list(frames)) {
-    cli::cli_abort(c(
-      "This {.cls drmTMB} fit has no model frames.",
-      i = "Refit with {.fn drmTMB} and check {.code miss_control()} row selection."
-    ))
-  }
-  if (!is.null(frames$mu1) && is.data.frame(frames$mu1)) {
-    return("mu1")
-  }
-  if (!is.null(frames$mu) && is.data.frame(frames$mu)) {
-    return("mu")
-  }
-  for (dpar in drm_location_dpars()) {
-    mf <- frames[[dpar]]
-    if (is.data.frame(mf)) {
-      return(dpar)
-    }
-  }
-  cli::cli_abort(c(
-    "Could not find a location formula model frame on this {.cls drmTMB} fit.",
-    i = "Available frames: {.val {names(frames)}}."
-  ))
-}
-
-drm_model_frame_location_frame <- function(object) {
-  dpar <- drm_model_frame_primary_dpar(object)
-  mf <- object$model$model_frame[[dpar]]
-  if (!is.data.frame(mf)) {
-    cli::cli_abort(c(
-      "The {.val {dpar}} model frame is not a data frame.",
-      i = "This usually means the fit object is incomplete or from an unsupported route."
-    ))
-  }
-  mf
-}
-
-#' @rdname model-fit-extractors
-#' @export
-model.frame.drmTMB <- function(formula, ...) {
-  drm_model_frame_location_frame(formula)
-}
-
-#' @rdname model-fit-extractors
-#' @export
-terms.drmTMB <- function(x, use.offset = TRUE, ...) {
-  mf <- drm_model_frame_location_frame(x)
-  stats::terms(mf, use.offset = use.offset)
-}
-
-#' @rdname model-fit-extractors
-#' @export
-model.matrix.drmTMB <- function(object, ...) {
-  mf <- drm_model_frame_location_frame(object)
-  stats::model.matrix(stats::terms(mf), data = mf, ...)
-}
-
 #' Extract fitted response values
 #'
 #' `fitted()` returns fitted response values from a `drmTMB` model. For
@@ -2678,10 +2620,6 @@ drm_standard_error_status <- function(object) {
 #' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
 #' top-level parameter count, and fitted-row count consistently.
 #' `nobs()` returns the number of fitted rows after complete-case filtering.
-#' `model.frame()`, `terms()`, and `model.matrix()` return the primary location
-#' formula frame (`mu` for univariate fits, `mu1` for bivariate fits), its
-#' `terms` object, and the corresponding model matrix, rather than exposing the
-#' internal TMB specification list stored at `fit$model`.
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
 #' `-2 * logLik`; for these likelihood-based distributional models this is an
