@@ -1,0 +1,227 @@
+{
+  "scope": "finite-reference-distribution deterministic selection oracle; not Gaussian integration, recovery or identification evidence",
+  "states": [
+    {
+      "mass": 0.5,
+      "phi": [
+        0.95,
+        0.9,
+        0.85
+      ],
+      "p": [
+        0.7,
+        0.6,
+        0.5,
+        0.4
+      ]
+    },
+    {
+      "mass": 0.5,
+      "phi": [
+        0.6,
+        0.55,
+        0.5
+      ],
+      "p": [
+        0.2,
+        0.25,
+        0.3,
+        0.35
+      ]
+    }
+  ],
+  "histories": [
+    {
+      "history": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "first": 1,
+      "numerator": 0.144844125,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.32187583333333336
+    },
+    {
+      "history": [
+        1,
+        0,
+        0,
+        1
+      ],
+      "first": 1,
+      "numerator": 0.023380875,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.051957500000000004
+    },
+    {
+      "history": [
+        1,
+        0,
+        1,
+        0
+      ],
+      "first": 1,
+      "numerator": 0.045626625000000004,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.10139250000000002
+    },
+    {
+      "history": [
+        1,
+        0,
+        1,
+        1
+      ],
+      "first": 1,
+      "numerator": 0.021648374999999997,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.0481075
+    },
+    {
+      "history": [
+        1,
+        1,
+        0,
+        0
+      ],
+      "first": 1,
+      "numerator": 0.09071587499999997,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.2015908333333333
+    },
+    {
+      "history": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "first": 1,
+      "numerator": 0.031534125,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.07007583333333335
+    },
+    {
+      "history": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "first": 1,
+      "numerator": 0.06129337499999999,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.13620749999999998
+    },
+    {
+      "history": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "first": 1,
+      "numerator": 0.030956625,
+      "denominator": 0.44999999999999996,
+      "likelihood": 0.0687925
+    },
+    {
+      "history": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "first": 2,
+      "numerator": 0.080001,
+      "denominator": 0.14550000000000002,
+      "likelihood": 0.5498350515463917
+    },
+    {
+      "history": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "first": 2,
+      "numerator": 0.017124,
+      "denominator": 0.14550000000000002,
+      "likelihood": 0.11769072164948452
+    },
+    {
+      "history": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "first": 2,
+      "numerator": 0.033561,
+      "denominator": 0.14550000000000002,
+      "likelihood": 0.23065979381443297
+    },
+    {
+      "history": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "first": 2,
+      "numerator": 0.014814000000000003,
+      "denominator": 0.14550000000000002,
+      "likelihood": 0.10181443298969073
+    },
+    {
+      "history": [
+        0,
+        0,
+        1,
+        0
+      ],
+      "first": 3,
+      "numerator": 0.04143150000000001,
+      "denominator": 0.05535000000000001,
+      "likelihood": 0.7485365853658537
+    },
+    {
+      "history": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "first": 3,
+      "numerator": 0.013918500000000004,
+      "denominator": 0.05535000000000001,
+      "likelihood": 0.25146341463414634
+    },
+    {
+      "history": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "first": 4,
+      "numerator": 0.020848500000000002,
+      "denominator": 0.020848500000000002,
+      "likelihood": 1.0
+    }
+  ],
+  "shared_effect_counterexample": {
+    "weights": [
+      0.9,
+      0.1
+    ],
+    "suffix_probabilities": [
+      0.8,
+      0.2
+    ],
+    "joint_conditioning": 0.6326829268292683,
+    "product_of_individual_conditionals": 0.5476000000000002
+  }
+}

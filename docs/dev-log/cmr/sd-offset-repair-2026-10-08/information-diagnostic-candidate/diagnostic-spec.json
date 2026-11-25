@@ -1,0 +1,200 @@
+{
+  "status": "parent_frozen_data_generation_authorized_fits_pending",
+  "purpose": "Test whether the weak positive-generator individual-SD behavior at N=400 improves with more individuals, holding the registered DGP, formulas, coefficients, covariates, and generator implementation fixed.",
+  "primary_namespace_unchanged": true,
+  "source_identity": {
+    "retained_bundle": "/private/tmp/cmr-r-prerun-v6-lean",
+    "manifest": "docs/dev-log/cmr/fixtures/recovery-manifest-v6.json",
+    "manifest_sha256": "5dbce920b0de7e89460edd68a49fcea07afb612ff75d32ae11680cc07de8171d",
+    "manifest_schema_version": 6,
+    "generator": "docs/dev-log/cmr/generator-source-v6/bench/cmr_recovery/generate.py",
+    "generator_sha256": "2c1878154fcddddc17c3d55926dfc8b6aa8cbb2c94c7fe792e69576cf8eb1b70",
+    "admission_wrapper_sha256": "58269ef9013402f248b18eca0ebc8cb31353f26b0fabb53ad40fd3d77c55367f",
+    "generation_receipt": "pre-run-data/generation-receipt.json",
+    "generation_receipt_summary": {
+      "stage": "pre_run",
+      "cells": 22,
+      "datasets": 44,
+      "elapsed_seconds": 6.473098039627075,
+      "manifest_sha256": "5dbce920b0de7e89460edd68a49fcea07afb612ff75d32ae11680cc07de8171d"
+    },
+    "requested_original_path_status": "The task-named /private/tmp/cmr-native-staging-20261008/reader-fixed-snapshot/... path is absent in this environment. The retained v6 manifest above has the pinned hash recorded in the generator wrapper and generation receipts."
+  },
+  "base_cell": {
+    "name": "m5_sd_pair_nonzero_slopes",
+    "index": 9,
+    "role": "primary individual_pair_sd",
+    "n": 400,
+    "phi_formula": "~1+x_phi+(1|id)",
+    "detection_formula": "~1+z_p+(1|id)",
+    "sd_phi_formula": "~1+x_phi",
+    "sd_detection_formula": "~1+z_p",
+    "selection": false,
+    "occasions": 6,
+    "intervals": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "administrative_end": "occasion 6",
+    "mask_rate": 0.0,
+    "terminal_detection": 0.6,
+    "covariates": "Deterministically balanced x_phi and z_p over -1, 0, +1; the two profiles are assigned by the frozen generator's existing index rules.",
+    "fixed_coefficients": {
+      "beta_phi": [
+        0.5,
+        -0.4
+      ],
+      "beta_p": [
+        -0.6,
+        0.35
+      ]
+    },
+    "log_sd_truth": {
+      "gamma0_phi": -0.6931471805599453,
+      "gamma1_phi": 0.25,
+      "gamma0_p": -0.6931471805599453,
+      "gamma1_p": 0.25
+    },
+    "truth_sd_at_profiles": {
+      "formula": "exp(gamma0 + gamma1 * profile)",
+      "profile_values": [
+        -1,
+        0,
+        1
+      ],
+      "phi": [
+        0.38940039153570244,
+        0.5,
+        0.6420127083438708
+      ],
+      "detection": [
+        0.38940039153570244,
+        0.5,
+        0.6420127083438708
+      ]
+    },
+    "retained_pre_run_data": [
+      {
+        "replicate": 1,
+        "seed": 21161008,
+        "fit": {
+          "package": "drmTMB",
+          "package_version": "0.7.1",
+          "source_identity": "97654d79446e9f094a81a7cdc49d55b3063125db53c1007cea62e60aea11e649",
+          "optimizer": "nlminb",
+          "started_utc": "2026-10-08 02:52:58 UTC",
+          "ended_utc": "2026-10-08 02:53:06 UTC",
+          "converged": true,
+          "gradient_norm": 4.03336767842433e-05,
+          "quadrature_order": 65,
+          "refinement_status": "refined",
+          "usable": true,
+          "elapsed_seconds": 8.395
+        },
+        "data_sha256": "fe9423f0e34f7dd4fc5613c338cd24d3ca16b0981b3dc24fbeef3579386db3cb",
+        "mask_sha256": "50257dd8e17650282d18836c92ea5f3c6b6856fb2dc7351b7918325e925c40bc",
+        "first_capture_sha256": "b0d8df695a7c234eaccdcaf734513feb81d0d710c55fe7c72bafcf8652543e01",
+        "eligibility_sha256": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories_sha256": "476343b319c1520818bcbe13f696ae6c3ffeae22f1b18c08c702af2fd7845658",
+        "phi_predictors_sha256": "b4cab14e10eb916d3dfcc551de044e5bef51419bf0033a3e0a969785f2adcd97",
+        "p_predictors_sha256": "35a58a5e35de5d51e456e68824da41fffb558255a8be332876dd0f8fd5f84c8c",
+        "truth_sha256": "eea830cd13f019d7f06cd9a14a6b6ec9518be278f40aea2114e7ab269aaa1ccc",
+        "rows": {
+          "histories": 2400,
+          "phi_predictors": 1004,
+          "p_predictors": 1404,
+          "truth": 4800,
+          "eligibility": 0
+        }
+      },
+      {
+        "replicate": 2,
+        "seed": 21161009,
+        "fit": {
+          "package": "drmTMB",
+          "package_version": "0.7.1",
+          "source_identity": "97654d79446e9f094a81a7cdc49d55b3063125db53c1007cea62e60aea11e649",
+          "optimizer": "nlminb",
+          "started_utc": "2026-10-08 02:53:07 UTC",
+          "ended_utc": "2026-10-08 02:53:23 UTC",
+          "converged": true,
+          "gradient_norm": 9.45500201742361e-05,
+          "quadrature_order": 97,
+          "refinement_status": "unrefined_at_order_cap",
+          "failure_stage": "fit_diagnostics",
+          "failure_code": "unusable_fit",
+          "failure_message": "quadrature refinement was not established (status: unrefined_at_order_cap)",
+          "usable": false,
+          "elapsed_seconds": 16.257
+        },
+        "data_sha256": "575c573c58379691b1f4e27cabd3b9062426369c64f2a3183d4b0306d8093ba9",
+        "mask_sha256": "59f010e5bd831fdf59c0d100ac89c0caedf3d065531665f9558299625cf313fc",
+        "first_capture_sha256": "696f3985b88f3ca217147888ca1d2413d387e8e75a68894e59a5d6955646e357",
+        "eligibility_sha256": "6303f6470c2b8a638d55c461d9b32afb1f1dfbda4e23e619ddfb628aed11bdff",
+        "histories_sha256": "58186da3ae74370fdb23d72c2f7a837f6f505e452d4c322d7a5a7ee8b1010fe4",
+        "phi_predictors_sha256": "c3bc1425a63562b0fd00337b83a39cc88bac0fa01cde8bf2a0653d88261d389f",
+        "p_predictors_sha256": "be8427599224ce9c5bd050ea6e351b03bb58ac5fe8b92a823bc5f2791299ffa7",
+        "truth_sha256": "e348a9350856c9c2c5bf43095e3cfb81e903b7c2efcacffafa21c8478af597ec",
+        "rows": {
+          "histories": 2400,
+          "phi_predictors": 1004,
+          "p_predictors": 1404,
+          "truth": 4800,
+          "eligibility": 0
+        }
+      }
+    ]
+  },
+  "diagnostic_design": {
+    "cell_ids": [
+      "m5_sd_pair_nonzero_slopes_info_N800",
+      "m5_sd_pair_nonzero_slopes_info_N1600"
+    ],
+    "n_individuals": [
+      800,
+      1600
+    ],
+    "replicates_per_n": 5,
+    "total_new_datasets": 10,
+    "generator_call": "Pinned v6 generate_dataset(resolved_base_cell, replicate, seed, n_override=N, common_design=frozen_common_design); change only the emitted diagnostic cell label. No predictor, coefficient, random-effect, capture, or mask rule is replaced.",
+    "seed_rule": "120000000 + 100000*9 + diagnostic_index; diagnostic_index 1:5 maps N=800, 6:10 maps N=1600. This separate domain is disjoint from v6 staged seeds.",
+    "output_layout": "<new-empty-output>/<diagnostic-cell-id>/<replicate-01-to-05>/{histories,phi_predictors,p_predictors,truth,eligibility}.csv plus generation-receipt.json",
+    "profile_count_expectation": "For each process profile, N=800 yields 266 or 267 individuals and N=1600 yields 533 or 534 under the unchanged deterministic balancing rule.",
+    "primary_data_protection": "Write to a distinct new empty output root. Never overwrite or regenerate the primary N=400 bundle; retain all generated bytes and hashes."
+  },
+  "diagnostic_outputs": {
+    "for_each_dataset_and_process": [
+      "fit status and every failure code/message",
+      "convergence, gradient norm, Hessian/inner-mode status, elapsed time",
+      "quadrature order and refinement status",
+      "estimated log-SD coefficients gamma0 and gamma1 when exposed by the fit",
+      "estimated SD at covariate values -1, 0, +1 computed as exp(gamma0_hat + gamma1_hat*x)",
+      "truth at the same three covariate values",
+      "per-profile number of individuals and the per-profile predicted-SD range"
+    ],
+    "profile_mapping": "Use named fitted log-SD coefficients or named public predictions joined to the exact input covariate level. Do not infer profile order from vector position. If named coefficients/predictions cannot be recovered, record extraction failure and stop; do not manufacture profile estimates.",
+    "quadrature": "Retain the package's complete order/refinement trace (including every intermediate order). An order-cap result without established refinement is unusable for this diagnostic. Do not increase the cap mid-run; any new cap requires a separately reviewed/frozen amendment.",
+    "all_attempts": "Keep all 10 generated datasets and every fit attempt, including optimizer, boundary, Hessian, quadrature, and extraction failures. No replacement seed, extension, or deletion after seeing results.",
+    "interpretation": "Descriptive information diagnostic only. Show replicate-level estimates and all-attempt failure counts by N. Ten fits do not qualify a method, estimate coverage, or establish general recovery."
+  },
+  "runtime_and_stops": {
+    "observed_anchor": "Current frozen native Julia N=400 SD public-method fit took34.029s; scaled estimates are provisional.",
+    "planning_estimate": "Generation expected under10s. N800 fit initially120s, N1600 initially240s each;10 fits about30min serial including startup. First fit per size measures the remaining estimate before launch.",
+    "resource_caps": {
+      "JULIA_NUM_THREADS": 1,
+      "OPENBLAS_NUM_THREADS": 1,
+      "OMP_NUM_THREADS": 1,
+      "max_concurrent_fits": 1
+    },
+    "stop_rules": [
+      "Stop before fitting if either frozen SHA-256 check fails or generated tables fail schema, profile-count, truth, or hash accounting.",
+      "Stop the diagnostic at45minutes elapsed and retain unfinished attempts; after the first fit at each N, re-estimate remaining time and stop/re-report if45minutes is insufficient. Do not extend the cap silently.",
+      "Stop the current fit if it exceeds 5 minutes; retain it as timeout/failure and do not replace it.",
+      "Stop on source/schema/hash integrity or ambiguous profile extraction. Retain unrefined quadrature, optimizer and per-fit timeout failures as unusable; continue remaining predetermined attempts. Do not replace seeds."
+    ],
+    "authorization": "Approved reversible programme authority; parent freezes generation now. Fit source/adapter admission and measured first-fit timing remain required."
+  }
+}

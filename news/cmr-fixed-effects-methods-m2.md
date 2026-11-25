@@ -1,0 +1,1 @@
+- **Fixed-effects CJS gains prediction, simulation, and guarded intervals.** `drm_cjs()` now predicts by animal and occasion, simulates refittable conditional histories, and reports Wald, profile, or bootstrap interval status by target. These methods do not establish interval calibration or random-effect support.

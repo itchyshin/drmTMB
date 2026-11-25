@@ -301,6 +301,8 @@ Deprecated compatibility markers are deliberately omitted.
 |---|---|
 | [`drm_formula()` / `bf()`](../reference/drm_formula.html) | Combine one formula per distributional parameter. `bf()` is the short alias. |
 | [`drmTMB()`](../reference/drmTMB.html) | Fit a univariate or bivariate distributional model. The native TMB engine is the default. |
+| [cmr_data()](../reference/cmr_data.html) | Validate encounter histories and keyed occasion or interval data for the dedicated CJS route. |
+| [drm_cjs()](../reference/drm_cjs.html) | Fit first-capture-conditional apparent survival and detection; this route does not estimate abundance. |
 | [`drm_control()`](../reference/drm_control.html) | Set optimizer controls and fitted-object storage or large-data options. |
 | [`drm_priors()` / `drm_prior_normal()` / `drm_prior_ridge()` / `drm_prior_sd_gamma()`](../reference/drm_priors.html) | Select fixed-effect priors or a Gamma prior for one named Gaussian mean random-intercept SD. |
 | [`drm_resolve_priors()`](../reference/drm_resolve_priors.html) | Preview the exact distributional-parameter and coefficient columns selected before fitting. |

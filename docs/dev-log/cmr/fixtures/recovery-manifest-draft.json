@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "status": "draft; frozen proposed cells/schema, not approved for execution; no simulations run",
+  "stage": "M1 fixed-effects CJS",
+  "purpose": "Propose deterministic pilot/screening/qualification structure. This file makes no accuracy, calibration, runtime, or inference claim.",
+  "model_scope": [
+    "fixed-effects apparent survival",
+    "fixed-effects detection conditional on alive",
+    "first-capture-conditional histories",
+    "exact discrete state summation"
+  ],
+  "excluded_routes": [
+    "random effects",
+    "reference-cohort selection",
+    "unknown entry or recruitment",
+    "survival-detection correlation",
+    "bootstrap calibration"
+  ],
+  "generator": {
+    "history_conditioning": "Generate post-capture histories conditional on the declared first-capture occasion; the first capture itself contributes no likelihood term.",
+    "first_capture_layout": "Predetermine first-capture occasions across individuals within each cell and retain that layout in the attempt record.",
+    "interval_rule": "Generate interval survival as logistic(X_phi beta_phi)^Delta using each cell's literal positive interval vector.",
+    "observation_rule": "After each transition, capture with logistic(X_p beta_p) if alive; dead is absorbing. Apply cell mask independently as an omitted emission, never as predictor imputation.",
+    "administrative_followup": "Generate through the declared administrative end even after the last capture; do not truncate at last sighting.",
+    "frequency": "Simulated individuals have frequency 1. The deterministic parity fixture separately checks integer-frequency replication.",
+    "rng": "Independent streams use the disjoint stage-index seed formula below; retain actual generated datasets for cross-language fits."
+  },
+  "proposed_cells": [
+    {
+      "cell": "m1_intercept_regular",
+      "role": "primary",
+      "n": 300,
+      "occasions": 6,
+      "intervals": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "first_capture_layout": "balanced across occasions 1-3",
+      "mask_rate": 0,
+      "administrative_end": "occasion 6",
+      "beta_phi": [
+        0.5
+      ],
+      "beta_p": [
+        -0.7
+      ]
+    },
+    {
+      "cell": "m1_covariate_irregular",
+      "role": "primary",
+      "n": 400,
+      "occasions": 6,
+      "intervals": [
+        0.5,
+        1,
+        2,
+        1.5,
+        1
+      ],
+      "first_capture_layout": "balanced across occasions 1-3",
+      "mask_rate": 0.1,
+      "administrative_end": "occasion 6",
+      "beta_phi": [
+        0.5,
+        0.6
+      ],
+      "beta_p": [
+        -0.7,
+        0.5
+      ]
+    },
+    {
+      "cell": "m1_low_detection_short",
+      "role": "stress",
+      "n": 150,
+      "occasions": 4,
+      "intervals": [
+        1,
+        2,
+        1
+      ],
+      "first_capture_layout": "all eligible occasions represented",
+      "mask_rate": 0.05,
+      "administrative_end": "occasion 4",
+      "beta_phi": [
+        0.2
+      ],
+      "beta_p": [
+        -1.7
+      ]
+    },
+    {
+      "cell": "m1_admin_censoring",
+      "role": "stress",
+      "n": 300,
+      "occasions": 6,
+      "intervals": [
+        1,
+        1.5,
+        1,
+        2,
+        1
+      ],
+      "first_capture_layout": "balanced across occasions 1-3",
+      "mask_rate": 0.05,
+      "administrative_end": "randomly assigned occasions 4-6 and recorded per individual",
+      "beta_phi": [
+        0.5,
+        0.4
+      ],
+      "beta_p": [
+        -0.7,
+        0.3
+      ]
+    }
+  ],
+  "attempts": {
+    "pilot": {
+      "replicates_per_candidate_cell": 10,
+      "purpose": "measure fit runtime and partition failures; disclose estimate before full run"
+    },
+    "screen": {
+      "replicates_per_cell": 500,
+      "purpose": "screen primary and stress cells; retain every attempt and failure"
+    },
+    "qualification": {
+      "replicates_per_primary_cell": 2000,
+      "purpose": "separately gated qualification only after screen review and explicit compute approval"
+    }
+  },
+  "seeds": {
+    "base": 20261006,
+    "formula": "20261006 + 10000000 * stage_index + 100000 * cell_index + replicate_index",
+    "replicate_index_ranges": {
+      "pilot": [
+        1,
+        10
+      ],
+      "screen": [
+        1,
+        500
+      ],
+      "qualification": [
+        1,
+        2000
+      ]
+    },
+    "fixed_before_execution": true,
+    "stage_indices": {
+      "pilot": 0,
+      "screen": 1,
+      "qualification": 2
+    }
+  },
+  "attempt_record_schema": {
+    "required": [
+      "cell",
+      "stage",
+      "replicate",
+      "seed",
+      "generated_data_hash",
+      "first_capture_layout_hash",
+      "mask_hash",
+      "fit_started_utc",
+      "fit_ended_utc",
+      "optimizer",
+      "converged",
+      "gradient_norm",
+      "boundary_status",
+      "estimates",
+      "interval_status",
+      "intervals",
+      "attempted",
+      "failed",
+      "failure_code",
+      "package_versions",
+      "git_revisions"
+    ],
+    "retain_failed_attempts": true,
+    "retry_policy": "No replacement attempts and no extension after interim results. If a generator or implementation defect is found, stop and version a new campaign manifest."
+  },
+  "estimands": [
+    "survival probability at x=-1,0,1",
+    "detection probability at x=-1,0,1",
+    "survival and detection regression coefficients"
+  ],
+  "qualification_defaults": {
+    "usable_fraction_one_sided_95pct_lower_bound_at_least": 0.95,
+    "probability_bias_mc_interval_within_absolute": 0.02,
+    "nominal_95pct_coverage_mc_interval": [
+      0.925,
+      0.975
+    ],
+    "report": [
+      "usable fraction",
+      "coverage among usable intervals",
+      "usable-and-covering fraction among all attempts",
+      "Monte Carlo uncertainty"
+    ]
+  },
+  "compute": {
+    "runtime_estimate": "not available until the 10-fit pilot; do not launch a larger stage before estimating from that pilot",
+    "target": "Mac for small pilots, four threads per lane and BLAS one; Totoro for CPU campaigns, total at most 150 cores.",
+    "thread_caps": {
+      "JULIA_NUM_THREADS": 4,
+      "OPENBLAS_NUM_THREADS": 1
+    },
+    "github_actions": "prohibited for simulation campaigns"
+  },
+  "approval_gate": "Parent reviews and freezes this draft before small estimated pilots. Runs estimated above three hours require displayed pre-run evidence and user approval. No extra user approval is required for the already-authorized small pilots."
+}

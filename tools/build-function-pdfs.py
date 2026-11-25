@@ -71,6 +71,7 @@ MAP_MAIN = [
         "2. FIT",
         [
             ("drmTMB()", "Fit with the native TMB engine by default."),
+            ("cmr_data(), drm_cjs()", "Validate histories and fit first-capture-conditional CJS; no abundance estimate."),
             ("drm_control()", "Control optimization, storage, and large-data options."),
             ("drm_phylo_penalty()", "Define the documented penalized/MAP workflow."),
             ("drm_phylo_penalty_sweep()", "Check sensitivity to the correlation penalty."),

@@ -1,0 +1,1 @@
+Adds dedicated native fixed-effects first-capture-conditional CJS data and ML fit interfaces. Exact history likelihoods, masks, irregular intervals and explicit terminal constraints have numerical checks. Prediction, simulation, calibrated inference, heterogeneity, selection and bridge support remain pending subsequent CMR stages.

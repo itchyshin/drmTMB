@@ -1,0 +1,434 @@
+Error in `(function (command = NULL, args = character(), error_on_status = TRUE, …`:
+! System command 'R' failed
+---
+Exit status: 1
+Stdout & stderr:
+* installing *source* package ‘drmTMB’ ...
+** this is package ‘drmTMB’ version ‘0.7.1’
+** using staged installation
+** libs
+using C compiler: ‘Apple clang version 21.0.0 (clang-2100.1.1.101)’
+using C++ compiler: ‘Apple clang version 21.0.0 (clang-2100.1.1.101)’
+using SDK: ‘MacOSX26.5.sdk’
+clang++ -arch arm64 -std=gnu++20 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG  -I'/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include' -I'/Users/z3437171/Library/R/arm64/4.6/library/TMB/include' -I/opt/R/arm64/include    -fPIC  -falign-functions=64 -Wall -g -O2  -UNDEBUG -Wall -pedantic -g -O0  -c drmTMB.cpp -o drmTMB.o
+In file included from drmTMB.cpp:14:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/TMB/include/TMB.hpp:96:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/Sparse:26:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/SparseCore:61:
+/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/src/SparseCore/TriangularSolver.h:273:13: warning: variable 'count' set but not used [-Wunused-but-set-variable]
+  273 |       Index count = 0;
+      |             ^
+In file included from drmTMB.cpp:14:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/TMB/include/TMB.hpp:96:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/Sparse:29:
+In file included from /Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/SparseLU:35:
+/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h:78:9: warning: variable 'nsuper_et_post' set but not used [-Wunused-but-set-variable]
+   78 |   Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
+      |         ^
+/Users/z3437171/Library/R/arm64/4.6/library/RcppEigen/include/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h:79:9: warning: variable 'nsuper_et' set but not used [-Wunused-but-set-variable]
+   79 |   Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
+      |         ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:11:15: error: no matching function for call to 'log1p'
+   11 |   return xp + log1p(exp(-ax));
+      |               ^~~~~
+./cjs_kernel.hpp:62:37: note: in instantiation of function template specialization 'cjs_softplus<CppAD::AD<double>>' requested here
+   62 |       Type log_phi = -delta(sidx) * cjs_softplus(-eta_phi(sidx));
+      |                                     ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<double>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:1312:6: note: in instantiation of member function 'objective_function<CppAD::AD<double>>::operator()' requested here
+ 1312 |     F(); // Run through user template (modifies reportvector)
+      |      ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<double>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<double>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<double>>::value' was not satisfied [with _A1 = AD<double>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:35:21: error: no matching function for call to 'log1p'
+   35 |   Type correction = log1p(-xs / Type(2) + xs * xs / Type(6) -
+      |                     ^~~~~
+./cjs_kernel.hpp:63:24: note: in instantiation of function template specialization 'cjs_log_death<CppAD::AD<double>>' requested here
+   63 |       Type log_death = cjs_log_death(delta(sidx), eta_phi(sidx));
+      |                        ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<double>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:1312:6: note: in instantiation of member function 'objective_function<CppAD::AD<double>>::operator()' requested here
+ 1312 |     F(); // Run through user template (modifies reportvector)
+      |      ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<double>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<double>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<double>>::value' was not satisfied [with _A1 = AD<double>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:39:16: error: no matching function for call to 'log1p'
+   39 |   Type large = log1p(-exp(-large_x));
+      |                ^~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<double>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<double>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<double>>::value' was not satisfied [with _A1 = AD<double>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:25:14: error: no matching function for call to 'log1p'
+   25 |   return m + log1p(exp(d));
+      |              ^~~~~
+./cjs_kernel.hpp:66:11: note: in instantiation of function template specialization 'cjs_logaddexp<CppAD::AD<double>>' requested here
+   66 |         ? cjs_logaddexp(log_dead, log_alive + log_death)
+      |           ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<double>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:1312:6: note: in instantiation of member function 'objective_function<CppAD::AD<double>>::operator()' requested here
+ 1312 |     F(); // Run through user template (modifies reportvector)
+      |      ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<double>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<double>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<double>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<double>>::value' was not satisfied [with _A1 = AD<double>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+drmTMB.cpp:1318:16: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1318 |           Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                ^~~~~~~
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2035:34: note: in instantiation of member function 'objective_function<double>::operator()' requested here
+ 2035 |       PROTECT( res = asSEXP( pf->operator()() ) );
+      |                                  ^
+/Library/Frameworks/R.framework/Resources/include/Rinternals.h:357:31: note: expanded from macro 'PROTECT'
+  357 | #define PROTECT(s)      Rf_protect(s)
+      |                                    ^
+drmTMB.cpp:1409:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1409 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1493:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1493 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1582:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1582 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1724:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1724 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1859:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1859 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:1925:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 1925 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2011:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2011 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2119:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2119 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2204:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2204 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2301:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2301 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+drmTMB.cpp:2398:18: warning: unused variable 'sigma_i' [-Wunused-variable]
+ 2398 |             Type sigma_i = sqrt(V_known(i) + exp(Type(2.0) * log_sigma(i)));
+      |                  ^~~~~~~
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:11:15: error: no matching function for call to 'log1p'
+   11 |   return xp + log1p(exp(-ax));
+      |               ^~~~~
+./cjs_kernel.hpp:62:37: note: in instantiation of function template specialization 'cjs_softplus<CppAD::AD<CppAD::AD<double>>>' requested here
+   62 |       Type log_phi = -delta(sidx) * cjs_softplus(-eta_phi(sidx));
+      |                                     ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<CppAD::AD<double>>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:917:20: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<double>>>::operator()' requested here
+  917 |     Type ans=this->operator()();
+      |                    ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2116:10: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<double>>>::evalUserTemplate' requested here
+ 2116 |   y[0]=F.evalUserTemplate();
+      |          ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<double>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<double>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:35:21: error: no matching function for call to 'log1p'
+   35 |   Type correction = log1p(-xs / Type(2) + xs * xs / Type(6) -
+      |                     ^~~~~
+./cjs_kernel.hpp:63:24: note: in instantiation of function template specialization 'cjs_log_death<CppAD::AD<CppAD::AD<double>>>' requested here
+   63 |       Type log_death = cjs_log_death(delta(sidx), eta_phi(sidx));
+      |                        ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<CppAD::AD<double>>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:917:20: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<double>>>::operator()' requested here
+  917 |     Type ans=this->operator()();
+      |                    ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2116:10: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<double>>>::evalUserTemplate' requested here
+ 2116 |   y[0]=F.evalUserTemplate();
+      |          ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<double>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<double>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:39:16: error: no matching function for call to 'log1p'
+   39 |   Type large = log1p(-exp(-large_x));
+      |                ^~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<double>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<double>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:25:14: error: no matching function for call to 'log1p'
+   25 |   return m + log1p(exp(d));
+      |              ^~~~~
+./cjs_kernel.hpp:66:11: note: in instantiation of function template specialization 'cjs_logaddexp<CppAD::AD<CppAD::AD<double>>>' requested here
+   66 |         ? cjs_logaddexp(log_dead, log_alive + log_death)
+      |           ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<CppAD::AD<double>>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:917:20: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<double>>>::operator()' requested here
+  917 |     Type ans=this->operator()();
+      |                    ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2116:10: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<double>>>::evalUserTemplate' requested here
+ 2116 |   y[0]=F.evalUserTemplate();
+      |          ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<double>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<double>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<double>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:11:15: error: no matching function for call to 'log1p'
+   11 |   return xp + log1p(exp(-ax));
+      |               ^~~~~
+./cjs_kernel.hpp:62:37: note: in instantiation of function template specialization 'cjs_softplus<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>' requested here
+   62 |       Type log_phi = -delta(sidx) * cjs_softplus(-eta_phi(sidx));
+      |                                     ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:917:20: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::operator()' requested here
+  917 |     Type ans=this->operator()();
+      |                    ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2365:12: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::evalUserTemplate' requested here
+ 2365 |   y[0] = F.evalUserTemplate();
+      |            ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<CppAD::AD<double>>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:35:21: error: no matching function for call to 'log1p'
+   35 |   Type correction = log1p(-xs / Type(2) + xs * xs / Type(6) -
+      |                     ^~~~~
+./cjs_kernel.hpp:63:24: note: in instantiation of function template specialization 'cjs_log_death<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>' requested here
+   63 |       Type log_death = cjs_log_death(delta(sidx), eta_phi(sidx));
+      |                        ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:917:20: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::operator()' requested here
+  917 |     Type ans=this->operator()();
+      |                    ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2365:12: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::evalUserTemplate' requested here
+ 2365 |   y[0] = F.evalUserTemplate();
+      |            ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<CppAD::AD<double>>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:39:16: error: no matching function for call to 'log1p'
+   39 |   Type large = log1p(-exp(-large_x));
+      |                ^~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<CppAD::AD<double>>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+In file included from drmTMB.cpp:17:
+./cjs_kernel.hpp:25:14: error: no matching function for call to 'log1p'
+   25 |   return m + log1p(exp(d));
+      |              ^~~~~
+./cjs_kernel.hpp:66:11: note: in instantiation of function template specialization 'cjs_logaddexp<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>' requested here
+   66 |         ? cjs_logaddexp(log_dead, log_alive + log_death)
+      |           ^
+drmTMB.cpp:322:12: note: in instantiation of function template specialization 'cjs_nll<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>' requested here
+  322 |     return cjs_nll(cmr_y, cmr_observed, cmr_first, cmr_end,
+      |            ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:917:20: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::operator()' requested here
+  917 |     Type ans=this->operator()();
+      |                    ^
+/Users/z3437171/Library/R/arm64/4.6/library/TMB/include/tmb_core.hpp:2365:12: note: in instantiation of member function 'objective_function<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::evalUserTemplate' requested here
+ 2365 |   y[0] = F.evalUserTemplate();
+      |            ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/math.h:409:15: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+  409 | extern double log1p(double);
+      |               ^     ~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:74:36: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'float' for 1st argument
+   74 | inline _LIBCPP_HIDE_FROM_ABI float log1p(float __x) _NOEXCEPT { return __builtin_log1pf(__x); }
+      |                                    ^     ~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:77:30: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'double' for 1st argument
+   77 | _LIBCPP_HIDE_FROM_ABI double log1p(double __x) _NOEXCEPT {
+      |                              ^     ~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:81:42: note: candidate function not viable: no known conversion from 'AD<CppAD::AD<CppAD::AD<double>>>' to 'long double' for 1st argument
+   81 | inline _LIBCPP_HIDE_FROM_ABI long double log1p(long double __x) _NOEXCEPT { return __builtin_log1pl(__x); }
+      |                                          ^     ~~~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/logarithms.h:84:37: note: candidate template ignored: requirement 'is_integral<CppAD::AD<CppAD::AD<CppAD::AD<double>>>>::value' was not satisfied [with _A1 = AD<CppAD::AD<CppAD::AD<double>>>]
+   84 | inline _LIBCPP_HIDE_FROM_ABI double log1p(_A1 __x) _NOEXCEPT {
+      |                                     ^
+15 warnings and 12 errors generated.
+make: *** [drmTMB.o] Error 1
+ERROR: compilation failed for package ‘drmTMB’
+* removing ‘/private/var/folders/7x/ytfpq14s0v18frbm9v_w9f4c0000gq/T/RtmpLSFQWd/devtools_install_c32653ea4eb1/drmTMB’
+---
+Backtrace:
+ 1. devtools::load_all(quiet = TRUE)
+ 2. pkgload::load_all(path = path, reset = reset, recompile = recompile, …
+ 3. pkgbuild::compile_dll(path, quiet = quiet, debug = debug)
+ 4. pkgbuild:::withr_with_makevars(compiler_flags(debug), { …
+ 5. pkgbuild:::withr_with_envvar(c(R_MAKEVARS_USER = makevars_file), { …
+ 6. base::force(code)
+ 7. base::force(code)
+ 8. pkgbuild:::withr_with_envvar(c(DEBUG = "true"), build())
+ 9. base::force(code)
+10. pkgbuild::build()
+11. pkgbuild:::install_min(path, dest = install_dir, components = "libs", args = if (need…
+12. pkgbuild::rcmd_build_tools("INSTALL", c(path, paste("--library=", dest, …
+13. pkgbuild::with_build_tools({ …
+14. base::withCallingHandlers(callr::rcmd_safe(..., env = env, spinner = FALSE, …
+15. callr::rcmd_safe(..., env = env, spinner = FALSE, show = FALSE, …
+16. callr:::run_r(options)
+17. base::with(options, with_envvar(env, do.call(processx::run, c(list(bin, …
+18. base::with.default(options, with_envvar(env, do.call(processx::run, …
+19. base::eval(substitute(expr), data, enclos = parent.frame())
+20. base::eval(substitute(expr), data, enclos = parent.frame())
+21. callr:::with_envvar(env, do.call(processx::run, c(list(bin, args = real_cmdargs, …
+22. base::force(code)
+23. base::do.call(processx::run, c(list(bin, args = real_cmdargs, stdout_line_callba…
+24. (function (command = NULL, args = character(), error_on_status = TRUE, …
+25. base::throw(new_process_error(res, call = sys.call(), echo = echo, …
+26. | base::signalCondition(cond)
+27. (function (e) …
+28. asNamespace("callr")$err$throw(e)
+Execution halted

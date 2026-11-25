@@ -1,0 +1,15 @@
+case,rank,id
+base,1,101
+base,2,102
+base,3,103
+base,4,104
+base,5,105
+base,6,106
+base,7,107
+permuted,1,104
+permuted,2,102
+permuted,3,107
+permuted,4,101
+permuted,5,106
+permuted,6,103
+permuted,7,105
