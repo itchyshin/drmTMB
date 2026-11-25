@@ -166,11 +166,12 @@ test_that("engine = julia REML matches engine = tmb REML on the phylo-mean cell"
   # REML SEs come from TMB's sdreport over a random set that CONTAINS beta_mu,
   # which additionally propagates variance-parameter uncertainty into that
   # block, so TMB's are slightly larger. On this fixture that convention
-  # difference is 4.84e-05 relative on mu_(Intercept) and 1.50e-03 on mu_x --
-  # the latter just past the 1e-3 relative bar tools/parity_se.R uses. It is
-  # measured and explained, NOT hidden behind a widened tolerance: the oracle
-  # assertion is the strict one, and the cross-engine bound is deliberately
-  # 2.5e-3 so this file fails if the gap ever grows.
+  # difference is 4.84e-05 relative on mu_(Intercept) and 1.50e-03 on mu_x.
+  # Owner decision 2026-10-11 (#1201, option a): neither engine changes its
+  # REML mean-block SE convention; each is LABELLED (summary()$se_convention)
+  # and the mean-block REML SE comparison is NOT a cross-engine parity gate.
+  # The DRM.jl-vs-oracle check below stays: it tests DRM.jl against its own
+  # stated convention, not against the other engine.
   X <- stats::model.matrix(~x, fx$data)
   n <- nrow(fx$data)
   n_tip <- length(tree$tip.label)
@@ -181,7 +182,10 @@ test_that("engine = julia REML matches engine = tmb REML on the phylo-mean cell"
   V <- s2p * (Z %*% fx$A %*% t(Z)) + s2r * diag(n)
   gls_se <- sqrt(diag(solve(t(X) %*% solve(V, X))))
   expect_lt(max(abs(se_jl[c("mu_(Intercept)", "mu_x")] - gls_se) / gls_se), 1e-5)
-  expect_lt(max(abs(se_tmb - se_jl[names(se_tmb)]) / se_tmb), 2.5e-3)
+
+  # Each engine labels its own convention (#1201).
+  expect_identical(summary(fit_tmb)$se_convention, "sdreport-inflated")
+  expect_identical(summary(fit_jl)$se_convention, "canonical GLS")
 })
 
 test_that("the phylo-mean REML admission is withdrawn under a non-default response engine", {

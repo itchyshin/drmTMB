@@ -107,17 +107,29 @@ test_that("engine='julia' REML matches engine='tmb' REML on this cell", {
   expect_gt(abs(ll_tmb - ll_ml_tmb), 1)
   expect_lt(ll_tmb, ll_ml_tmb)
 
-  # (5) standard errors to rtol 1e-3.
+  # (5) standard errors to rtol 1e-3, NON-mean blocks only. Owner decision
+  # 2026-10-11 (#1201, option a): the mean-block REML SE is engine-dependent by
+  # construction (labelled per engine, summary()$se_convention) and is excluded
+  # from cross-engine parity gates.
   se_tmb <- as.numeric(co_tmb[, "std_error"])
   se_jl <- as.numeric(co_jl$std.error)
   expect_true(all(is.finite(se_jl)))
-  expect_lt(max(abs(se_jl - se_tmb) / abs(se_tmb)), 1e-3)
+  non_mean <- !startsWith(co_jl$dpar, "mu")
+  expect_true(any(non_mean))
+  expect_lt(
+    max(abs(se_jl[non_mean] - se_tmb[non_mean]) / abs(se_tmb[non_mean])), 1e-3
+  )
+  expect_identical(summary(fit_tmb)$se_convention, "sdreport-inflated")
+  expect_identical(summary(fit_jl)$se_convention, "canonical GLS")
 
-  # (6) NEGATIVE CONTROL on the SE comparison: perturbing one Julia SE by 10 per
-  # cent must break the same check, so a pass above is not vacuous.
+  # (6) NEGATIVE CONTROL on the SE comparison: perturbing one compared Julia SE
+  # by 10 per cent must break the same check, so a pass above is not vacuous.
   se_bad <- se_jl
-  se_bad[1] <- se_bad[1] * 1.10
-  expect_gt(max(abs(se_bad - se_tmb) / abs(se_tmb)), 1e-3)
+  first_non_mean <- which(non_mean)[1L]
+  se_bad[first_non_mean] <- se_bad[first_non_mean] * 1.10
+  expect_gt(
+    max(abs(se_bad[non_mean] - se_tmb[non_mean]) / abs(se_tmb[non_mean])), 1e-3
+  )
 
   # (7) the ML route through the same bridge is untouched by this widening.
   ll_ml_jl <- as.numeric(stats::logLik(drmTMB(
