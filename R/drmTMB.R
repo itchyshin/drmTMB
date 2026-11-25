@@ -20722,6 +20722,13 @@ build_sd_mu_structure <- function(entries, targets, re_mu, data) {
     target <- targets[[i]]
     f_sd <- drm_entry_formula(entry, response = FALSE)
     mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
+    if (nrow(mf_sd) != nrow(data)) {
+      drm_abort_sd_mu_model_frame_mismatch(
+        dpar = entry$dpar,
+        n_data = nrow(data),
+        n_sd_frame = nrow(mf_sd)
+      )
+    }
     group <- factor(
       data[[target$group]],
       levels = re_mu$groups[[target$target_coef]]
@@ -20903,6 +20910,13 @@ build_sd_phylo_structure <- function(entries, targets, phylo_mu, data) {
     dpar <- entry$dpar
     f_sd <- drm_entry_formula(entry, response = FALSE)
     mf_sd <- stats::model.frame(f_sd, data = data, na.action = stats::na.omit)
+    if (nrow(mf_sd) != nrow(data)) {
+      drm_abort_sd_mu_model_frame_mismatch(
+        dpar = entry$dpar,
+        n_data = nrow(data),
+        n_sd_frame = nrow(mf_sd)
+      )
+    }
     if (identical(structured_mu_type(phylo_mu), "phylo_interaction")) {
       pair_labels <- paste(
         as.character(data[[phylo_mu$group1]]),
@@ -21382,6 +21396,18 @@ drm_collect_model_frames <- function(frames) {
 # Those rows have to leave the weights, known sampling covariance, and the
 # data used for random effects, or the likelihood uses the first `nobs`
 # weights. Formulas that do not keep the same rows abort instead of fitting.
+drm_abort_sd_mu_model_frame_mismatch <- function(dpar, n_data, n_sd_frame) {
+  cli::cli_abort(
+    c(
+      "{.code sd()} formulas kept different rows than the location-scale model.",
+      "x" = "The modelled data has {n_data} rows but the {.code sd()} formula for {.code {dpar}} kept {n_sd_frame} rows.",
+      "i" = "A transformed predictor such as {.code log(x)} or {.code sqrt(x)} was non-finite on some rows of one formula only.",
+      "i" = "Drop those rows before fitting, or use a transformation that is finite for every modelled row."
+    ),
+    class = "drmTMB_model_frame_rows"
+  )
+}
+
 drm_sync_model_frame_rows <- function(
   frames,
   data_model,
