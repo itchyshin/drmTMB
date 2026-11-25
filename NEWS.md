@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* Gaussian, Student-t and skew-normal models now abort when the response
+  column is a factor or ordered factor, instead of fitting integer level
+  codes silently (#1481).
+
 * `simulate()` now validates `nsim`: it must be one positive whole number.
   Invalid values such as `0`, negative numbers, `NA`, non-integers, vectors of
   length other than one, or non-numeric inputs are refused with a clear error
