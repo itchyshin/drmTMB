@@ -509,6 +509,8 @@ test-julia-gamma-sd.R	suggests-package	environment	runs	3
 test-julia-gamma-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4
 test-julia-gamma-sigma-sd-bridge.R	suggests-package	environment	runs	2
 test-julia-gate-vs-engine.R	build-premise	build	skips	1
+test-julia-gaussian-same-group-ind-slope.R	engine-drm-jl	environment	skips	2
+test-julia-gaussian-same-group-ind-slope.R	suggests-package	environment	runs	1
 test-julia-gaussian-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-gaussian-sd-parity.R	suggests-package	environment	runs	2
 test-julia-hurdle-nbinom2-sd-bridge.R	engine-drm-jl	environment	skips	2
@@ -539,6 +541,8 @@ test-julia-noninteractive-lane.R	build-premise	build	skips	1
 test-julia-noninteractive-lane.R	runtime-conditional	runtime	depends	1
 test-julia-objective-at-bridge.R	engine-drm-jl	environment	skips	3
 test-julia-objective-at-bridge.R	suggests-package	environment	runs	4
+test-julia-ordinary-laplace-bridge.R	engine-drm-jl	environment	skips	2
+test-julia-ordinary-laplace-bridge.R	suggests-package	environment	runs	1
 test-julia-payload-exact-extraction.R	build-premise	build	skips	1
 test-julia-phylo-count.R	engine-drm-jl	environment	skips	2
 test-julia-phylo-count.R	suggests-package	environment	runs	4
@@ -587,6 +591,8 @@ test-julia-reml-uncited.R	engine-drm-jl	environment	skips	2
 test-julia-reml-uncited.R	suggests-package	environment	runs	3
 test-julia-sigma-phylo-reml.R	engine-drm-jl	environment	skips	2
 test-julia-sigma-phylo-reml.R	suggests-package	environment	runs	4
+test-julia-singleton-groups-refuse.R	engine-drm-jl	environment	skips	1
+test-julia-singleton-groups-refuse.R	suggests-package	environment	runs	1
 test-julia-skewnormal-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-skewnormal-sd-bridge.R	suggests-package	environment	runs	1
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
@@ -718,6 +724,7 @@ test-phase18-skew-normal-fixed-effect.R	os	environment	runs	1
 test-phase18-spatial-q2-grid-writer.R	cran-lane	environment	runs	1
 test-phase18-student-shape-runner.R	os	environment	runs	1
 test-phase18-task-seed-registry.R	build-premise	build	skips	2
+test-phylo-fixed-priors.R	engine-drm-jl	environment	skips	1
 test-phylo-gaussian.R	cran-lane	environment	runs	2
 test-phylo-interaction.R	cran-lane	environment	runs	4
 test-phylo-penalized-map.R	cran-lane	environment	runs	3
@@ -755,6 +762,9 @@ test-poisson-spatial-sd-sensitivity-b26.R	cran-lane	environment	runs	2
 test-poisson-structured-q2-sd-regression.R	cran-lane	environment	runs	4
 test-positive-continuous-structured-mu.R	build-premise	build	skips	1
 test-positive-continuous-structured-mu.R	suggests-package	environment	runs	4
+test-prior-table-bridge.R	env-var-optin	environment	skips	1
+test-prior-table-bridge.R	suggests-package	environment	runs	1
+test-prior-table-oracle.R	suggests-package	environment	runs	5
 test-profile-parallel.R	build-premise	build	skips	1
 test-profile-parallel.R	cran-lane	environment	runs	2
 test-profile-parallel.R	os	environment	runs	5
@@ -827,5 +837,7 @@ test-temporal-homtoep-map.R	build-premise	build	skips	1
 test-temporal-homtoep-parser.R	build-premise	build	skips	1
 test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
+test-two-ri-sd-priors.R	env-var-optin	environment	skips	1
+test-two-ri-sd-priors.R	suggests-package	environment	runs	7
 test-xfam-bridge.R	engine-drm-jl	environment	skips	8
 test-xfam-bridge.R	suggests-package	environment	runs	14

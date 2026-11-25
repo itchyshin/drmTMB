@@ -258,12 +258,14 @@
 #'   labeled `MAP` and `logLik()` returns the unpenalized data log-likelihood.
 #'   Native `engine = "tmb"` only.
 #' @param priors Optional fixed-effect normal priors, ridge penalties, or a
-#'   Gamma prior on a random-intercept SD, created by [drm_priors()].
+#'   Gamma prior on a random-intercept SD, created by [drm_priors()] or
+#'   specified in a prior table; see [drm_resolve_priors()] for table syntax.
 #'   Fixed-effect priors support Gaussian identity and binomial logit models
-#'   with complete data and unit weights; Gaussian models may also include one
-#'   independent mean random intercept. The SD prior supports a complete-data,
-#'   unit-weight Gaussian ML model with exactly one unlabelled independent mean
-#'   random intercept, selected by group and `(Intercept)`. It acts on the
+#'   with complete data and unit weights; Gaussian models may also include one or
+#'   two independent mean random intercepts with distinct grouping partitions. The SD prior
+#'   supports a complete-data, unit-weight Gaussian ML model with one or two
+#'   unlabelled independent mean random intercepts, selected by group and
+#'   `(Intercept)`. It acts on the
 #'   natural SD scale and can be combined with fixed-effect priors. The Julia
 #'   bridge currently refuses factor predictors in Gaussian mean
 #'   random-intercept formulas. [drm_resolve_priors()] previews selections.
@@ -377,6 +379,13 @@ drmTMB <- function(
   data <- drm_droplevels_fixed_predictors(data, formula)
   engine <- match.arg(engine)
   estimator <- drm_match_estimator(estimator)
+  if (is.data.frame(priors)) {
+    priors <- drm_normalize_prior_table(priors, formula, family, data,
+      REML = REML, estimator = estimator, penalty = penalty, impute = impute, control = control)
+    # Save exact model-matrix targets so update cannot re-expand broad rules.
+    prior_preview <- drm_resolve_priors(formula, family, data, priors)
+    fit_call$priors <- drm_freeze_table_prior_specs(priors, prior_preview)
+  }
   drm_validate_fixed_prior_request(priors, formula, family, data,
     REML = REML, estimator = estimator, penalty = penalty, impute = impute,
     control = control)
@@ -430,7 +439,7 @@ drmTMB <- function(
       missing = missing,
       REML = drm_control_flag(REML, "REML"),
       priors = priors,
-      call = match.call()
+      call = fit_call
     ))
   }
   control <- if (drm_fixed_priors_active(priors)) drm_prior_control(control) else drm_parse_control(control)
@@ -937,7 +946,7 @@ drm_fit_spec <- function(
   fit_gradient <- drm_fit_gradient(obj, opt)
   drm_pin_tmb_object_to_optimum(obj, opt, tmb_state)
   if (!is.null(spec$resolved_sd_prior)) {
-    checked <- drm_sd_prior_check_score(opt, fit_gradient$gradient)
+    checked <- drm_sd_prior_check_score(opt, fit_gradient$gradient, spec$tmb_data$prior_sd_index + 1L)
     if (!identical(checked$convergence, opt$convergence)) {
       opt <- checked
       optimizer$selected$convergence <- opt$convergence
@@ -989,6 +998,13 @@ drm_fit_spec <- function(
     as.numeric(objective_report$fixed_prior_penalty)
   sd_prior_value <- if (is.null(objective_report$sd_prior_penalty)) 0 else
     as.numeric(objective_report$sd_prior_penalty)
+  sd_prior_values <- numeric()
+  if (!is.null(spec$resolved_sd_prior)) {
+    sd_eta <- opt$par[which(names(opt$par) == "log_sd_mu")[spec$tmb_data$prior_sd_index + 1L]]
+    sd_prior_values <- -stats::dgamma(exp(sd_eta), shape = spec$resolved_sd_prior$shape,
+                                     rate = spec$resolved_sd_prior$rate, log = TRUE)
+    names(sd_prior_values) <- spec$resolved_sd_prior$group
+  }
   prior_gradient <- likelihood_gradient <- NULL
   if (!is.null(priors)) {
     prior_gradient <- rep(0, length(opt$par))
@@ -1000,8 +1016,8 @@ drm_fit_spec <- function(
         (opt$par[[pos]] - resolved$mean[[i]]) * resolved$precision[[i]]
     }
     if (!is.null(spec$resolved_sd_prior)) {
-      pos <- which(names(opt$par) == "log_sd_mu")[[1L]]
-      prior_gradient[[pos]] <- spec$resolved_sd_prior$rate * exp(opt$par[[pos]]) -
+      pos <- which(names(opt$par) == "log_sd_mu")[spec$tmb_data$prior_sd_index + 1L]
+      prior_gradient[pos] <- spec$resolved_sd_prior$rate * exp(opt$par[pos]) -
         (spec$resolved_sd_prior$shape - 1)
     }
     likelihood_gradient <- fit_gradient$gradient - prior_gradient
@@ -1064,6 +1080,9 @@ drm_fit_spec <- function(
     gradient_max_component = fit_gradient$max_component,
     provenance = drm_provenance()
   )
+  if (!is.null(spec$resolved_sd_prior) && identical(spec$random$mu$n_terms, 2L)) {
+    fit$sd_prior_penalties <- sd_prior_values
+  }
   if (is.null(temporal_starts)) {
     # Only temporal fits carry a start-attempt table.
     fit$temporal_start_attempts <- NULL
@@ -4065,10 +4084,11 @@ drm_pin_tmb_object_to_optimum <- function(obj, opt, state = NULL) {
 # `fixed_gradient_component_label()` (also `R/check.R`) for the worst-component
 # label, so a stored value and the live `check_drm()` row always agree -- one
 # label rule, not two copies that can drift apart.
-drm_sd_prior_check_score <- function(opt, gradient) {
+drm_sd_prior_check_score <- function(opt, gradient, target_index = NULL) {
   eta <- unname(opt$par[which(names(opt$par) == "log_sd_mu")])
+  if (!is.null(target_index)) eta <- eta[target_index]
   if (identical(as.integer(opt$convergence), 0L) &&
-      (length(eta) != 1L || !is.finite(eta) || !is.finite(exp(2 * eta)) || exp(2 * eta) == 0)) {
+      (!length(eta) || any(!is.finite(eta)) || any(!is.finite(exp(2 * eta))) || any(exp(2 * eta) == 0))) {
     opt$convergence <- 1L
     opt$message <- "SD prior fit has a nonfinite or underflowed random-effect variance; convergence not established"
     return(opt)
@@ -5091,7 +5111,20 @@ drm_build_gaussian_ls_spec <- function(
       stats::na.omit
     }
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Gaussian",
+    V_known = V_known
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
+  V_known <- aligned$V_known
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Gaussian")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && any(!observed_y)) {
@@ -5875,7 +5908,18 @@ drm_build_student_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Student-t"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Student-t")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
@@ -5934,6 +5978,9 @@ drm_build_student_ls_spec <- function(
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Student-t")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Student-t")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "Student-t")
 
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -6230,7 +6277,18 @@ drm_build_skew_normal_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "skew-normal"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "skew-normal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -6276,6 +6334,9 @@ drm_build_skew_normal_ls_spec <- function(
   )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "skew-normal")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "skew-normal")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "skew-normal")
 
   if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
     cli::cli_abort("Internal model-frame mismatch in skew-normal model.")
@@ -6598,6 +6659,16 @@ drm_build_lognormal_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "lognormal"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -7112,6 +7183,16 @@ drm_build_gamma_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Gamma"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -7538,6 +7619,16 @@ drm_build_tweedie_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, nu = mf_nu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Tweedie"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -8066,6 +8157,16 @@ drm_build_beta_ls_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "beta"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -8693,6 +8794,16 @@ drm_build_zero_one_beta_spec <- function(
     data = data_model,
     na.action = stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, zoi = mf_zoi, coi = mf_coi),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "zero-one-inflated beta"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
@@ -9082,6 +9193,16 @@ drm_build_beta_binomial_spec <- function(
   )
   mf_sd_sigma <- lapply(f_sd_sigma, stats::model.frame,
                         data = data_model, na.action = stats::na.omit)
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, sd_sigma = mf_sd_sigma),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "beta-binomial"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   response_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (is.null(dim(response_raw)) || ncol(response_raw) != 2L) {
@@ -9752,6 +9873,16 @@ drm_build_binomial_spec <- function(
       stats::na.omit
     }
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "binomial"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   raw_response <- stats::model.response(mf_mu)
   if (length(raw_response) == 0L) {
     cli::cli_abort(
@@ -10164,6 +10295,16 @@ drm_build_cumulative_logit_spec <- function(
     data = data_model,
     na.action = if (include_missing_response) stats::na.pass else stats::na.omit
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "cumulative logit"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y_raw) == 0L) {
@@ -10689,6 +10830,16 @@ drm_build_poisson_spec <- function(
   } else {
     NULL
   }
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, zi = mf_zi),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "Poisson"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
@@ -11468,6 +11619,21 @@ drm_build_nbinom2_spec <- function(
   } else {
     NULL
   }
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(
+      mu = mf_mu,
+      sigma = mf_sigma,
+      sd_sigma = mf_sd_sigma,
+      zi = mf_zi
+    ),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "nbinom2"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y) == 0L) {
@@ -12024,6 +12190,16 @@ drm_build_truncated_nbinom2_spec <- function(
   } else {
     NULL
   }
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(mu = mf_mu, sigma = mf_sigma, hu = mf_hu),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "truncated or hurdle nbinom2"
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
   y <- stats::model.response(mf_mu)
 
   if (length(y) == 0L) {
@@ -12673,6 +12849,25 @@ drm_build_biv_gaussian_spec <- function(
     data = data_model,
     na.action = model_na_action
   )
+  aligned <- drm_apply_model_frame_rows(
+    frames = list(
+      mu1 = mf_mu1,
+      mu2 = mf_mu2,
+      sigma1 = mf_sigma1,
+      sigma2 = mf_sigma2,
+      rho12 = mf_rho12
+    ),
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = "bivariate Gaussian",
+    V_known = V_known,
+    biv = TRUE
+  )
+  data_model <- aligned$data_model
+  weights_model <- aligned$weights_model
+  keep <- aligned$keep
+  V_known <- aligned$V_known
 
   y1_raw <- stats::model.response(mf_mu1)
   y2_raw <- stats::model.response(mf_mu2)
@@ -12697,6 +12892,18 @@ drm_build_biv_gaussian_spec <- function(
     y1[!observed_y1] <- response_sentinel
     y2[!observed_y2] <- response_sentinel
   }
+  if (!all(is.finite(y1[observed_y1]))) {
+    cli::cli_abort(c(
+      "Gaussian models require finite observed response values.",
+      "x" = "Non-finite values are in {.code y1}."
+    ))
+  }
+  if (!all(is.finite(y2[observed_y2]))) {
+    cli::cli_abort(c(
+      "Gaussian models require finite observed response values.",
+      "x" = "Non-finite values are in {.code y2}."
+    ))
+  }
   if (
     include_missing_response &&
       identical(V_known$type, "matrix") &&
@@ -12718,6 +12925,11 @@ drm_build_biv_gaussian_spec <- function(
   X_sigma1 <- stats::model.matrix(stats::terms(mf_sigma1), mf_sigma1)
   X_sigma2 <- stats::model.matrix(stats::terms(mf_sigma2), mf_sigma2)
   X_rho12 <- stats::model.matrix(stats::terms(mf_rho12), mf_rho12)
+  drm_abort_if_nonfinite_fit_design(X_mu1, dpar = "mu1")
+  drm_abort_if_nonfinite_fit_design(X_mu2, dpar = "mu2")
+  drm_abort_if_nonfinite_fit_design(X_sigma1, dpar = "sigma1")
+  drm_abort_if_nonfinite_fit_design(X_sigma2, dpar = "sigma2")
+  drm_abort_if_nonfinite_fit_design(X_rho12, dpar = "rho12")
   if (include_missing_response) {
     drm_warn_weak_biv_rho12_identifiability(
       complete_pairs = sum(observed_y1 & observed_y2),
@@ -15361,6 +15573,18 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
     }
   }
   data
+}
+
+# Shared by the native TMB builders and the Julia bridge pre-check (#1776) so
+# both engines refuse an all-singleton grouping variable with one wording.
+drm_refuse_all_singleton_groups <- function(group, group_name, implementation) {
+  if (all(tabulate(as.integer(factor(group))) == 1L)) {
+    cli::cli_abort(c(
+      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
+      "x" = "At least one group must have repeated observations in {implementation}."
+    ))
+  }
+  invisible(NULL)
 }
 
 is_random_bar_call <- function(expr) {
@@ -18597,12 +18821,9 @@ build_random_mu_structure <- function(terms, data,
         "x" = "At least two groups are needed to estimate a random-effect SD."
       ))
     }
-    if (all(tabulate(as.integer(group)) == 1L)) {
-      cli::cli_abort(c(
-        "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-        "x" = "At least one group must have repeated observations in this initial random-effect implementation."
-      ))
-    }
+    drm_refuse_all_singleton_groups(
+      group, group_name, "this initial random-effect implementation"
+    )
 
     variables <- terms[[k]]$variables
     for (variable in variables[!is.na(variables)]) {
@@ -20341,12 +20562,9 @@ build_biv_parameter_random_structure <- function(
       "x" = "At least two groups are needed to estimate a bivariate group-level covariance."
     ))
   }
-  if (all(tabulate(as.integer(group)) == 1L)) {
-    cli::cli_abort(c(
-      "Random-effect grouping variable {.field {group_name}} has only singleton groups.",
-      "x" = "At least one group must have repeated observations in this bivariate random-effect implementation."
-    ))
-  }
+  drm_refuse_all_singleton_groups(
+    group, group_name, "this bivariate random-effect implementation"
+  )
 
   n_group <- length(levels_group)
   group_index <- as.integer(group)
@@ -21103,6 +21321,172 @@ known_v_complete <- function(V_known) {
   }
 }
 
+# Rows a model frame kept from the data it was built on. `na.omit` records the
+# dropped positions in `na.action`; `na.pass` keeps every row, including ones
+# whose transformed predictors are NaN.
+drm_model_frame_kept_rows <- function(model_frame, n) {
+  if (is.null(model_frame)) {
+    return(seq_len(n))
+  }
+  dropped <- attr(model_frame, "na.action")
+  if (is.null(dropped) || length(dropped) == 0L) {
+    if (nrow(model_frame) != n) {
+      cli::cli_abort(
+        "Internal error: a model frame has {nrow(model_frame)} rows but the modelled data has {n}."
+      )
+    }
+    return(seq_len(n))
+  }
+  dropped <- as.integer(dropped)
+  if (any(dropped < 1L | dropped > n)) {
+    cli::cli_abort(
+      "Internal error: model-frame row omission is outside the modelled data."
+    )
+  }
+  seq_len(n)[-dropped]
+}
+
+drm_collect_model_frames <- function(frames) {
+  if (is.null(names(frames)) || any(!nzchar(names(frames)))) {
+    cli::cli_abort("Internal error: distributional model frames must be named.")
+  }
+  out <- list()
+  for (nm in names(frames)) {
+    item <- frames[[nm]]
+    if (is.null(item)) {
+      next
+    }
+    if (is.data.frame(item)) {
+      out[[nm]] <- item
+      next
+    }
+    if (!is.list(item)) {
+      cli::cli_abort("Internal error: model frame {.val {nm}} is not a data frame.")
+    }
+    for (i in seq_along(item)) {
+      if (is.null(item[[i]]) || !is.data.frame(item[[i]])) {
+        next
+      }
+      label <- names(item)[i]
+      if (is.null(label) || !nzchar(label)) {
+        label <- as.character(i)
+      }
+      out[[paste0(nm, "[", label, "]")]] <- item[[i]]
+    }
+  }
+  out
+}
+
+# `complete.cases()` only sees columns named in the formula. `log(x)` or
+# `sqrt(x)` can still drop rows inside `model.frame(..., na.action = na.omit)`.
+# Those rows have to leave the weights, known sampling covariance, and the
+# data used for random effects, or the likelihood uses the first `nobs`
+# weights. Formulas that do not keep the same rows abort instead of fitting.
+drm_sync_model_frame_rows <- function(
+  frames,
+  data_model,
+  weights_model,
+  keep,
+  family_label
+) {
+  frames <- drm_collect_model_frames(frames)
+  if (length(frames) == 0L) {
+    cli::cli_abort(
+      "Internal error: {.val {family_label}} has no model frames to align."
+    )
+  }
+  n <- nrow(data_model)
+  rows <- lapply(frames, drm_model_frame_kept_rows, n = n)
+  ref <- as.integer(rows[[1L]])
+  mismatch <- names(rows)[vapply(rows, function(r) {
+    !identical(as.integer(r), ref)
+  }, logical(1L))]
+  if (length(mismatch) > 0L) {
+    counts <- vapply(rows, length, integer(1L))
+    detail <- paste(
+      sprintf("%s kept %d rows", names(counts), counts),
+      collapse = "; "
+    )
+    cli::cli_abort(
+      c(
+        "{.val {family_label}} formulas kept different rows.",
+        "x" = "Row counts: {detail}.",
+        "i" = "A transformed predictor such as {.code log(x)} or {.code sqrt(x)} was non-finite on some rows of one formula only.",
+        "i" = "Drop those rows before fitting, or use a transformation that is finite for every modelled row."
+      ),
+      class = "drmTMB_model_frame_rows"
+    )
+  }
+  if (length(ref) == 0L) {
+    cli::cli_abort(
+      "No complete observations remain after applying model missingness rules."
+    )
+  }
+  changed <- !identical(ref, seq_len(n))
+  if (!changed) {
+    return(list(
+      data_model = data_model,
+      weights_model = weights_model,
+      keep = keep,
+      rows = ref,
+      changed = FALSE
+    ))
+  }
+  idx <- which(keep)
+  if (length(idx) != n) {
+    cli::cli_abort(
+      "Internal error: the complete-case index does not match the modelled data."
+    )
+  }
+  new_keep <- rep(FALSE, length(keep))
+  new_keep[idx[ref]] <- TRUE
+  list(
+    data_model = data_model[ref, , drop = FALSE],
+    weights_model = weights_model[ref],
+    keep = new_keep,
+    rows = ref,
+    changed = TRUE
+  )
+}
+
+drm_apply_model_frame_rows <- function(
+  frames,
+  data_model,
+  weights_model,
+  keep,
+  family_label,
+  V_known = NULL,
+  biv = FALSE
+) {
+  aligned <- drm_sync_model_frame_rows(
+    frames = frames,
+    data_model = data_model,
+    weights_model = weights_model,
+    keep = keep,
+    family_label = family_label
+  )
+  aligned$V_known <- V_known
+  if (!isTRUE(aligned$changed) || is.null(V_known)) {
+    return(aligned)
+  }
+  if (isTRUE(biv)) {
+    logical_rows <- rep(FALSE, nrow(data_model))
+    logical_rows[aligned$rows] <- TRUE
+    aligned$V_known <- subset_biv_known_v(
+      V_known,
+      logical_rows,
+      validate = FALSE
+    )
+  } else {
+    aligned$V_known <- subset_known_v(
+      V_known,
+      aligned$rows,
+      validate = FALSE
+    )
+  }
+  aligned
+}
+
 subset_biv_known_v <- function(V_known, keep, validate = TRUE) {
   if (!identical(V_known$type, "matrix")) {
     return(new_known_v(rep(0, 2L * sum(keep)), type = V_known$type))
@@ -21374,6 +21758,17 @@ prepare_betabinomial_response <- function(y, response) {
     success_name = response_names[[1L]],
     failure_name = response_names[[2L]]
   )
+}
+
+drm_reject_factor_response <- function(y, response, family) {
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "{family} response values must be numeric, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+    ))
+  }
+  invisible(y)
 }
 
 prepare_binomial_response <- function(y, response, has_weights = FALSE) {
@@ -27473,6 +27868,52 @@ sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
   out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
   names(out) <- names(eta)
   out
+}
+
+# Band for the Tweedie nu logit link (p = 1 + plogis(eta_nu)). Matches
+# drm_softclamp_tweedie_eta_nu() in src/drmTMB.cpp (#1468).
+drm_tweedie_eta_nu_softclamp_bounds <- function() {
+  c(lo = -35, hi = 35, margin = 1.5)
+}
+
+drm_softclamp_tweedie_eta_nu <- function(eta) {
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  x <- as.numeric(eta)
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  margin <- band[["margin"]]
+  out <- x
+  above <- x > hi
+  below <- x < lo
+  out[above] <- hi + margin * tanh((x[above] - hi) / margin)
+  out[below] <- lo - margin * tanh((lo - x[below]) / margin)
+  out
+}
+
+drm_tweedie_eta_nu_cap_active <- function(report) {
+  if (is.null(report$eta_nu)) {
+    return(NULL)
+  }
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  values <- as.numeric(report$eta_nu)
+  values <- values[is.finite(values)]
+  if (!length(values)) {
+    return(NULL)
+  }
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  chosen <- if (hit_hi) which.max(values) else which.min(values)
+  list(
+    value = values[[chosen]],
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
 }
 
 sd_sigma_group_log_values <- function(par, spec, dpar = NULL) {
