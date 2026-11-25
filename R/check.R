@@ -2595,7 +2595,9 @@ check_known_v <- function(object) {
       symmetric = TRUE,
       only.values = TRUE
     )$values
-    tol <- sqrt(.Machine$double.eps) * max(abs(eig), 1)
+    # Scale-relative rank tolerance (#710): no absolute floor, so a well-
+    # conditioned V with tiny variances is not called rank-deficient.
+    tol <- sqrt(.Machine$double.eps) * max(abs(eig))
     rank <- sum(eig > tol)
     positive_eig <- eig[eig > tol]
     condition <- if (length(positive_eig) == 0L) {

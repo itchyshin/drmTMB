@@ -1493,3 +1493,17 @@ test_that("residual_outliers row does not touch the RNG (#1335)", {
   expect_identical(before, after)
   expect_true("residual_outliers" %in% row$check)
 })
+
+test_that("check_known_v() verdict is invariant to the scale of V (#710)", {
+  base <- 0.5 * diag(5) + 0.5
+  for (s in c(1, 1e-6, 1e-8, 1e-9, 1e-12)) {
+    obj <- list(model = list(
+      has_known_v = TRUE,
+      V_known_type = "matrix",
+      V_known = s * base
+    ))
+    row <- check_known_v(obj)
+    expect_identical(row$status, "note", info = format(s))
+    expect_match(row$value, "rank=5", info = format(s))
+  }
+})
