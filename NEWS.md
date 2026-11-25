@@ -4,6 +4,9 @@
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
 
+* Lognormal, Gamma, Tweedie, beta, Poisson, NB2 and bivariate Gaussian or
+  Student-t models now use the same factor-response refusal (#1481).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
