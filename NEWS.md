@@ -4,6 +4,10 @@
   rows, even when both report the same number of observations. A different
   observation count still reports that count (refs #1661).
 
+* Gaussian, Student-t and skew-normal models now abort when the response
+  column is a factor or ordered factor, instead of fitting integer level
+  codes silently (#1481).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
