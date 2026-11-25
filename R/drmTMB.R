@@ -6670,6 +6670,7 @@ drm_build_lognormal_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Lognormal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -7194,6 +7195,7 @@ drm_build_gamma_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Gamma")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -7630,6 +7632,7 @@ drm_build_tweedie_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Tweedie")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -8168,6 +8171,7 @@ drm_build_beta_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "Beta")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (!is.null(dim(y))) {
@@ -10841,6 +10845,7 @@ drm_build_poisson_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "Poisson")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y) == 0L) {
@@ -11635,6 +11640,7 @@ drm_build_nbinom2_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y, mu_entry$response, "NB2")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -12426,7 +12432,8 @@ drm_build_biv_gaussian_spec <- function(
   data,
   env = parent.frame(),
   weights = NULL,
-  missing = miss_control()
+  missing = miss_control(),
+  response_family_label = "bivariate Gaussian"
 ) {
   missing <- drm_parse_missing_control(missing)
   include_missing_response <- identical(missing$response, "include")
@@ -12871,6 +12878,8 @@ drm_build_biv_gaussian_spec <- function(
 
   y1_raw <- stats::model.response(mf_mu1)
   y2_raw <- stats::model.response(mf_mu2)
+  drm_reject_factor_response(y1_raw, mu1_entry$response, response_family_label)
+  drm_reject_factor_response(y2_raw, mu2_entry$response, response_family_label)
   observed_y1 <- !is.na(y1_raw)
   observed_y2 <- !is.na(y2_raw)
   if (!include_missing_response && any(!observed_y1 | !observed_y2)) {
@@ -13308,7 +13317,8 @@ drm_build_biv_student_spec <- function(
     data = data,
     env = env,
     weights = weights,
-    missing = missing
+    missing = missing,
+    response_family_label = "bivariate Student-t"
   )
 
   drm_reject_phase1_terms(nu_entry$rhs, "nu")
