@@ -29,6 +29,10 @@ test-associate-pairs-general-sandwich-bernoulli-bernoulli.R	suggests-package	env
 test-associate-pairs-general-sandwich-nbinom2-nbinom2.R	suggests-package	environment	runs	1
 test-associate-pairs-nbinom2-nbinom2.R	suggests-package	environment	runs	2
 test-associate-pairs-staged-sandwich.R	suggests-package	environment	runs	6
+test-associate-update-roxygen-1653.R	build-premise	build	skips	1
+test-associate-update-roxygen-1653.R	cran-lane	environment	runs	1
+test-associate-update-roxygen-1653.R	runtime-conditional	runtime	depends	1
+test-associate-update-roxygen-1653.R	suggests-package	environment	runs	2
 test-b1-breadth-adapters.R	build-premise	build	skips	1
 test-b1-breadth-contract.R	build-premise	build	skips	1
 test-b1-breadth-dispatch.R	build-premise	build	skips	1

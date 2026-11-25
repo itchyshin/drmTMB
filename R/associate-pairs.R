@@ -66,7 +66,6 @@ latent_normal <- function() {
 #'   data frames for larger `nsim`.
 #' @usage
 #' associate_pairs(fit_1, fit_2, kernel, association)
-#' \method{update}{drm_pair_association}(object, ...)
 #' @export
 #'
 #' @examples
@@ -983,6 +982,7 @@ quantile.drm_pair_association <- function(x, ...) {
 }
 
 #' @rdname associate_pairs
+#' @usage \method{update}{drm_pair_association}(object, ...)
 #' @param object A frozen-margin association object. Its `update()` method
 #'   always refuses the call; refit the margins and construct a new association.
 #' @param ... Reserved arguments. The association `update()` method refuses
