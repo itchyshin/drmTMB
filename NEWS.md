@@ -4,6 +4,9 @@
   carries covariates beyond the intercept, warning that Wald standard errors on
   those slopes are unreliable near the Gaussian null (`nu = 0`). `?skew_normal`
   states the same caveat (Dinnage audit A-6, #1336).
+* Gaussian, Student-t and skew-normal models now abort when the response
+  column is a factor or ordered factor, instead of fitting integer level
+  codes silently (#1481).
 
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
