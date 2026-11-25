@@ -4,6 +4,22 @@
   fixed-effect design value is non-finite. `Inf` in a `mu` or `sigma`
   predictor names the column. `NA` predictors are still dropped by the
   existing complete-case rule (#1729).
+* Gaussian, Student-t and skew-normal models now abort when the response
+  column is a factor or ordered factor, instead of fitting integer level
+  codes silently (#1481).
+
+* Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
+  predictor before calling `dtweedie()`, so interior fits are unchanged while
+  extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
+  (#1468). `check_drm()` reports `tweedie_eta_nu_cap` when the optimum lies in
+  the saturated tail. DRModels.jl's `_logit12` link has no matching guard yet
+  (twin gap).
+
+* `engine = "julia"` now refuses a random-effect grouping variable whose groups
+  are all singletons, with the same message as `engine = "tmb"`. Before, the
+  Julia route fitted such a model, reported convergence, and gave a precise
+  residual SD although only the sum of the group and residual variances is
+  identified (#1776).
 
 * `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
   `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,

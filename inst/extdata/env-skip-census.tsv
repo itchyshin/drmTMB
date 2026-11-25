@@ -508,6 +508,8 @@ test-julia-gamma-sd.R	suggests-package	environment	runs	3
 test-julia-gamma-sigma-sd-bridge.R	engine-drm-jl	environment	skips	4
 test-julia-gamma-sigma-sd-bridge.R	suggests-package	environment	runs	2
 test-julia-gate-vs-engine.R	build-premise	build	skips	1
+test-julia-gaussian-same-group-ind-slope.R	engine-drm-jl	environment	skips	2
+test-julia-gaussian-same-group-ind-slope.R	suggests-package	environment	runs	1
 test-julia-gaussian-sd-parity.R	engine-drm-jl	environment	skips	4
 test-julia-gaussian-sd-parity.R	suggests-package	environment	runs	2
 test-julia-hurdle-nbinom2-sd-bridge.R	engine-drm-jl	environment	skips	2
@@ -588,6 +590,8 @@ test-julia-reml-uncited.R	engine-drm-jl	environment	skips	2
 test-julia-reml-uncited.R	suggests-package	environment	runs	3
 test-julia-sigma-phylo-reml.R	engine-drm-jl	environment	skips	2
 test-julia-sigma-phylo-reml.R	suggests-package	environment	runs	4
+test-julia-singleton-groups-refuse.R	engine-drm-jl	environment	skips	1
+test-julia-singleton-groups-refuse.R	suggests-package	environment	runs	1
 test-julia-skewnormal-sd-bridge.R	engine-drm-jl	environment	skips	2
 test-julia-skewnormal-sd-bridge.R	suggests-package	environment	runs	1
 test-julia-slope-nongaussian.R	engine-drm-jl	environment	skips	1
