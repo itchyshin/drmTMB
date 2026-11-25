@@ -465,9 +465,13 @@ relmat <- function(term, K = NULL, Q = NULL) {
 #' Latent random-effect correlation formula marker
 #'
 #' `corpair()` marks predictor-dependent latent random-effect correlations. It
-#' is distinct from residual `rho12` and from the [corpairs()] extractor. The
-#' Current support covers q=2 location-location models with matching labelled
-#' `mu1`/`mu2` random intercepts:
+#' is distinct from residual `rho12` and from the [corpairs()] extractor.
+#' Residual within-observation correlation is already available through
+#' `rho12 = ~ x` in [bf()]; the `corpair()` LHS marker is reserved for
+#' predictor-dependent latent random effects and still requires a TMB template
+#' change before it can be fitted.
+#' The planned q=2 location-location form with matching labelled
+#' `mu1`/`mu2` random intercepts is:
 #' `corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x`
 #' and
 #' `corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology`.
