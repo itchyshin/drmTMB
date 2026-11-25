@@ -1,0 +1,6 @@
+S	1	student|slope|lab0|q1|sd-none|cm0|ML
+R	1	student|slope|lab0|q1|sd-none|cm0|ML	FITS				-526.9645251743	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.53	
+S	2	student|slope|lab0|q1|sd-one|cm0|ML
+R	2	student|slope|lab0|q1|sd-one|cm0|ML	FITS				-526.9645251743	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.49	
+S	3	student|slope|lab0|q1|sd-z|cm0|ML
+R	3	student|slope|lab0|q1|sd-z|cm0|ML	FITS				-526.7745753386	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.49	

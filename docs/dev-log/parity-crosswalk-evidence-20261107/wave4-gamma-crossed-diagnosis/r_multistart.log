@@ -1,0 +1,41 @@
+          label        ll conv   pd  maxgrad
+1     R_default -832.5245    0 TRUE 1.72e-05
+2    from_R_est -832.5245    0 TRUE 1.72e-05
+3    from_J_est -832.5085    0 TRUE 1.06e-07
+4   rand_s0.5_1 -832.5245    0 TRUE 7.65e-05
+5   rand_s0.5_2 -832.5245    1 TRUE 1.39e-04
+6   rand_s0.5_3 -832.5245    1 TRUE 1.54e-03
+7   rand_s0.5_4 -832.5245    1 TRUE 1.22e-04
+8   rand_s0.5_5 -832.5245    1 TRUE 1.18e-04
+9   rand_s0.5_6 -832.5245    1 TRUE 1.07e-04
+10  rand_s0.5_7 -832.5245    1 TRUE 2.86e-04
+11  rand_s0.5_8 -832.5245    1 TRUE 1.11e-04
+12  rand_s0.5_9 -832.5245    1 TRUE 1.43e-04
+13 rand_s0.5_10 -832.5245    1 TRUE 3.48e-05
+14 rand_s0.5_11 -832.5085    1 TRUE 1.94e-04
+15 rand_s0.5_12 -832.5245    1 TRUE 2.10e-04
+16 rand_s0.5_13 -832.5085    0 TRUE 6.38e-05
+17 rand_s0.5_14 -832.5085    1 TRUE 1.74e-04
+18 rand_s0.5_15 -832.5245    0 TRUE 4.33e-06
+19    rand_s1_1 -832.5245    1 TRUE 2.06e-04
+20    rand_s1_2 -832.5245    1 TRUE 1.11e-04
+21    rand_s1_3 -832.5245    1 TRUE 9.75e-04
+22    rand_s1_4 -832.5245    1 TRUE 7.20e-04
+23    rand_s1_5 -832.5245    1 TRUE 1.02e-04
+24    rand_s1_6 -832.5245    1 TRUE 1.06e-03
+25    rand_s1_7 -832.5245    0 TRUE 1.40e-05
+26    rand_s1_8 -832.5245    1 TRUE 5.58e-05
+27    rand_s1_9 -832.5245    1 TRUE 4.24e-04
+28   rand_s1_10 -832.5245    1 TRUE 4.69e-04
+29   rand_s1_11 -832.5085    1 TRUE 1.79e-04
+30   rand_s1_12 -832.5245    1 TRUE 8.49e-05
+31   rand_s1_13 -832.5085    1 TRUE 1.27e-04
+32   rand_s1_14 -832.5245    1 TRUE 1.06e-04
+33   rand_s1_15 -832.5245    1 TRUE 7.10e-04
+
+distinct optima (ll rounded to 1e-4):
+
+-832.5245 -832.5085 
+        5         2 
+
+R_default start is the package's own start; here `from_R_est` is a restart of nlminb at the reported estimate

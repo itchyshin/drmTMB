@@ -1,0 +1,67 @@
+┌ Warning: drm: this tree's maximum tip height is 0.75, not 1, so `sd_phylo` is on the RAW branch-length scale. For an ultrametric tree it is a factor 0.866025 = sqrt(0.75) away from the correlation scale R's drmTMB reports (via `ape::vcv(tree, corr = TRUE)`); rescale branches by 1/0.75 to match. A non-ultrametric tree requires tip-wise correlation standardization, not this scalar rescaling. `phylo_tree_height(tree)` reports this.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/sparse_phy.jl:751
+┌ Warning: drm (sparse Laplace): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.683 to -8.683). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/boundary_diagnostics.jl:175
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    3-element Vector{Int64}:
+│     3
+│     ⋮
+│   rcond = 1.0619064321669221e-31
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     5
+│   rcond = 1.3246145816555667e-19
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `id` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:457
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 7.28685854191132e-17
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 5.8152025310016435e-18
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `site` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:499
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     4
+│   rcond = 4.0011794200976895e-17
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+Test Summary:                                      | Pass  Total   Time
+structured markers refuse non-intercept lhs (#620) |   26     26  52.7s
+Test Summary:                                                | Pass  Total   Time
+regression: bivariate q4 phylo (different syntax) unaffected |    1      1  15.0s
+Test Summary:                                                           | Pass  Total  Time
+regression: (1 | tag | phylo(group)) location-scale coupling unaffected |    1      1  6.9s
+Test Summary:                                                          | Pass  Total  Time
+regression: bivariate lognormal spatial(1|group) delegation unaffected |    1      1  1.6s

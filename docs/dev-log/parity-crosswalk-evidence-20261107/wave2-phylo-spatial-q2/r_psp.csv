@@ -1,0 +1,7 @@
+"","estimate","std_error"
+"mu:(Intercept)",0.344404669146254,0.121265428839525
+"mu:x",0.287023972768633,0.120401038902402
+"sd_spatial(id, dpar = ""mu"", coef = ""(Intercept)""):(Intercept)",-0.713924454056038,0.156867974534686
+"sd_spatial(id, dpar = ""mu"", coef = ""(Intercept)""):z0",0.345803731215824,0.120983217603498
+"sd_spatial(id, dpar = ""mu"", coef = ""x""):(Intercept)",-1.48106754313556,0.305902721566768
+"sd_spatial(id, dpar = ""mu"", coef = ""x""):z1",-0.449631134922341,0.343449177716832

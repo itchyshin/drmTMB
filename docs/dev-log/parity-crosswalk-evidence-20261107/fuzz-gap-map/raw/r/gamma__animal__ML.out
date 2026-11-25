@@ -1,0 +1,50 @@
+S	1	gamma|animal|lab0|q1|sd-none|cm0|ML
+R	1	gamma|animal|lab0|q1|sd-none|cm0|ML	FITS				-477.9538136686	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.57	
+S	2	gamma|animal|lab0|q1|sd-one|cm0|ML
+R	2	gamma|animal|lab0|q1|sd-one|cm0|ML	FITS				-477.9538136703	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.62	
+S	3	gamma|animal|lab0|q1|sd-z|cm0|ML
+R	3	gamma|animal|lab0|q1|sd-z|cm0|ML	FITS				-477.7885595588	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.54	
+S	4	gamma|animal|lab0|q2|sd-none|cm0|ML
+R	4	gamma|animal|lab0|q2|sd-none|cm0|ML	FITS				-450.4486143673	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.63	
+S	5	gamma|animal|lab1|q2|sd-none|cm0|ML
+R	5	gamma|animal|lab1|q2|sd-none|cm0|ML	ERROR	abort:rlang_error	Gamma labelled structured intercept-slope correlation requires	Gamma labelled structured intercept-slope correlation requires predictor-dependent SD formulas. ✖ Requested labelled structured term: `animal(1 + x1 | p | g)` without `sd()` formulas. ℹ Add `sd(id, level = "animal", dpar = "mu", coef = ...)` for the intercept and the slope, or remove the covariance label.				0.03	
+S	6	gamma|animal|lab0|q2|sd-one|cm0|ML
+R	6	gamma|animal|lab0|q2|sd-one|cm0|ML	FITS				-450.4486143669	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.75	
+S	7	gamma|animal|lab1|q2|sd-one|cm0|ML
+R	7	gamma|animal|lab1|q2|sd-one|cm0|ML	FITS				-450.1462242471	0	pdHess=TRUE;is_converged=TRUE;npar=8	0.64	
+S	8	gamma|animal|lab0|q2|sd-z|cm0|ML
+R	8	gamma|animal|lab0|q2|sd-z|cm0|ML	FITS				-449.9411102712	0	pdHess=TRUE;is_converged=TRUE;npar=9	0.85	
+S	9	gamma|animal|lab1|q2|sd-z|cm0|ML
+R	9	gamma|animal|lab1|q2|sd-z|cm0|ML	FITS				-449.6634278402	0	pdHess=TRUE;is_converged=TRUE;npar=10	0.78	
+S	10	gamma|animal|lab0|q2|sd-first|cm0|ML
+R	10	gamma|animal|lab0|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Gamma animal intercept-slope SD regression requires one SD formula for	Gamma animal intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors. ℹ Each latent structured field has its own independent SD regression.				0.02	
+S	11	gamma|animal|lab1|q2|sd-first|cm0|ML
+R	11	gamma|animal|lab1|q2|sd-first|cm0|ML	ERROR	abort:rlang_error	Gamma animal intercept-slope SD regression requires one SD formula for	Gamma animal intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors. ℹ Each latent structured field has its own independent SD regression.				0.02	
+S	12	gamma|animal|lab0|q2|sd-last|cm0|ML
+R	12	gamma|animal|lab0|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Gamma animal intercept-slope SD regression requires one SD formula for	Gamma animal intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors. ℹ Each latent structured field has its own independent SD regression.				0.02	
+S	13	gamma|animal|lab1|q2|sd-last|cm0|ML
+R	13	gamma|animal|lab1|q2|sd-last|cm0|ML	ERROR	abort:rlang_error	Gamma animal intercept-slope SD regression requires one SD formula for	Gamma animal intercept-slope SD regression requires one SD formula for each coefficient. ✖ Select exactly "(Intercept)" and "x1" with separate `coef` selectors. ℹ Each latent structured field has its own independent SD regression.				0.02	
+S	14	gamma|animal|lab0|q3|sd-none|cm0|ML
+R	14	gamma|animal|lab0|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.05	
+S	15	gamma|animal|lab1|q3|sd-none|cm0|ML
+R	15	gamma|animal|lab1|q3|sd-none|cm0|ML	ERROR	abort:rlang_error	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept.	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `animal(1 + x1 + x2 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	
+S	16	gamma|animal|lab0|q3|sd-z|cm0|ML
+R	16	gamma|animal|lab0|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	17	gamma|animal|lab1|q3|sd-z|cm0|ML
+R	17	gamma|animal|lab1|q3|sd-z|cm0|ML	ERROR	abort:rlang_error	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept.	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `animal(1 + x1 + x2 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	
+S	18	gamma|animal|lab0|q3|sd-first|cm0|ML
+R	18	gamma|animal|lab0|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	19	gamma|animal|lab1|q3|sd-first|cm0|ML
+R	19	gamma|animal|lab1|q3|sd-first|cm0|ML	ERROR	abort:rlang_error	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept.	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `animal(1 + x1 + x2 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	
+S	20	gamma|animal|lab0|q4|sd-none|cm0|ML
+R	20	gamma|animal|lab0|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	21	gamma|animal|lab1|q4|sd-none|cm0|ML
+R	21	gamma|animal|lab1|q4|sd-none|cm0|ML	ERROR	abort:rlang_error	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept.	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `animal(1 + x1 + x2 + x3 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	
+S	22	gamma|animal|lab0|q4|sd-z|cm0|ML
+R	22	gamma|animal|lab0|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	23	gamma|animal|lab1|q4|sd-z|cm0|ML
+R	23	gamma|animal|lab1|q4|sd-z|cm0|ML	ERROR	abort:rlang_error	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept.	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `animal(1 + x1 + x2 + x3 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	
+S	24	gamma|animal|lab0|q4|sd-first|cm0|ML
+R	24	gamma|animal|lab0|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	`animal()` currently reserves only intercept and one-slope structured	`animal()` currently reserves only intercept and one-slope structured terms. ✖ Use `animal(1 | group, ...)` or `animal(1 + x | group, ...)`. ℹ Multiple structured slopes and interactions are planned only after intercept-only structured effects are tested.				0.01	
+S	25	gamma|animal|lab1|q4|sd-first|cm0|ML
+R	25	gamma|animal|lab1|q4|sd-first|cm0|ML	ERROR	abort:rlang_error	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept.	Gamma `animal()` `mu` effects support only an unlabelled q=1 intercept. ✖ Requested labelled structured term: `animal(1 + x1 + x2 + x3 | p | g)`. ℹ Remove the covariance label and use an unlabelled `1 | g` term.				0.01	

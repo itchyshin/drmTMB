@@ -1,0 +1,874 @@
+R time 1.016724 secs 
+<summary.drmTMB>
+estimator: ML
+                                                               estimate
+mu:(Intercept)                                                0.1472253
+mu:x                                                          0.3839467
+sigma:(Intercept)                                            -0.9784055
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.9366889
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):z0           0.4404692
+sd_animal(id, dpar = "mu", coef = "x"):(Intercept)           -1.0512405
+sd_animal(id, dpar = "mu", coef = "x"):z1                     0.2408936
+                                                              std_error
+mu:(Intercept)                                               0.07527262
+mu:x                                                         0.10169368
+sigma:(Intercept)                                            0.14453319
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.15331137
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):z0          0.15327045
+sd_animal(id, dpar = "mu", coef = "x"):(Intercept)           0.19796170
+sd_animal(id, dpar = "mu", coef = "x"):z1                    0.38987725
+Distributional, random-effect, scale, and correlation parameters:
+                                                                                                                              component
+sigma                                                                                                              distributional-scale
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31         random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9          random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                              random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                             random-effect-sd
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                              random-effect-sd
+sd:mu:animal(0 + x | id)                                                                                               random-effect-sd
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                        distributional-parameter
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                  distributional-parameter
+                                                                                                                                                           dpar
+sigma                                                                                                                                                     sigma
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31 sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9  sd_animal(id, dpar = "mu", coef = "(Intercept)")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                                sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                               sd_animal(id, dpar = "mu", coef = "x")
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                                sd_animal(id, dpar = "mu", coef = "x")
+sd:mu:animal(0 + x | id)                                                                                                                                     mu
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                        sd_animal(id, dpar = "mu", coef = "(Intercept)")
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                            sd_animal(id, dpar = "mu", coef = "x")
+                                                                                                                                                                     term
+sigma                                                                                                                                                          (constant)
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31 sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9   sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                               sd_animal(id, dpar = "mu", coef = "x"):animal_48
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                               sd_animal(id, dpar = "mu", coef = "x"):animal_38
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                               sd_animal(id, dpar = "mu", coef = "x"):animal_17
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                                 sd_animal(id, dpar = "mu", coef = "x"):animal_8
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                               sd_animal(id, dpar = "mu", coef = "x"):animal_22
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                                 sd_animal(id, dpar = "mu", coef = "x"):animal_3
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                               sd_animal(id, dpar = "mu", coef = "x"):animal_23
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                                 sd_animal(id, dpar = "mu", coef = "x"):animal_2
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                               sd_animal(id, dpar = "mu", coef = "x"):animal_24
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                               sd_animal(id, dpar = "mu", coef = "x"):animal_37
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                               sd_animal(id, dpar = "mu", coef = "x"):animal_41
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                               sd_animal(id, dpar = "mu", coef = "x"):animal_18
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                               sd_animal(id, dpar = "mu", coef = "x"):animal_14
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                               sd_animal(id, dpar = "mu", coef = "x"):animal_47
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                               sd_animal(id, dpar = "mu", coef = "x"):animal_27
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                               sd_animal(id, dpar = "mu", coef = "x"):animal_15
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                               sd_animal(id, dpar = "mu", coef = "x"):animal_44
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                               sd_animal(id, dpar = "mu", coef = "x"):animal_26
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                               sd_animal(id, dpar = "mu", coef = "x"):animal_10
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                                 sd_animal(id, dpar = "mu", coef = "x"):animal_1
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                                 sd_animal(id, dpar = "mu", coef = "x"):animal_5
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                               sd_animal(id, dpar = "mu", coef = "x"):animal_20
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                               sd_animal(id, dpar = "mu", coef = "x"):animal_36
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                               sd_animal(id, dpar = "mu", coef = "x"):animal_33
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                                 sd_animal(id, dpar = "mu", coef = "x"):animal_7
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                               sd_animal(id, dpar = "mu", coef = "x"):animal_32
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                               sd_animal(id, dpar = "mu", coef = "x"):animal_25
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                               sd_animal(id, dpar = "mu", coef = "x"):animal_11
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                               sd_animal(id, dpar = "mu", coef = "x"):animal_16
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                               sd_animal(id, dpar = "mu", coef = "x"):animal_40
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                               sd_animal(id, dpar = "mu", coef = "x"):animal_12
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                               sd_animal(id, dpar = "mu", coef = "x"):animal_19
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                                 sd_animal(id, dpar = "mu", coef = "x"):animal_4
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                               sd_animal(id, dpar = "mu", coef = "x"):animal_13
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                               sd_animal(id, dpar = "mu", coef = "x"):animal_21
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                               sd_animal(id, dpar = "mu", coef = "x"):animal_42
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                               sd_animal(id, dpar = "mu", coef = "x"):animal_35
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                               sd_animal(id, dpar = "mu", coef = "x"):animal_46
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                                 sd_animal(id, dpar = "mu", coef = "x"):animal_6
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                               sd_animal(id, dpar = "mu", coef = "x"):animal_45
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                               sd_animal(id, dpar = "mu", coef = "x"):animal_43
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                               sd_animal(id, dpar = "mu", coef = "x"):animal_39
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                               sd_animal(id, dpar = "mu", coef = "x"):animal_30
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                               sd_animal(id, dpar = "mu", coef = "x"):animal_34
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                               sd_animal(id, dpar = "mu", coef = "x"):animal_29
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                               sd_animal(id, dpar = "mu", coef = "x"):animal_28
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                               sd_animal(id, dpar = "mu", coef = "x"):animal_31
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                                 sd_animal(id, dpar = "mu", coef = "x"):animal_9
+sd:mu:animal(0 + x | id)                                                                                                                               animal(0 + x | id)
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                                                                      fitted range
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                                                                fitted range
+                                                                                                                estimate
+sigma                                                                                                          0.3759100
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8  0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3  0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2  0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1  0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5  0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7  0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4  0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6  0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43 0.2522945
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31 0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9  0.6088279
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                     0.2981592
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                     0.3138394
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                     0.4356794
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                      0.3269753
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                     0.2832624
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                      0.3735848
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                     0.3852519
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                      0.3236407
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                     0.2861810
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                     0.3774340
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                     0.3660037
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                     0.4312362
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                     0.4013767
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                     0.3170731
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                     0.3406610
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                     0.3106388
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                     0.4447038
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                     0.3303443
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                     0.2921087
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                      0.3477172
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                      0.3697748
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                     0.3585764
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                     0.2775142
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                     0.3441710
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                      0.3972833
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                     0.3932316
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                     0.2803735
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                     0.4268383
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                     0.2951184
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                     0.3074707
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                     0.3203400
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                     0.3549195
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                      0.4401685
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                     0.4224852
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                     0.2746840
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                     0.3337480
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                     0.4139118
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                     0.4181765
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                      0.3371868
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                     0.3512999
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                     0.3892213
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                     0.3813229
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                     0.3043350
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                     0.3012313
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                     0.3622710
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                     0.4055123
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                     0.4096905
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                      0.2891296
+sd:mu:animal(0 + x | id)                                                                                       0.3769092
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                        0.4305612
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                  0.3530387
+                                                                                                                std_error
+sigma                                                                                                          0.05433147
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6          NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9          NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                              NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                              NA
+sd:mu:animal(0 + x | id)                                                                                               NA
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                                NA
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                          NA
+                                                                                                                 minimum
+sigma                                                                                                                 NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9         NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                             NA
+sd:mu:animal(0 + x | id)                                                                                              NA
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                        0.2522945
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                  0.2746840
+                                                                                                                 maximum
+sigma                                                                                                                 NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6         NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31        NA
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9         NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                             NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                            NA
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                             NA
+sd:mu:animal(0 + x | id)                                                                                              NA
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                        0.6088279
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                  0.4447038
+                                                                                                                  scale
+sigma                                                                                                          response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_48 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_38 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_17 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_8  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_22 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_3  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_23 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_2  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_24 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_37 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_41 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_18 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_14 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_47 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_27 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_15 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_44 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_26 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_10 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_1  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_5  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_20 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_36 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_33 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_7  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_32 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_25 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_11 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_16 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_40 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_12 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_19 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_4  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_13 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_21 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_42 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_35 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_46 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_6  response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_45 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_43 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_39 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_30 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_34 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_29 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_28 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_31 response
+sd:sd_animal(id, dpar = "mu", coef = "(Intercept)"):sd_animal(id, dpar = "mu", coef = "(Intercept)"):animal_9  response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_48                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_38                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_17                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_8                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_22                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_3                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_23                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_2                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_24                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_37                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_41                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_18                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_14                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_47                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_27                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_15                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_44                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_26                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_10                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_1                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_5                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_20                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_36                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_33                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_7                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_32                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_25                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_11                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_16                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_40                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_12                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_19                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_4                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_13                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_21                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_42                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_35                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_46                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_6                      response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_45                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_43                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_39                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_30                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_34                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_29                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_28                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_31                     response
+sd:sd_animal(id, dpar = "mu", coef = "x"):sd_animal(id, dpar = "mu", coef = "x"):animal_9                      response
+sd:mu:animal(0 + x | id)                                                                                       response
+fitted:sd_animal(id, dpar = "mu", coef = "(Intercept)")                                                        response
+fitted:sd_animal(id, dpar = "mu", coef = "x")                                                                  response
+logLik: -1625
+convergence_status: converged
+convergence: 0
+                                                               estimate
+mu:(Intercept)                                                0.1472253
+mu:x                                                          0.3839467
+sigma:(Intercept)                                            -0.9784055
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):(Intercept) -0.9366889
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):z0           0.4404692
+sd_animal(id, dpar = "mu", coef = "x"):(Intercept)           -1.0512405
+sd_animal(id, dpar = "mu", coef = "x"):z1                     0.2408936
+                                                              std_error
+mu:(Intercept)                                               0.07527262
+mu:x                                                         0.10169368
+sigma:(Intercept)                                            0.14453319
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):(Intercept) 0.15331137
+sd_animal(id, dpar = "mu", coef = "(Intercept)"):z0          0.15327045
+sd_animal(id, dpar = "mu", coef = "x"):(Intercept)           0.19796170
+sd_animal(id, dpar = "mu", coef = "x"):z1                    0.38987725
+List of 4
+ $ mu                                              : Named num [1:2] 0.147 0.384
+  ..- attr(*, "names")= chr [1:2] "(Intercept)" "x"
+ $ sigma                                           : Named num -0.978
+  ..- attr(*, "names")= chr "(Intercept)"
+ $ sd_animal(id, dpar = "mu", coef = "(Intercept)"): Named num [1:2] -0.937 0.44
+  ..- attr(*, "names")= chr [1:2] "(Intercept)" "z0"
+ $ sd_animal(id, dpar = "mu", coef = "x")          : Named num [1:2] -1.051 0.241
+  ..- attr(*, "names")= chr [1:2] "(Intercept)" "z1"
+         block term       est        se     r_est      r_se         diff
+1           mu    1  0.147225 0.0752726  0.147225 0.0752726 -6.96167e-09
+2           mu    2  0.383947 0.1016935  0.383947 0.1016937  1.31308e-09
+3        sigma    1 -0.978406 0.1445333 -0.978406 0.1445332 -9.74160e-08
+4 sd_intercept    1 -0.936689 0.1533113 -0.936689 0.1533114  4.46630e-08
+5 sd_intercept    2  0.440469 0.1532704  0.440469 0.1532705 -1.15895e-08
+6         sd_x    1 -1.051241 0.1979616 -1.051241 0.1979617 -1.78377e-08
+7         sd_x    2  0.240894 0.3898759  0.240894 0.3898773  3.97901e-09
+    diff_in_se se_ratio
+1 -9.24861e-08 1.000000
+2  1.29121e-08 0.999999
+3 -6.74004e-07 1.000001
+4  2.91322e-07 1.000000
+5 -7.56146e-08 1.000000
+6 -9.01067e-08 0.999999
+7  1.02058e-08 0.999997
+ROUTE B max|diff| est 9.742e-08 (SE units 6.740e-07); max |se ratio-1| 3.339e-06
+ll Julia -1625.3454621184853 R -1625.34546212 diff 1.63e-10; R conv: 0; Julia converged: true

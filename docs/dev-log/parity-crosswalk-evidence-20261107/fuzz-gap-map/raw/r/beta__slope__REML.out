@@ -1,0 +1,6 @@
+S	1	beta|slope|lab0|q1|sd-none|cm0|REML
+R	1	beta|slope|lab0|q1|sd-none|cm0|REML	ERROR	abort:rlang_error	`REML` is implemented for univariate/bivariate Gaussian and binomial	`REML` is implemented for univariate/bivariate Gaussian and binomial models. ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML = FALSE`.				0.04	
+S	2	beta|slope|lab0|q1|sd-one|cm0|REML
+R	2	beta|slope|lab0|q1|sd-one|cm0|REML	ERROR	abort:rlang_error	`REML` is implemented for univariate/bivariate Gaussian and binomial	`REML` is implemented for univariate/bivariate Gaussian and binomial models. ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML = FALSE`.				0.02	
+S	3	beta|slope|lab0|q1|sd-z|cm0|REML
+R	3	beta|slope|lab0|q1|sd-z|cm0|REML	ERROR	abort:rlang_error	`REML` is implemented for univariate/bivariate Gaussian and binomial	`REML` is implemented for univariate/bivariate Gaussian and binomial models. ℹ Use `family = gaussian()`, `biv_gaussian()`, or `binomial()`, or set `REML = FALSE`.				0.01	

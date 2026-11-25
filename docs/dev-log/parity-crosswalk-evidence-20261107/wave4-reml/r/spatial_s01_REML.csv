@@ -1,0 +1,8 @@
+"name","est","se"
+"mu:(Intercept)",0.0800863987684339,0.11280736359944
+"mu:x",0.2085690429196,0.103462925359929
+"sigma:(Intercept)",-0.703752844737241,0.0348579356765183
+"sd_spatial(id, dpar = ""mu"", coef = ""(Intercept)""):(Intercept)",-0.539813403621997,0.155632290313064
+"sd_spatial(id, dpar = ""mu"", coef = ""(Intercept)""):z0",0.388452258974466,0.114548274905819
+"sd_spatial(id, dpar = ""mu"", coef = ""x""):(Intercept)",-1.0260852792509,0.201943588500188
+"sd_spatial(id, dpar = ""mu"", coef = ""x""):z1",0.44731228890783,0.127381565012787

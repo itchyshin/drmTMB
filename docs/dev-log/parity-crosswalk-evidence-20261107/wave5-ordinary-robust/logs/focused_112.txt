@@ -1,0 +1,13 @@
+ERROR: LoadError: Some tests did not pass: 26 passed, 2 failed, 1 errored, 0 broken.
+>>> test_gaussian_ordinary_q2_linesearch.jl done in 37.4 s
+>>> test_gaussian_ordinary_q2_sd.jl done in 27.3 s
+>>> test_gaussian_ordinary_q3_q4_sd.jl done in 53.5 s
+>>> test_gaussian_structured_q2_sd.jl done in 60.8 s
+>>> test_q2_sd_simulate.jl done in 43.1 s
+>>> test_q2_structured_vcov.jl done in 16.2 s
+>>> test_skewnormal.jl done in 7.0 s
+>>> test_betabinomial_sd_regression.jl done in 26.1 s
+Bernoulli animal q2 SD regression: Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/wt-robust/test/test_binomial_anima
+   Evaluated: 0.5868231261337016 < 0.45
+Bernoulli animal q2 SD regression: Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/wt-robust/test/test_binomial_anima
+   Evaluated: 0.5835206312154687 < 0.45

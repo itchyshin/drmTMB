@@ -1,0 +1,8 @@
+gaussian_phylo_sigma : par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu 
+gaussian_spatial_sigma : par beta_mu beta_mu beta_sigma beta_sd_mu beta_sd_mu 
+                   case n_par r_conv max_abs_diff max_diff_in_se
+   gaussian_phylo_sigma     5      0 8.129285e-09   2.571913e-07
+ gaussian_spatial_sigma     5      0 4.573009e-11   4.309445e-10
+ max_se_rel_diff        r_loglik        j_loglik loglik_diff
+    5.064213e-06 -937.4036633479 -937.4036633464    1.51e-09
+    3.505329e-06 -555.4360217410 -555.4360217410    5.47e-11

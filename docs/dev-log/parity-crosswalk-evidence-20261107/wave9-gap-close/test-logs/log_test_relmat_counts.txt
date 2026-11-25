@@ -1,0 +1,14 @@
+┌ Warning: drm (sparse Laplace): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.225 to -8.225). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/boundary_diagnostics.jl:175
+┌ Warning: drm: `A` has no labels, so its rows and columns are taken to be the levels of `id` in order of first appearance in the data. Pass `ids = …` (the label of each row of `A`), or `A` as a table whose column names are the labels, to match `A` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:457
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `id` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/input_validation.jl:499
+┌ Warning: drm (spatial Poisson): a scale parameter ended at a clamp inside the likelihood. Past the clamp the objective is flat, so the reported value is the clamp, not an estimate, and its standard error is not meaningful (DRModels.jl #959). random-effect log SD at its lower clamp -8.0 (fitted range -8.0 to -8.0). Consider rescaling the response, a simpler scale model, or `marginal = :Laplace` (unclamped) where available.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/boundary_diagnostics.jl:175
+Test Summary:                                                     | Pass  Total   Time
+Poisson relmat(1|id) — general-covariance sparse Laplace recovery |    6      6  14.4s
+Test Summary:                                                         | Pass  Total  Time
+Poisson relmat(1|id) — exact gradient vs finite differences (FD gate) |    1      1  0.3s
+Test Summary:                                   | Pass  Total  Time
+Poisson animal/spatial aliases + routing errors |   12     12  3.5s

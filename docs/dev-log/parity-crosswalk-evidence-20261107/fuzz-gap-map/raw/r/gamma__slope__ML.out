@@ -1,0 +1,6 @@
+S	1	gamma|slope|lab0|q1|sd-none|cm0|ML
+R	1	gamma|slope|lab0|q1|sd-none|cm0|ML	FITS				-617.6481663509	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.52	
+S	2	gamma|slope|lab0|q1|sd-one|cm0|ML
+R	2	gamma|slope|lab0|q1|sd-one|cm0|ML	FITS				-617.6481663509	0	pdHess=TRUE;is_converged=TRUE;npar=6	0.48	
+S	3	gamma|slope|lab0|q1|sd-z|cm0|ML
+R	3	gamma|slope|lab0|q1|sd-z|cm0|ML	FITS				-616.8826303883	0	pdHess=TRUE;is_converged=TRUE;npar=7	0.52	

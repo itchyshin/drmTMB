@@ -1,0 +1,39 @@
+beta coords=Dict                        spatial(1 | g) for counts needs either a precomputed spatial covariance via `K = …`, or site `coords = …` (a G×2 coordinate matrix) for coordinate-based exponential-kernel covariance with the range es [ErrorException]
+┌ Warning: drm: `coords` has no labels, so its rows are taken to be the levels of `g` in order of first appearance in the data. Pass `ids = …` (the site label of each row of `coords`), or `coords` as a Dict keyed by site label, to match `coords` by label instead.
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/fuzz-jl/src/input_validation.jl:476
+beta coords=Matrix(G x 2)               spatial(1 | g) for counts needs either a precomputed spatial covariance via `K = …`, or site `coords = …` (a G×2 coordinate matrix) for coordinate-based exponential-kernel covariance with the range es [ErrorException]
+beta K=precomputed exp kernel           FITS ll=130.6667
+nb2 coords=Dict                         spatial(1 | g) for counts needs either a precomputed spatial covariance via `K = …`, or site `coords = …` (a G×2 coordinate matrix) for coordinate-based exponential-kernel covariance with the range es [ErrorException]
+nb2 coords=Matrix(G x 2)                spatial(1 | g) for counts needs either a precomputed spatial covariance via `K = …`, or site `coords = …` (a G×2 coordinate matrix) for coordinate-based exponential-kernel covariance with the range es [ErrorException]
+nb2 K=precomputed exp kernel            FITS ll=-561.7096
+binomial coords=Dict                    Binomial() currently supports only phylo(1 | group) among structured markers [ErrorException]
+binomial coords=Matrix(G x 2)           Binomial() currently supports only phylo(1 | group) among structured markers [ErrorException]
+binomial K=precomputed exp kernel       Binomial() currently supports only phylo(1 | group) among structured markers [ErrorException]
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "poisson spatial coordinates"
+│   flat_coordinates =
+│    6-element Vector{Int64}:
+│     1
+│     ⋮
+│   rcond = 0.0
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/fuzz-jl/src/vcov_guard.jl:122
+poisson coords=Dict                     FITS ll=-1.0e18
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = "poisson spatial coordinates"
+│   flat_coordinates =
+│    6-element Vector{Int64}:
+│     1
+│     ⋮
+│   rcond = 0.0
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/fuzz-jl/src/vcov_guard.jl:122
+poisson coords=Matrix(G x 2)            FITS ll=-1.0e18
+poisson K=precomputed exp kernel        FITS ll=-675.6846
+gamma coords=Dict                       FITS ll=-406.2654
+gamma coords=Matrix(G x 2)              FITS ll=-406.2654
+gamma K=precomputed exp kernel          FITS ll=-406.1868

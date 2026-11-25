@@ -1,0 +1,8 @@
+== BEFORE (baseline 04581709d, Julia 1.12.6)
+Poisson spatial q2 SD regression reaches the best optimum (seed 147): Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad
+   Evaluated: isapprox(-1574.1400540480106, -1573.120983211433; atol = 1.0e-6)
+Poisson spatial q2 SD regression reaches the best optimum (seed 147): Test Failed at /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad
+   Evaluated: 4.7583524804326345 < 0.001
+Test Summary:                                                        | Pass  Fail  Total   Time
+== AFTER (fixed, Julia 1.12.6)
+Test Summary:                                                        | Pass  Total   Time

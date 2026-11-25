@@ -1,0 +1,6 @@
+julia  ll=-2141.665676  maxg=4.6e-07  mineig=1.570e+00 maxeig=3.554e+02  halfldet=775.9600
+       random inner starts: ll range [-2141.665677, -2141.665676]
+R      ll=-2157.986584  maxg=1.2e-13  mineig=2.660e+00 maxeig=1.558e+03  halfldet=797.8781
+       random inner starts: ll range [-2157.986584, -2157.986584]
+truth  ll=-2178.880248  maxg=4.4e-12  mineig=2.404e+00 maxeig=6.102e+04  halfldet=836.9891
+       random inner starts: ll range [-2178.880248, -2178.880248]

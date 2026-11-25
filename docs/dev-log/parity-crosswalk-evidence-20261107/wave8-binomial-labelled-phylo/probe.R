@@ -1,0 +1,18 @@
+.libPaths(c("~/drm_campaign_20261108/Rlib", .libPaths()))
+Sys.setenv(OMP_NUM_THREADS = 1, OPENBLAS_NUM_THREADS = 1)
+suppressPackageStartupMessages({library(drmTMB); library(ape)})
+cat("drmTMB", as.character(packageVersion("drmTMB")), "\n")
+tree <- read.tree("tree.nwk")
+d <- read.csv("data_seed1.csv"); d$g <- factor(d$id, levels = tree$tip.label)
+t0 <- Sys.time()
+fml <- bf(y ~ x + phylo(1 + x | p | g, tree = tree),
+  sd(g, level = "phylogenetic", dpar = "mu", coef = "(Intercept)") ~ z0,
+  sd(g, level = "phylogenetic", dpar = "mu", coef = "x") ~ z1)
+fit <- drmTMB(fml, family = binomial(), data = d)
+print(Sys.time() - t0)
+print(names(fit))
+print(coef(fit))
+print(fit$corpars)
+print(fit$opt$convergence); print(logLik(fit))
+print(fit$opt$par)
+try(print(summary(fit)))

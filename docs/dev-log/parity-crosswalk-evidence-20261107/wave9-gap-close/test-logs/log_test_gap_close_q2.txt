@@ -1,0 +1,2 @@
+Test Summary:                                                               | Pass  Total     Time
+gap close: bare structured q2 completes default SDs; Gamma phylo/spatial q2 |   75     75  1m27.1s

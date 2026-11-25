@@ -1,0 +1,5 @@
+Experiment-only change (NOT committed to DRModels) needed by step2_julia_multistart.jl, on branch
+claude/labelled-ordinary-poisson-nb2-20261108 (04581709d), src/gaussian_sigma_sd_laplace.jl:
+ * `_fit_gaussian_sigma_sd_laplace(...; se, corr, start = nothing)`: after `θ0[ib] .= Zb \ fill(log(0.3), Gb)` add
+       start === nothing || (length(start) == ntheta ? (θ0 .= start) : throw(ArgumentError("...")))
+ * `_drm_joint_sigma_sd_laplace(...; ..., se, start = nothing)` forwards `start = start` to the fit call.

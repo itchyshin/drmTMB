@@ -1,0 +1,18 @@
+.libPaths(c("/private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/agree-poisson-q2/lib", .libPaths()))
+suppressPackageStartupMessages({library(drmTMB); library(ape)})
+set.seed(7); G <- 40; m <- 12; ids <- sprintf("s%02d", 1:G)
+A <- 0.35^abs(outer(1:G,1:G,"-")); dimnames(A) <- list(ids,ids)
+tree <- rcoal(G, tip.label=ids)
+d <- data.frame(id=factor(rep(ids,each=m),levels=ids)); gi <- as.integer(d$id)
+d$x <- rnorm(nrow(d)); d$z0 <- rep(rnorm(G),each=m); u<-rnorm(G)
+d$y <- 0.2+0.3*d$x + rnorm(nrow(d),0,exp(-0.5+0.4*u[gi]))
+try1 <- function(label, expr) { r <- tryCatch(expr, error=function(e) e)
+  if (inherits(r,"error")) cat("REFUSE", label, ":", gsub("\\s+"," ",conditionMessage(r)), "\n")
+  else cat("FITS  ", label, "ll=", as.numeric(logLik(r)), "conv=", r$opt$convergence, "estimator=", r$estimator, "\n") }
+for (REML in c(FALSE,TRUE)) { cat("== REML",REML,"\n")
+try1("sigma animal intercept sdformula", drmTMB(bf(y ~ x, sigma ~ 1 + animal(1 | id, A = A), sd(id, level="animal", dpar="sigma") ~ z0), family=gaussian(), data=d, REML=REML))
+try1("sigma animal intercept fixed SD", drmTMB(bf(y ~ x, sigma ~ 1 + animal(1 | id, A = A)), family=gaussian(), data=d, REML=REML))
+try1("sigma animal(1+x) fixed SD", drmTMB(bf(y ~ x, sigma ~ 1 + animal(1 + x | id, A = A)), family=gaussian(), data=d, REML=REML))
+try1("sigma phylo intercept sd_phylo", drmTMB(bf(y ~ x, sigma ~ 1 + phylo(1 | id, tree=tree)), family=gaussian(), data=d, REML=REML))
+try1("mu+sigma animal matched", drmTMB(bf(y ~ x + animal(1|id, A=A), sigma ~ 1 + animal(1 | id, A = A)), family=gaussian(), data=d, REML=REML))
+}

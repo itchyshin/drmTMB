@@ -1,0 +1,31 @@
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    2-element Vector{Int64}:
+│     4
+│     5
+│   rcond = 3.1579463183269047e-18
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+┌ Warning: Hessian is numerically singular at the optimum — using a pseudo-inverse.
+│ The fit is at a variance/dispersion boundary, so standard errors for the
+│ flagged coordinates are NOT trustworthy. Prefer `confint(fit, method = :profile)`
+│ or the bootstrap entry points for those targets.
+│   context = ""
+│   flat_coordinates =
+│    1-element Vector{Int64}:
+│     7
+│   rcond = 1.0984688687710032e-10
+└ @ DRModels /private/tmp/claude-503/-Users-z3437171--claude-spares-spare-t7eZxY/4c45dda1-dd05-4a24-a138-9970e0359a32/scratchpad/gapclose/src/vcov_guard.jl:122
+Test Summary:                                                 | Pass  Total   Time
+red team: sd() with fewer than two groups is refused up front |    5      5  25.7s
+Test Summary:                                      | Pass  Total  Time
+red team: Binomial animal SD route accepts ids = … |    5      5  3.3s
+Test Summary:                                                             | Pass  Total  Time
+red team: Binomial q1 spatial SD route accepts a label => coordinate Dict |    4      4  1.7s
+Test Summary:                              | Pass  Total  Time
+red team: refusal messages say what to try |    3      3  3.3s
+Test Summary:                                                                             | Pass  Total   Time
+red team: Binomial (1 + x | g) slope check refuses only when x is constant in every group |    2      2  25.4s

@@ -1,0 +1,12 @@
+θR start R-mode as std : oracle ll=-2157.986584 g=1.2e-13 mineig=2.660e+00  |u-u0|max=1.58e+00
+θR start R-mode as raw : oracle ll=-2157.986584 g=1.7e-13 mineig=2.660e+00  |u-u0|max=2.21e+00
+θR: Rmode vs zero-mode: max|Δa|=0.000 (n>0.05: 0) max|Δb|=0.000 (n>0.05: 0)
+   site 178: bA=-1.893 bB=-1.893 sd_b=0.461  min|resid| in mode A=1.41e-02
+   site 170: bA=-1.569 bB=-1.569 sd_b=0.445  min|resid| in mode A=1.99e-02
+   site 174: bA=-0.674 bB=-0.674 sd_b=0.453  min|resid| in mode A=1.35e-02
+   site 161: bA=-0.845 bB=-0.845 sd_b=0.427  min|resid| in mode A=1.02e-02
+θJ: zero-mode vs Rmode-start: max|Δa|=0.232 (n>0.05: 7) max|Δb|=1.602 (n>0.05: 5)
+   site 199: bA=-1.221 bB=-2.823 sd_b=0.502  min|resid| in mode A=1.10e-02
+   site   3: bA=-0.019 bB=0.050 sd_b=0.220  min|resid| in mode A=7.15e-03
+   site 191: bA=-0.291 bB=-0.236 sd_b=0.485  min|resid| in mode A=7.88e-03
+   site   1: bA=-0.125 bB=-0.073 sd_b=0.218  min|resid| in mode A=9.44e-03
