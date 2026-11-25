@@ -73,8 +73,8 @@ test_that("finite extrema helpers ignore non-finite values", {
 })
 
 test_that("random_effect_label_is_intercept recognises intercept spellings", {
+  # intercept-suffix spellings covered by test-intercept-label-1125f1.R (refs #1853)
   expect_true(drmTMB:::random_effect_label_is_intercept("(1 | id)"))
-  expect_true(drmTMB:::random_effect_label_is_intercept("grp:Intercept"))
   expect_false(drmTMB:::random_effect_label_is_intercept("(x | id)"))
   expect_false(drmTMB:::random_effect_label_is_intercept("sigma"))
 })
