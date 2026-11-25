@@ -31,7 +31,8 @@ model types.}
 \value{
 A numeric vector (\code{nsim = 1}) or an \code{n}-by-\code{nsim} matrix
 (\code{nsim > 1}) of approximately N(0,1) residuals under a correctly
-specified fixed-effect model. Missing-response rows (see
+specified conditional model (for a random-effect fit, conditional on the
+random-effect modes). Missing-response rows (see
 \code{drm_mask_missing_response_values()}) are \code{NA}.
 }
 \description{
