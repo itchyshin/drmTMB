@@ -242,6 +242,12 @@ methods are not available.
 - A cumulative-logit random-slope method used in development is not exposed as
   a public reporting route. Use the ordinary public model only at the scope
   described above.
+- Censored responses are not supported. No drmTMB family has a censored-response
+  likelihood, so right-, left-, or interval-censored values (such as
+  right-censored survival times or values below a detection limit) cannot be
+  fitted. `drmTMB()` refuses a `Surv()` response or a `cens()` marker with a
+  classed error. Fit these with `survival::survreg()`, or with `brms` and its
+  `cens()` response term.
 - The optional Julia engine does not yet provide general mixed-family inference.
   Use drmTMB's default native engine when you need routine fitted values,
   covariance estimates, or fixed-effect intervals.
