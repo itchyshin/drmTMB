@@ -355,6 +355,10 @@ model you intend to fit. In particular:
   `spatial()`, ordinary random effects, or `sd()`/`sd_phylo()` scale models on
   the Julia route. Use `engine = "tmb"` if your analysis needs one of those
   extensions.
+- A random-effect grouping variable whose groups are all singletons (one
+  observation per group) is refused on both engines, because the group SD and
+  the residual scale are not separately identified. The Julia route gives the
+  same message as `engine = "tmb"`.
 - `predict()` on new data currently has narrower Julia support than in-sample
   prediction; do not assume that every distributional parameter is available.
 
