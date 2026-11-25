@@ -1053,14 +1053,25 @@ drm_julia_conditional_gaussian_ri_spec <- function(formula, family_type) {
   list(group = spec$components[[1L]]$group, dpar = spec$dpar)
 }
 
+# `identical()` is type-strict, so a setting equal to its default but stored as
+# an integer (`3L` for `3`) or as an empty list (`start = list()` for `NULL`)
+# would read as "changed" (drmTMB#1471). Normalise both before comparing.
+drm_julia_same_setting <- function(a, b) {
+  norm <- function(x) {
+    if (is.list(x) && length(x) == 0L) return(NULL)
+    if (is.integer(x)) storage.mode(x) <- "double"
+    x
+  }
+  identical(norm(a), norm(b))
+}
+
 # All-or-nothing control gate, still used by the cross-family and general-
 # covariance structured bridges, whose option payloads have no optimizer
 # passthrough yet. The main univariate / bivariate bridge uses
 # `drm_julia_translate_control()` instead.
 drm_julia_default_control <- function(control) {
   if (inherits(control, "drm_control")) {
-    default <- drm_control()
-    return(identical(control, default))
+    return(length(drm_julia_nondefault_control_fields(control)) == 0L)
   }
   is.null(control) || (is.list(control) && length(control) == 0L)
 }
@@ -1086,7 +1097,7 @@ drm_julia_nondefault_control_fields <- function(control) {
   default <- drm_control()
   changed <- character()
   for (field in setdiff(names(default), "optimizer")) {
-    if (!identical(control[[field]], default[[field]])) {
+    if (!drm_julia_same_setting(control[[field]], default[[field]])) {
       changed <- c(changed, field)
     }
   }
@@ -1099,7 +1110,7 @@ drm_julia_nondefault_control_fields <- function(control) {
     default_optimizer <- list()
   }
   for (name in names(optimizer)) {
-    if (!identical(optimizer[[name]], default_optimizer[[name]])) {
+    if (!drm_julia_same_setting(optimizer[[name]], default_optimizer[[name]])) {
       changed <- c(changed, paste0("optimizer$", name))
     }
   }
@@ -1196,7 +1207,7 @@ drm_julia_translate_control <- function(control) {
   default <- drm_control()
   unsupported <- character()
   for (field in drm_julia_unsupported_control_fields()) {
-    if (!identical(control[[field]], default[[field]])) {
+    if (!drm_julia_same_setting(control[[field]], default[[field]])) {
       unsupported <- c(unsupported, field)
     }
   }
