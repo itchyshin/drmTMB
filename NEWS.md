@@ -4,6 +4,11 @@
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
 
+* `simulate()` now validates `nsim`: it must be one positive whole number.
+  Invalid values such as `0`, negative numbers, `NA`, non-integers, vectors of
+  length other than one, or non-numeric inputs are refused with a clear error
+  instead of leaking base-R errors or silently truncating (#1696).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
