@@ -124,6 +124,6 @@ test_that("simulate refuses an unresolved association and a non-integer nsim", {
   )
   expect_error(
     simulate(pair_association(), nsim = 0),
-    "positive integer"
+    "positive whole number"
   )
 })
