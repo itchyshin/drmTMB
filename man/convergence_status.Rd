@@ -5,6 +5,7 @@
 \alias{convergence_status.default}
 \alias{convergence_status.drmTMB}
 \alias{convergence_status.drmTMB_julia}
+\alias{convergence_status.drmTMB_julia_xfam}
 \title{Convergence status for a drmTMB fit}
 \usage{
 convergence_status(object, ...)
@@ -14,6 +15,8 @@ convergence_status(object, ...)
 \method{convergence_status}{drmTMB}(object, ...)
 
 \method{convergence_status}{drmTMB_julia}(object, ...)
+
+\method{convergence_status}{drmTMB_julia_xfam}(object, ...)
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
@@ -37,6 +40,13 @@ parameters near an interpretability boundary. \code{\link[=is_converged]{is_conv
 \code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
 \code{"converged"}. Numeric predicates are identical in DRModels.jl
 (\code{docs/design/278-twin-convergence-status.md}).
+}
+\details{
+Cross-family Julia fits (\code{drmTMB_julia_xfam}) are point-estimate only and
+carry no covariance matrix, so the standard-error rules do not apply to
+them. Their status is \code{"converged"} when the optimizer code is \code{0} and the
+log-likelihood is finite, and \code{"degenerate"} otherwise. It never means
+that standard errors or intervals exist; \code{is_converged(include_hessian = TRUE)} stays \code{FALSE} for these fits.
 }
 \examples{
 set.seed(20260916)
