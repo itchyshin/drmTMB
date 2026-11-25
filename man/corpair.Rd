@@ -34,9 +34,13 @@ A formula marker; never evaluated by users.
 }
 \description{
 \code{corpair()} marks predictor-dependent latent random-effect correlations. It
-is distinct from residual \code{rho12} and from the \code{\link[=corpairs]{corpairs()}} extractor. The
-Current support covers q=2 location-location models with matching labelled
-\code{mu1}/\code{mu2} random intercepts:
+is distinct from residual \code{rho12} and from the \code{\link[=corpairs]{corpairs()}} extractor.
+Residual within-observation correlation is already available through
+\code{rho12 = ~ x} in \code{\link[=bf]{bf()}}; the \code{corpair()} LHS marker is reserved for
+predictor-dependent latent random effects and still requires a TMB template
+change before it can be fitted.
+The planned q=2 location-location form with matching labelled
+\code{mu1}/\code{mu2} random intercepts is:
 \code{corpair(id, level = "group", block = "p", from = "mu1", to = "mu2") ~ x}
 and
 \code{corpair(species, level = "phylogenetic", block = "p", from = "mu1", to = "mu2") ~ ecology}.
