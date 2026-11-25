@@ -1206,6 +1206,14 @@ parity or calibrated intervals.
 
 ## Bug fixes
 
+* `fixef()` on a Julia-bridge fit (`drmTMB_julia` / `drmTMB_julia_xfam`) no
+  longer errors with `no applicable method for 'fixef'` when `nlme` is
+  attached after drmTMB. drmTMB re-exports `nlme::fixef()` and registers its
+  own `fixef.drmTMB` method on nlme's S3 table so attach-order masking
+  cannot break dispatch for native fits, but the two Julia-bridge classes
+  were left off that registration list; only the native `fixef.drmTMB`
+  method was protected. All three classes are now registered.
+
 * Fit warnings and `check_drm()` now report active direct latent-SD clamps
   separately from residual-scale clamps. Start checks include direct SD
   regression coefficients. Residual-scale accessors keep their existing scope.
