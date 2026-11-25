@@ -9123,7 +9123,7 @@ coef.drmTMB_julia <- function(object, dpar = NULL, ...) {
   if (length(dpar) == 1L && dpar %in% names(aliases)) {
     dpar <- unname(aliases[[dpar]])
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(object$coefficients))
   object$coefficients[[dpar]]
 }
 
@@ -11570,7 +11570,7 @@ predict.drmTMB_julia <- function(
     }
     return(values)
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(object$coefficients))
   drm_julia_predict_check_dpar(object, dpar)
   if (identical(type, "quantile")) {
     return(drm_julia_predict_quantile(
@@ -13630,7 +13630,7 @@ coef.drmTMB_julia_xfam <- function(object, dpar = NULL, ...) {
   # sub-model blocks (sigma1 / sigma2). The latter are zero-length for a
   # dispersionless axis (Poisson / Binomial).
   blocks <- c(object$coefficients, object$sigma_coef)
-  dpar <- match.arg(dpar, names(blocks))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(blocks))
   blocks[[dpar]]
 }
 
@@ -13759,7 +13759,7 @@ predict.drmTMB_julia_xfam <- function(
   if (is.null(dpar)) {
     dpar <- "mu1"
   }
-  dpar <- match.arg(dpar, c("mu1", "mu2"))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, c("mu1", "mu2"))
   if (is.null(newdata)) {
     if (identical(type, "link")) {
       return(object$fitted_link[[dpar]])

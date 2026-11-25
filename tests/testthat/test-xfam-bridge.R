@@ -249,7 +249,7 @@ test_that("legacy cross-family extractor contract includes dispersion covariates
   expect_equal(attr(logLik(fit), "df"), 8L)
   expect_error(
     predict(fit, dpar = "sigma1"),
-    "should be one of"
+    "`dpar` must exactly match one fitted parameter name."
   )
 })
 
