@@ -533,7 +533,8 @@ drmTMB <- function(
         missing_control,
         formula,
         data
-      )
+      ) &&
+      !drm_reml_admits_biv_response_include(family_type, missing_control)
   ) {
     cli::cli_abort(c(
       "{.arg REML} is not implemented with explicit missing-data engines yet.",
@@ -3488,6 +3489,13 @@ drm_start_override_scalar <- function(x, default) {
 # Narrow the gate, do not remove it: an engine that really engages is still
 # unvalidated under REML. If we cannot prove the absence of missingness (e.g. the
 # formula's columns cannot be resolved), keep rejecting.
+drm_reml_admits_biv_response_include <- function(family_type, missing_control) {
+  missing_control <- drm_parse_missing_control(missing_control)
+  identical(family_type, "biv_gaussian") &&
+    identical(missing_control$response, "include") &&
+    identical(missing_control$predictor, "fail")
+}
+
 drm_reml_missing_engine_engages <- function(missing_control, formula, data) {
   default_response <- identical(missing_control$response, "drop")
   default_predictor <- identical(missing_control$predictor, "fail")
@@ -3810,6 +3818,49 @@ drm_validate_reml_spec <- function(spec) {
 # additional random or direct-SD layers, corpair regression, known covariance,
 # and incomplete/weighted pairs. (Checks mirror drm_validate_reml_spec for shared
 # model-agnostic fields.)
+drm_abort_reml_biv_rank_deficient_mu_design <- function(X, observed, dpar) {
+  observed <- as.logical(observed)
+  if (length(observed) != nrow(X)) {
+    cli::cli_abort("Internal REML rank-check error: observation mask length mismatch.")
+  }
+  X_obs <- as.matrix(X)[observed, , drop = FALSE]
+  p <- ncol(X_obs)
+  n_obs <- nrow(X_obs)
+  if (p == 0L) {
+    return(invisible(NULL))
+  }
+  decomposition <- qr(X_obs)
+  if (decomposition$rank >= p) {
+    return(invisible(NULL))
+  }
+  aliased <- colnames(X_obs)[decomposition$pivot[
+    seq.int(decomposition$rank + 1L, p)
+  ]]
+  cli::cli_abort(c(
+    "{.arg REML} needs a full-rank fixed-effect design among the observed rows for {.code {dpar}}.",
+    "x" = if (n_obs < p) {
+      paste0(
+        "Only ",
+        n_obs,
+        " observed entr",
+        if (n_obs == 1L) "y" else "ies",
+        " for {.code ",
+        dpar,
+        "} but the design has ",
+        p,
+        " column(s): {.field {colnames(X_obs)}}."
+      )
+    } else {
+      paste0(
+        "Aliased column(s) in {.code ",
+        dpar,
+        "}: {.field {aliased}}."
+      )
+    },
+    "i" = "Remove aliased predictors, set {.code REML = FALSE}, or use the default {.code missing = miss_control()} to drop incomplete rows."
+  ))
+}
+
 drm_validate_reml_spec_biv <- function(spec) {
   if (isTRUE(spec$sparse_fixed$mu1) || isTRUE(spec$sparse_fixed$mu2)) {
     cli::cli_abort(c(
@@ -3895,14 +3946,29 @@ drm_validate_reml_spec_biv <- function(spec) {
     # species-mean data. pdHess is a want, not a gate -- route CIs through
     # profile/bootstrap.
   }
-  if (
-    qr(as.matrix(spec$X$mu1))$rank < ncol(spec$X$mu1) ||
-      qr(as.matrix(spec$X$mu2))$rank < ncol(spec$X$mu2)
-  ) {
-    cli::cli_abort(c(
-      "{.arg REML} requires full-rank dense {.code mu1} and {.code mu2} fixed-effect designs.",
-      "i" = "Remove aliased fixed-effect columns or set {.code REML = FALSE}."
-    ))
+  missing_include <- !is.null(spec$missing_data) &&
+    identical(spec$missing_data$response_policy, "include")
+  if (missing_include) {
+    drm_abort_reml_biv_rank_deficient_mu_design(
+      spec$X$mu1,
+      spec$missing_data$observed_y1,
+      "mu1"
+    )
+    drm_abort_reml_biv_rank_deficient_mu_design(
+      spec$X$mu2,
+      spec$missing_data$observed_y2,
+      "mu2"
+    )
+  } else {
+    if (
+      qr(as.matrix(spec$X$mu1))$rank < ncol(spec$X$mu1) ||
+        qr(as.matrix(spec$X$mu2))$rank < ncol(spec$X$mu2)
+    ) {
+      cli::cli_abort(c(
+        "{.arg REML} requires full-rank dense {.code mu1} and {.code mu2} fixed-effect designs.",
+        "i" = "Remove aliased fixed-effect columns or set {.code REML = FALSE}."
+      ))
+    }
   }
   invisible(TRUE)
 }
