@@ -3077,7 +3077,7 @@ predict.drmTMB <- function(
   if (length(dots) > 0L) {
     if ("se.fit" %in% names(dots)) {
       cli::cli_abort(c(
-        "{.arg se.fit} is reserved and is not available from {.fn predict}.",
+        "{.arg se.fit} is not available from {.fn predict}.",
         "i" = "{.fn predict} does not compute standard errors. Use {.fn predict_parameters} with {.code conf.int = TRUE}."
       ))
     }
