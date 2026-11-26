@@ -22,6 +22,15 @@ currently expose implicit unit weights only.
 \code{drmTMB} model after model-row filtering. These weights multiply
 log-likelihood contributions. They are not known sampling variances or known
 sampling covariance; use \code{\link[=meta_V]{meta_V()}} for that meta-analytic role.
+
+These weights are \strong{not} R-style frequency weights. A uniform weight such as
+\code{2} doubles each row's log-likelihood contribution (so \code{logLik()} and \code{AIC()}
+can match a fit on physically duplicated rows), but it does \strong{not} act like
+repeating the row in \code{data}. \code{\link[=nobs]{nobs()}} and \code{\link[=BIC]{BIC()}} use the number of
+likelihood rows in the fit, not \code{sum(weights)}. Compare
+weighted and replicated datasets on \code{logLik()}/\code{AIC()} when the likelihood
+matches; do not expect \code{nobs()} or \code{BIC()} to agree across those two
+constructions unless both use the same row layout.
 }
 \examples{
 dat <- data.frame(

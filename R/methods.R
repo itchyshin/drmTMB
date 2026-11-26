@@ -765,6 +765,15 @@ structured_effects_integer <- function(x) {
 #' log-likelihood contributions. They are not known sampling variances or known
 #' sampling covariance; use [meta_V()] for that meta-analytic role.
 #'
+#' These weights are **not** R-style frequency weights. A uniform weight such as
+#' `2` doubles each row's log-likelihood contribution (so `logLik()` and `AIC()`
+#' can match a fit on physically duplicated rows), but it does **not** act like
+#' repeating the row in `data`. [`nobs()`] and [`BIC()`] use the number of
+#' likelihood rows in the fit, not `sum(weights)`. Compare
+#' weighted and replicated datasets on `logLik()`/`AIC()` when the likelihood
+#' matches; do not expect `nobs()` or `BIC()` to agree across those two
+#' constructions unless both use the same row layout.
+#'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future extractor options.
 #'
