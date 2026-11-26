@@ -2961,7 +2961,10 @@ deviance.drmTMB <- function(object, ...) {
 #'   requested `dpar`; required predictor values must be complete, required
 #'   numeric predictors must be finite, and factor predictors must use fitted
 #'   levels. Transformed predictor terms, such as `log(size)`, must also
-#'   evaluate to finite design-matrix values.
+#'   evaluate to finite design-matrix values. `newdata` rows always omit fitted
+#'   random effects; the first such request in a session emits a one-time
+#'   message when the fit includes random effects that `newdata = NULL` would
+#'   condition on.
 #' @param dpar Distributional parameter to predict. If `NULL`, the first
 #'   fitted distributional parameter is used. For `type = "quantile"` on a
 #'   bivariate `biv_gaussian` fit, `dpar` instead selects which response's
@@ -3068,6 +3071,12 @@ predict.drmTMB <- function(
       "{.fn predict} supports only {.code re.form = NULL}.",
       "i" = "Training rows are predicted conditionally on the fitted random effects; {.arg newdata} rows are predicted at the population level."
     ))
+  }
+  if (
+    !is.null(newdata) &&
+      drm_predict_omits_conditional_random_effects(object)
+  ) {
+    drm_predict_newdata_random_effects_message()
   }
   dots <- list(...)
   drm_abort_mi_weights_predict(object, dots)
@@ -7380,6 +7389,31 @@ drm_simulate_re_form_semantics_message <- function() {
     class = "drmTMB_re_form_semantics_message",
     .frequency = "once",
     .frequency_id = "drmTMB_simulate_re_form_semantics"
+  )
+}
+
+drm_predict_omits_conditional_random_effects <- function(object) {
+  has_ordinary_mu_random_effects(object) ||
+    drm_has_temporal_mu(object) ||
+    has_covariance_block_random_effects(object) ||
+    has_structured_mu_effect(object) ||
+    has_sigma_random_effects(object) ||
+    (identical(object$model$model_type, "zero_one_beta") &&
+      ((is.list(object$random_effects$zoi) &&
+          length(object$random_effects$zoi$values) > 0L) ||
+        (is.list(object$random_effects$coi) &&
+          length(object$random_effects$coi$values) > 0L)))
+}
+
+drm_predict_newdata_random_effects_message <- function() {
+  cli::cli_inform(
+    c(
+      "{.arg newdata} predictions omit fitted random effects and return population-level values.",
+      "i" = "Use {.code newdata = NULL} for conditional predictions on the fitted rows."
+    ),
+    class = "drmTMB_predict_newdata_random_effects_message",
+    .frequency = "once",
+    .frequency_id = "drmTMB_predict_newdata_random_effects"
   )
 }
 
