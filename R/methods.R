@@ -3077,7 +3077,13 @@ predict.drmTMB <- function(
   if (length(dots) > 0L) {
     cli::cli_abort("{.arg ...} is reserved for future options.")
   }
-  type <- match.arg(type)
+  type_choices <- c("response", "link", "quantile", "mean")
+  type <- tryCatch(
+    match.arg(type, type_choices),
+    error = function(e) {
+      cli::cli_abort("{.arg type} must be one of {.val {type_choices}}.")
+    }
+  )
   if (identical(type, "mean")) {
     if (!is.null(dpar)) {
       cli::cli_abort(c(
@@ -3337,6 +3343,9 @@ simulate.drmTMB <- function(
   }
   if (length(dots) > 0L) {
     cli::cli_abort("{.arg ...} is reserved for future options.")
+  }
+  if (length(nsim) != 1L || is.na(nsim) || nsim < 1L) {
+    cli::cli_abort("{.arg nsim} must be one positive whole number.")
   }
   if (!base::missing(re.form)) {
     drm_simulate_re_form_semantics_message()
