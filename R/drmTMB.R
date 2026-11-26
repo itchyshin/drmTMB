@@ -362,6 +362,20 @@ drmTMB <- function(
     )
   }
   if (!is.data.frame(data)) {
+    if (is.data.frame(family)) {
+      cli::cli_abort(c(
+        "{.fn drmTMB} expects {.code (formula, family, data)}, not {.code (formula, data, family)} as in {.fn glm}.",
+        "x" = "{.arg family} received a data frame and {.arg data} received a family object.",
+        "i" = "Use {.code drmTMB(bf(...), family = gaussian(), data = mydata)} or pass arguments in {.pkg drmTMB} order."
+      ))
+    }
+    if (drm_is_likely_family_object(data)) {
+      cli::cli_abort(c(
+        "{.fn drmTMB} expects {.code (formula, family, data)}, not {.code (formula, data, family)} as in {.fn glm}.",
+        "x" = "{.arg data} must be a data frame, not a family object.",
+        "i" = "Pass the data frame as {.code data = ...} or as the third positional argument after {.arg family}."
+      ))
+    }
     cli::cli_abort("{.arg data} must be a data frame.")
   }
   # An unused factor level (e.g. left over from a `subset()` without
@@ -4590,6 +4604,10 @@ drm_composed_families <- function(family) {
 
 is_r_family_object <- function(x) {
   inherits(x, "family") && is.character(x$family) && length(x$family) == 1L
+}
+
+drm_is_likely_family_object <- function(x) {
+  inherits(x, "drm_family") || is_r_family_object(x)
 }
 
 drm_build_gaussian_ls_spec <- function(
