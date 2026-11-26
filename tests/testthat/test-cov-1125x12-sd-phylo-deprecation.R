@@ -11,7 +11,6 @@ test_that("warn_sd_phylo_legacy_deprecated maps each legacy call", {
 })
 
 test_that("lifecycle warning is emitted for an unknown legacy name", {
-  skip_if_not_installed("lifecycle")
   expect_warning(
     drmTMB:::warn_sd_phylo_legacy_deprecated("sd_phylo2"),
     "deprecated"
