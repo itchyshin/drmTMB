@@ -62,7 +62,10 @@
 #'   for a Gaussian temporal AR1 or OU fit, `NULL` selects every mean-model
 #'   coefficient. Temporal profile intervals admit mean coefficients only.
 #'   Supported shortcuts are `"fixed_effects"`, `"random_effects"`,
-#'   `"variance_components"`, and `"correlations"`.
+#'   `"variance_components"`, and `"correlations"`. A bare distributional
+#'   parameter name such as `"mu"`, `"mu1"`, `"zi"`, or `"hu"` expands to every
+#'   fixed-effect interval target for that parameter. Names that already match a
+#'   profile target, such as `"rho12"` or constant `"sigma"`, are left unchanged.
 #' @param level Confidence level.
 #' @param method Interval method: `"wald"`, `"profile"`, or `"bootstrap"`. If
 #'   `newdata` is supplied and `method` is omitted, `method = "profile"` is
@@ -5730,10 +5733,19 @@ profile_expand_confint_target_sets <- function(targets, parm) {
   expanded <- unlist(
     lapply(parm, function(one) {
       rows <- alias_rows[[one]]
-      if (is.null(rows)) {
+      if (!is.null(rows)) {
+        return(targets$parm[rows])
+      }
+      if (one %in% targets$parm) {
         return(one)
       }
-      targets$parm[rows]
+      fixef_rows <-
+        targets$target_class == "fixed-effect" &
+        targets$dpar == one
+      if (any(fixef_rows)) {
+        return(targets$parm[fixef_rows])
+      }
+      one
     }),
     use.names = FALSE
   )
