@@ -164,9 +164,9 @@ predict_parameters.drmTMB <- function(
       row_label = predict_parameters_row_labels(
         newdata, n, object = object, dpar = one_dpar
       ),
-      dpar = one_dpar,
-      component = drm_dpar_component(one_dpar),
-      type = type,
+      dpar = rep(one_dpar, length.out = n),
+      component = rep(drm_dpar_component(one_dpar), length.out = n),
+      type = rep(type, length.out = n),
       estimate = as.numeric(estimate),
       conf.status = interval$conf.status,
       interval_source = interval$interval_source,
