@@ -3949,6 +3949,13 @@ drm_validate_reml_spec_biv <- function(spec) {
   missing_include <- !is.null(spec$missing_data) &&
     identical(spec$missing_data$response_policy, "include")
   if (missing_include) {
+    if (isTRUE(spec$structured$phylo_mu$has)) {
+      cli::cli_abort(c(
+        "{.arg REML} is not implemented with explicit missing-data engines yet.",
+        "x" = "The model variables contain missing values and {.arg missing} requests a non-default engine.",
+        "i" = "Use the default {.code missing = miss_control()}, drop the incomplete rows, or set {.code REML = FALSE}."
+      ))
+    }
     drm_abort_reml_biv_rank_deficient_mu_design(
       spec$X$mu1,
       spec$missing_data$observed_y1,
