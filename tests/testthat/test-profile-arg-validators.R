@@ -32,6 +32,8 @@ test_that("validate_interval_method() resolves, partially matches, and refuses",
   expect_identical(f("profile", ch, "confint"), "profile")
   expect_identical(f("prof", ch, "confint"), "profile")
   expect_identical(f("w", ch, "confint"), "wald")
+  expect_identical(f("Wald", ch, "confint"), "wald")
+  expect_identical(f("PROFILE", ch, "confint"), "profile")
   expect_error(f("nonsense", ch, "confint"), "must be one of")
   # Ambiguous partial match: pmatch() returns NA.
   expect_error(f("p", c("profile", "parametric"), "confint"), "must be one of")
