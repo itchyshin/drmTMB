@@ -535,17 +535,12 @@ drm_control_flag <- function(x, name) {
 drm_match_control_parallel <- function(parallel) {
   choices <- c("none", "multicore", "cluster")
   if (length(parallel) > 1L && identical(parallel, choices)) {
-    return(choices[[1L]])
+    return(match.arg(parallel, choices))
   }
-  if (
-    !is.character(parallel) ||
-      length(parallel) != 1L ||
-      is.na(parallel) ||
-      !parallel %in% choices
-  ) {
+  if (!is.character(parallel) || length(parallel) != 1L || is.na(parallel)) {
     cli::cli_abort("{.arg parallel} must be one of {.val {choices}}.")
   }
-  parallel
+  match.arg(parallel, choices)
 }
 
 # Drop unrecognized `nlminb()` control names before optimization so only the
