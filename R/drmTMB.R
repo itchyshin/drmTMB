@@ -820,6 +820,7 @@ drm_fit_spec <- function(
     spec$start_override <- utils::modifyList(base_override, public_override)
   }
   spec <- drm_apply_start_override(spec)
+  spec <- drm_fe_standardize_spec(spec)
   spec <- drm_complete_shared_tmb_parameters(spec)
 
   mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
@@ -970,6 +971,12 @@ drm_fit_spec <- function(
   # parList still takes fixed parameters from opt$par and does not mutate obj.
   par_list <- obj$env$parList(opt$par, par = tmb_state$last.par.best)
   par <- split_tmb_parameters(par_list, spec)
+  if (!is.null(spec$fe_design_meta)) {
+    par <- drm_fe_userize_coefficients_list(par, spec$fe_design_meta)
+    if (!is.null(sdr)) {
+      sdr <- drm_fe_userize_sdreport(sdr, names(opt$par), spec$fe_design_meta)
+    }
+  }
   missing_data <- drm_finalize_missing_data(spec$missing_data, par_list, spec)
 
   # Report AT the optimum. `drm_compute_uncertainty()` above runs
