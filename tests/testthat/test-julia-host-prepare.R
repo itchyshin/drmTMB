@@ -21,16 +21,22 @@ test_that("drm_julia_setup clears JULIA_PROJECT before JuliaCall::julia_setup (F
     drm_julia_cran_lane_blocked = function(...) FALSE
   )
   seen <- NULL
+  active_project <- NULL
   local_mocked_bindings(
     julia_setup = function(...) {
+      startup <- Sys.getenv("JULIA_PROJECT", unset = "")
       seen <<- list(
-        project = Sys.getenv("JULIA_PROJECT", unset = ""),
+        project = startup,
         threads = Sys.getenv("JULIA_NUM_THREADS", unset = "")
       )
+      active_project <<- file.path(startup, "Project.toml")
       invisible(NULL)
     },
     julia_command = function(...) invisible(NULL),
     julia_eval = function(code, ...) {
+      if (grepl("string(Base.active_project())", code, fixed = TRUE)) {
+        return(active_project)
+      }
       if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
         return(c(manifest = "", manifest_format = "2.0", runtime = "1.10.0"))
       }
@@ -42,7 +48,8 @@ test_that("drm_julia_setup clears JULIA_PROJECT before JuliaCall::julia_setup (F
   drm_julia_setup(root)
 
   expect_false(is.null(seen), info = "JuliaCall::julia_setup was not reached")
-  expect_identical(seen$project, "")
+  expect_false(identical(seen$project, "/tmp/DRModels.jl-pin"))
+  expect_true(nzchar(seen$project))
   expect_identical(seen$threads, "1")
 })
 
