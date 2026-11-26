@@ -136,6 +136,7 @@ drm_lrtest <- function(reduced, full) {
       "{.fn lrtest}: the two fits use different numbers of observations ({n_reduced} vs {n_full}); a likelihood ratio needs the same data."
     )
   }
+  drm_lrtest_weights_guard(reduced, full)
   drm_lrtest_reml_guard(reduced, full)
   drm_lrtest_map_guard(reduced, full)
   df <- as.numeric(attr(ll_full, "df")) - as.numeric(attr(ll_reduced, "df"))
@@ -165,6 +166,33 @@ drm_lrtest_mean_structure <- function(object) {
   coefs <- object$coefficients
   mu <- coefs[grepl("^mu", names(coefs))]
   unlist(lapply(names(mu), function(d) paste(d, names(mu[[d]]))), use.names = FALSE)
+}
+
+# Prior observation weights aligned for comparison: missing or all-one weights
+# are treated as a vector of ones (same effective likelihood as drm_weights_are_unit).
+drm_lrtest_prior_weights_vector <- function(object) {
+  w <- stats::weights(object)
+  n <- stats::nobs(object)
+  if (drm_weights_are_unit(w)) {
+    return(rep(1, n))
+  }
+  as.numeric(w)
+}
+
+# Likelihood ratios need the same row multipliers, not only the same nrow/nobs.
+drm_lrtest_weights_guard <- function(reduced, full) {
+  w_reduced <- drm_lrtest_prior_weights_vector(reduced)
+  w_full <- drm_lrtest_prior_weights_vector(full)
+  if (identical(w_reduced, w_full)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(
+    c(
+      "{.fn lrtest}: the two fits use different prior observation weights; a likelihood ratio needs the same weighted data.",
+      "i" = "Refit both models with the same {.arg weights}, or omit {.arg weights} on both."
+    ),
+    class = "drmTMB_lrtest_weights_error"
+  )
 }
 
 # DRM.jl `_reml_compare_guard` (comparison.jl:133-142): REML likelihoods are
