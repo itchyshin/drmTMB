@@ -1,34 +1,9 @@
-# Issue #1249 (docs half): the installed package should expose a single help
-# page that states when to pin BLAS/OpenMP/TMB threads versus using outer
-# parallel backends.
-
 test_that("the drmTMB-parallel help topic documents nested thread pinning", {
-  rd <- tryCatch(
-    {
-      rd_path <- drm_pkg_path("R/parallel-docs.R")
-      paste(readLines(rd_path, warn = FALSE), collapse = "\n")
-    },
-    error = function(e) {
-      help_txt <- utils::help(
-        "drmTMB-parallel",
-        package = "drmTMB",
-        help_type = "text",
-        try.all.packages = FALSE
-      )
-      if (inherits(help_txt, "try-error")) {
-        stop(e)
-      }
-      paste(as.character(help_txt), collapse = "\n")
-    }
-  )
-
+  rd_path <- drm_pkg_path("man/drmTMB-parallel.Rd")
+  rd <- paste(readLines(rd_path, warn = FALSE), collapse = "\n")
   for (needle in c(
-    "OPENBLAS_NUM_THREADS",
-    "MKL_NUM_THREADS",
-    "TMB_NTHREADS",
-    "OMP_NUM_THREADS",
-    "Do not nest parallel layers",
-    "built without OpenMP"
+    "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "TMB_NTHREADS", "OMP_NUM_THREADS",
+    "Do not nest parallel layers", "built without OpenMP"
   )) {
     expect_true(grepl(needle, rd, fixed = TRUE), info = needle)
   }
