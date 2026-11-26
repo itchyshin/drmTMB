@@ -248,7 +248,8 @@
 #' `method = "wald"` flags a row with `conf.status = "wald_at_boundary"` and warns
 #' (class `drmTMB_wald_boundary_warning`), because a symmetric Wald interval
 #' is unreliable at a variance-component boundary. That warning
-#' recommends `method = "profile"`. For an ordinary `(1 | g)` SD this label is
+#' recommends `method = "profile"`. Non-finite Wald limits are labelled
+#' `wald_nonfinite` with class `drmTMB_wald_nonfinite_warning`. For an ordinary `(1 | g)` SD this label is
 #' not limited to an estimate at zero: it is also applied when the log-scale Wald
 #' standard error exceeds 1. At the default 95% level, this makes the ratio of
 #' the upper to lower Wald endpoint exceed about 50. This width does not
@@ -2506,6 +2507,34 @@ drm_wald_confint <- function(
       ),
       class = "drmTMB_wald_boundary_warning"
     )
+  }
+
+  nonfinite_wald <- interval_ready &
+    out$conf.status %in% c("wald", "wald_bias_corrected") &
+    (!is.finite(out$lower) | !is.finite(out$upper))
+  if (any(nonfinite_wald)) {
+    out$conf.status[nonfinite_wald] <- "wald_nonfinite"
+    fit_status <- convergence_status(object)
+    bad_parms <- out$parm[nonfinite_wald]
+    if (length(bad_parms) == 1L) {
+      cli::cli_warn(
+        c(
+          "Wald interval for {.val {bad_parms[[1L]]}} has a non-finite limit on a fit with {.fn convergence_status} {.val {fit_status}}.",
+          "!" = "This is not a reliable Wald interval; read {.field conf.status} on the returned table.",
+          "i" = "Inspect {.fn check_drm} and consider {.code method = \"profile\"} when the target is supported."
+        ),
+        class = "drmTMB_wald_nonfinite_warning"
+      )
+    } else {
+      cli::cli_warn(
+        c(
+          "Wald intervals for {.val {bad_parms}} have non-finite limits on a fit with {.fn convergence_status} {.val {fit_status}}.",
+          "!" = "These are not reliable Wald intervals; read {.field conf.status} on the returned table.",
+          "i" = "Inspect {.fn check_drm} and consider {.code method = \"profile\"} when the targets are supported."
+        ),
+        class = "drmTMB_wald_nonfinite_warning"
+      )
+    }
   }
 
   row.names(out) <- NULL

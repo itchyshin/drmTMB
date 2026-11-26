@@ -457,14 +457,18 @@ anova.drmTMB_julia <- function(object, ..., test = NULL) {
 #' @param k Penalty per parameter, as in [stats::AIC()].
 #' @export
 AIC.drmTMB_julia <- function(object, ..., k = 2) {
-  drm_warn_information_criterion(c(list(object), list(...)), "AIC")
+  fits <- c(list(object), list(...))
+  drm_warn_ic_convergence_status(fits, "AIC")
+  drm_warn_information_criterion(fits, "AIC")
   NextMethod()
 }
 
 #' @rdname model-comparison
 #' @export
 BIC.drmTMB_julia <- function(object, ...) {
-  drm_warn_information_criterion(c(list(object), list(...)), "BIC")
+  fits <- c(list(object), list(...))
+  drm_warn_ic_convergence_status(fits, "BIC")
+  drm_warn_information_criterion(fits, "BIC")
   NextMethod()
 }
 

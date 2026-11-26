@@ -10414,6 +10414,9 @@ print.summary.drmTMB_julia <- function(x, ...) {
 
 #' @export
 logLik.drmTMB_julia <- function(object, ...) {
+  if (!drm_parent_information_criterion()) {
+    drm_warn_ic_convergence_status(list(object), "logLik")
+  }
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
