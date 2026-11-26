@@ -17,6 +17,10 @@
 # `drm_lrtest()` is deliberately NOT exported. `anova.drmTMB()` (R/methods.R)
 # calls it through `drm_anova_lrt()` below (#1240); `anova()` on an
 # `engine = "julia"` fit still refuses.
+#
+# `update.drmTMB()` replays the stored drmTMB() call; a new bf() replaces
+# `call$formula` directly (stats::update.default() cannot, because it routes
+# through update(formula(fit), formula.) and formula(<drmTMB>) is drm_formula).
 
 #' Corrected Akaike information criterion (AICc)
 #'
@@ -493,4 +497,87 @@ BIC.drmTMB_julia <- function(object, ...) {
 #' @export
 weights.drmTMB_julia <- function(object, ...) {
   rep(1, stats::nobs(object))
+}
+
+drm_update_drmTMB_fit <- function(object, formula., ..., evaluate = TRUE) {
+  call <- stats::getCall(object)
+  if (is.null(call)) {
+    call <- object$call
+  }
+  if (is.null(call)) {
+    cli::cli_abort(
+      c(
+        "{.fn update} needs a fit that stores its original {.fn drmTMB} call.",
+        "i" = "This object has no {.code call} component."
+      )
+    )
+  }
+  extras <- match.call(expand.dots = FALSE)$...
+  if (!missing(formula.) && length(formula.)) {
+    if (!inherits(formula., "drm_formula")) {
+      cli::cli_abort(
+        c(
+          "{.fn update} on a {.cls drmTMB} fit expects a full {.fn bf} specification.",
+          "i" = paste0(
+            "Use {.code update(fit, bf(...))} or {.code update(fit, formula = bf(...))}; ",
+            "stats-style formula patches such as {.code . ~ . + x} are not supported."
+          )
+        )
+      )
+    }
+    call$formula <- formula.
+  }
+  if (length(extras)) {
+    existing <- !is.na(match(names(extras), names(call)))
+    for (a in names(extras)[existing]) {
+      call[[a]] <- extras[[a]]
+    }
+    if (any(!existing)) {
+      call <- as.call(c(as.list(call), extras[!existing]))
+    }
+  }
+  if (evaluate) {
+    envir <- object$formula$env
+    if (!is.environment(envir)) {
+      envir <- parent.frame(2)
+    }
+    eval(call, envir = envir)
+  } else {
+    call
+  }
+}
+
+#' Update and refit a `drmTMB` model
+#'
+#' Replays the stored [drmTMB()] call. A new [bf()] object replaces the
+#' formula; further named arguments (for example `data =`) override the
+#' original call. Evaluates in the `bf()` environment captured at fit time.
+#'
+#' Stats-style formula patches such as `. ~ . + x` are not supported; pass a
+#' full `bf()` specification instead.
+#'
+#' @param object A fitted `drmTMB` model.
+#' @param formula. A new [bf()] object, or omit to refit the stored formula.
+#' @param ... Named arguments passed through to [drmTMB()].
+#' @param evaluate If `FALSE`, return the unevaluated call instead of refitting.
+#' @return A refitted `drmTMB` object, or an unevaluated call when
+#'   `evaluate = FALSE`.
+#' @export
+update.drmTMB <- function(object, formula., ..., evaluate = TRUE) {
+  drm_update_drmTMB_fit(object, formula., ..., evaluate = evaluate)
+}
+
+#' @describeIn update.drmTMB Refit an `engine = "julia"` fit. Formula changes are
+#'   not supported; replay the stored call or call [drmTMB()] again.
+#' @export
+update.drmTMB_julia <- function(object, formula., ..., evaluate = TRUE) {
+  if (!missing(formula.) && length(formula.)) {
+    cli::cli_abort(
+      c(
+        "{.fn update} with a new {.fn bf} formula is not implemented for {.cls drmTMB_julia} fits.",
+        "i" = "Call {.fn drmTMB} again with {.code engine = \"julia\"}, or refit on {.code engine = \"tmb\"}."
+      )
+    )
+  }
+  drm_update_drmTMB_fit(object, formula., ..., evaluate = evaluate)
 }
