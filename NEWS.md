@@ -1,5 +1,33 @@
 # drmTMB 0.8.2
 
+* Gaussian, Student-t and skew-normal models now abort when the response
+  column is a factor or ordered factor, instead of fitting integer level
+  codes silently (#1481).
+
+* Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
+  predictor before calling `dtweedie()`, so interior fits are unchanged while
+  extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
+  (#1468). `check_drm()` reports `tweedie_eta_nu_cap` when the optimum lies in
+  the saturated tail. DRModels.jl's `_logit12` link has no matching guard yet
+  (twin gap).
+
+* `engine = "julia"` now refuses a random-effect grouping variable whose groups
+  are all singletons, with the same message as `engine = "tmb"`. Before, the
+  Julia route fitted such a model, reported convergence, and gave a precise
+  residual SD although only the sum of the group and residual variances is
+  identified (#1776).
+
+* `engine = "julia"` now matches native `drmTMB()` on an ordinary mean
+  `(1 | g)` with its `sd(g)` formula for `poisson()`, `nbinom2()`, `Gamma()`,
+  `beta_family()`, `binomial()`, `student()` and `tweedie()` (maximum
+  likelihood). The bridge asks DRM.jl for its Laplace route, the approximation
+  native drmTMB uses, instead of DRM.jl's default adaptive quadrature, so
+  switching `engine` no longer shifts the log-likelihood by about 0.01 to 0.05.
+  DRM.jl's own default is unchanged. Routes with no Julia Laplace option
+  (`beta_binomial()`, `cumulative_logit()` and the other families), REML fits
+  and models with an offset or other random-effect shapes keep their current
+  behaviour.
+
 * The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.
 
 * Add an opt-in prior table for supported fixed effects and Gaussian random-intercept standard deviations.
