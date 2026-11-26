@@ -4126,7 +4126,13 @@ residuals.drmTMB <- function(
   type = c("response", "pearson", "quantile"),
   ...
 ) {
-  type <- match.arg(type)
+  type_choices <- c("response", "pearson", "quantile")
+  type <- tryCatch(
+    match.arg(type, type_choices),
+    error = function(e) {
+      cli::cli_abort("{.arg type} must be one of {.val {type_choices}}.")
+    }
+  )
   if (
     object$model$model_type %in% c("biv_lognormal", "biv_student")
   ) {
