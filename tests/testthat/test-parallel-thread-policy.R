@@ -3,7 +3,7 @@
 # parallel backends.
 
 test_that("the drmTMB-parallel help topic documents nested thread pinning", {
-  rd_path <- testthat::test_path("../../R/parallel-docs.R")
+  rd_path <- drm_pkg_path("R/parallel-docs.R")
   rd <- paste(readLines(rd_path, warn = FALSE), collapse = "\n")
 
   for (needle in c(
