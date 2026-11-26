@@ -395,7 +395,7 @@ drm_function_source_package <- function(fn) {
   nm <- environmentName(topenv(env))
   nm <- sub("^namespace:", "", nm)
   nm <- sub("^package:", "", nm)
-  if (!nzchar(nm) || nm %in% c("base", "stats", "R_GlobalEnv")) {
+  if (!nzchar(nm) || nm %in% c("base", "stats", "R_GlobalEnv", "drmTMB")) {
     return(NULL)
   }
   nm
