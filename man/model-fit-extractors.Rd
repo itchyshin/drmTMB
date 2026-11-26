@@ -50,9 +50,14 @@ comparison helpers.
 }
 \details{
 \code{logLik()} returns a \code{"logLik"} object with \code{df} and \code{nobs} attributes so
-\code{\link[stats:AIC]{stats::AIC()}} and \code{\link[stats:BIC]{stats::BIC()}} use the fitted likelihood, optimized
-top-level parameter count, and fitted-row count consistently.
-\code{nobs()} returns the number of fitted rows after complete-case filtering.
+\code{\link[stats:AIC]{stats::AIC()}} and \code{\link[stats:BIC]{stats::BIC()}} can read the fitted likelihood and the
+optimized top-level parameter count. \code{BIC()} also reads \code{nobs}.
+\code{nobs()} counts modelled rows that contribute to the likelihood: rows kept
+after complete-case filtering whose likelihood weight is positive. A weight
+of zero stays in \code{fitted()}, \code{residuals()}, and \code{weights()}, and it does
+not change the log-likelihood or \code{AIC()}, but it is not an observation for
+\code{nobs()} or \code{BIC()}. The count is \code{sum(weights > 0)} on those rows, the
+same rule as \code{nobs()} for \code{\link[stats:glm]{glm()}}.
 \code{df.residual()} returns \code{nobs - df}, where \code{df} is the number of optimized
 top-level parameters recorded in \code{logLik()}. \code{deviance()} returns
 \code{-2 * logLik}; for these likelihood-based distributional models this is an
