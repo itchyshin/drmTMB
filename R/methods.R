@@ -32,7 +32,7 @@ print.drmTMB <- function(x, ...) {
     "distributional"
   )
   cli::cli_text("<drmTMB {label} fit>")
-  cli::cli_text("  observations: {x$nobs}")
+  cli::cli_text("  observations: {nobs(x)}")
   if (!is.null(x$estimator)) {
     cli::cli_text("  estimator: {x$estimator}")
   }
@@ -2617,9 +2617,14 @@ drm_standard_error_status <- function(object) {
 #' comparison helpers.
 #'
 #' `logLik()` returns a `"logLik"` object with `df` and `nobs` attributes so
-#' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
-#' top-level parameter count, and fitted-row count consistently.
-#' `nobs()` returns the number of fitted rows after complete-case filtering.
+#' [stats::AIC()] and [stats::BIC()] can read the fitted likelihood and the
+#' optimized top-level parameter count. `BIC()` also reads `nobs`.
+#' `nobs()` counts modelled rows that contribute to the likelihood: rows kept
+#' after complete-case filtering whose likelihood weight is positive. A weight
+#' of zero stays in [fitted()], [residuals()], and [weights()], and it does
+#' not change the log-likelihood or `AIC()`, but it is not an observation for
+#' `nobs()` or `BIC()`. The count is `sum(weights > 0)` on those rows, the
+#' same rule as `nobs()` for [stats::glm()].
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
 #' `-2 * logLik`; for these likelihood-based distributional models this is an
@@ -2704,7 +2709,7 @@ logLik.drmTMB <- function(object, ...) {
   drm_abort_mspl_inference(object, "logLik")
   out <- object$logLik
   attr(out, "df") <- object$df
-  attr(out, "nobs") <- object$nobs
+  attr(out, "nobs") <- drm_likelihood_nobs(object)
   if (!is.null(object$estimator)) {
     attr(out, "estimator") <- object$estimator
   }
@@ -2797,8 +2802,11 @@ drm_ic_loglik_df <- function(o) {
   list(value = as.numeric(ll), df = as.numeric(attr(ll, "df")))
 }
 
+# BIC's sample size is nobs(), including for a drmTMB fit. That count omits
+# zero-weight rows (#1699). The stored `object$nobs` still includes them, so
+# reading the field here would penalise BIC with too large an n.
 drm_ic_nobs <- function(o) {
-  if (inherits(o, "drmTMB")) as.numeric(o$nobs) else as.numeric(stats::nobs(o))
+  as.numeric(stats::nobs(o))
 }
 
 drm_information_criterion <- function(fits, penalty, what) {
@@ -2900,16 +2908,71 @@ anova.drmTMB <- function(object, ..., test = NULL) {
   drm_anova_lrt(c(list(object), dots), labels, test = test)
 }
 
+# Likelihood sample size (#1699). `object$nobs` counts likelihood rows after
+# complete-case filtering and still includes rows whose weight is zero. Those
+# rows stay in fitted(), residuals(), and weights(). nobs(), the logLik
+# "nobs" attribute, BIC, df.residual(), and aicc() count only the positive
+# weights among those rows, matching stats::nobs.glm (`sum(prior.weights != 0)`).
+# Stored weights are non-negative, so `> 0` and `!= 0` agree.
+#
+# REML does not read this count. drm_fit_df() rebuilds the parameter count
+# from the optimized vector and the marginalized fixed-effect blocks, and the
+# restricted likelihood multiplies each row contribution by its weight inside
+# TMB. A zero-weight row therefore changes neither the REML log-likelihood
+# nor `df`.
+drm_likelihood_nobs <- function(object) {
+  n_stored <- object$nobs
+  w <- object$model$weights
+  if (is.null(w) || !is.numeric(w)) {
+    return(n_stored)
+  }
+  used <- drm_likelihood_weight_rows(object, length(w))
+  if (!is.null(used) && isTRUE(sum(used) == n_stored)) {
+    return(sum(w[used] > 0))
+  }
+  if (length(w) == n_stored) {
+    return(sum(w > 0))
+  }
+  n_stored
+}
+
+# Logical index of likelihood rows inside the stored weight vector. NULL when
+# the fit does not record a mask aligned with those weights; the caller then
+# treats the weight vector itself as the likelihood rows when its length
+# equals the stored count.
+drm_likelihood_weight_rows <- function(object, n_weights) {
+  md <- object$missing_data
+  if (is.null(md)) {
+    md <- object$model$missing_data
+  }
+  if (is.null(md)) {
+    return(NULL)
+  }
+  y1 <- md$observed_y1
+  y2 <- md$observed_y2
+  if (
+    !is.null(y1) && !is.null(y2) &&
+      length(y1) == n_weights && length(y2) == n_weights
+  ) {
+    return(as.logical(y1) | as.logical(y2))
+  }
+  obs <- md$observed_y
+  if (is.null(obs) || is.matrix(obs) || length(obs) != n_weights) {
+    return(NULL)
+  }
+  as.logical(obs)
+}
+
 #' @rdname model-fit-extractors
 #' @export
 nobs.drmTMB <- function(object, ...) {
-  object$nobs
+  drm_likelihood_nobs(object)
 }
 
 #' @rdname model-fit-extractors
 #' @export
 df.residual.drmTMB <- function(object, ...) {
-  object$nobs - object$df
+  drm_likelihood_nobs(object) - object$df
 }
 
 #' @rdname model-fit-extractors

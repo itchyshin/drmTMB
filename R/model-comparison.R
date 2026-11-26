@@ -86,7 +86,12 @@ aicc.default <- function(object, ...) {
 aicc.drmTMB <- function(object, ...) {
   drm_abort_mspl_inference(object, "aicc")
   drm_warn_information_criterion(list(object), "AICc")
-  drm_aicc_from_loglik(object$logLik, object$df, object$nobs, what = "drmTMB")
+  drm_aicc_from_loglik(
+    object$logLik,
+    object$df,
+    stats::nobs(object),
+    what = "drmTMB"
+  )
 }
 
 #' @rdname model-comparison
