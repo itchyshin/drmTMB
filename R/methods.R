@@ -3341,6 +3341,15 @@ simulate.drmTMB <- function(
   if (!base::missing(re.form)) {
     drm_simulate_re_form_semantics_message()
   }
+  if (
+    length(nsim) == 1L &&
+      is.numeric(nsim) &&
+      !is.na(nsim) &&
+      is.finite(nsim) &&
+      nsim != as.integer(nsim)
+  ) {
+    cli::cli_abort("{.arg nsim} must be a whole number.")
+  }
   marginal <- drm_simulate_re_form_marginal(re.form)
   if (marginal) {
     unsupported <- drm_simulate_marginal_unsupported(object)
