@@ -10,6 +10,7 @@ drm_control(
   se_report_covariance = TRUE,
   se_skip_delta_method = FALSE,
   se_group_sd = FALSE,
+  condition_mu_fe = FALSE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -70,6 +71,16 @@ a bivariate fit needs tens of gigabytes for it. The fitted per-group
 standard deviations themselves are always available (they are recomputed
 from the parameters); only their standard errors are opt-in. Set to \code{TRUE}
 to restore the pre-0.3.0 behaviour.}
+
+\item{condition_mu_fe}{Logical; opt-in centre-and-scale conditioning for
+non-intercept numeric columns in the \code{mu} fixed-effect design before
+optimization and \code{\link[TMB:sdreport]{TMB::sdreport()}}, then map Wald coefficients and
+\code{\link[stats:vcov]{stats::vcov()}} back to the user's predictor units. Defaults to \code{FALSE},
+leaving the fit path unchanged. Set to \code{TRUE} when numeric location
+predictors are heavily scaled (for example predictor values at or above
+\code{1e3}, or shifted so the mean is at or above \code{1000}) and Wald standard
+errors otherwise depend on units or fail to converge even though
+coefficients and the log-likelihood are correct.}
 
 \item{keep_data}{Logical; keep the complete-case model data in the fitted
 object. Set to \code{FALSE} to drop \code{fit$data} and \code{fit$model$data} after

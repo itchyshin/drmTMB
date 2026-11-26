@@ -86,6 +86,11 @@ Wald is the fast first pass for fixed effects and other Wald-ready rows:
 confint(fit_site, parm = "fixed_effects")
 ```
 
+Profile intervals for a Gaussian `sigma ~ x` slope with an ordinary
+`(1 | g)` random intercept can also undercover at moderate group counts (about
+90% at nominal 95% in one measured `G = 30`, `sd_g = 0.5` cell); see
+`?confint.drmTMB` for the sweep scope.
+
 For the site random-intercept SD, prefer the profile route and copy the exact
 target name from `profile_targets()`:
 

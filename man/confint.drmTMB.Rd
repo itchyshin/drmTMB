@@ -279,6 +279,20 @@ For a short applied walkthrough, see the vignette
 \emph{First-week intervals: fit, profile, and boundary}.
 }
 
+\section{Profile intervals for Gaussian \code{sigma} slopes}{
+
+Profile intervals for a \code{sigma ~ x} fixed slope in a Gaussian location-scale
+model with an ordinary \code{(1 | g)} random intercept can undercover at moderate
+group counts. In the sweep-oct16 t9 design (n_g = 10 per group, 300
+replicates per cell) at \code{G = 30} groups and a group SD of 0.5, profile
+coverage for \code{fixef:sigma:x} was about 0.903 against a nominal 0.95; Wald
+coverage matched the design bar on the same replicates. Treat such intervals
+as likelihood-based but not automatically coverage-calibrated for every cell;
+read \code{conf.status} and compare with the capability guide before reporting.
+That sweep does not calibrate profile intervals for other \code{sigma} routes or
+study designs.
+}
+
 \section{Wald intervals for ordinary \code{(1 | g)} SDs}{
 
 The default \code{confint(fit)} is Wald for every row, including random-effect SD

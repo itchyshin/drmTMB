@@ -820,7 +820,9 @@ drm_fit_spec <- function(
     spec$start_override <- utils::modifyList(base_override, public_override)
   }
   spec <- drm_apply_start_override(spec)
-  spec <- drm_apply_fe_affine_spec(spec)
+  if (isTRUE(control$condition_mu_fe)) {
+    spec <- drm_apply_fe_affine_spec(spec)
+  }
   spec <- drm_complete_shared_tmb_parameters(spec)
 
   mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)

@@ -1,6 +1,7 @@
-# Internal fixed-effect affine reparameterisation for numerical conditioning.
-# Centers and scales non-intercept numeric columns before optimisation and
-# sdreport, then maps coefficients and Wald covariance back to the user's units.
+# Internal mu fixed-effect affine reparameterisation for numerical conditioning.
+# Opt-in via drm_control(condition_mu_fe = TRUE). Centers and scales non-intercept
+# numeric columns before optimisation and sdreport, then maps coefficients and
+# Wald covariance back to the user's units.
 
 drm_fe_affine_dpar_tmb_x <- c(
   mu = "X_mu",
