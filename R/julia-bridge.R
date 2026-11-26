@@ -1463,11 +1463,11 @@ drm_julia_validate_fixed_priors_v2_result <- function(result, expected) {
     "likelihood_gradient", "prior_gradient", "penalized_gradient")
   if (!is.list(result) || !all(required %in% names(result)) ||
       any(vapply(result[required], is.null, logical(1)))) fail("missing result fields")
-  if (!identical(result$fixed_prior_contract, "fixed_effect_priors_v2") ||
-      !identical(toupper(as.character(result$estim_method)), "MAP")) {
+  if (!identical(result[["fixed_prior_contract"]], "fixed_effect_priors_v2") ||
+      !identical(toupper(as.character(result[["estim_method"]])), "MAP")) {
     fail("contract or estimator")
   }
-  actual <- result$resolved_priors
+  actual <- result[["resolved_priors"]]
   if (!is.data.frame(expected) || !nrow(expected) || !is.list(actual) ||
       length(actual) != nrow(expected)) fail("resolved prior record count")
   for (i in seq_len(nrow(expected))) {
@@ -1508,12 +1508,12 @@ drm_julia_validate_fixed_priors_v2_result <- function(result, expected) {
       if (!same_infinity && !same_finite) fail("prior record parameters")
     }
   }
-  coefficients <- result$coef
+  coefficients <- result[["coef"]]
   if ((!is.numeric(coefficients) && !is.list(coefficients)) ||
       is.null(names(coefficients)) || anyDuplicated(names(coefficients))) {
     fail("coefficient values")
   }
-  coef_names <- result$coef_names
+  coef_names <- result[["coef_names"]]
   if (!is.character(coef_names) || anyNA(coef_names) || anyDuplicated(coef_names)) {
     fail("coefficient names")
   }
@@ -1539,11 +1539,11 @@ drm_julia_validate_fixed_priors_v2_result <- function(result, expected) {
   }
   close <- function(a, b) is.numeric(a) && length(a) == 1L && is.finite(a) &&
     abs(a - b) <= 1e-9 * max(1, abs(a), abs(b))
-  if (!close(result$fixed_prior_penalty, penalty)) fail("fixed prior penalty")
-  if (!is.numeric(result$penalized_objective) || length(result$penalized_objective) != 1L ||
-      !is.finite(result$penalized_objective) || !is.numeric(result$loglik) ||
-      length(result$loglik) != 1L || !is.finite(result$loglik) ||
-      !close(result$penalized_objective, -result$loglik + penalty)) {
+  if (!close(result[["fixed_prior_penalty"]], penalty)) fail("fixed prior penalty")
+  if (!is.numeric(result[["penalized_objective"]]) || length(result[["penalized_objective"]]) != 1L ||
+      !is.finite(result[["penalized_objective"]]) || !is.numeric(result[["loglik"]]) ||
+      length(result[["loglik"]]) != 1L || !is.finite(result[["loglik"]]) ||
+      !close(result[["penalized_objective"]], -result[["loglik"]] + penalty)) {
     fail("objective decomposition")
   }
   gradients <- result[c("likelihood_gradient", "prior_gradient", "penalized_gradient")]
@@ -1552,9 +1552,9 @@ drm_julia_validate_fixed_priors_v2_result <- function(result, expected) {
       any(!vapply(gradients, function(x) all(is.finite(x)), logical(1)))) {
     fail("gradient components")
   }
-  expected_gradient <- result$likelihood_gradient + result$prior_gradient
-  if (any(abs(result$penalized_gradient - expected_gradient) >
-      1e-8 * pmax(1, abs(result$penalized_gradient), abs(expected_gradient)))) {
+  expected_gradient <- result[["likelihood_gradient"]] + result[["prior_gradient"]]
+  if (any(abs(result[["penalized_gradient"]] - expected_gradient) >
+      1e-8 * pmax(1, abs(result[["penalized_gradient"]]), abs(expected_gradient)))) {
     fail("gradient decomposition")
   }
   invisible(TRUE)
