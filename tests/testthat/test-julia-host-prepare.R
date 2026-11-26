@@ -31,6 +31,9 @@ test_that("drm_julia_setup clears JULIA_PROJECT before JuliaCall::julia_setup (F
     },
     julia_command = function(...) invisible(NULL),
     julia_eval = function(code, ...) {
+      if (grepl("string(Base.active_project())", code, fixed = TRUE)) {
+        return(file.path(Sys.getenv("JULIA_PROJECT"), "Project.toml"))
+      }
       if (grepl("project_file_manifest_path", code, fixed = TRUE)) {
         return(c(manifest = "", manifest_format = "2.0", runtime = "1.10.0"))
       }
