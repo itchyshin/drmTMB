@@ -1,0 +1,479 @@
+From 047c12f7f59590fcb057831cd986a78cc3efb6ce Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 17 Oct 2026 00:05:24 +0000
+Subject: [PATCH] Add a parametric bootstrap null to lrtest and anova.
+
+Keep the packaged chi-square p-value (issue #304). test = :bootstrap
+simulates from the reduced fit, refits both models, and returns nsim,
+seed, and failed. Document that 50:50 chi-bar is conservative with few
+groups (t10 3.0% and 3.4% are expected).
+
+Refs #1115 #1116 #1118
+---
+ NEWS.md                                       |   3 +
+ ...2026-10-16-fx6-poisson-nb2-boundary-lrt.md |  48 ++++++
+ .../2026-10-16-fx6b-bootstrap-null.md         |  39 +++++
+ ...2026-10-16-fx6-poisson-nb2-boundary-lrt.md |   1 +
+ .../2026-10-16-fx6b-bootstrap-null.md         |   1 +
+ src/comparison.jl                             | 145 +++++++++++++++---
+ test/test_bootstrap_lrt.jl                    |  50 ++++++
+ test/test_family_boundary_lrt.jl              |  53 +++++++
+ 8 files changed, 321 insertions(+), 19 deletions(-)
+ create mode 100644 docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md
+ create mode 100644 docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md
+ create mode 100644 docs/dev-log/check-log.d/2026-10-16-fx6-poisson-nb2-boundary-lrt.md
+ create mode 100644 docs/dev-log/check-log.d/2026-10-16-fx6b-bootstrap-null.md
+ create mode 100644 test/test_bootstrap_lrt.jl
+ create mode 100644 test/test_family_boundary_lrt.jl
+
+diff --git a/NEWS.md b/NEWS.md
+index 63a24e91b..653925ff4 100644
+--- a/NEWS.md
++++ b/NEWS.md
+@@ -6,6 +6,9 @@ human-readable changelog.
+ 
+ ## Development
+ 
++- **`lrtest(..., test = :bootstrap)` adds a parametric bootstrap null (#1116, #1118).** It simulates from the reduced fit, refits both models on the supplied `data`, and returns `pvalue`, `nsim`, `seed`, and `failed`. The default packaged p-value stays naive χ² (#304). The 50:50 chi-bar mixture from `lrt_boundary` is conservative with few groups: type-I at α = 0.05 is at most 5% with no lower bound. t10 recorded 3.0% and 3.4%; those rates are expected. Twin of drmTMB `anova(..., test = "bootstrap")`.
++- **`lrtest(Poisson, NegBinomial2)` now warns that the extra `sigma` is a boundary null (#1115).** The packaged p-value stays the naive χ² (the existing "do not silently swap" contract from #304). Use `lrt_boundary(nb, pois; q = 1)` for the Self–Liang / Stram–Lee 50:50 chi-bar p-value, which is what drmTMB `anova()` now reports for the same pair. Sibling family nests are unchanged. This does not put finite-sample type-I at 5% (#1116, #1118).
++
+ ## v0.7.2 — 2026-10-04
+ 
+ - **Location-scale fits no longer stall at a variance boundary.** Two loops in the location-scale fit counted an exactly tied objective as progress and had no stall stop, so a fit whose variance component slid to its zero boundary could spin for tens of minutes (a 4-species Gamma bootstrap test took 12 to 74 minutes on CI, depending on the runner's BLAS kernel). The inner mode solve now stops a run of 40 exactly tied steps only when the gradient is far above its bound and cannot reach it in the remaining iterations, and the certified refinement ladder stops a run only after 100 iterations with a bit-identical position, value and gradient. Converging fits are unchanged: across 30 test files every location-scale fit is bit-identical to before, and the fixture's standard errors and `check_drm` verdict are unchanged.
+diff --git a/docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md b/docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md
+new file mode 100644
+index 000000000..5b6078663
+--- /dev/null
++++ b/docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md
+@@ -0,0 +1,48 @@
++# After Task: Poisson vs NegBinomial2 boundary warning (#1115)
++
++## Goal
++
++A user who calls `lrtest(pois, nb)` or `anova(pois, nb)` on a Poisson fit
++versus a nested `NegBinomial2()` fit should be told that the extra `sigma`
++is tested at 0. That is the same boundary warning `lrtest` already emits
++for an added `(1 | g)` variance component. Lane t10 filed the silent naive
++χ² as #1115 (twin of drmTMB #1557).
++
++This change does not swap the packaged p-value. Julia issue #304 says
++`lrtest` warns and leaves the χ² reference in place. drmTMB `anova()`
++applies the 50:50 chi-bar mixture for the same pair. Call
++`lrt_boundary(nb, pois; q = 1)` to match that p-value.
++
++#1116 and #1118 (type-I 3.0% and 3.4% under chi-bar on the shared 500-rep
++grids) are not closed. Hitting the t10 bar `[4%, 6%]` needs a methods
++choice. Options live in the drmTMB twin report
++`docs/dev-log/after-task/2026-10-16-fx6-poisson-nb2-boundary-lrt.md`.
++
++## Implemented
++
++`_family_boundary_nest` recognises `Poisson()` ⊂ `NegBinomial2()`.
++`_boundary_vc_warn` emits the existing boundary warning text for that
++nest. `lrtest` and `anova` stay aliases of each other. The reported
++p-value stays `ccdf(Chisq(Δdof), max(stat, 0))`.
++
++Sibling family nests are not wired. An interior Gaussian `sigma ~ 1` vs
++`sigma ~ x` comparison stays silent.
++
++## Files Changed
++
++`src/comparison.jl`, `test/test_family_boundary_lrt.jl`, `NEWS.md`, this
++report.
++
++## Checks Run
++
++`julia --project=.` on pin `f71b292` plus this branch:
++`test/test_family_boundary_lrt.jl` 11 pass; `test/test_comparison.jl` 12
++pass. The new file is the red-proof: before the warning existed,
++`@test_logs (:warn, r"(?i)boundary|sigma") lrtest(pois, nb)` failed.
++
++## Next Actions
++
++Keep `lrtest` on naive χ² unless the owner reverses #304. Use
++`lrt_boundary` for the chi-bar p-value. Do not pick mixture weights or a
++parametric bootstrap without the methods decision recorded on the drmTMB
++side.
+diff --git a/docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md b/docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md
+new file mode 100644
+index 000000000..3b51953a2
+--- /dev/null
++++ b/docs/dev-log/after-task/2026-10-16-fx6b-bootstrap-null.md
+@@ -0,0 +1,39 @@
++# After Task: parametric bootstrap null for lrtest (#1116, #1118)
++
++## Goal
++
++Give an applied user a finite-sample p-value for a boundary likelihood-ratio
++test without changing the packaged default. Shinichi chose, on 16 Oct 2026
++at 5:23 PM MT, to keep the 50:50 chi-bar mixture as the default reference
++and add a parametric bootstrap under the null as an option. This is the
++Julia twin of drmTMB FX6b.
++
++## Implemented
++
++`lrtest(reduced, full; test = :bootstrap, nsim, seed, data)` and the
++`anova` alias simulate new responses from the reduced fit, refit both
++models on the supplied `data`, and return `pvalue`, `nsim`, `seed`, and
++`failed`. The p-value is the Davison–Hinkley count
++`(1 + #{T* ≥ T_obs}) / (1 + n_ok)`. `data` is required because a
++`DrmFit` does not retain its table.
++
++The default packaged p-value stays naive χ² (#304). The 50:50 chi-bar
++mixture from `lrt_boundary` is documented as conservative with few
++groups: type-I at α = 0.05 is at most 5% with no lower bound. t10
++recorded 3.0% (NB2 vs Poisson) and 3.4% (`(1 | g)`); those rates are
++expected.
++
++## Files Changed
++
++`src/comparison.jl`, `test/test_bootstrap_lrt.jl`, `NEWS.md`, this
++report.
++
++## Checks Run
++
++`julia --project=.` on pin `f71b292` plus the FX6 warning patch and this
++change: `test/test_bootstrap_lrt.jl` and `test/test_family_boundary_lrt.jl`.
++
++## Next Actions
++
++Push to `itchyshin/DRModels.jl` if write access exists; otherwise keep
++the twin as a patch on the drmTMB side.
+diff --git a/docs/dev-log/check-log.d/2026-10-16-fx6-poisson-nb2-boundary-lrt.md b/docs/dev-log/check-log.d/2026-10-16-fx6-poisson-nb2-boundary-lrt.md
+new file mode 100644
+index 000000000..151bcc569
+--- /dev/null
++++ b/docs/dev-log/check-log.d/2026-10-16-fx6-poisson-nb2-boundary-lrt.md
+@@ -0,0 +1 @@
++| 2026-10-16 | **FX6 Poisson ⊂ NB2 boundary warning** (#1115) | `julia --project=.` `test/test_family_boundary_lrt.jl` (11 pass) + `test/test_comparison.jl` (12 pass) | ✅ `lrtest(Poisson, NegBinomial2)` warns; packaged p stays χ² (#304). Type-I #1116/#1118 not closed (chi-bar 3.0%/3.4% on t10 grids). Twin drmTMB #1557. | FX6 |
+diff --git a/docs/dev-log/check-log.d/2026-10-16-fx6b-bootstrap-null.md b/docs/dev-log/check-log.d/2026-10-16-fx6b-bootstrap-null.md
+new file mode 100644
+index 000000000..ea610f2e9
+--- /dev/null
++++ b/docs/dev-log/check-log.d/2026-10-16-fx6b-bootstrap-null.md
+@@ -0,0 +1 @@
++| 2026-10-16 | **FX6b parametric bootstrap LRT** (#1116, #1118) | `julia --project=.` `test/test_bootstrap_lrt.jl` + `test/test_family_boundary_lrt.jl` | ✅ `lrtest(..., test = :bootstrap)` returns nsim/seed/failed. Default p stays χ² (#304). Chi-bar type-I 3.0%/3.4% recorded as expected. Twin drmTMB #1559/#1560. | FX6b |
+diff --git a/src/comparison.jl b/src/comparison.jl
+index fe167ba48..1f84e67e0 100644
+--- a/src/comparison.jl
++++ b/src/comparison.jl
+@@ -12,6 +12,7 @@
+ # DRModels.jl's default.
+ 
+ using Distributions: Chisq, ccdf
++using Random: default_rng, MersenneTwister
+ import StatsAPI: weights
+ 
+ """
+@@ -36,16 +37,28 @@ fits *better* — a sign the models are not actually nested, or one did not
+ converge) is still returned as-is, but the p-value clamps the statistic at zero
+ (so `pvalue` stays in `[0, 1]`); inspect `statistic` directly in that case.
+ 
+-!!! warning "Variance components are a boundary null"
++!!! warning "Variance components and Poisson ⊂ NB2 are a boundary null"
+     The `χ²(dof)` reference is only valid when the extra parameters in `full` are
+     interior (regular). When `full` adds a **variance component** that `reduced`
+     lacks (a random-effect SD, `:resd`/`:resid`; a Cholesky covariance entry,
+-    `:recov`; a group-level covariance, `:phylocov`), the tested null (variance =
+-    0) sits on the **boundary** of the parameter space and the statistic follows a
+-    chi-bar-square mixture, not `χ²(dof)` (Self & Liang 1987; Stram & Lee 1994).
+-    The naive `χ²` p-value is then **conservative** (too large — the test loses
+-    power). `lrtest` detects this case and emits a one-time warning; use
+-    `lrt_boundary` (or a parametric bootstrap) for a boundary-correct p-value.
++    `:recov`; a group-level covariance, `:phylocov`), or when `full` is
++    `NegBinomial2()` and `reduced` is `Poisson()` (the extra `sigma` tested at
++    0), the tested null sits on the **boundary** of the parameter space and the
++    statistic follows a chi-bar-square mixture, not `χ²(dof)` (Self & Liang
++    1987; Stram & Lee 1994). The naive `χ²` p-value is then **conservative**
++    (too large — the test loses power). `lrtest` detects these cases and emits
++    a one-time warning; use `lrt_boundary` (or `test = :bootstrap`) for a
++    boundary-correct p-value. This function does **not** swap the reported
++    p-value (#304). drmTMB's `anova()` does swap in the 50:50 mixture for the
++    same pairs; call `lrt_boundary` here to match that p-value. The 50:50
++    mixture is conservative with few groups: type-I at α = 0.05 is at most
++    5% with no lower bound. t10 recorded 3.0% (NB2 vs Poisson) and 3.4%
++    (`(1 | g)`); those rates are expected.
++
++    `test = :bootstrap` simulates from the reduced (null) fit, refits both
++    models on the supplied `data`, and returns the Davison–Hinkley p-value
++    with `nsim`, `seed`, and the number of failed refits. `data` is required
++    because a `DrmFit` does not retain its table.
+ 
+ # Example
+ ```julia
+@@ -62,7 +75,8 @@ t.dof          # 2 extra parameters (x in μ and in log σ)
+ t.pvalue       # < 0.05 when x is truly predictive
+ ```
+ """
+-function lrtest(reduced::DrmFit, full::DrmFit)
++function lrtest(reduced::DrmFit, full::DrmFit;
++                test = :chisq, nsim::Integer = 199, seed = nothing, data = nothing)
+     _reml_compare_guard(reduced, full, "lrtest")
+     _sentinel_compare_guard(reduced, full, "lrtest")
+     _marginal_compare_guard(reduced, full, "lrtest")
+@@ -74,10 +88,77 @@ function lrtest(reduced::DrmFit, full::DrmFit)
+         "did you pass the arguments as (reduced, full)?)"))
+     _boundary_vc_warn(reduced, full, "lrtest")
+     statistic = 2 * (loglik(full) - loglik(reduced))
++    if _lrt_test_kind(test) === :bootstrap
++        boot = _lrt_bootstrap(reduced, full, statistic; nsim, seed, data)
++        return (; statistic, dof = Δdof, pvalue = boot.pvalue,
++                nsim = boot.nsim, seed = boot.seed, failed = boot.failed)
++    end
+     pvalue = ccdf(Chisq(Δdof), max(statistic, 0))
+     return (; statistic, dof = Δdof, pvalue)
+ end
+ 
++function _lrt_test_kind(test)
++    test === nothing && return :default
++    key = test isa Symbol ? test : Symbol(lowercase(string(test)))
++    key in (:chisq, :lrt, :default, :chi_square) && return :default
++    key in (:bootstrap, :parametric, :parametric_bootstrap) && return :bootstrap
++    throw(ArgumentError("lrtest: `test` must be :chisq, :lrt, :bootstrap, or omitted"))
++end
++
++function _replace_response(data, response::Symbol, y)
++    data isa NamedTuple || throw(ArgumentError(
++        "lrtest: test = :bootstrap needs `data` as a NamedTuple"))
++    return merge(data, NamedTuple{(response,)}((y,)))
++end
++
++function _lrt_bootstrap(reduced::DrmFit, full::DrmFit, statistic;
++                        nsim::Integer, seed, data)
++    data === nothing && throw(ArgumentError(
++        "lrtest: test = :bootstrap needs the original `data` table " *
++        "(a DrmFit does not retain it)."))
++    nsim >= 1 || throw(ArgumentError("lrtest: `nsim` must be a positive whole number"))
++    reduced.formula isa DrmFormula || throw(ArgumentError(
++        "lrtest: test = :bootstrap currently supports univariate DrmFormula fits"))
++    rng = seed === nothing ? default_rng() : MersenneTwister(Int(seed))
++    resp = reduced.formula.response
++    Y = simulate(reduced; nsim = nsim, rng = rng)
++    n_ok = 0
++    n_ge = 0
++    failed = 0
++    for s in 1:nsim
++        ystar = nsim == 1 ? Y : view(Y, :, s)
++        data_s = _replace_response(data, resp, collect(ystar))
++        red_s = try
++            drm(reduced.formula, reduced.family; data = data_s)
++        catch
++            failed += 1
++            continue
++        end
++        full_s = try
++            drm(full.formula, full.family; data = data_s)
++        catch
++            failed += 1
++            continue
++        end
++        if !red_s.converged || !full_s.converged
++            failed += 1
++            continue
++        end
++        llr = loglik(red_s)
++        llf = loglik(full_s)
++        if !(isfinite(llr) && isfinite(llf))
++            failed += 1
++            continue
++        end
++        n_ok += 1
++        n_ge += Int(2 * (llf - llr) >= statistic)
++    end
++    n_ok < 1 && throw(ArgumentError(
++        "lrtest: parametric bootstrap — every one of $nsim refit pairs failed"))
++    return (; pvalue = (1 + n_ge) / (1 + n_ok), nsim = Int(nsim),
++            seed = seed, failed = failed)
++end
++
+ # A fit stranded on the failed-objective sentinel plateau (loglik <= -1e15, see
+ # `_sentinel_loglik`) has a meaningless likelihood: an LR statistic built from it is
+ # ~1e18 and its p-value 0 or 1, an AIC ~2e18. Comparison verbs refuse it, like the
+@@ -119,9 +200,20 @@ function _variance_component_blocks(fit::DrmFit)
+                  if p in _VARIANCE_COMPONENT_BLOCKS && length(r) > 0]
+ end
+ 
+-# Boundary caveat (issue #304): when `full` carries a variance-component block that
+-# `reduced` does not, the naive χ²(Δdof) LR reference is INVALID — the tested
+-# variance sits on the boundary of its space, so the statistic follows a
++# Nested family pairs whose extra distributional parameter is tested at 0.
++# Only the filed t10 pair is wired: Poisson ⊂ NegBinomial2 (sigma → 0).
++# Sibling nests stay unwired; see the FX6 methods note.
++function _family_boundary_nest(reduced_fam, full_fam)
++    (reduced_fam isa Poisson && full_fam isa NegBinomial2) || return nothing
++    return (added = :sigma, q = 1)
++end
++_family_boundary_nest(reduced::DrmFit, full::DrmFit) =
++    _family_boundary_nest(reduced.family, full.family)
++
++# Boundary caveat (issue #304, family-dispersion #1115): when `full` carries a
++# variance-component block that `reduced` does not, OR when the pair is Poisson
++# ⊂ NegBinomial2, the naive χ²(Δdof) LR reference is INVALID — the tested
++# parameter sits on the boundary of its space, so the statistic follows a
+ # chi-bar-square mixture and the χ² p-value is CONSERVATIVE (too large; the test
+ # loses power). We do NOT silently swap the reference (the mixture order and
+ # independence assumptions need the caller's knowledge of the design), but we WARN
+@@ -129,14 +221,29 @@ end
+ function _boundary_vc_warn(reduced::DrmFit, full::DrmFit, verb::AbstractString)
+     dropped = setdiff(_variance_component_blocks(full),
+                       _variance_component_blocks(reduced))
+-    isempty(dropped) && return nothing
++    if !isempty(dropped)
++        @warn(
++            "$verb: `full` adds variance-component block(s) $(dropped) that `reduced` " *
++            "lacks, so this compares a variance component against 0 — a BOUNDARY null. " *
++            "The reported χ²($(dof(full) - dof(reduced))) p-value is INVALID there " *
++            "(conservative: too large, so the test loses power); the correct reference " *
++            "is a chi-bar-square mixture. That 50:50 default is conservative with few " *
++            "groups (type-I at most 5%, no lower bound; t10 recorded 3.0% and 3.4%). " *
++            "Use `lrt_boundary(full, reduced; q = <#components>)` or " *
++            "`lrtest(..., test = :bootstrap, data = data)` for a boundary-correct p-value.")
++        return nothing
++    end
++    nest = _family_boundary_nest(reduced, full)
++    nest === nothing && return nothing
+     @warn(
+-        "$verb: `full` adds variance-component block(s) $(dropped) that `reduced` " *
+-        "lacks, so this compares a variance component against 0 — a BOUNDARY null. " *
+-        "The reported χ²($(dof(full) - dof(reduced))) p-value is INVALID there " *
+-        "(conservative: too large, so the test loses power); the correct reference " *
+-        "is a chi-bar-square mixture. Use `lrt_boundary(full, reduced; q = <#components>)` " *
+-        "(or a parametric bootstrap) for a boundary-correct p-value.")
++        "$verb: `full` is NegBinomial2 and `reduced` is Poisson, so this tests the extra " *
++        "sigma at 0 — a BOUNDARY null. The reported χ²($(dof(full) - dof(reduced))) " *
++        "p-value is INVALID there (conservative: too large, so the test loses power); " *
++        "the correct reference is a chi-bar-square mixture. Use " *
++        "`lrt_boundary(full, reduced; q = $(nest.q))` or " *
++        "`lrtest(..., test = :bootstrap, data = data)` " *
++        "for a boundary-correct p-value. The 50:50 mixture is conservative with " *
++        "few groups (type-I at most 5%, no lower bound; t10 recorded 3.0% and 3.4%).")
+     return nothing
+ end
+ 
+@@ -274,7 +381,7 @@ a nested likelihood-ratio test. Returns the same
+ anova(reduced, full) == lrtest(reduced, full)   # true
+ ```
+ """
+-anova(reduced::DrmFit, full::DrmFit) = lrtest(reduced, full)
++anova(reduced::DrmFit, full::DrmFit; kwargs...) = lrtest(reduced, full; kwargs...)
+ 
+ """
+     aicc(fit::DrmFit) -> Float64
+diff --git a/test/test_bootstrap_lrt.jl b/test/test_bootstrap_lrt.jl
+new file mode 100644
+index 000000000..41e5ab1e0
+--- /dev/null
++++ b/test/test_bootstrap_lrt.jl
+@@ -0,0 +1,50 @@
++# Parametric bootstrap null for lrtest / anova (DRModels #1116 / #1118,
++# twin of drmTMB FX6b / #1559 / #1560).
++#
++# Red-proof: on pin f71b292 plus the FX6 warning patch, `test = :bootstrap`
++# is an unused keyword and this file fails. After FX6b, both verbs simulate
++# from the reduced fit and return nsim, seed, and failed.
++
++using DRModels
++using Test, Random
++import Distributions
++
++function _nb2_null_data(; n = 80)
++    Random.seed!(20261017000 - 19000000000)
++    x = randn(n)
++    y = Float64.(rand.(Distributions.Poisson.(exp.(0.4 .+ 0.3 .* x))))
++    return (; y, x)
++end
++
++@testset "lrtest test = :bootstrap returns nsim, seed, failed (#1116)" begin
++    Random.seed!(1)
++    n = 40
++    x = randn(n)
++    y = 0.2 .+ 0.6 .* x .+ randn(n)
++    data = (; y, x)
++    m0 = drm(bf(@formula(y ~ 1), @formula(sigma ~ 1)), Gaussian(); data)
++    m1 = drm(bf(@formula(y ~ 1 + x), @formula(sigma ~ 1)), Gaussian(); data)
++
++    t = lrtest(m0, m1; test = :bootstrap, nsim = 19, seed = 20261016, data = data)
++    @test 0 <= t.pvalue <= 1
++    @test t.nsim == 19
++    @test t.seed == 20261016
++    @test t.failed isa Integer
++    @test 0 <= t.failed <= 19
++    @test anova(m0, m1; test = :bootstrap, nsim = 19, seed = 20261016, data = data) == t
++    @test_throws ArgumentError lrtest(m0, m1; test = :bootstrap, nsim = 19, seed = 1)
++end
++
++@testset "lrtest bootstrap on Poisson vs NegBinomial2 (#1116)" begin
++    data = _nb2_null_data()
++    pois = drm(bf(@formula(y ~ 1 + x)), DRModels.Poisson(); data, se = false)
++    nb = drm(bf(@formula(y ~ 1 + x), @formula(sigma ~ 1)), NegBinomial2();
++             data, se = false)
++    t = @test_logs (:warn, r"(?i)boundary|sigma|bootstrap") match_mode = :any begin
++        lrtest(pois, nb; test = :bootstrap, nsim = 19, seed = 7, data = data)
++    end
++    @test t.nsim == 19
++    @test t.seed == 7
++    @test t.failed isa Integer
++    @test 0 <= t.pvalue <= 1
++end
+diff --git a/test/test_family_boundary_lrt.jl b/test/test_family_boundary_lrt.jl
+new file mode 100644
+index 000000000..0375974dd
+--- /dev/null
++++ b/test/test_family_boundary_lrt.jl
+@@ -0,0 +1,53 @@
++# Family-dispersion boundary: Poisson ⊂ NegBinomial2 tests sigma at 0
++# (DRModels #1115, twin of drmTMB #1557).
++#
++# lrtest/anova keep the naive χ² p-value (the existing "do not silently swap"
++# contract from #304) but must warn, as they already do for an added RE SD.
++# This file is the t10 red-proof: it fails on f71b292 (silent χ²) and passes
++# once `_boundary_vc_warn` sees the family nest.
++
++using DRModels
++using Test, Random
++import Distributions
++
++function _nb2_null_data(; n = 80)
++    # Official campaign seed 20261017000 overflows UInt32; same map as #1115.
++    Random.seed!(20261017000 - 19000000000)
++    x = randn(n)
++    y = Float64.(rand.(Distributions.Poisson.(exp.(0.4 .+ 0.3 .* x))))
++    return (; y, x)
++end
++
++@testset "lrtest warns on Poisson vs NegBinomial2 (#1115)" begin
++    data = _nb2_null_data()
++    pois = drm(bf(@formula(y ~ 1 + x)), DRModels.Poisson(); data, se = false)
++    nb = drm(bf(@formula(y ~ 1 + x), @formula(sigma ~ 1)), NegBinomial2();
++             data, se = false)
++
++    t = @test_logs (:warn, r"(?i)boundary|sigma") match_mode = :any lrtest(pois, nb)
++    @test t.dof == 1
++    lb = lrt_boundary(nb, pois; q = 1)
++    @test t.statistic ≈ lb.statistic atol = 1e-10
++    # Packaged verb stays naive χ²; lrt_boundary is the chi-bar p-value.
++    @test t.pvalue ≈ lb.pvalue_naive atol = 1e-12
++    @test t.pvalue ≈ 2 * lb.pvalue atol = 1e-12
++    @test anova(pois, nb) == t
++
++    # Interior Gaussian scale regression: no family nest, no warning.
++    Random.seed!(1)
++    n = 80
++    z = randn(n)
++    y = 0.3 .+ 0.5 .* z .+ randn(n)
++    gdata = (; y, z)
++    g0 = drm(bf(@formula(y ~ 1 + z), @formula(sigma ~ 1)), Gaussian(); data = gdata)
++    g1 = drm(bf(@formula(y ~ 1 + z), @formula(sigma ~ 1 + z)), Gaussian(); data = gdata)
++    @test_logs lrtest(g0, g1)
++end
++
++@testset "family-boundary detector is Poisson to NegBinomial2 only (#1115)" begin
++    nest = DRModels._family_boundary_nest
++    @test nest(DRModels.Poisson(), NegBinomial2()) == (added = :sigma, q = 1)
++    @test nest(NegBinomial2(), DRModels.Poisson()) === nothing
++    @test nest(DRModels.Poisson(), DRModels.Poisson()) === nothing
++    @test nest(Gaussian(), Student()) === nothing
++end
+-- 
+2.43.0
+
