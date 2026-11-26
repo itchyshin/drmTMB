@@ -2702,6 +2702,7 @@ NULL
 #' @export
 logLik.drmTMB <- function(object, ...) {
   drm_abort_mspl_inference(object, "logLik")
+  drm_warn_convergence_status_inference(object, "{.fn logLik}")
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
@@ -2742,6 +2743,24 @@ drm_ic_fixed_effect_signature <- function(object) {
 # `REML` the same way but do not inherit "drmTMB".
 drm_ic_guarded_fit <- function(o) {
   inherits(o, c("drmTMB", "drmTMB_julia"))
+}
+
+drm_warn_convergence_status_inference <- function(object, what) {
+  if (!drm_ic_guarded_fit(object)) {
+    return(invisible(NULL))
+  }
+  status <- convergence_status(object)
+  if (identical(status, "converged")) {
+    return(invisible(NULL))
+  }
+  cli::cli_warn(
+    c(
+      "{what} was requested for a fit whose {.fn convergence_status} is {.val {status}} (so {.fn is_converged} is {.val {is_converged(object)}}).",
+      "i" = "The returned value stays finite for compatibility, but it is not reliable for model comparison until you review the fit with {.fn check_drm} and address the degenerate or boundary geometry."
+    ),
+    class = "drmTMB_ic_convergence_warning"
+  )
+  invisible(NULL)
 }
 
 drm_warn_information_criterion <- function(fits, what) {
@@ -2805,6 +2824,10 @@ drm_information_criterion <- function(fits, penalty, what) {
   mspl <- which(vapply(fits, drm_is_mspl, logical(1L)))
   if (length(mspl)) {
     drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
+  }
+  drm_fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
+  for (fit in drm_fits) {
+    drm_warn_convergence_status_inference(fit, what)
   }
   drm_warn_information_criterion(fits, what)
   computed <- lapply(fits, function(o) {

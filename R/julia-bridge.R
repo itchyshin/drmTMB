@@ -10414,6 +10414,7 @@ print.summary.drmTMB_julia <- function(x, ...) {
 
 #' @export
 logLik.drmTMB_julia <- function(object, ...) {
+  drm_warn_convergence_status_inference(object, "{.fn logLik}")
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs

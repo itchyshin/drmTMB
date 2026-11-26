@@ -301,6 +301,38 @@ drm_unbounded_location_scale <- function(fit) {
   if (is.null(info) || !identical(info$arm, "lower")) {
     return(NULL)
   }
+  # Constant response with residual sigma on the lower clamp: the
+  # varying-sigma screen below needs contrast in log(sigma); intercept-only
+  # paths can sit on the clamp with every observation on the fitted mean
+  # (#1875; student() all-zero with se = FALSE).
+  if (
+    !identical(spec$model_type, "gaussian") &&
+      drm_fe_mle_screen_applicable(spec)
+  ) {
+    y <- spec$y
+    n <- length(y)
+    use <- drm_observed_design_rows(spec, n)
+    y_obs <- y[use]
+    y_obs <- y_obs[is.finite(y_obs)]
+    if (length(y_obs) > 0L && length(unique(y_obs)) == 1L) {
+      mu <- tryCatch(
+        as.numeric(stats::predict(fit, type = "response")),
+        error = function(e) NULL
+      )
+      if (
+        !is.null(mu) &&
+          length(mu) == n &&
+          all(is.finite(mu[use])) &&
+          max(abs(y_obs - mu[use])) <= 1e-4
+      ) {
+        return(list(
+          reason = "unbounded_location_scale",
+          flagged = character(),
+          conclusive = TRUE
+        ))
+      }
+    }
+  }
   log_sigma <- report$log_sigma
   log_sigma <- log_sigma[is.finite(log_sigma)]
   if (length(log_sigma) == 0L || (max(log_sigma) - min(log_sigma)) <= log(1e4)) {
