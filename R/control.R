@@ -227,7 +227,7 @@ drm_control <- function(
   ) {
     cli::cli_abort("{.arg optimizer_method} must be one of {.val {valid_methods}}.")
   }
-  parallel <- match.arg(parallel)
+  parallel <- drm_match_control_parallel(parallel)
   optimizer_preset <- match.arg(optimizer_preset)
   newton_polish <- drm_control_flag(newton_polish, "newton_polish")
   if (
@@ -530,6 +530,22 @@ drm_control_flag <- function(x, name) {
     cli::cli_abort("{.arg {name}} must be {.code TRUE} or {.code FALSE}.")
   }
   x
+}
+
+drm_match_control_parallel <- function(parallel) {
+  choices <- c("none", "multicore", "cluster")
+  if (length(parallel) > 1L && identical(parallel, choices)) {
+    return(choices[[1L]])
+  }
+  if (
+    !is.character(parallel) ||
+      length(parallel) != 1L ||
+      is.na(parallel) ||
+      !parallel %in% choices
+  ) {
+    cli::cli_abort("{.arg parallel} must be one of {.val {choices}}.")
+  }
+  parallel
 }
 
 # Drop unrecognized `nlminb()` control names before optimization so only the
