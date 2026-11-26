@@ -34,3 +34,6 @@ overdispersion-side random effects are not supported.
 \examples{
 truncated_nbinom2()
 }
+\seealso{
+\link{foreign-inflation-families}
+}

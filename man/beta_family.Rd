@@ -37,4 +37,7 @@ if an old script still needs the alias.
 \examples{
 beta_family()
 }
+\seealso{
+\link{foreign-inflation-families}
+}
 \keyword{internal}
