@@ -69,6 +69,15 @@
   The equivalence check is the TMB objective at one shared parameter vector,
   which matches well inside the existing 1e-5 tolerance (#1703).
 
+* `model.frame()` on a `drmTMB` fit returns the rows used for the location
+  (`mu`) formula, with that formula's `terms` attribute. It no longer returns
+  the internal TMB specification in `fit$model`. `terms()` and `model.matrix()`
+  use the same location frame. A dropped frame
+  (`drm_control(keep_model_frame = FALSE)`) and a bivariate fit with separate
+  `mu1` and `mu2` formulas report that one frame is not available. An
+  `engine = "julia"` fit does not store this frame, so `model.frame()` stops
+  instead of returning bridge metadata (#1700).
+
 * Gaussian location-scale models now abort before TMB when an observed
   response or fixed-effect design value is non-finite (`Inf` in `y` or in a
   predictor no longer reaches TMB's `NA/NaN/Inf in 'y'` / `'x'` errors).
