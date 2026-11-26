@@ -1,8 +1,8 @@
 key	value
 run_status	COMPLETE
-source_sha	9fc22c0f89e2daa5ff6721a340d61f65f5a71c59
+source_sha	de55cad1cd5442f81aebc54f7de045aa0dbaa201
 runner_sha256	03e230c48539267d803a22e43ffcc68786b08236c4bd6bf9f11c1b1b37c9b1df
-git_blob:R/drmTMB.R	e57ebf8b6ee1e6f61872e0c3c0b647c97528ab26
+git_blob:R/drmTMB.R	6d751482fe888e3507ac98fbded407019f4e40c3
 git_blob:R/methods.R	fca600ab8688d0fb551f24b04ae74ed8ab4fa50e
 git_blob:src/drmTMB.cpp	9440848e9d222722fdb6dc90446de46ba26cdb57
 git_blob:tests/testthat/test-zero-one-beta.R	5791bad2278c05be035f63308dbb3be0c86b29fe

@@ -6731,6 +6731,8 @@ drm_build_lognormal_ls_spec <- function(
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Lognormal")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Lognormal")
 
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in lognormal model.")

@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* Lognormal models now abort before starting-value or optimizer code when a
+  fixed-effect design value is non-finite. `Inf` in a `mu` or `sigma`
+  predictor names the column. `NA` predictors are still dropped by the
+  existing complete-case rule (#1729).
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
