@@ -614,6 +614,10 @@ drm_inference_at_boundary <- function(object) {
   if (!is.null(sd_row) && identical(sd_row$status, "warning")) {
     return(TRUE)
   }
+  tweedie_nu_row <- check_tweedie_eta_nu_cap(object)
+  if (!is.null(tweedie_nu_row) && identical(tweedie_nu_row$status, "warning")) {
+    return(TRUE)
+  }
   temporal_row <- check_temporal_boundary(object)
   !is.null(temporal_row) && identical(temporal_row$status, "warning")
 }
@@ -663,6 +667,7 @@ check_drm.drmTMB <- function(
     check_temporal_mean_profile(object),
     check_rho12_boundary(object, rho_boundary = rho_boundary),
     check_student_nu(object),
+    check_tweedie_eta_nu_cap(object),
     check_skew_normal_nu(object),
     check_residual_outliers(object),
     check_known_v(object),
@@ -2389,6 +2394,53 @@ check_rho12_boundary <- function(object, rho_boundary) {
         ". A profile interval for residual rho12 at this boundary is usually identical to Wald; read conf.status on confint()."
       )
     }
+  )
+}
+
+check_tweedie_eta_nu_cap <- function(object) {
+  if (!identical(object$model$model_type, "tweedie")) {
+    return(NULL)
+  }
+  report <- tryCatch(
+    object$obj$report(object$tmb_state$last.par.best),
+    error = function(e) NULL
+  )
+  if (is.null(report)) {
+    return(check_row(
+      "tweedie_eta_nu_cap",
+      "note",
+      NA,
+      "Cannot check the Tweedie nu link clamp without the TMB object (keep_tmb_object = FALSE)."
+    ))
+  }
+  info <- drm_tweedie_eta_nu_cap_active(report)
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  if (is.null(info)) {
+    return(check_row(
+      "tweedie_eta_nu_cap",
+      "ok",
+      NA,
+      sprintf(
+        "The Tweedie nu logit predictor lies inside [%.0f, %.0f] at the optimum.",
+        band[["lo"]],
+        band[["hi"]]
+      )
+    ))
+  }
+  check_row(
+    "tweedie_eta_nu_cap",
+    "warning",
+    format_check_number(info$value),
+    sprintf(
+      paste(
+        "The fitted Tweedie nu link predictor reached %.2f, outside the identity band",
+        "[%.0f, %.0f]; the likelihood used the saturated soft clamp and the fit may have",
+        "converged on an artificial boundary. Treat nu estimates and intervals with caution."
+      ),
+      info$value,
+      band[["lo"]],
+      band[["hi"]]
+    )
   )
 }
 
