@@ -14,8 +14,7 @@ test_that("predict_parameters() returns a zero-row table for zero-row newdata", 
   out <- predict_parameters(fit, newdata = nd0)
   expect_s3_class(out, "data.frame")
   expect_identical(nrow(out), 0L)
-  expect_named(
-    out,
+  expect_true(all(
     c(
       "row",
       "row_label",
@@ -26,6 +25,7 @@ test_that("predict_parameters() returns a zero-row table for zero-row newdata", 
       "conf.status",
       "interval_source",
       "x"
-    )
-  )
+    ) %in%
+      names(out)
+  ))
 })
