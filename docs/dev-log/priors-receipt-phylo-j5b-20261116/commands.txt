@@ -1,0 +1,3 @@
+One-thread Totoro runner: see runner.sh.
+Rscript --no-init-file tools/check-julia-phylo-labels-receipt.R feature-receipt.json --current --self-test
+DRM_JL_PATH=<Julia feature 5b5b source> bash tools/ci-receipt-staleness.sh

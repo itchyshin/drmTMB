@@ -777,6 +777,7 @@ drmTMB_julia_bridge <- function(
     family_type,
     data = data
   )
+  drm_julia_refuse_all_singleton_groups(formula, data)
   drm_julia_refuse_ordinary_mean_re_unlabelled(formula, family_type)
   drm_julia_refuse_gaussian_ordinary_re_factor_fe(formula, family_type, data)
   drm_julia_refuse_biv_student_beyond_native(formula, family_type)
@@ -925,8 +926,8 @@ drmTMB_julia_bridge <- function(
     out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
     out$sd_prior_penalty <- as.numeric(result[["sd_prior_penalty"]])
     if (identical(prior_version, "v3")) {
-      out$sd_prior_penalties <- vapply(result$sd_prior_contributions, `[[`, numeric(1), "penalty")
-      names(out$sd_prior_penalties) <- vapply(result$sd_prior_contributions, `[[`, character(1), "group")
+      out$sd_prior_penalties <- vapply(result[["sd_prior_contributions"]], `[[`, numeric(1), "penalty")
+      names(out$sd_prior_penalties) <- vapply(result[["sd_prior_contributions"]], `[[`, character(1), "group")
     }
     out$penalized_objective <- as.numeric(result[["penalized_objective"]])
     out$prior_gradient <- as.numeric(result[["fixed_prior_gradient"]]) + as.numeric(result[["sd_prior_gradient"]])
@@ -951,7 +952,8 @@ drmTMB_julia_bridge <- function(
 ## design and fitted modes can be checked against the training rows.  This is a
 ## deliberately small ordinary-RE adapter: scalar intercept/slope components,
 ## one correlated intercept+slope component, or distinct-group scalar components.
-drm_julia_conditional_gaussian_components_spec <- function(formula, family_type) {
+drm_julia_conditional_gaussian_components_spec <- function(formula, family_type,
+                                                           allow_same_group = FALSE) {
   if (!identical(family_type, "gaussian")) {
     return(NULL)
   }
@@ -1009,7 +1011,7 @@ drm_julia_conditional_gaussian_components_spec <- function(formula, family_type)
   }
   groups <- vapply(components, `[[`, character(1L), "group")
   kinds <- vapply(components, `[[`, character(1L), "kind")
-  if (anyDuplicated(groups) || sum(kinds == "correlated") > 1L ||
+  if ((!allow_same_group && anyDuplicated(groups)) || sum(kinds == "correlated") > 1L ||
       (any(kinds == "correlated") && length(components) != 1L)) {
     return(NULL)
   }
@@ -3174,6 +3176,34 @@ drm_julia_ordinary_mean_bars_have_sd <- function(formula, family_type) {
   all(bar_groups %in% sd_groups)
 }
 
+# #1776: native engine = "tmb" refuses a random-effect grouping variable whose
+# groups are all singletons (the SD and sigma split is unidentified); the Julia
+# route used to fit it and report convergence. Same helper, same wording.
+drm_julia_refuse_all_singleton_groups <- function(formula, data) {
+  if (!is.data.frame(data)) {
+    return(invisible(NULL))
+  }
+  for (entry in formula$entries) {
+    if (is.null(entry$rhs)) {
+      next
+    }
+    for (term in flatten_plus_terms(entry$rhs)) {
+      if (!is_random_bar_call(term)) {
+        next
+      }
+      grp <- strip_parens(term)[[3L]]
+      if (!is.symbol(grp) || !(as.character(grp) %in% names(data))) {
+        next
+      }
+      drm_refuse_all_singleton_groups(
+        data[[as.character(grp)]], as.character(grp),
+        "this initial random-effect implementation"
+      )
+    }
+  }
+  invisible(NULL)
+}
+
 drm_julia_refuse_ordinary_mean_re_unlabelled <- function(formula, family_type) {
   if (!(family_type %in% drm_julia_ordinary_mean_re_unlabelled_families())) {
     return(invisible(NULL))
@@ -4250,6 +4280,11 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
   if (length(ordinary_resd) > 0L) {
     labels[["resd"]] <- names(ordinary_resd)[[1L]]
   }
+  # #1756: Gaussian `(1 | g) + (0 + x | g)` (same group, independent slope)
+  # reaches DRM.jl's multi-component route, which reports two SD coordinates,
+  # `resd_g` and `resd_g:x`. Echo them so the label check does not abort.
+  same_group_ind <- drm_julia_gaussian_same_group_ind_resd_labels(formula, family_type)
+  if (!is.null(same_group_ind)) labels[["resd"]] <- same_group_ind
   ordinary_binomial_recov <- drm_julia_ordinary_binomial_recov_label(
     formula = formula,
     family_type = family_type
@@ -4280,6 +4315,24 @@ drm_julia_bridge_payload_coef_labels <- function(formula, data, env, family_type
 # (`R/drmTMB.R`), the SAME name the native TMB engine's `sdpars$sigma` uses
 # for this construct, so a Julia fit's `sdpars` names the same random-effect
 # term identically to a TMB fit of the same formula.
+# #1756: SD labels DRM.jl uses for a Gaussian mu `(1 | g) + (0 + x | g)`:
+# the intercept component is `g`, the slope component `g:x`. NULL otherwise.
+drm_julia_gaussian_same_group_ind_resd_labels <- function(formula, family_type) {
+  spec <- drm_julia_conditional_gaussian_components_spec(
+    formula, family_type, allow_same_group = TRUE
+  )
+  if (is.null(spec) || length(spec$components) < 2L) return(NULL)
+  comps <- spec$components
+  groups <- vapply(comps, `[[`, character(1L), "group")
+  if (!anyDuplicated(groups)) return(NULL)
+  # DRM.jl qualifies only slope components on a repeated group.
+  vapply(comps, function(cmp) {
+    if (identical(cmp$loading_source, "(Intercept)") || sum(groups == cmp$group) == 1L) {
+      cmp$group
+    } else paste0(cmp$group, ":", cmp$loading_source)
+  }, character(1L))
+}
+
 drm_julia_ordinary_nonmu_resd_map <- function(formula) {
   ordinary_nonmu_dpar_names <- c(sigma = "logsigma")
   map <- list()
@@ -4602,6 +4655,65 @@ drm_julia_reml_objective_at <- function(fit, beta, Lambda, rho12 = NULL) {
   )
 }
 
+# Families whose DRM.jl `drm()` method accepts `marginal = :Laplace` on an
+# ordinary mean `(1 | g)` with an `sd(g)` formula (DRM.jl ordinary_laplace.jl,
+# binomial_sd_regression.jl, tweedie.jl, student.jl). Routes with no Julia
+# Laplace option (beta_binomial, cumulative_logit, hurdle/zero-inflated and
+# the other families) are not listed and keep their current behaviour.
+drm_julia_ordinary_laplace_families <- function() {
+  c("poisson", "nbinom2", "gamma", "beta", "binomial", "student", "tweedie")
+}
+
+# TRUE when the bridge should send `marginal = "Laplace"`: ML, one of the
+# families above, exactly one ordinary mean intercept bar `(1 | g)` whose group
+# has the one ordinary `sd(g, ...)` entry, only fixed-effect `sigma` / `nu`
+# entries besides, and no offset. Every other shape returns FALSE, so DRM.jl
+# keeps its default integrator there rather than refusing the call.
+drm_julia_ordinary_laplace_admitted <- function(formula, family_type, method) {
+  if (!identical(method, "ML") ||
+      !(family_type %in% drm_julia_ordinary_laplace_families())) {
+    return(FALSE)
+  }
+  sd_groups <- character()
+  for (entry in formula$entries) {
+    if (any(all.names(entry$rhs) == "offset")) {
+      return(FALSE)
+    }
+    if (identical(entry$dpar, "mu")) {
+      next
+    }
+    if (!is.null(entry$lhs) && is_random_scale_lhs(entry$lhs)) {
+      target <- parse_sd_lhs(entry$lhs)
+      ordinary <- identical(target$fun, "sd") && is.na(target$level) &&
+        (is.na(target$target_dpar) || identical(target$target_dpar, "mu"))
+      if (!ordinary) {
+        return(FALSE)
+      }
+      sd_groups <- c(sd_groups, target$group)
+      next
+    }
+    if (!(entry$dpar %in% c("sigma", "nu")) ||
+        any(vapply(flatten_plus_terms(entry$rhs), is_random_bar_call, logical(1L)))) {
+      return(FALSE)
+    }
+  }
+  mu <- Filter(function(entry) identical(entry$dpar, "mu"), formula$entries)
+  if (length(mu) != 1L || length(sd_groups) != 1L) {
+    return(FALSE)
+  }
+  terms <- extract_random_mu_terms(mu[[1L]]$rhs, "mu")$terms
+  length(terms) == 1L &&
+    identical(terms[[1L]]$type, "intercept") &&
+    identical(terms[[1L]]$group, sd_groups)
+}
+
+drm_julia_bridge_sigma <- function(sigma) {
+  if (is.list(sigma) && identical(names(sigma), "trials")) {
+    return(list())
+  }
+  sigma
+}
+
 drm_julia_bridge_payload <- function(
   formula,
   family_type,
@@ -4641,6 +4753,20 @@ drm_julia_bridge_payload <- function(
     method = method,
     control_overrides = control_overrides
   )
+  # SHINICHI-1846-1117 (P6a option 3): on an ordinary mean `(1 | g)` with its
+  # `sd(g)` formula, native drmTMB integrates the group effect by the Laplace
+  # approximation while DRM.jl defaults to adaptive quadrature, so the two
+  # engines report slightly different logLik and estimates on the same model.
+  # Ask DRM.jl for its drmTMB-convention Laplace route here so that switching
+  # `engine` gives drmTMB's answer. DRM.jl's own default is unchanged, and a
+  # `marginal` already present in `options` is kept.
+  if (
+    is.null(phylo_payload) &&
+      is.null(options$marginal) &&
+      drm_julia_ordinary_laplace_admitted(formula, family_type, method)
+  ) {
+    options$marginal <- "Laplace"
+  }
   # Design 258 section 7.1: the Julia call carries only formula/family/data/
   # tree/options, so `coef_labels` travels INSIDE `options` (the bridge's
   # free-form channel) as options$coef_labels -- a list keyed by dpar of
@@ -7162,8 +7288,8 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     "estim_method", "infocrit_basis")
   if (identical(version, "v3")) required <- c(setdiff(required, "resolved_priors_v2"), "resolved_priors_v3", "sd_prior_contributions")
   if (!all(required %in% names(result)) || any(vapply(result[required], is.null, logical(1)))) fail("missing result fields")
-  if (!identical(result$prior_contract, paste0("parameter_priors_", version))) fail("contract")
-  if (!identical(result$estim_method, "MAP") || !identical(result$infocrit_basis, "unavailable")) fail("estimator status")
+  if (!identical(result[["prior_contract"]], paste0("parameter_priors_", version))) fail("contract")
+  if (!identical(result[["estim_method"]], "MAP") || !identical(result[["infocrit_basis"]], "unavailable")) fail("estimator status")
   normalize_record <- function(x) {
     if (!is.list(x) || is.null(names(x)) || anyDuplicated(names(x)) || !is.character(x$kind) || length(x$kind) != 1L) fail("invalid prior record")
     common <- c("spec_index", "kind", "class", "dpar", "coef")
@@ -7197,7 +7323,7 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
         !identical(record$measure, "natural_sd") || record$shape <= 1 || record$rate <= 0 ||
         record$spec_index < 1 || record$spec_index != floor(record$spec_index)) fail("SD prior target or parameters")
   }
-  coords <- result$working_coordinates
+  coords <- result[["working_coordinates"]]
   if (!is.character(coords) || !length(coords) || anyNA(coords) || any(!nzchar(coords)) || anyDuplicated(coords)) fail("working coordinates")
   if (!is.null(expected_coordinates) && !identical(coords, expected_coordinates)) fail("working coordinate identities")
   vec <- function(x, n, name) {
@@ -7205,8 +7331,8 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     as.double(x)
   }
   n <- length(coords)
-  working <- vec(result$working_values, n, "working values")
-  reported <- vec(result$coefficients, n, "reported coefficients")
+  working <- vec(result[["working_values"]], n, "working values")
+  reported <- vec(result[["coefficients"]], n, "reported coefficients")
   if (!identical(working, reported)) fail("working values differ from reported coefficients")
   scalars <- c("data_nll", "data_logLik", "loglik", "fixed_prior_penalty", "sd_prior_penalty", "penalized_objective")
   for (k in scalars) vec(result[[k]], 1L, k)
@@ -7216,7 +7342,7 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
   sd_gradient <- numeric(n)
   sd_penalty <- 0
   sd_indices <- integer()
-  contributions <- result$sd_prior_contributions
+  contributions <- result[["sd_prior_contributions"]]
   if (identical(version, "v3") && (!is.list(contributions) || length(contributions) != length(sd_records))) fail("SD contribution count")
   for (i in seq_along(sd_records)) {
     record <- sd_records[[i]]
@@ -7244,8 +7370,8 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     }
     sd_penalty <- sd_penalty + penalty
   }
-  if (!close(result$sd_prior_penalty, sd_penalty)) fail("SD prior penalty")
-  if (!close(result$sd_prior_gradient, sd_gradient)) fail("SD prior gradient")
+  if (!close(result[["sd_prior_penalty"]], sd_penalty)) fail("SD prior penalty")
+  if (!close(result[["sd_prior_gradient"]], sd_gradient)) fail("SD prior gradient")
   fixed_penalty <- 0
   fixed_gradient <- numeric(n)
   fixed_indices <- integer()
@@ -7275,11 +7401,11 @@ drm_julia_validate_prior_v2_result <- function(result, expected, expected_coordi
     fixed_gradient[[index]] <- derivative
   }
   if (!is.finite(fixed_penalty)) fail("fixed prior penalty outside numeric range")
-  if (!close(result$fixed_prior_penalty, fixed_penalty)) fail("fixed prior penalty")
-  if (!close(result$fixed_prior_gradient, fixed_gradient)) fail("fixed prior gradient")
-  if (!close(result$data_logLik, -result$data_nll) || !close(result$loglik, result$data_logLik)) fail("data likelihood")
-  if (!close(result$penalized_objective, result$data_nll + result$fixed_prior_penalty + result$sd_prior_penalty)) fail("objective decomposition")
-  if (!close(result$penalized_gradient, result$data_gradient + result$fixed_prior_gradient + result$sd_prior_gradient)) fail("gradient decomposition")
+  if (!close(result[["fixed_prior_penalty"]], fixed_penalty)) fail("fixed prior penalty")
+  if (!close(result[["fixed_prior_gradient"]], fixed_gradient)) fail("fixed prior gradient")
+  if (!close(result[["data_logLik"]], -result[["data_nll"]]) || !close(result[["loglik"]], result[["data_logLik"]])) fail("data likelihood")
+  if (!close(result[["penalized_objective"]], result[["data_nll"]] + result[["fixed_prior_penalty"]] + result[["sd_prior_penalty"]])) fail("objective decomposition")
+  if (!close(result[["penalized_gradient"]], result[["data_gradient"]] + result[["fixed_prior_gradient"]] + result[["sd_prior_gradient"]])) fail("gradient decomposition")
   invisible(TRUE)
 }
 
@@ -7973,7 +8099,10 @@ new_drmTMB_julia <- function(
       result[["conditional_structured"]]
     ),
     residuals = drm_julia_plain(result[["residuals"]]),
-    sigma = drm_julia_plain(result[["sigma"]]),
+    # DRM.jl's Binomial `marginal = :Laplace` route stores the trial counts in
+    # `scales` under `trials`; they are not a sigma, so keep `sigma()` empty as
+    # on the default Binomial route.
+    sigma = drm_julia_bridge_sigma(drm_julia_plain(result[["sigma"]])),
     corpairs = drm_julia_plain(result[["corpairs"]]),
     opt = drm_julia_opt_slot(result),
     # #1108 / DRM.jl #632: the bridge attaches "gradient" (index-aligned with
