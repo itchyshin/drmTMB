@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* A fixed-effect factor with fewer than two levels present in the data now
+  aborts with class `drmTMB_one_level_factor` and names the column, instead
+  of `model.matrix()`'s contrasts error. The same applies to a one-value
+  character predictor. Factors with two or more levels still drop unused
+  levels and fit (#1731).
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).

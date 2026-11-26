@@ -15558,6 +15558,26 @@ drm_droplevels_fixed_predictors <- function(data, formula) {
   }
   cols <- setdiff(intersect(unique(use), names(data)), unique(protect))
   for (col in cols) {
+    column <- data[[col]]
+    if (is.factor(column) || is.character(column)) {
+      present <- column[!is.na(column)]
+      used <- unique(as.character(present))
+      if (length(used) < 2L) {
+        detail <- if (length(used) == 0L) {
+          "{.field {col}} has no non-missing values in {.arg data}."
+        } else {
+          "{.field {col}} has only {length(used)} level{?s} present in {.arg data}: {.val {used}}."
+        }
+        cli::cli_abort(
+          c(
+            "Fixed-effect factor {.field {col}} must have at least two levels.",
+            "x" = detail,
+            "i" = "Remove {.field {col}} from the formula, or keep observations from at least two levels."
+          ),
+          class = "drmTMB_one_level_factor"
+        )
+      }
+    }
     if (is.factor(data[[col]])) {
       dropped <- setdiff(levels(data[[col]]), levels(droplevels(data[[col]])))
       if (length(dropped) > 0L) {
