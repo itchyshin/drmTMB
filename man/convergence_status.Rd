@@ -21,22 +21,39 @@ convergence_status(object, ...)
 \item{...}{Reserved for future options.}
 }
 \value{
-One of \code{"converged"}, \code{"boundary"}, or \code{"degenerate"}.
+One of \code{"converged"}, \code{"not_converged"}, \code{"boundary"}, or
+\code{"degenerate"}.
 }
 \description{
 \code{convergence_status()} returns a short character label for programmatic
-workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit can report
-optimizer code \code{0} while the likelihood geometry is degenerate (no proper
-maximum or non-finite uncertainty); such fits return \code{"degenerate"} even
-when \code{multi_start} selected among several starts. Fixed-effect binomial
-separation, Poisson / NB2 rays with no finite MLE, and an unbounded
-continuous location-scale likelihood are included in that geometry.
-\code{"boundary"} marks an optimizer-converged fit with variance-component,
-residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
-parameters near an interpretability boundary. \code{\link[=is_converged]{is_converged()}} and
-\code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
-\code{"converged"}. Numeric predicates are identical in DRModels.jl
-(\code{docs/design/278-twin-convergence-status.md}).
+workflows. A fit is \code{"converged"} only at an interior optimum with usable
+standard errors. Statuses are tested in this order and the first match
+wins; every non-converged status is a warning, never an error:
+}
+\details{
+\describe{
+\item{\code{"not_converged"}}{The optimizer did not finish, the
+log-likelihood is not finite, or the Newton step in SE units from the
+stored gradient, \code{max_i |(H^-1 g)_i| / SE_i}, exceeds 1e-3.}
+\item{\code{"boundary"}}{The optimizer finished but a random-effect SD is
+near zero, a residual correlation is near +/-1, a temporal parameter
+is at its limit, or the residual SD has collapsed (the Heywood case).
+This is tested before the Hessian, so a boundary fit never reads
+\code{"degenerate"}. Random-effect SDs on the response scale are compared
+with the response SD, so the cut-off does not depend on the units of
+\code{y}.}
+\item{\code{"degenerate"}}{The Hessian is singular, a standard error is
+non-finite or inflated, the fixed-effect design is aliased, or the
+likelihood has no finite maximiser (separation, Poisson / NB2 rays,
+unbounded location-scale).}
+}
+
+\code{\link[=is_converged]{is_converged()}} and \code{\link[=converged]{converged()}} are \code{TRUE} only for \code{"converged"}.
+Boundary fits are valid estimates: summaries that compare engines or
+recover variances should filter on the status rather than drop them.
+\code{\link[=convergence_info]{convergence_info()}} returns the full set of fields, including
+\code{boundary_params} (name and kind). Numeric predicates are shared with
+DRModels.jl (\code{docs/design/278-twin-convergence-status.md}).
 }
 \examples{
 set.seed(20260916)
