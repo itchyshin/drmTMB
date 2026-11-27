@@ -4675,6 +4675,7 @@ drm_build_gaussian_ls_spec <- function(
 
   meta <- extract_meta_known_v(mu_entry$rhs)
   mu_entry$rhs <- meta$rhs
+  V_known_full <- evaluate_known_v(meta$V, data, env)
   mu_temporal <- extract_gaussian_mu_temporal_term(mu_entry)
   mu_entry$rhs <- mu_temporal$rhs
   validate_temporal_raw_data(mu_temporal$term, data)
@@ -5077,7 +5078,6 @@ drm_build_gaussian_ls_spec <- function(
     ))
   }
 
-  V_known_full <- evaluate_known_v(meta$V, data, env)
   V_known_model <- subset_known_v(V_known_full, model_keep, validate = FALSE)
   keep <- model_keep
   keep[model_keep] <- known_v_complete(V_known_model)
@@ -21274,9 +21274,10 @@ evaluate_known_v <- function(expr, data, env) {
   value <- eval(expr, envir = data, enclos = env)
   if (is.matrix(value)) {
     if (nrow(value) != nrow(data) || ncol(value) != nrow(data)) {
-      cli::cli_abort(
-        "{.arg V} matrix must have one row and one column per observation."
-      )
+      cli::cli_abort(c(
+        "{.fn meta_V} requires a known sampling covariance matrix with one row and one column per observation.",
+        "x" = "{.arg V} is {nrow(value)} by {ncol(value)}, but {.arg data} has {nrow(data)} row{?s}."
+      ))
     }
     if (!is.numeric(value)) {
       cli::cli_abort("{.arg V} matrix must be numeric.")
@@ -21286,10 +21287,17 @@ evaluate_known_v <- function(expr, data, env) {
     }
     return(new_known_v(value, type = "matrix"))
   }
-  if (!is.numeric(value) || length(value) != nrow(data)) {
-    cli::cli_abort(
-      "{.arg V} must evaluate to a numeric vector of known sampling variances."
-    )
+  if (!is.numeric(value)) {
+    cli::cli_abort(c(
+      "{.fn meta_V} requires {.arg V} to evaluate to a numeric vector of known sampling variances.",
+      "i" = "Pass one known sampling variance per row, for example {.code meta_V(V = vi)} with {.code length(vi) == nrow(data)}."
+    ))
+  }
+  if (length(value) != nrow(data)) {
+    cli::cli_abort(c(
+      "{.fn meta_V} requires one known sampling variance per row of {.arg data}.",
+      "x" = "{.arg V} has length {length(value)}, but {.arg data} has {nrow(data)} row{?s}."
+    ))
   }
   new_known_v(as.numeric(value), type = "diagonal")
 }
