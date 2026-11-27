@@ -25,9 +25,12 @@ levels. Transformed predictor terms, such as \code{log(size)}, must also
 evaluate to finite design-matrix values.}
 
 \item{dpar}{Distributional parameter to predict. If \code{NULL}, the first
-fitted distributional parameter is used. For \code{type = "quantile"} on a
-bivariate \code{biv_gaussian} fit, \code{dpar} instead selects which response's
-marginal quantile to compute (see Details).}
+fitted distributional parameter is used (for bivariate
+\code{biv_gaussian()}, \code{biv_student()}, and \code{biv_lognormal()} fits that is
+typically \code{mu1}, so default \code{predict()} returns a length-\code{n} vector, not the
+\verb{n \\times 2} matrix from \code{\link[=fitted.drmTMB]{fitted.drmTMB()}} on the fitted rows). For
+\code{type = "quantile"} on a bivariate \code{biv_gaussian} fit, \code{dpar} instead
+selects which response's marginal quantile to compute (see Details).}
 
 \item{type}{Prediction scale: \code{"response"}, \code{"link"}, \code{"quantile"}, or
 \code{"mean"}. \code{"mean"} returns the response mean \code{E[Y]} and takes no \code{dpar}
@@ -130,13 +133,13 @@ unreliable near the clamp (see the rescaling advice there).
 
 For predictor-dependent random-effect SD parameters (for example
 \code{dpar = "sd(id)"} or \code{"sd_animal(id)"}), the value is the SD multiplier
-\code{exp(W beta)} on the latent effect, not a marginal SD. When the effect is
+\verb{exp(W beta)} on the latent effect, not a marginal SD. When the effect is
 structured (\code{animal()}, \code{relmat()}, \code{phylo()}, \code{spatial()}), the multiplier
 applies to the supplied kernel as given, so the marginal SD of group \code{g} is
 \code{multiplier * sqrt(C_gg)}; \code{predict()} never returns that product. For a
 unit-diagonal kernel the two agree. \code{type = "link"} is the log SD after the
 same soft clamp the likelihood applies (the identity inside \verb{[-12, 12]},
-saturating towards \verb{[-15, 15]}), not the raw \code{W beta}; \code{type = "response"}
+saturating towards \verb{[-15, 15]}), not the raw \verb{W beta}; \code{type = "response"}
 is its exponential. With \code{newdata = NULL} the result has one value per fitted
 group, named by group level. With \code{newdata}, each row is one group-level row
 (not an observation row): the result has one value per row, named by
