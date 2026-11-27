@@ -7194,6 +7194,25 @@ predict_random_scale_dpar <- function(
       cli::cli_abort("{.arg newdata} must be a data frame.")
     }
     newdata <- drm_prepare_random_scale_newdata(sd_target, newdata, dpar)
+    group_name <- sd_target$group[[dpar]]
+    if (
+      length(group_name) == 1L &&
+        is.character(group_name) &&
+        !is.na(group_name) &&
+        group_name %in% names(newdata)
+    ) {
+      terms_sd <- sd_target$terms_list[[dpar]]
+      mf_sd <- stats::model.frame(
+        terms_sd,
+        data = newdata,
+        na.action = stats::na.pass
+      )
+      group <- factor(
+        as.character(newdata[[group_name]]),
+        levels = sd_target$group_levels_list[[dpar]]
+      )
+      validate_sd_mu_group_constant(mf_sd, group, dpar, group_name)
+    }
     X <- stats::model.matrix(sd_target$terms_list[[dpar]], data = newdata)
     drm_validate_prediction_matrix_finite(X, dpar)
     names_out <- rownames(newdata)

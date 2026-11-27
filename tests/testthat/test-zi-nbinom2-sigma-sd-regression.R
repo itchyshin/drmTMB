@@ -131,3 +131,56 @@ test_that("ZI-NB2 sigma SD design rejects within-group predictor variation", {
     "varies within id level"
   )
 })
+
+test_that("ZI-NB2 sigma SD predict rejects w varying within id in newdata (#1922)", {
+  set.seed(112701L)
+  groups <- 8L
+  each <- 30L
+  gw <- seq(-1, 1, length.out = groups)
+  grp <- factor(rep(seq_len(groups), each = each))
+  dat <- data.frame(
+    y = stats::rnbinom(length(grp), mu = 2, size = 2),
+    id = grp,
+    w = gw[as.integer(grp)]
+  )
+  target <- 'sd(id, dpar = "sigma")'
+  fit <- drmTMB::drmTMB(
+    drmTMB::bf(
+      y ~ 1,
+      sigma ~ 1 + (1 | id),
+      zi ~ 1,
+      sd(id, dpar = "sigma") ~ w
+    ),
+    family = drmTMB::nbinom2(),
+    data = dat,
+    control = list(iter.max = 400L)
+  )
+  nd_bad <- dat[31:35, ]
+  nd_bad$w <- c(-0.71, -0.5, 0, 0.5, 0.99)
+  expect_error(
+    stats::predict(fit, newdata = nd_bad, dpar = target, type = "link"),
+    "varies within id level"
+  )
+
+  sim <- zi_nbinom2_sigma_sd_fixture(groups = 8L, repeats = 30L, seed = 112701L)
+  fit_ok <- drmTMB::drmTMB(
+    drmTMB::bf(
+      y ~ 1,
+      sigma ~ 1 + (1 | id),
+      zi ~ 1,
+      sd(id, dpar = "sigma") ~ w
+    ),
+    family = drmTMB::nbinom2(),
+    data = sim$data,
+    control = list(iter.max = 400L)
+  )
+  id_level <- "2"
+  nd_ok <- data.frame(
+    id = id_level,
+    w = sim$group_w[[id_level]]
+  )
+  ref <- stats::predict(fit_ok, dpar = target, type = "link")[[id_level]]
+  pred <- stats::predict(fit_ok, newdata = nd_ok, dpar = target, type = "link")
+  expect_length(pred, 1L)
+  expect_equal(unname(pred), unname(ref), tolerance = 1e-10)
+})
