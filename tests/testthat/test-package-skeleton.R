@@ -520,3 +520,13 @@ test_that("corpair formulas validate grammar and unsupported fits clearly", {
     "location-location only"
   )
 })
+
+test_that("drm_formula() print and env helpers round-trip user syntax", {
+  expect_error(drm_formula(), "requires at least one formula")
+  form <- bf(mu = y ~ x, sigma ~ z)
+  expect_invisible(print(form))
+  form$env <- NULL
+  expect_identical(drmTMB:::drm_formula_env(form, globalenv()), globalenv())
+  form$env <- environment()
+  expect_identical(drmTMB:::drm_formula_env(form, globalenv()), environment())
+})
