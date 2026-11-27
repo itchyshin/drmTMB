@@ -20,7 +20,7 @@ test_that("drm_prepare_gaussian_mi_setup() requires predictor=model when mi() is
     prep(rhs, list(z = impute_model(z ~ 1)), drop, allow_k2 = FALSE),
     "predictor = \"model\""
   )
-  empty <- prep(quote(x), NULL, miss_control(predictor = "model"), allow_k2 = FALSE)
+  empty <- prep(quote(x), NULL, miss_control(), allow_k2 = FALSE)
   expect_false(empty$enabled)
 })
 
