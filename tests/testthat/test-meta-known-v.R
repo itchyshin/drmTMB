@@ -459,6 +459,29 @@ test_that("full meta_V removes rows and columns consistently", {
   expect_equal(fit$model$V_known_diag, diag(V)[keep])
 })
 
+test_that("meta_V rejects length-mismatched V with a meta_V-specific error (#1919)", {
+  vi <- c(0.04, 0.02, 0.03, 0.05)
+  dat <- data.frame(
+    yi = c(0.12, 0.08, -0.05, 0.22, 0.31, 0.18)
+  )
+  expect_error(
+    drmTMB(
+      bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "meta_V"
+  )
+  expect_error(
+    drmTMB(
+      bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "length 4"
+  )
+})
+
 test_that("full meta_V rejects invalid covariance matrices", {
   dat <- data.frame(yi = stats::rnorm(4), x = stats::rnorm(4))
   V <- diag(0.01, 4)
