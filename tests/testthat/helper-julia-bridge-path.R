@@ -45,6 +45,31 @@ drm_test_julia_home <- function() {
   home
 }
 
+# When DRM_JL_JULIA_HOME / JULIA_HOME are unset but julia is on PATH, derive
+# JULIA_HOME from Julia's Sys.BINDIR (#1746: -e must be sh-quoted for system2).
+drm_test_julia_bindir_from_path <- function(julia = Sys.which("julia")) {
+  if (!is.character(julia) || length(julia) != 1L || !nzchar(julia)) {
+    return("")
+  }
+  quote_type <- if (.Platform$OS.type == "windows") "cmd" else "sh"
+  tryCatch(
+    {
+      out <- system2(
+        julia,
+        c("-e", shQuote("print(Sys.BINDIR)", type = quote_type)),
+        stdout = TRUE,
+        stderr = FALSE
+      )
+      status <- attr(out, "status")
+      if (!is.null(status) && !identical(status, 0L)) {
+        return("")
+      }
+      paste(out, collapse = "")
+    },
+    error = function(e) ""
+  )
+}
+
 drm_test_set_julia_home <- function() {
   home <- drm_test_julia_home()
   if (nzchar(home)) {
