@@ -274,3 +274,20 @@ test_that("gradient is tested before boundary; non-finite gradient is not_conver
   # The Newton step in SE units is the reported max_gradient, finite here.
   expect_true(is.finite(convergence_info(fit)$max_gradient))
 })
+
+test_that("cars response scaled by 1e4 is not_converged when the gradient is large (#1452)", {
+  set.seed(20261003)
+  fml <- bf(dist ~ speed, sigma ~ speed)
+  d2 <- cars
+  d2$dist <- cars$dist * 1e4
+  fit <- drmTMB(
+    fml,
+    family = gaussian(),
+    data = d2,
+    control = drm_control(logsigma_clamp = c(-30, 30))
+  )
+  expect_identical(fit$opt$convergence, 0L)
+  expect_identical(convergence_status(fit), "not_converged")
+  expect_false(is_converged(fit))
+  expect_gt(convergence_info(fit)$max_gradient, 1e-3)
+})
