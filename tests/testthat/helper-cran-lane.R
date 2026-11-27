@@ -54,7 +54,10 @@ drm_cran_test_contexts <- function() {
     "reader-oldfit-compat",
     "boundary-surfacing",
     "foreign-s3-dispatch",
-    "profile-shape-boundary"
+    "profile-shape-boundary",
+    # Cursor coverage ac2: fast smokes for associate-pairs / adequacy plots /
+    # bootstrap shards / aghq primitives / coevolution guards.
+    "covr-ac2-topup"
   )
 }
 
