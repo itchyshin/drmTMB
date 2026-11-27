@@ -1,0 +1,3 @@
+# After-task: CRAN-lane coverage top-up for R/[a-c]*
+
+A Cloud Agent run added fast characterisation tests for formula printing, control validators, the binomial labelled-q2 gate, and quantile-residual input checks. The goal was measurable coverage under `covr::package_coverage()` on the installed CRAN test lane, without touching production R code. Large associate-pairs / aghq modules remain uncovered and need dedicated integration tests in a later slice.

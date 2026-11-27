@@ -139,3 +139,19 @@ test_that("drm_dunn_smyth_u() is seed-reproducible, bounded, and RNG-neutral", {
 # rule generically from `fd$atoms` rather than a family-specific `y == 0`
 # check, and the batch C test exercises the generic path via
 # `residuals(fit, type = "quantile")`.
+
+test_that("drm_quantile_residuals() and drm_atom_left_limit() validate inputs", {
+  set.seed(1127)
+  dat <- data.frame(y = stats::rnorm(12), x = stats::rnorm(12))
+  fit <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat)
+  expect_error(drm_quantile_residuals(fit, seed = c(1, 2)), "seed")
+  expect_error(drm_quantile_residuals(fit, nsim = 0), "nsim")
+  expect_error(drm_quantile_residuals(list()), "drmTMB")
+  f <- drmTMB:::drm_atom_left_limit
+  y <- c(0, 0.5, 1)
+  upper <- c(0.25, 0.6, 0.9)
+  fd <- list(atoms = 0, d = function(yv) as.numeric(yv == 0) * 0.15)
+  lower <- f(fd, y, upper)
+  expect_equal(lower[1], 0.1)
+  expect_equal(lower[-1], upper[-1])
+})

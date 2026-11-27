@@ -826,3 +826,56 @@ test_that("vcov() still suggests se = TRUE when standard errors were skipped", {
   msg <- tryCatch(stats::vcov(fit), error = conditionMessage)
   expect_match(msg, "se = TRUE", fixed = TRUE)
 })
+
+test_that("internal control validators enforce the public drm_control() contract", {
+  expect_identical(drm_control(logsigma_clamp = NULL)$logsigma_clamp, NULL)
+  expect_error(drm_control(logsigma_clamp = c(1, 1)), "lo < hi")
+  expect_error(drm_control(logsigma_clamp_margin = 0), "positive")
+  expect_error(drm_control(multi_start = 1.5), "whole number")
+  expect_error(drmTMB:::drm_parse_control("not a list"), "list")
+  expect_error(
+    drm_control(optimizer_method = "BFGS", optimizer = list(se = FALSE)),
+    "reserved"
+  )
+  expect_error(
+    drm_control(
+      optimizer_method = "BFGS",
+      optimizer = stats::setNames(list(1, 2), c("maxit", "maxit"))
+    ),
+    "unique"
+  )
+  expect_error(drm_control(fallback_optimizer = "SANN"), "fallback_optimizer")
+  f <- drmTMB:::drm_drop_model_frame_components
+  expect_equal(f(3), 3)
+  x <- list(model_frame = data.frame(a = 1), model_frame_list = list(b = 2))
+  y <- f(x)
+  expect_null(y$model_frame)
+  expect_null(y$model_frame_list)
+  warn <- expect_warning(
+    drmTMB:::drm_sanitize_nlminb_controls(list(zznot_a_real_nlminb_key = 1)),
+    class = "drmTMB_unknown_optimizer_control"
+  )
+  expect_match(conditionMessage(warn), "Unknown", fixed = TRUE)
+})
+
+test_that("drm_binomial_labelled_q2_ok() follows the documented gate table", {
+  ok <- drmTMB:::drm_binomial_labelled_q2_ok
+  labelled_one_slope <- list(
+    type = "animal",
+    covariance_label = "p",
+    coef_names = c("(Intercept)", "x"),
+    variables = "x",
+    structure = "A",
+    group = "g"
+  )
+  sd2 <- list(a = 1, b = 2)
+  expect_true(ok(labelled_one_slope, sd2, "logit"))
+  expect_false(ok(NULL, sd2, "logit"))
+  unlabelled <- labelled_one_slope
+  unlabelled$covariance_label <- NULL
+  expect_false(ok(unlabelled, sd2, "logit"))
+  phylo_term <- labelled_one_slope
+  phylo_term$type <- "phylo"
+  expect_true(ok(phylo_term, sd2, "logit"))
+  expect_false(ok(phylo_term, sd2, "probit"))
+})
