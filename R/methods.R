@@ -2963,9 +2963,12 @@ deviance.drmTMB <- function(object, ...) {
 #'   levels. Transformed predictor terms, such as `log(size)`, must also
 #'   evaluate to finite design-matrix values.
 #' @param dpar Distributional parameter to predict. If `NULL`, the first
-#'   fitted distributional parameter is used. For `type = "quantile"` on a
-#'   bivariate `biv_gaussian` fit, `dpar` instead selects which response's
-#'   marginal quantile to compute (see Details).
+#'   fitted distributional parameter is used (for bivariate
+#'   `biv_gaussian()`, `biv_student()`, and `biv_lognormal()` fits that is
+#'   typically `mu1`, so default `predict()` returns a length-`n` vector, not the
+#'   `n \times 2` matrix from [fitted.drmTMB()] on the fitted rows). For
+#'   `type = "quantile"` on a bivariate `biv_gaussian` fit, `dpar` instead
+#'   selects which response's marginal quantile to compute (see Details).
 #' @param type Prediction scale: `"response"`, `"link"`, `"quantile"`, or
 #'   `"mean"`. `"mean"` returns the response mean `E[Y]` and takes no `dpar`
 #'   (see Details).
@@ -3094,8 +3097,18 @@ predict.drmTMB <- function(
     }
     return(drm_predict_mean(object, newdata = newdata))
   }
+  dpar_was_null <- is.null(dpar)
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
+  }
+  if (
+    dpar_was_null &&
+    type %in% c("response", "link") &&
+    object$model$model_type %in% c(
+      "biv_gaussian", "biv_student", "biv_lognormal"
+    )
+  ) {
+    drm_predict_bivariate_default_dpar_message(object, dpar)
   }
   # Exact match only: SD keys such as `sd(id, coef = "x")` share prefixes, so
   # partial matching could silently resolve to a different SD formula.
@@ -7369,6 +7382,20 @@ drm_is_zero_re_formula <- function(x) {
 
 # The explicit values swapped meaning in #1487; say so once per session to
 # anyone who passes `re.form` explicitly.
+drm_predict_bivariate_default_dpar_message <- function(object, dpar) {
+  other_mu <- if (identical(dpar, "mu1")) "mu2" else "mu1"
+  cli::cli_inform(
+    c(
+      "{.fn predict} with {.code dpar = NULL} returns only {.field {dpar}} (the first fitted location parameter).",
+      "i" = "For both response means on the fitted rows, use {.fn fitted}.",
+      "i" = "For the other response, use {.code predict(fit, dpar = \"{other_mu}\")}."
+    ),
+    class = "drmTMB_predict_bivariate_default_dpar",
+    .frequency = "once",
+    .frequency_id = "drmTMB_predict_bivariate_default_dpar"
+  )
+}
+
 drm_simulate_re_form_semantics_message <- function() {
   cli::cli_inform(
     c(
