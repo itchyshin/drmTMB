@@ -835,6 +835,8 @@ test-temporal-homtoep-identifiability.R	build-premise	build	skips	1
 test-temporal-homtoep-map.R	build-premise	build	skips	1
 test-temporal-homtoep-parser.R	build-premise	build	skips	1
 test-temporal-ou-profile-campaign-assessment.R	build-premise	build	skips	1
+test-tmb-data-pin.R	env-var-optin	environment	skips	1
+test-tmb-data-pin.R	suggests-package	environment	runs	2
 test-tweedie-location-scale.R	suggests-package	environment	runs	1
 test-two-ri-sd-priors.R	env-var-optin	environment	skips	1
 test-two-ri-sd-priors.R	suggests-package	environment	runs	7
