@@ -2358,7 +2358,7 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
 
 #' @rdname model-fit-extractors
 #' @export
-vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
+vcov.drmTMB <- function(object, ..., dpar = NULL, type = "model", robust = FALSE) {
   if (identical(type, "robust") || isTRUE(robust)) {
     cli::cli_abort(
       c(
@@ -2370,7 +2370,11 @@ vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
     )
   }
   if (drm_is_mspl(object)) {
-    return(drm_mspl_vcov(object))
+    out <- drm_mspl_vcov(object)
+    if (!is.null(dpar)) {
+      out <- drm_vcov_subset_dpar(object, out, dpar)
+    }
+    return(out)
   }
   if (drm_has_temporal_mu(object) && identical(
     object$model$structured$temporal_mu$structure, "ou"
@@ -2446,9 +2450,22 @@ vcov.drmTMB <- function(object, ..., type = "model", robust = FALSE) {
   }
   if (drm_has_temporal_mu(object)) {
     mean_labels <- labels[startsWith(labels, "mu:")]
-    return(out[mean_labels, mean_labels, drop = FALSE])
+    out <- out[mean_labels, mean_labels, drop = FALSE]
+    if (!is.null(dpar)) {
+      out <- drm_vcov_subset_dpar(object, out, dpar)
+    }
+    return(out)
+  }
+  if (!is.null(dpar)) {
+    out <- drm_vcov_subset_dpar(object, out, dpar)
   }
   out
+}
+
+drm_vcov_subset_dpar <- function(object, vcov, dpar) {
+  dpar <- match.arg(dpar, names(object$coefficients))
+  keep <- paste0(dpar, ":", names(object$coefficients[[dpar]]))
+  vcov[keep, keep, drop = FALSE]
 }
 
 # Next-step bullet for an unavailable sdreport covariance. Only suggest
@@ -2634,6 +2651,10 @@ drm_standard_error_status <- function(object) {
 #' quantities.
 #'
 #' @param object A `drmTMB` fit.
+#' @param dpar For `vcov()`, an optional distributional-parameter name, such
+#'   as `"mu"`, `"sigma"`, or `"sd(id)"`. When supplied, only the
+#'   fixed-effect covariance block for that parameter is returned. The names
+#'   must match those used by [coef.drmTMB()].
 #' @param ... Reserved for future extractor options.
 #' @param k Numeric penalty per parameter for `AIC()`; the default is `2`.
 #' @param type For `vcov()`, `"model"` (the default) for the model-based
@@ -2663,6 +2684,7 @@ drm_standard_error_status <- function(object) {
 #' AIC(fit)
 #' BIC(fit)
 #' vcov(fit)
+#' vcov(fit, dpar = "mu")
 #'
 #' @section Experimental MSPL fits:
 #' For a fit made with `estimator = "mspl"`, `vcov()` behaves differently from

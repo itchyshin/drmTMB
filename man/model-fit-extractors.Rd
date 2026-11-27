@@ -11,7 +11,7 @@
 \alias{deviance.drmTMB}
 \title{Extract standard model-fit quantities}
 \usage{
-\method{vcov}{drmTMB}(object, ..., type = "model", robust = FALSE)
+\method{vcov}{drmTMB}(object, ..., dpar = NULL, type = "model", robust = FALSE)
 
 \method{logLik}{drmTMB}(object, ...)
 
@@ -27,6 +27,11 @@
 }
 \arguments{
 \item{object}{A \code{drmTMB} fit.}
+
+\item{dpar}{For \code{vcov()}, an optional distributional-parameter name, such
+as \code{"mu"}, \code{"sigma"}, or \code{"sd(id)"}. When supplied, only the
+fixed-effect covariance block for that parameter is returned. The names
+must match those used by \code{\link[=coef.drmTMB]{coef.drmTMB()}}.}
 
 \item{...}{Reserved for future extractor options.}
 
