@@ -4698,8 +4698,13 @@ summary.drmTMB <- function(
         ci_unavailable_status <- "wald_unavailable"
         ci <- empty_summary_confint()
       }
-      coefficient_ci <- ci
       parameter_ci <- ci
+      coefficient_ci <- summary_wald_coefficient_confint(
+        object,
+        ci,
+        ci_parm = ci_parm,
+        level = level
+      )
     } else {
       parameter_ci <- drm_summary_profile_confint(
         object,
@@ -5765,6 +5770,54 @@ empty_summary_confint <- function() {
     profile.message = character(),
     stringsAsFactors = FALSE
   )
+}
+
+summary_ci_parm_fixef_targets <- function(object, ci_parm) {
+  if (is.null(ci_parm) || !is.character(ci_parm)) {
+    return(character(0))
+  }
+  coeff_dpars <- names(object$coefficients)
+  if (!length(coeff_dpars)) {
+    return(character(0))
+  }
+  targets <- drm_profile_targets(object)
+  targets <- targets[targets$target_class == "fixed-effect", , drop = FALSE]
+  if (!nrow(targets)) {
+    return(character(0))
+  }
+  out <- unlist(
+    lapply(unique(ci_parm), function(one) {
+      if (!one %in% coeff_dpars) {
+        return(character(0))
+      }
+      targets$parm[targets$dpar == one]
+    }),
+    use.names = FALSE
+  )
+  unique(out)
+}
+
+summary_wald_coefficient_confint <- function(object, ci, ci_parm, level) {
+  if (is.null(ci) || nrow(ci) == 0L) {
+    return(ci)
+  }
+  fixef_parms <- summary_ci_parm_fixef_targets(object, ci_parm)
+  missing_fixef <- setdiff(fixef_parms, ci$parm)
+  if (!length(missing_fixef)) {
+    return(ci)
+  }
+  if (!drm_has_sdreport_covariance(object)) {
+    return(ci)
+  }
+  fixef_ci <- drm_wald_confint(object, parm = missing_fixef, level = level)
+  if (is.null(fixef_ci) || nrow(fixef_ci) == 0L) {
+    return(ci)
+  }
+  fixef_ci <- fixef_ci[!fixef_ci$parm %in% ci$parm, , drop = FALSE]
+  if (nrow(fixef_ci) == 0L) {
+    return(ci)
+  }
+  rbind(ci, fixef_ci)
 }
 
 drm_summary_add_coefficient_ci <- function(
