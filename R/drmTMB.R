@@ -21628,6 +21628,13 @@ validate_known_v_diag <- function(value) {
   if (any(!is.finite(value) | is.na(value))) {
     cli::cli_abort("{.arg V} must contain finite known sampling variances.")
   }
+  n_zero <- sum(value == 0)
+  if (n_zero > 0L) {
+    cli::cli_warn(c(
+      "{.fn meta_V}: {n_zero} known sampling variance{?s} {?is/are} zero.",
+      "i" = "Observations with zero known sampling variance are treated as known exactly; check that this matches the meta-analysis sampling model."
+    ), class = "drmTMB_meta_v_zero_sampling_variance_warning")
+  }
   if (any(value < 0)) {
     cli::cli_abort(
       "{.arg V} must contain non-negative known sampling variances."

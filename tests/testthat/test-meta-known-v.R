@@ -459,6 +459,25 @@ test_that("full meta_V removes rows and columns consistently", {
   expect_equal(fit$model$V_known_diag, diag(V)[keep])
 })
 
+test_that("meta_V warns when some known sampling variances are zero (#1918)", {
+  set.seed(11270401)
+  K <- 20L
+  vi <- stats::runif(K, 0.02, 0.10)
+  yi <- stats::rnorm(K, mean = 0.30, sd = sqrt(vi + 0.10^2))
+  dat <- data.frame(yi = yi, vi = vi)
+  vi_zero <- vi
+  vi_zero[1] <- 0
+  expect_warning(
+    fit <- drmTMB(
+      bf(yi ~ 1 + meta_V(V = vi_zero), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "zero"
+  )
+  expect_true(is_converged(fit))
+})
+
 test_that("full meta_V rejects invalid covariance matrices", {
   dat <- data.frame(yi = stats::rnorm(4), x = stats::rnorm(4))
   V <- diag(0.01, 4)
