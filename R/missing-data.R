@@ -693,6 +693,33 @@ drm_mask_biv_missing_response_values <- function(object, value) {
   value
 }
 
+drm_mask_biv_simulate_data_frame <- function(object, sims) {
+  missing_data <- object$missing_data
+  if (
+    !is.list(missing_data) ||
+      !identical(missing_data$response_policy, "include") ||
+      is.null(missing_data$observed_y1) ||
+      is.null(missing_data$observed_y2)
+  ) {
+    return(sims)
+  }
+  y1_cols <- grep("_y1$", names(sims), value = TRUE)
+  if (length(y1_cols) == 0L) {
+    return(sims)
+  }
+  for (col_y1 in y1_cols) {
+    col_y2 <- sub("_y1$", "_y2", col_y1)
+    if (!col_y2 %in% names(sims)) {
+      next
+    }
+    mat <- cbind(y1 = sims[[col_y1]], y2 = sims[[col_y2]])
+    mat <- drm_mask_biv_missing_response_values(object, mat)
+    sims[[col_y1]] <- mat[, "y1"]
+    sims[[col_y2]] <- mat[, "y2"]
+  }
+  sims
+}
+
 drm_warn_weak_biv_rho12_identifiability <- function(
   complete_pairs,
   rho12_parameter_count
