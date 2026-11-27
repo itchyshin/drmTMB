@@ -163,6 +163,21 @@ test_that("bivariate Gaussian response masks retain partial-response rows", {
   expect_true(all(is.finite(response[observed_y2, "y2"])))
   expect_true(all(is.finite(pearson[observed_y1, "y1"])))
   expect_true(all(is.finite(pearson[observed_y2, "y2"])))
+
+  sims <- stats::simulate(fit, nsim = 3L, seed = 20261127L, re.form = NULL)
+  expect_equal(nrow(sims), nrow(dat))
+  y1_sim_cols <- grep("_y1$", names(sims), value = TRUE)
+  y2_sim_cols <- grep("_y2$", names(sims), value = TRUE)
+  expect_length(y1_sim_cols, 3L)
+  expect_length(y2_sim_cols, 3L)
+  for (col in y1_sim_cols) {
+    expect_true(all(is.na(sims[!observed_y1, col])))
+    expect_true(all(!is.na(sims[observed_y1, col])))
+  }
+  for (col in y2_sim_cols) {
+    expect_true(all(is.na(sims[!observed_y2, col])))
+    expect_true(all(!is.na(sims[observed_y2, col])))
+  }
 })
 
 test_that("bivariate Gaussian response-mask sentinel cannot leak", {

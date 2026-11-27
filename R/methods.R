@@ -3415,7 +3415,7 @@ simulate.drmTMB <- function(
       out[[paste0("sim_", j, "_y2")]] <-
         mu2 + sigma2 * z2 * shared_scale
     }
-    return(as.data.frame(out))
+    return(drm_mask_biv_simulate_data_frame(object, as.data.frame(out)))
   }
 
   if (identical(object$model$model_type, "skew_normal")) {
@@ -3917,7 +3917,7 @@ simulate.drmTMB <- function(
       out[[paste0("sim_", j, "_y1")]] <- sim_j[, "y1"]
       out[[paste0("sim_", j, "_y2")]] <- sim_j[, "y2"]
     }
-    return(as.data.frame(out))
+    return(drm_mask_biv_simulate_data_frame(object, as.data.frame(out)))
   }
   out <- vector("list", nsim * 2L)
   names(out) <- as.vector(rbind(
@@ -3951,7 +3951,7 @@ simulate.drmTMB <- function(
       out[[paste0("sim_", j, "_y2")]] <- log_y2
     }
   }
-  as.data.frame(out)
+  drm_mask_biv_simulate_data_frame(object, as.data.frame(out))
 }
 
 rskew_normal_public <- function(n, mu, sigma, nu) {
