@@ -540,6 +540,77 @@ test_that("profile target inventory lists fixed effects", {
   expect_true(all(targets$target_type == "direct"))
 })
 
+test_that("confint rejects bare sigma profile target for sigma regression (refs #1939)", {
+  set.seed(1127)
+  x <- stats::rnorm(50)
+  dat <- data.frame(
+    x = x,
+    y = stats::rnorm(50, mean = 1 + 0.5 * x, sd = exp(-0.3 + 0.4 * x))
+  )
+  fit <- drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = dat)
+  stopifnot(is_converged(fit), diff(range(sigma(fit))) > 0.1)
+
+  err <- tryCatch(
+    stats::confint(
+      fit,
+      parm = "sigma",
+      method = "profile",
+      profile_precision = "fast",
+      trace = FALSE
+    ),
+    error = function(e) e
+  )
+  expect_s3_class(err, "drmTMB_confint_scale_alias_error")
+  expect_match(
+    conditionMessage(err),
+    "constant response-scale residual SD",
+    fixed = TRUE
+  )
+  expect_match(
+    conditionMessage(err),
+    "fixef:sigma:x",
+    fixed = TRUE
+  )
+
+  err_summary <- tryCatch(
+    summary(
+      fit,
+      conf.int = TRUE,
+      method = "profile",
+      ci_parm = "sigma",
+      profile_precision = "fast"
+    ),
+    error = function(e) e
+  )
+  expect_s3_class(err_summary, "drmTMB_confint_scale_alias_error")
+
+  ok <- stats::confint(
+    fit,
+    parm = "fixef:sigma:x",
+    method = "profile",
+    profile_precision = "fast",
+    trace = FALSE
+  )
+  expect_true(all(is.finite(ok$lower)))
+  expect_true(all(is.finite(ok$upper)))
+
+  dat4 <- data.frame(
+    y = c(0.2, 0.5, 1.1, 1.4),
+    x = c(-1, 0, 1, 2)
+  )
+  fit4 <- drmTMB(bf(y ~ x, sigma ~ 1), family = gaussian(), data = dat4)
+  ci4 <- stats::confint(
+    fit4,
+    parm = "sigma",
+    method = "profile",
+    profile_precision = "fast",
+    trace = FALSE
+  )
+  expect_s3_class(ci4, "drm_confint")
+  expect_true(all(is.finite(ci4$lower)))
+  expect_true(all(is.finite(ci4$upper)))
+})
+
 test_that("profile_targets exposes available confidence-interval targets", {
   dat <- new_profile_group_data(n_id = 10, n_each = 4, seed = 20260599)
   fit <- drmTMB(

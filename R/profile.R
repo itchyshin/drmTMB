@@ -5633,6 +5633,10 @@ profile_match_targets <- function(targets, parm) {
   index <- match(parm, targets$parm)
   missing_index <- is.na(index)
   if (any(missing_index)) {
+    profile_abort_missing_constant_scale_aliases(
+      targets,
+      parm[missing_index]
+    )
     available <- paste(utils::head(targets$parm, 10L), collapse = ", ")
     cli::cli_abort(c(
       "Unknown profile target{?s}: {.val {parm[missing_index]}}.",
@@ -5640,6 +5644,39 @@ profile_match_targets <- function(targets, parm) {
     ))
   }
   targets[index, , drop = FALSE]
+}
+
+profile_constant_scale_aliases <- function() {
+  c("sigma", "sigma1", "sigma2", "rho12")
+}
+
+profile_abort_missing_constant_scale_aliases <- function(targets, missing_parm) {
+  requested <- intersect(missing_parm, profile_constant_scale_aliases())
+  if (!length(requested)) {
+    return(invisible(NULL))
+  }
+  for (alias in requested) {
+    fixef_parm <- targets$parm[
+      targets$dpar == alias & targets$target_class == "fixed-effect"
+    ]
+    if (!length(fixef_parm)) {
+      next
+    }
+    example_fixef <- utils::head(fixef_parm, 3L)
+    label <- switch(
+      alias,
+      sigma = "residual SD",
+      sigma1 = "residual SD for response 1",
+      sigma2 = "residual SD for response 2",
+      rho12 = "residual correlation",
+      alias
+    )
+    cli::cli_abort(c(
+      "{.code parm = \"{alias}\"} profiles constant response-scale {label} only, not a {.code {alias}} regression.",
+      i = "Profile a coefficient with {.val {example_fixef}}, or supply {.arg newdata} to profile row-specific response-scale {.val {alias}}."
+    ), class = "drmTMB_confint_scale_alias_error")
+  }
+  invisible(NULL)
 }
 
 profile_match_confint_targets <- function(targets, parm, fixed_only) {
@@ -5694,6 +5731,10 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
   }
   missing_index <- is.na(index)
   if (any(missing_index)) {
+    profile_abort_missing_constant_scale_aliases(
+      targets,
+      parm[missing_index]
+    )
     available <- paste(utils::head(targets$parm, 10L), collapse = ", ")
     detail <- if (fixed_only) {
       "Use coefficient labels from summary(fit) or full names such as {.val fixef:mu:x}."
