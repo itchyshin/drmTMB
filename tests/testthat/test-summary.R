@@ -786,6 +786,38 @@ test_that("summary() adds Wald intervals to fixed effects and direct parameters"
   expect_equal(smry$conf.method, "wald")
 })
 
+test_that("summary(conf.int = TRUE, ci_parm = 'rho12') fills rho12 fixed-effect Wald bounds", {
+  set.seed(271127803)
+  n <- 100
+  dat <- data.frame(x = stats::rnorm(n))
+  z1 <- stats::rnorm(n)
+  z2 <- 0.55 * z1 + sqrt(1 - 0.55^2) * stats::rnorm(n)
+  dat$y1 <- 0.2 + 0.4 * dat$x + z1
+  dat$y2 <- -0.1 + 0.25 * dat$x + z2
+  fit <- drmTMB(
+    bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
+    family = biv_gaussian(),
+    data = dat,
+    control = drm_control(parallel = "none", se = TRUE)
+  )
+
+  all_ci <- summary(fit, conf.int = TRUE)
+  sel_ci <- summary(fit, conf.int = TRUE, ci_parm = "rho12")
+  rho_row <- "rho12:(Intercept)"
+
+  expect_equal(
+    all_ci$coefficients[rho_row, c("conf.low", "conf.high", "conf.status")],
+    sel_ci$coefficients[rho_row, c("conf.low", "conf.high", "conf.status")]
+  )
+  expect_true(all(is.finite(unlist(sel_ci$coefficients[rho_row, c("conf.low", "conf.high")]))))
+  expect_equal(sel_ci$coefficients[rho_row, "conf.status"], "wald")
+  expect_equal(
+    unique(sel_ci$coefficients$conf.status[rownames(sel_ci$coefficients) != rho_row]),
+    "not_requested"
+  )
+  expect_true(is.finite(sel_ci$parameters["rho12", "conf.low"]))
+})
+
 test_that("summary() validates confidence interval arguments", {
   dat <- data.frame(y = stats::rnorm(20))
   fit <- drmTMB(bf(y ~ 1), family = gaussian(), data = dat)
