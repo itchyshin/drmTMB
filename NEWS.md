@@ -34,6 +34,18 @@
 
 * In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Confidence intervals and information criteria remain unavailable for active-prior fits. The Julia bridge requires a DRModels.jl version containing the two-intercept prior-table support. Random slopes and correlation priors remain outside this slice.
 
+* `make_tmb_data_core()` no longer carries 17 hand-maintained copies of one
+  54-field data literal. Every family now starts from one shared list of
+  defaults (all fields off) and states only what is specific to it, with the
+  random-effect and `phylo()` field groups shared as blocks. This is the
+  structure that let `has_phylo_mu = 0L` turn a validated `phylo()` term into
+  a silent no-op (#1048); a new field is now added in one place. The change is
+  behaviour-preserving: `tests/testthat/test-tmb-data-pin.R` compares every
+  field (name, type, value) of the data list for every model type, and
+  several random-effect, phylogenetic, known-variance and aggregated variants,
+  against a snapshot taken before the refactor. Reported by Russell Dinnage's
+  independent evaluation (Md-L, #1329).
+
 * A formula transform that produces `NA` or `NaN`, such as `log(x)` or
   `sqrt(x)` on a negative predictor, drops those rows from the response and the
   design.
