@@ -44,14 +44,103 @@ test_that("nlme's fixef generic dispatches to drmTMB's method", {
   expect_true(all(is.finite(unlist(nlme::fixef(fit)))))
 })
 
+julia_fixef_fixture <- function() {
+  result <- list(
+    coef_names = c("mu_(Intercept)", "mu_x"),
+    coefficients = c(0.1, 0.4),
+    vcov = diag(c(0.01, 0.01)),
+    loglik = -5,
+    aic = 14,
+    bic = 15,
+    df = 2L,
+    nobs = 10L,
+    converged = TRUE,
+    fitted = rep(0, 10L),
+    residuals = rep(0, 10L),
+    sigma = 1,
+    corpairs = list()
+  )
+  form <- drmTMB::bf(y ~ x)
+  drmTMB:::new_drmTMB_julia(
+    result = result,
+    call = quote(drmTMB(form, data = dat, engine = "julia")),
+    formula = form,
+    family = stats::gaussian(),
+    data = data.frame(y = rnorm(10), x = rnorm(10)),
+    family_type = "gaussian"
+  )
+}
+
+test_that("nlme's fixef generic dispatches for drmTMB_julia fits (#1660)", {
+  fit <- julia_fixef_fixture()
+  expect_identical(nlme::fixef(fit), drmTMB::fixef(fit))
+  expect_true(all(is.finite(unlist(nlme::fixef(fit)))))
+})
+
+test_that("drmTMB_julia fixef works after pkgload::load_all in a callr subprocess (#1660)", {
+  skip_if_not_installed("callr")
+  pkgdir <- testthat::test_path("..", "..")
+  out <- callr::r(
+    function(pkgdir) {
+      pkgload::load_all(pkgdir, quiet = TRUE)
+      dat <- data.frame(y = rnorm(10), x = rnorm(10))
+      result <- list(
+        coef_names = c("mu_(Intercept)", "mu_x"),
+        coefficients = c(0.1, 0.4),
+        vcov = diag(c(0.01, 0.01)),
+        loglik = -5,
+        aic = 14,
+        bic = 15,
+        df = 2L,
+        nobs = 10L,
+        converged = TRUE,
+        fitted = rep(0, 10L),
+        residuals = rep(0, 10L),
+        sigma = 1,
+        corpairs = list()
+      )
+      form <- drmTMB::bf(y ~ x)
+      fit <- drmTMB:::new_drmTMB_julia(
+        result = result,
+        call = quote(drmTMB(form, data = dat, engine = "julia")),
+        formula = form,
+        family = stats::gaussian(),
+        data = dat,
+        family_type = "gaussian"
+      )
+      drmTMB::fixef(fit)
+    },
+    args = list(pkgdir = pkgdir),
+    show = TRUE,
+    timeout = 60
+  )
+  expect_true(all(is.finite(unlist(out$mu))))
+})
+
 test_that("the methods are registered against nlme, not merely present", {
   # Registration is the whole fix, so assert it structurally rather than
   # inferring it from a call that happened to work. If a future refactor drops
   # the .onLoad hook, this fails even if drmTMB's own generic still works.
-  for (generic in c("fixef", "ranef")) {
+  drmtmb_ns <- asNamespace("drmTMB")
+  nlme_ns <- asNamespace("nlme")
+  for (class in c("drmTMB", "drmTMB_julia", "drmTMB_julia_xfam")) {
+    registered <- utils::getS3method(
+      "fixef", class,
+      optional = TRUE, envir = nlme_ns
+    )
+    expect_false(
+      is.null(registered),
+      info = paste0("fixef.", class, " is not registered on nlme's generic")
+    )
+    expect_identical(
+      registered,
+      get(paste0("fixef.", class), envir = drmtmb_ns)
+    )
+  }
+  for (generic in "ranef") {
     registered <- utils::getS3method(
       generic, "drmTMB",
-      optional = TRUE, envir = asNamespace("nlme")
+      optional = TRUE, envir = nlme_ns
     )
     expect_false(
       is.null(registered),
@@ -59,7 +148,7 @@ test_that("the methods are registered against nlme, not merely present", {
     )
     expect_identical(
       registered,
-      get(paste0(generic, ".drmTMB"), envir = asNamespace("drmTMB"))
+      get(paste0(generic, ".drmTMB"), envir = drmtmb_ns)
     )
   }
 })

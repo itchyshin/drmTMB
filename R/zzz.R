@@ -27,9 +27,15 @@ register_foreign_s3_methods <- function() {
   }
   nlme_ns <- asNamespace("nlme")
   drmtmb_ns <- asNamespace("drmTMB")
-  for (generic in c("fixef", "ranef")) {
-    method <- get(paste0(generic, ".drmTMB"), envir = drmtmb_ns)
-    registerS3method(generic, "drmTMB", method, envir = nlme_ns)
+  foreign_s3 <- list(
+    fixef = c("drmTMB", "drmTMB_julia", "drmTMB_julia_xfam"),
+    ranef = "drmTMB"
+  )
+  for (generic in names(foreign_s3)) {
+    for (class in foreign_s3[[generic]]) {
+      method <- get(paste0(generic, ".", class), envir = drmtmb_ns)
+      registerS3method(generic, class, method, envir = nlme_ns)
+    }
   }
   invisible(TRUE)
 }
