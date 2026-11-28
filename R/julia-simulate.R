@@ -93,11 +93,7 @@ simulate.drmTMB_julia <- function(
       "i" = "Use the default marginal simulation, {.code re.form = NA}."
     ))
   }
-  if (length(nsim) != 1L || is.na(nsim) || nsim < 1L ||
-      nsim != as.integer(nsim)) {
-    cli::cli_abort("{.arg nsim} must be one positive whole number.")
-  }
-  nsim <- as.integer(nsim)
+  nsim <- drm_abort_unless_positive_finite_whole(nsim)
 
   if (!is.null(seed)) {
     had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
@@ -394,11 +390,7 @@ drm_julia_simulate_gamma_animal_sd <- function(
       "i" = "Use the default marginal simulation or {.code re.form = NA}."
     ))
   }
-  if (length(nsim) != 1L || is.na(nsim) || nsim < 1L ||
-      nsim != as.integer(nsim)) {
-    cli::cli_abort("{.arg nsim} must be one positive whole number.")
-  }
-  nsim <- as.integer(nsim)
+  nsim <- drm_abort_unless_positive_finite_whole(nsim)
   if (!is.null(seed)) {
     had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
     old_seed <- if (had_seed) {
@@ -528,11 +520,7 @@ drm_julia_simulate_nbinom2_animal_sd_slope <- function(
       "i" = "Use the default marginal simulation or {.code re.form = NA}."
     ))
   }
-  if (length(nsim) != 1L || is.na(nsim) || nsim < 1L ||
-      nsim != as.integer(nsim)) {
-    cli::cli_abort("{.arg nsim} must be one positive whole number.")
-  }
-  nsim <- as.integer(nsim)
+  nsim <- drm_abort_unless_positive_finite_whole(nsim)
   if (!is.null(seed)) {
     had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
     old_seed <- if (had_seed) {

@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* `nsim` on quantile residuals, pair-association simulation, and Julia
+  random-effect simulation routes now rejects non-finite values such as
+  `Inf` and `NaN`, matching the stricter `simulate()` guard (#1719).
+
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
