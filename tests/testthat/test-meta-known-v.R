@@ -284,6 +284,20 @@ test_that("meta_V works with random-effect scale formulas", {
   )
 })
 
+test_that("meta_V rejects V whose length differs from fit rows (#1919)", {
+  dat <- data.frame(yi = rep(0, 6))
+  vi <- c(0.04, 0.02, 0.03, 0.05)
+  err <- expect_error(
+    drmTMB(
+      bf(yi ~ 1 + meta_V(V = vi), sigma ~ 1),
+      family = gaussian(),
+      data = dat
+    ),
+    "must evaluate to a numeric vector of known sampling variances"
+  )
+  expect_match(conditionMessage(err), "`V`")
+})
+
 test_that("meta_V rejects malformed marker calls", {
   dat <- data.frame(
     yi = stats::rnorm(20),

@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* `meta_V()` documentation now states that known sampling variances or
+  covariance matrices must match the number of rows retained after `drmTMB()`
+  missingness and transform rules, and a length mismatch aborts with an
+  error naming `V` (#1919).
+
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).

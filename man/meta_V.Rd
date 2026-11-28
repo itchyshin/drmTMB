@@ -10,10 +10,14 @@ meta_V(V)
 \item{V}{A column name, vector, diagonal matrix, block-diagonal matrix, or
 full covariance matrix. Diagonal/vector \code{V} represents independent known
 sampling variances. A matrix represents the known covariance among rows.
-\code{meta_V()} matches \code{V} to the model frame by row position after ordinary
-\code{drmTMB()} row handling; it does not reorder a covariance matrix by row
-names or dimnames. Put the rows of \code{data} and the rows and columns of \code{V}
-in the same order before fitting.}
+After \code{drmTMB()} row handling (missing responses, \code{weights}, and formula
+transforms), the length of a vector \code{V} must equal the number of rows used
+in the fit, and a matrix \code{V} must have one row and one column per retained
+row. A shorter or longer \code{V} aborts with an error naming \code{V} rather than
+a generic model-frame row-count message (#1919).
+\code{meta_V()} matches \code{V} to the model frame by row position; it does not
+reorder a covariance matrix by row names or dimnames. Put the rows of
+\code{data} and the rows and columns of \code{V} in the same order before fitting.}
 }
 \value{
 A formula marker; never evaluated by users.
