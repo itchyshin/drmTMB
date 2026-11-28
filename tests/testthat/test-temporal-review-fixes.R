@@ -29,6 +29,9 @@ test_that("temporal checks read the full fixed covariance, not the trimmed vcov(
   expect_true(isTRUE(fit$sdr$pdHess))
   expect_gt(fixed_se[["beta_sigma"]], 1000)
   expect_true(all(sqrt(diag(stats::vcov(fit))) < 1))
+  # Boundary is tested before the Hessian and SE steps (converged rule), so
+  # this white-noise fit reads "boundary"; the inflated SE is still reported
+  # by check_standard_errors_inflated() below.
   expect_identical(convergence_status(fit), "boundary")
   expect_false(is_converged(fit))
   inflated <- drmTMB:::check_standard_errors_inflated(fit)

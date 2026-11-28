@@ -151,14 +151,16 @@ test_that("a paired fit whose residual SD collapses is reported as a boundary fi
   boundary <- rows[rows$check == "temporal_boundary", , drop = FALSE]
   expect_identical(boundary$status, "warning")
   expect_match(boundary$value, "sigma_ratio=")
-  # The new status distinguishes optimizer/gradient failure from a fitted
-  # boundary. Large standard errors are reported separately and do not turn a
-  # boundary fit into a degenerate one.
-  if (!drmTMB:::drm_optimizer_converged(fit) ||
-      fit$relative_gradient > 1e-3) {
+  # Converged rule (SHINICHI-1753-1118): not_converged first, then boundary
+  # (tested before the Hessian), then degenerate. Near this collapsed-SD
+  # boundary, optimizer code 1 is platform-sensitive; it reads not_converged,
+  # and otherwise the fit is a boundary fit whatever its Hessian does.
+  expect_identical(
+    convergence_status(fit),
+    if (!drmTMB:::drm_optimizer_converged(fit)) "not_converged" else "boundary"
+  )
+  if (identical(as.integer(fit$opt$convergence), 1L)) {
     expect_identical(convergence_status(fit), "not_converged")
-  } else {
-    expect_identical(convergence_status(fit), "boundary")
   }
   expect_false(identical(convergence_status(fit), "converged"))
 })

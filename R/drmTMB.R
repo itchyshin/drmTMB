@@ -878,6 +878,7 @@ drm_fit_hessian_diagnostics <- function(obj, opt, sdr, spec) {
   list(
     pd_penalized = isTRUE(diagnostic_sdr$pdHess) &&
       !is.null(hessian_penalized),
+    covariance_penalized = if (isTRUE(diagnostic_sdr$pdHess)) covariance else NULL,
     pd_unpenalized = isTRUE(pd_unpenalized),
     prior_held_params = held,
     hessian_penalized = hessian_penalized,
@@ -1269,6 +1270,9 @@ drm_fit_spec <- function(
   class(fit) <- "drmTMB"
   fit$relative_gradient <- relative_gradient
   fit$pd_hessian <- prior_hessian$pd_penalized
+  if (is.null(sdr) || is.null(sdr$cov.fixed)) {
+    fit$convergence_covariance <- prior_hessian$covariance_penalized
+  }
   if (prior_active) {
     fit$penalized <- TRUE
     fit$penalised <- TRUE

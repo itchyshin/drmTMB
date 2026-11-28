@@ -188,6 +188,7 @@ reference:
       - native_reader_contracts
       - check_drm
       - convergence_status
+      - convergence_info
       - drm_provenance
       - is_converged
       - confint.drmTMB

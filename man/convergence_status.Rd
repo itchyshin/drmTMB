@@ -26,24 +26,37 @@ One of \code{"converged"}, \code{"not_converged"}, \code{"boundary"}, or
 }
 \description{
 \code{convergence_status()} returns a short character label for programmatic
-workflows that need more detail than \code{\link[=is_converged]{is_converged()}}. A fit is
-\code{"converged"} only when the optimizer finished, its relative gradient is
-small, no fitted parameter is at a boundary, and the active objective has
-positive-definite curvature. These four checks define numerical convergence;
-\code{check_drm()} reports likelihood-existence and fixed-effect-rank warnings
-separately, so a numerically converged fit can still need caution before
-inference.
-\code{"boundary"} marks an optimizer-converged fit with a parameter at a
-variance-component, residual-scale clamp, residual-correlation, or temporal
-(OU decay, AR1 persistence) boundary. \code{\link[=is_converged]{is_converged()}} and
-\code{\link[=converged]{converged()}} are the same plain logical: they are \code{TRUE} only for
-\code{"converged"}. Prior fits use the penalized objective for the same four
-numerical checks. The unpenalized Hessian is reported separately; directions
-supported only by prior curvature appear in \code{fit$prior_held_params} and do
-not by themselves change a penalized fit's status. Large but finite standard
-errors remain visible through their uncertainty diagnostics; they are not an
-additional convergence criterion. Julia-engine bridge parity remains a
-separate integration gate.
+workflows. A fit is \code{"converged"} only at an interior optimum with usable
+standard errors. Statuses are tested in this order and the first match
+wins; every non-converged status is a warning, never an error:
+}
+\details{
+\describe{
+\item{\code{"not_converged"}}{The optimizer did not finish, the
+log-likelihood is not finite, or the Newton step in SE units from the
+stored gradient, \code{max_i |(H^-1 g)_i| / SE_i}, exceeds 1e-3.}
+\item{\code{"boundary"}}{The optimizer finished but a random-effect SD is
+near zero, a residual correlation is near +/-1, a temporal parameter
+is at its limit, or the residual SD has collapsed (the Heywood case).
+This is tested before the Hessian, so a boundary fit never reads
+\code{"degenerate"}. Random-effect SDs on the response scale are compared
+with the response SD, so the cut-off does not depend on the units of
+\code{y}.}
+\item{\code{"degenerate"}}{The Hessian is singular, a standard error is
+non-finite or inflated, the fixed-effect design is aliased, or the
+likelihood has no finite maximiser (separation, Poisson / NB2 rays,
+unbounded location-scale). For a prior fit this also includes missing
+gradient or covariance information needed for the Newton-step check.}
+}
+
+\code{\link[=is_converged]{is_converged()}} and \code{\link[=converged]{converged()}} are \code{TRUE} only for \code{"converged"}.
+Boundary fits are valid estimates: summaries that compare engines or
+recover variances should filter on the status rather than drop them.
+\code{\link[=convergence_info]{convergence_info()}} returns the full set of fields, including
+\code{boundary_params} (name and kind). Numeric predicates are shared with
+DRModels.jl (\code{docs/design/278-twin-convergence-status.md}).
+For prior fits, the gradient and covariance describe the penalized
+objective. Unpenalized curvature is reported separately.
 }
 \examples{
 set.seed(20260916)

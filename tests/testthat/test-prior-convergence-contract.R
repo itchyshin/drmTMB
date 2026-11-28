@@ -72,6 +72,8 @@ test_that("convergence status uses four numerical checks, not extra geometry gat
     opt = list(convergence = 0L, objective = 1, par = 0),
     logLik = 0,
     relative_gradient = 0,
+    gradient = 0,
+    convergence_covariance = matrix(1, 1, 1),
     pd_hessian = TRUE,
     pd_hessian_penalised = TRUE,
     sdpars = list(),
@@ -88,7 +90,7 @@ test_that("convergence status uses four numerical checks, not extra geometry gat
 
   expect_identical(drmTMB::convergence_status(fit), "converged")
   fit$penalised <- FALSE
-  expect_identical(drmTMB::convergence_status(fit), "converged")
+  expect_identical(drmTMB::convergence_status(fit), "degenerate")
 })
 
 test_that("no-prior fit output keeps the pre-prior contract", {
@@ -102,6 +104,7 @@ test_that("no-prior fit output keeps the pre-prior contract", {
   expect_false("pd_hessian_unpenalised" %in% names(fit))
   expect_false("prior_held_params" %in% names(fit))
   expect_false("se_type" %in% names(fit))
+  expect_false("convergence_covariance" %in% names(fit))
   expect_true(is.finite(fit$relative_gradient))
   expect_true(is.logical(fit$pd_hessian))
   expect_identical(drmTMB::convergence_status(fit), "converged")
@@ -184,6 +187,13 @@ test_that("prior fits retain both objectives and curvature diagnostics", {
     name = "beta_mu[2]", kind = "fixed_effect"
   )
   expect_identical(drmTMB::convergence_status(prior_held), "converged")
+  missing_gradient <- fit
+  missing_gradient$gradient <- NULL
+  expect_false(drmTMB::is_converged(missing_gradient))
+  missing_covariance <- fit
+  missing_covariance$convergence_covariance <- NULL
+  missing_covariance$sdr <- NULL
+  expect_false(drmTMB::is_converged(missing_covariance))
   held_check <- drmTMB::check_drm(prior_held)
   expect_identical(
     held_check$status[held_check$check == "prior_held_params"],
@@ -191,7 +201,7 @@ test_that("prior fits retain both objectives and curvature diagnostics", {
   )
 
   score_failed <- fit
-  score_failed$relative_gradient <- 1
+  score_failed$gradient <- rep(1e6, length(fit$gradient))
   expect_identical(drmTMB::convergence_status(score_failed), "not_converged")
   hessian_failed <- fit
   hessian_failed$pd_hessian_penalised <- FALSE
@@ -204,6 +214,8 @@ test_that("prior fits retain both objectives and curvature diagnostics", {
   expect_null(fit_no_se$sdr)
   expect_true(fit_no_se$pd_hessian_penalised)
   expect_true(is.logical(fit_no_se$pd_hessian_unpenalised))
+  expect_true(is.finite(drmTMB:::drm_newton_step_se(fit_no_se)))
+  expect_identical(drmTMB::convergence_status(fit_no_se), "converged")
 })
 
 test_that("prior curvature can hold a weak direction without changing status", {
