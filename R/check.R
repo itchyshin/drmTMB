@@ -592,9 +592,47 @@ drm_fixed_effect_design_matrices <- function(object) {
   X
 }
 
+drm_residual_sigma_lower_at_clamp <- function(object) {
+  if (is.null(object$obj) || is.null(object$tmb_state$last.par.best)) {
+    return(FALSE)
+  }
+  spec <- object$model
+  if (isTRUE(spec$has_known_v)) {
+    return(FALSE)
+  }
+  report <- tryCatch(
+    object$obj$report(object$tmb_state$last.par.best),
+    error = function(e) NULL
+  )
+  if (is.null(report)) {
+    return(FALSE)
+  }
+  info <- drm_logsigma_clamp_active(report, spec$tmb_data)
+  if (
+    is.null(info) ||
+      !identical(info$arm, "lower") ||
+      !identical(info$kind, "residual sigma")
+  ) {
+    return(FALSE)
+  }
+  if (identical(spec$model_type, "gaussian")) {
+    y <- spec$y
+    use <- drm_observed_design_rows(spec, length(y))
+    y_obs <- y[use]
+    y_obs <- y_obs[is.finite(y_obs)]
+    if (length(y_obs) > 0L && length(unique(y_obs)) == 1L) {
+      return(FALSE)
+    }
+  }
+  TRUE
+}
+
 drm_inference_at_boundary <- function(object) {
   if (!drm_optimizer_converged(object) || drm_inference_degenerate(object)) {
     return(FALSE)
+  }
+  if (drm_residual_sigma_lower_at_clamp(object)) {
+    return(TRUE)
   }
   rho_row <- check_rho12_boundary(
     object,

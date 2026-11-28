@@ -3689,7 +3689,40 @@ as.matrix.drm_confint <- function(x, ...) {
   mat
 }
 
+warn_confint_infinite_endpoint <- function(out) {
+  if (is.null(out) || !is.data.frame(out) || nrow(out) == 0L) {
+    return(invisible(out))
+  }
+  needed <- c("lower", "upper", "conf.status", "parm")
+  if (!all(needed %in% names(out))) {
+    return(invisible(out))
+  }
+  usable <- out$conf.status %in% c(
+    "wald",
+    "wald_bias_corrected",
+    "profile",
+    "bootstrap"
+  )
+  bad <- usable & (
+    (is.infinite(out$lower) & out$lower < 0) |
+      (is.infinite(out$upper) & out$upper > 0)
+  )
+  if (!any(bad)) {
+    return(invisible(out))
+  }
+  flagged <- out$parm[bad]
+  cli::cli_warn(
+    c(
+      "{cli::qty(flagged)}Confidence interval{?s} for {.val {flagged}} include an infinite endpoint ({.field lower} = -Inf or {.field upper} = +Inf).",
+      "i" = "Read {.fn convergence_status}, {.fn check_drm}, and {.field conf.status} before reporting these limits as a finite confidence interval."
+    ),
+    class = "drmTMB_confint_infinite_endpoint_warning"
+  )
+  invisible(out)
+}
+
 drm_as_confint_table <- function(x) {
+  warn_confint_infinite_endpoint(x)
   class(x) <- c("drm_confint", "data.frame")
   x
 }
