@@ -59,9 +59,9 @@ testthat::test_that('table priors agree across native and Julia bridge routes', 
     unsupported <- zfits$table; unsupported$bridge_payload$options <- options
     expect_error(confint(unsupported,parm='fixef:mu:x',method='profile'),'SD-prior inference is unsupported')
   }
-  expect_error(confint(j,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect or SD prior fits')
+  expect_error(confint(j,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior')
   active <- suppressWarnings(drmTMB(zf,data=z,priors=data.frame(prior='ridge(1)',class='fixef',coef='x'),engine='julia'))
-  expect_error(confint(active,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior fits')
+  expect_error(confint(active,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior')
 })
 
 test_that('table-derived bridge targets reject incorrect backend identities', {
