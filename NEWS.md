@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* New `update()` method for `drmTMB` fits: `update(fit, bf(...))` refits with a new
+  formula and `update(fit, data = ..., REML = TRUE)` replaces other
+  `drmTMB()` arguments, as in lme4 and glmmTMB. Before, `update(fit, ...)`
+  failed with "need an object with call component" (#1241).
+
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
