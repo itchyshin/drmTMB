@@ -1510,7 +1510,7 @@ validate_interval_method <- function(method, choices, caller) {
     ))
   }
 
-  matched <- pmatch(method, choices, duplicates.ok = FALSE)
+  matched <- pmatch(tolower(method), choices, duplicates.ok = FALSE)
   if (is.na(matched)) {
     cli::cli_abort(
       "{.arg method} must be one of {.val {choices}}."
@@ -5694,7 +5694,6 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
   }
   missing_index <- is.na(index)
   if (any(missing_index)) {
-    available <- paste(utils::head(targets$parm, 10L), collapse = ", ")
     detail <- if (fixed_only) {
       "Use coefficient labels from summary(fit) or full names such as {.val fixef:mu:x}."
     } else {
@@ -5703,7 +5702,7 @@ profile_match_confint_targets <- function(targets, parm, fixed_only) {
     cli::cli_abort(c(
       "Unknown confidence-interval target{?s}: {.val {parm[missing_index]}}.",
       i = detail,
-      i = "First available targets: {available}."
+      i = "Available targets: {.val {targets$parm}}."
     ))
   }
   targets[index, , drop = FALSE]
