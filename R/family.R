@@ -355,6 +355,41 @@ drm_abort_base_beta_as_family <- function() {
   )
 }
 
+drm_masked_drm_family_constructor_names <- function() {
+  c(
+    "nbinom2",
+    "lognormal",
+    "student",
+    "skew_normal",
+    "tweedie",
+    "truncated_nbinom2",
+    "cumulative_logit",
+    "zero_one_beta",
+    "beta_binomial",
+    "biv_lognormal",
+    "biv_student"
+  )
+}
+
+drm_abort_masked_glm_family <- function(family) {
+  if (!inherits(family, "family") || inherits(family, "drm_family")) {
+    return(invisible(NULL))
+  }
+  fname <- family$family
+  if (
+    !is.character(fname) ||
+      length(fname) != 1L ||
+      !fname %in% drm_masked_drm_family_constructor_names()
+  ) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(c(
+    "{.code family = {fname}()} resolved to a {.code stats::family} object, not {.pkg drmTMB}'s {.fn {fname}}.",
+    "x" = "Another package on the search path (often {.pkg glmmTMB}) may have masked {.fn {fname}}.",
+    "i" = "Use {.code family = drmTMB::{fname}()}."
+  ))
+}
+
 drm_eval_family_arg <- function(expr, env) {
   if (drm_is_bare_euler_beta_call(expr)) {
     drm_abort_base_beta_as_family()
