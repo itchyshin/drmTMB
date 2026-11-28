@@ -91,9 +91,13 @@
 #' @param profile_engine Profile engine for direct fitted-object targets.
 #'   `"auto"` uses a scalar endpoint solver for direct scale, SD, and
 #'   correlation targets when no [TMB::tmbprofile()] controls are supplied, and
-#'   otherwise uses [TMB::tmbprofile()]. `"endpoint"` requires the scalar
-#'   endpoint solver, while `"tmbprofile"` preserves the previous full-profile
-#'   route for comparison and debugging.
+#'   otherwise uses [TMB::tmbprofile()]. When `"auto"` uses
+#'   [TMB::tmbprofile()] without user controls, each interval limit is then
+#'   solved on the constrained profile between the two grid points that
+#'   bracket it, rather than read off by linear interpolation. `"endpoint"`
+#'   requires the scalar endpoint solver, while `"tmbprofile"` preserves the
+#'   previous full-profile route, with interpolated limits, for comparison and
+#'   debugging.
 #' @param profile_endpoint_max_eval Optional positive whole number limiting
 #'   constrained endpoint evaluations per endpoint side when the scalar
 #'   endpoint engine is used. This is a diagnostic escape hatch for long
@@ -3817,6 +3821,7 @@ drm_profile_target_confint <- function(
       target = target,
       level = level,
       trace = trace,
+      refine_endpoints = identical(profile_engine, "auto"),
       ...
     ),
     error = function(err) err
@@ -3902,11 +3907,14 @@ drm_profile_ytol_for_level <- function(level) {
   max(2, stats::qchisq(level, df = 1) / 2 + 0.5)
 }
 
+# `refine_endpoints = FALSE` keeps the explicit `profile_engine = "tmbprofile"`
+# route identical to `confint()` on the `TMB::tmbprofile()` grid.
 drm_profile_target_tmbprofile_confint <- function(
   object,
   target,
   level,
   trace,
+  refine_endpoints = FALSE,
   ...
 ) {
   lincomb <- profile_lincomb(object, target)
@@ -3949,10 +3957,17 @@ drm_profile_target_tmbprofile_confint <- function(
     ))
   }
   ci <- drm_tmbprofile_confint(prof, target_name = target$parm, level = level)
-  interval <- profile_transform_interval(
-    c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"])),
-    target
-  )
+  link_interval <- c(unname(ci[1L, "lower"]), unname(ci[1L, "upper"]))
+  if (isTRUE(refine_endpoints)) {
+    link_interval <- drm_tmbprofile_refine_interval(
+      object = object,
+      profile = prof,
+      lincomb = lincomb,
+      interval = link_interval,
+      level = level
+    )
+  }
+  interval <- profile_transform_interval(link_interval, target)
   # `TMB:::confint.tmbprofile` anchors at which.min(prof$value) -- the observed
   # grid minimum -- not at the fitted optimum. If the warm-started inner solve
   # inside `TMB::tmbprofile` found a lower objective than the fit, the anchor
@@ -4989,6 +5004,115 @@ drm_tmbprofile_confint <- function(profile, target_name, level) {
       )
     }
   )
+}
+
+# Linear interpolation between `TMB::tmbprofile()` grid points cuts a convex
+# profile short: the chord reaches the likelihood-ratio cutoff before the
+# profile does, so the interval is too narrow wherever the grid is coarse and
+# the profile bends (#1738). For a single-parameter target, solve the cutoff
+# equation between the two grid points that bracket each interpolated endpoint
+# with the constrained endpoint evaluator. The cutoff keeps the grid anchor
+# used by `drm_tmbprofile_confint()`. A side that cannot be bracketed or
+# solved keeps its interpolated value.
+drm_tmbprofile_refine_interval <- function(
+  object,
+  profile,
+  lincomb,
+  interval,
+  level,
+  root_tol = 1e-4
+) {
+  position <- which(lincomb != 0)
+  if (
+    !inherits(profile, "tmbprofile") ||
+      is.null(object$obj) ||
+      length(position) != 1L ||
+      !isTRUE(lincomb[[position]] == 1) ||
+      length(interval) != 2L ||
+      !any(is.finite(interval))
+  ) {
+    return(interval)
+  }
+  theta <- profile[[1L]]
+  value <- profile$value
+  minimum <- which.min(value)
+  if (!length(minimum)) {
+    return(interval)
+  }
+  nll_anchor <- value[[minimum]]
+  cutoff <- stats::qchisq(level, df = 1) / 2
+  rows <- seq_along(value)
+  sides <- list(rows[rows <= minimum], rows[rows > minimum])
+  evaluator <- profile_endpoint_evaluator(
+    object = object,
+    target_position = position,
+    control = profile_endpoint_inner_control(profile_fit_nlminb_control(object))
+  )
+  on.exit(
+    drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state),
+    add = TRUE
+  )
+  for (k in seq_along(sides)) {
+    interval[[k]] <- drm_tmbprofile_refine_endpoint(
+      evaluator = evaluator,
+      theta = theta[sides[[k]]],
+      excess = value[sides[[k]]] - nll_anchor - cutoff,
+      estimate = interval[[k]],
+      nll_anchor = nll_anchor,
+      cutoff = cutoff,
+      root_tol = root_tol
+    )
+  }
+  interval
+}
+
+drm_tmbprofile_refine_endpoint <- function(
+  evaluator,
+  theta,
+  excess,
+  estimate,
+  nll_anchor,
+  cutoff,
+  root_tol
+) {
+  keep <- is.finite(theta) & is.finite(excess)
+  theta <- theta[keep]
+  excess <- excess[keep]
+  if (!is.finite(estimate) || length(theta) < 2L) {
+    return(estimate)
+  }
+  ord <- order(theta)
+  theta <- theta[ord]
+  excess <- excess[ord]
+  j <- findInterval(estimate, theta)
+  if (j < 1L || j >= length(theta) || !(excess[[j]] * excess[[j + 1L]] < 0)) {
+    return(estimate)
+  }
+  last_free <- evaluator$start_free
+  excess_at <- function(t) {
+    out <- evaluator$evaluate(t, last_free)
+    last_free <<- out$par
+    out$nll - nll_anchor - cutoff
+  }
+  root <- tryCatch(
+    stats::uniroot(
+      excess_at,
+      interval = theta[c(j, j + 1L)],
+      f.lower = excess[[j]],
+      f.upper = excess[[j + 1L]],
+      tol = root_tol
+    ),
+    error = function(err) NULL
+  )
+  if (
+    is.null(root) ||
+      !is.finite(root$root) ||
+      !is.finite(root$f.root) ||
+      abs(root$f.root) > 5e-3
+  ) {
+    return(estimate)
+  }
+  root$root
 }
 
 profile_interval_diagnostics <- function(

@@ -4,6 +4,15 @@
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
 
+* `confint(method = "profile")` with the default `profile_engine = "auto"`
+  no longer cuts a fixed-effect interval short when the profile bends between
+  `TMB::tmbprofile()` grid points. Each limit is now solved on the
+  constrained profile between the two grid points that bracket it instead of
+  being read off by linear interpolation. For the skew-normal slant intercept
+  in #1738 the lower 95% limit moves from -0.6137 (profile deviance 3.805) to
+  -0.6261, the exact limit. `profile_engine = "tmbprofile"` and calls that
+  pass `TMB::tmbprofile()` controls keep the interpolated limits (#1738).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
