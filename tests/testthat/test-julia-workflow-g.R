@@ -167,17 +167,8 @@ drm_wfg_case_spec <- function(slug) {
 drm_wfg_fit_slug <- function(slug, fixtures_root, jl_path) {
   pkg <- normalizePath(testthat::test_path("..", ".."), mustWork = TRUE)
   julia_home <- drm_test_julia_home()
-  if (!nzchar(julia_home) && nzchar(Sys.which("julia"))) {
-    julia_home <- tryCatch(
-      system2(
-        "julia",
-        c("-e", "print(Sys.BINDIR)"),
-        stdout = TRUE,
-        stderr = FALSE
-      ),
-      error = function(e) ""
-    )
-    julia_home <- paste(julia_home, collapse = "")
+  if (!nzchar(julia_home)) {
+    julia_home <- drm_test_julia_bindir_from_path()
   }
   callr::r(
     function(pkg, jl_path, fixtures_root, slug, julia_home) {
