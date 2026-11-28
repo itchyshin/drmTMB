@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* Gaussian, Student-t and skew-normal models now abort when the response
+  column is a factor or ordered factor, instead of fitting integer level
+  codes silently (#1481).
+
 * `confint(method = "profile")` with the default `profile_engine = "auto"`
   no longer cuts a fixed-effect interval short when the profile bends between
   `TMB::tmbprofile()` grid points. Each limit is now solved on the
