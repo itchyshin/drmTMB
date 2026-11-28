@@ -1,5 +1,10 @@
 # drmTMB 0.8.2
 
+* Gamma, Tweedie, beta, zero-one beta, beta-binomial, binomial, cumulative
+  logit, Poisson, NB2, and truncated NB2 models now abort before the
+  optimizer when a fixed-effect design value is non-finite. The message
+  names the family, the distributional parameter, and the column. `NA`
+  predictors are still dropped by the existing complete-case rule (#1730).
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).

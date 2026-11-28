@@ -7255,6 +7255,8 @@ drm_build_gamma_ls_spec <- function(
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Gamma")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Gamma")
 
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in Gamma model.")
@@ -7672,6 +7674,9 @@ drm_build_tweedie_ls_spec <- function(
   )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_nu <- stats::model.matrix(stats::terms(mf_nu), mf_nu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Tweedie")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Tweedie")
+  drm_abort_if_nonfinite_fit_design(X_nu, dpar = "nu", family = "Tweedie")
 
   if (!all(c(nrow(X_sigma), nrow(X_nu)) == length(y))) {
     cli::cli_abort("Internal model-frame mismatch in Tweedie model.")
@@ -8236,6 +8241,8 @@ drm_build_beta_ls_spec <- function(
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Beta")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Beta")
 
   if (nrow(X_sigma) != length(y)) {
     cli::cli_abort("Internal model-frame mismatch in beta model.")
@@ -8834,6 +8841,10 @@ drm_build_zero_one_beta_spec <- function(
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
   X_zoi <- stats::model.matrix(stats::terms(mf_zoi), mf_zoi)
   X_coi <- stats::model.matrix(stats::terms(mf_coi), mf_coi)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Zero-one beta")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "Zero-one beta")
+  drm_abort_if_nonfinite_fit_design(X_zoi, dpar = "zoi", family = "Zero-one beta")
+  drm_abort_if_nonfinite_fit_design(X_coi, dpar = "coi", family = "Zero-one beta")
 
   if (any(c(nrow(X_sigma), nrow(X_zoi), nrow(X_coi)) != length(y))) {
     cli::cli_abort("Internal model-frame mismatch in zero-one beta model.")
@@ -9267,6 +9278,8 @@ drm_build_beta_binomial_spec <- function(
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "beta-binomial")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "beta-binomial")
   if (nrow(X_sigma) != length(response$successes)) {
     cli::cli_abort("Internal model-frame mismatch in beta-binomial model.")
   }
@@ -9962,6 +9975,7 @@ drm_build_binomial_spec <- function(
     }
   }
 
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "binomial")
   if (nrow(X_mu) != length(response$successes)) {
     cli::cli_abort("Internal model-frame mismatch in binomial model.")
   }
@@ -10341,6 +10355,7 @@ drm_build_cumulative_logit_spec <- function(
 
   terms_mu <- stats::delete.response(stats::terms(mf_mu))
   X_mu <- ordinal_mu_model_matrix(terms_mu, mf_mu)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "cumulative-logit")
   phylo_mu <- build_structured_mu_structure(mu_phylo$term, data_model, env)
 
   if (nrow(X_mu) != length(ordinal$y)) {
@@ -10913,6 +10928,7 @@ drm_build_poisson_spec <- function(
   } else {
     NULL
   }
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "Poisson")
   if (!is.null(X_zi) && nrow(X_zi) != length(y)) {
     cli::cli_abort(
       "Internal model-frame mismatch in zero-inflated Poisson model."
@@ -11701,6 +11717,8 @@ drm_build_nbinom2_spec <- function(
     }
   }
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "nbinom2")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "nbinom2")
   X_sd_sigma <- lapply(mf_sd_sigma, function(mf) {
     stats::model.matrix(stats::terms(mf), mf)
   })
@@ -12254,6 +12272,8 @@ drm_build_truncated_nbinom2_spec <- function(
     mf_mu
   )
   X_sigma <- stats::model.matrix(stats::terms(mf_sigma), mf_sigma)
+  drm_abort_if_nonfinite_fit_design(X_mu, dpar = "mu", family = "truncated_nbinom2")
+  drm_abort_if_nonfinite_fit_design(X_sigma, dpar = "sigma", family = "truncated_nbinom2")
   X_hu <- if (!is.null(mf_hu)) {
     stats::model.matrix(stats::terms(mf_hu), mf_hu)
   } else {
