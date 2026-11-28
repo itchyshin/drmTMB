@@ -959,6 +959,9 @@ drmTMB_julia_bridge <- function(
   if (identical(prior_version, "v5")) {
     out$priors <- priors
     out$resolved_priors <- resolved_priors
+    out$resolved_sd_prior <- resolved_priors[resolved_priors$class == "sd_gamma", , drop = FALSE]
+    out$resolved_residual_sd_prior <- resolved_priors[resolved_priors$class == "residual_sd", , drop = FALSE]
+    out$resolved_correlation_prior <- resolved_priors[resolved_priors$class == "correlation", , drop = FALSE]
     out$fixed_prior_penalty <- as.numeric(result[["fixed_prior_penalty"]])
     out$residual_sd_prior_penalty <- as.numeric(result[["residual_sd_prior_penalty"]])
     out$random_effect_sd_prior_penalty <- as.numeric(result[["random_effect_sd_prior_penalty"]])
@@ -976,8 +979,10 @@ drmTMB_julia_bridge <- function(
     out$prior_gradient <- as.numeric(result[["prior_gradient"]])
     out$likelihood_gradient <- as.numeric(result[["data_gradient"]])
     out$penalized_gradient <- as.numeric(result[["penalized_gradient"]])
-    out$residual_sd_prior_measure <- "natural_sd"
-    out$residual_sd_prior_jacobian <- "none"
+    if (nrow(out$resolved_residual_sd_prior) > 0L) {
+      out$residual_sd_prior_measure <- "natural_sd"
+      out$residual_sd_prior_jacobian <- "none"
+    }
     out$covariance_interpretation <- "local penalized-objective curvature; not calibrated sampling covariance"
   } else if (identical(prior_version, "v4")) {
     out$priors <- priors
@@ -8107,13 +8112,15 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "function drmTMB_drm_bridge_conditional_gaussian_components(formula, family, data, tree, options)",
     "    dat = drmTMB_backend._bridge_data(data)",
     "    opts = drmTMB_backend._bridge_options(options)",
-    "    versioned = any(k -> haskey(opts, k), (:prior_contract, :priors_v2, :prior_expected_v2, :priors_v3, :prior_expected_v3))",
+    "    versioned = any(k -> haskey(opts, k), (:prior_contract, :priors_v2, :prior_expected_v2, :priors_v3, :prior_expected_v3, :priors_v4, :prior_expected_v4, :priors_v5, :prior_expected_v5))",
     "    versioned && !isdefined(drmTMB_backend, :_bridge_prior_safe_options) && throw(ArgumentError(get(opts, :prior_contract, nothing) == \"parameter_priors_v3\" ? \"conditional bridge: backend lacks parameter_priors_v3\" : \"conditional bridge: backend lacks parameter_priors_v2\"))",
     "    versioned && (opts = drmTMB_backend._bridge_prior_safe_options(options))",
     "    prior_mode = versioned ? drmTMB_backend._bridge_prior_contract(opts) : nothing",
-    "    versioned && !(prior_mode in (:v2, :v3)) && throw(ArgumentError(\"conditional bridge: invalid versioned prior request\"))",
+    "    versioned && !(prior_mode in (:v2, :v3, :v4, :v5)) && throw(ArgumentError(\"conditional bridge: invalid versioned prior request\"))",
     "    is_v2 = prior_mode === :v2",
     "    is_v3 = prior_mode === :v3",
+    "    is_v4 = prior_mode === :v4",
+    "    is_v5 = prior_mode === :v5",
     "    prior_requested = versioned || haskey(opts, :priors) || haskey(opts, :prior_expected)",
     "    bridge_labels = nothing",
     "    if prior_requested",
@@ -8125,10 +8132,18 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "    fam isa drmTMB_backend.Gaussian || throw(ArgumentError(\"conditional bridge requires Gaussian family\"))",
     "    v2_records = nothing",
     "    v3_records = nothing",
+    "    v4_records = nothing",
+    "    v5_records = nothing",
     "    if is_v2",
     "        v2_records = drmTMB_backend._bridge_enable_priors_v2!(opts, bundle, fam, dat, bridge_labels)",
     "    elseif is_v3",
     "        v3_records = drmTMB_backend._bridge_enable_priors_v3!(opts, bundle, fam, dat, bridge_labels)",
+    "    elseif is_v4",
+    "        isdefined(drmTMB_backend, :_bridge_enable_priors_v4!) || throw(ArgumentError(\"conditional bridge: backend lacks parameter_priors_v4\"))",
+    "        v4_records = drmTMB_backend._bridge_enable_priors_v4!(opts, bundle, fam, dat, bridge_labels)",
+    "    elseif is_v5",
+    "        isdefined(drmTMB_backend, :_bridge_enable_priors_v5!) || throw(ArgumentError(\"conditional bridge: backend lacks parameter_priors_v5\"))",
+    "        v5_records = drmTMB_backend._bridge_enable_priors_v5!(opts, bundle, fam, dat, bridge_labels)",
     "    elseif haskey(opts, :priors)",
     "        haskey(opts, :prior_expected) || throw(ArgumentError(\"conditional bridge: priors require prior_expected\"))",
     "        opts[:priors] = drmTMB_backend._bridge_prepare_fixed_priors(bundle, fam, bridge_labels, opts[:priors], opts[:prior_expected])",
@@ -8191,9 +8206,11 @@ drm_julia_conditional_gaussian_components_source <- function() {
     "        eta_sigma = Xsigma * fit.theta[last(fit.blocks[sigma_block])]",
     "        sigma_clamp_active = any(abs.(eta_sigma) .>= 30.0)",
     "    end",
-    "    out = prior_requested ? drmTMB_backend._bridge_flatten(fit; family = String(family), labels = bridge_labels) : drmTMB_backend._bridge_flatten(fit; family = String(family))",
+    "    out = is_v5 ? drmTMB_backend._bridge_flatten(fit; family = String(family), labels = bridge_labels, prior_contract_version = :v5) : prior_requested ? drmTMB_backend._bridge_flatten(fit; family = String(family), labels = bridge_labels) : drmTMB_backend._bridge_flatten(fit; family = String(family))",
     "    is_v2 && drmTMB_backend._bridge_attach_priors_v2!(out, fit, v2_records, bridge_labels)",
     "    is_v3 && drmTMB_backend._bridge_attach_priors_v3!(out, fit, v3_records, bridge_labels)",
+    "    is_v4 && drmTMB_backend._bridge_attach_priors_v4!(out, fit, v4_records, bridge_labels)",
+    "    is_v5 && drmTMB_backend._bridge_attach_priors_v5!(out, fit, v5_records, bridge_labels)",
     "    out[\"conditional_re\"] = Dict(\"kind\" => \"gaussian_mu_ordinary_components_v2\", \"components\" => components, \"sigma_clamp_active\" => sigma_clamp_active)",
     "    return out",
     "end",

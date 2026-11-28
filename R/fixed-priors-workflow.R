@@ -166,7 +166,12 @@ drm_validate_fixed_prior_request <- function(priors, formula, family, data,
     cli::cli_abort("Fixed-effect priors support univariate Gaussian identity and binomial logit models, plus exact mu1/mu2 Normal or Student-t targets combined with rho12 LKJ in bivariate Gaussian models.")
   }
   phylo_lss <- drm_fixed_prior_phylo_lss(priors, formula, ft)
-  allowed <- if (is_biv_gaussian) c("mu1", "mu2", "rho12") else if (ft == "gaussian") c("mu", "sigma") else "mu"
+  allowed <- if (is_biv_gaussian) c("mu1", "mu2", "sigma1", "sigma2", "rho12") else if (ft == "gaussian") c("mu", "sigma") else "mu"
+  if (is_biv_gaussian && any(vapply(formula$entries, function(e) {
+    e$dpar %in% c("sigma1", "sigma2") && !identical(e$rhs, 1)
+  }, logical(1)))) {
+    cli::cli_abort("Bivariate rho12 priors currently require intercept-only sigma1 and sigma2 formulas.")
+  }
   if (phylo_lss) {
     allowed <- c(allowed, vapply(formula$entries, `[[`, character(1), "dpar"))
   }
@@ -380,7 +385,7 @@ drm_resolve_priors_native <- function(formula, family = stats::gaussian(), data,
 
 drm_has_fixed_priors <- function(object) {
   p <- object$resolved_priors
-  (is.data.frame(p) && nrow(p) > 0L && any(p$precision > 0)) ||
+  (is.data.frame(p) && nrow(p) > 0L && any(p[["precision"]] > 0, na.rm = TRUE)) ||
     (is.data.frame(object$resolved_sd_prior) && nrow(object$resolved_sd_prior) > 0L) ||
     (is.data.frame(object$resolved_residual_sd_prior) && nrow(object$resolved_residual_sd_prior) > 0L) ||
     (is.data.frame(object$resolved_correlation_prior) && nrow(object$resolved_correlation_prior) > 0L)

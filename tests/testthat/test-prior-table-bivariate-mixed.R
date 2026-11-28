@@ -19,6 +19,12 @@ test_that("bivariate rho12 LKJ composes with exact mu1/mu2 Normal and Student-t 
     scale = c("link", "link", "natural_correlation")
   )
   resolved <- drm_resolve_priors(formula, biv_gaussian(), dat, priors)
+  explicit_scale <- bf(mu1 = y1 ~ x, mu2 = y2 ~ x,
+    sigma1 = ~1, sigma2 = ~1, rho12 = ~1)
+  expect_equal(drm_resolve_priors(explicit_scale, biv_gaussian(), dat, priors), resolved)
+  varying_scale <- bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~x, rho12 = ~1)
+  expect_error(drm_resolve_priors(varying_scale, biv_gaussian(), dat, priors),
+    "intercept-only sigma1 and sigma2")
   expect_identical(resolved$class, c("fixed", "fixed", "correlation"))
   expect_identical(resolved$dpar, c("mu1", "mu2", "rho12"))
   expect_identical(resolved$kind, c("normal", "student_t", "lkj"))

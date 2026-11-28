@@ -206,7 +206,7 @@ test_that("live R-to-Julia v4 fixtures remain explicitly opt-in", {
     dpar = "rho12", coef = "(Intercept)", scale = "natural_correlation")
   rho_fit <- suppressWarnings(drmTMB(
     bf(mu1 = y1 ~ x, mu2 = y2 ~ x, sigma1 = ~1, sigma2 = ~1, rho12 = ~1),
-    data = rho_data, priors = rho_table, engine = "julia"
+    family = biv_gaussian(), data = rho_data, priors = rho_table, engine = "julia"
   ))
   expect_equal(nrow(rho_fit$resolved_correlation_prior), 1L)
   expect_identical(rho_fit$resolved_correlation_prior$dpar, "rho12")

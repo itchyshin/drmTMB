@@ -12,6 +12,9 @@ test_that("fixed-prior inference has explicit limits", {
   expect_error(drm_abort_fixed_prior_inference(f,"confint"), "fixed.effect|prior")
   expect_error(drm_abort_fixed_prior_inference(f,"profile"), "fixed.effect|prior")
   expect_error(drm_abort_fixed_prior_inference(list(),"confint"), NA)
+  mixed <- list(resolved_priors = data.frame(precision = c(0, NA_real_)),
+                resolved_correlation_prior = data.frame(eta = 2))
+  expect_error(drm_abort_fixed_prior_inference(mixed, "confint"), "prior")
 })
 
 test_that("prior defaults use an unclamped likelihood without overriding explicit controls", {

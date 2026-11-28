@@ -146,7 +146,8 @@ supported.
 For two Gaussian responses, a separate `rho12` row can regularize their
 residual correlation. This route permits exactly one LKJ prior on `rho12`,
 optionally combined with Normal or Student-t rows for exact `mu1` and `mu2`
-coefficients:
+coefficients. You may write `sigma1 = ~1` and `sigma2 = ~1` explicitly; use
+intercept-only scale formulas for this prior route:
 
 ```{r bivariate-correlation}
 bivdat <- data.frame(x=seq(-1, 1, length.out=40))
