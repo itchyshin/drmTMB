@@ -5067,12 +5067,12 @@ Type objective_function<Type>::operator()()
       for (int i = 0; i < mi_x.size(); ++i) {
         Type log_p1 = -logspace_add(Type(0.0), -mi_eta(i));
         Type log_p0 = -logspace_add(Type(0.0), mi_eta(i));
-        if (mi_observed(i) == 1) {
+        if (mi_observed(i) == 1 && asDouble(weights(i)) > 0.0) {
           // weights(i) scales the WHOLE row contribution (Dinnage audit M1).
           nll -= weights(i) *
             (mi_x(i) * log_p1 + (Type(1.0) - mi_x(i)) * log_p0);
           eta_mu(i) += beta_mu(mi_col) * (mi_x(i) - X_mu(i, mi_col));
-        } else {
+        } else if (asDouble(weights(i)) > 0.0) {
           Type eta1 = eta_mu(i) +
             beta_mu(mi_col) * (Type(1.0) - X_mu(i, mi_col));
           Type eta0 = eta_mu(i) +
@@ -5107,21 +5107,27 @@ Type objective_function<Type>::operator()()
     }
     vector<Type> mu(y.size());
     for (int i = 0; i < y.size(); ++i) {
-      DrmBinomLogMu<Type> log_mu = drm_binom_log_mu(eta_mu(i), link_code);
-      Type log_p1 = log_mu.log_mu;
-      Type log_p0 = log_mu.log_one_minus_mu;
-      mu(i) = exp(log_p1);
-      // Missing-response mask (MD): plain data-if; also skip missing-predictor
-      // rows, whose likelihood is already added by the mi() 2-point sum above.
-      if (observed_y(i) == 1 &&
-          !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
-        Type failures = trials(i) - y(i);
-        Type log_choose =
-          lgamma(trials(i) + Type(1.0)) -
-          lgamma(y(i) + Type(1.0)) -
-          lgamma(failures + Type(1.0));
-        nll -= weights(i) *
-          (log_choose + y(i) * log_p1 + failures * log_p0);
+      if (asDouble(weights(i)) > 0.0) {
+        DrmBinomLogMu<Type> log_mu = drm_binom_log_mu(eta_mu(i), link_code);
+        Type log_p1 = log_mu.log_mu;
+        Type log_p0 = log_mu.log_one_minus_mu;
+        mu(i) = exp(log_p1);
+        // Missing-response mask (MD): plain data-if; also skip missing-predictor
+        // rows, whose likelihood is already added by the mi() 2-point sum above.
+        if (observed_y(i) == 1 &&
+            !(has_mi == 1 && mi_family != 0 && mi_observed(i) == 0)) {
+          Type failures = trials(i) - y(i);
+          Type log_choose =
+            lgamma(trials(i) + Type(1.0)) -
+            lgamma(y(i) + Type(1.0)) -
+            lgamma(failures + Type(1.0));
+          nll -= weights(i) *
+            (log_choose + y(i) * log_p1 + failures * log_p0);
+        }
+      } else {
+        DrmBinomLogMu<double> log_mu_data =
+          drm_binom_log_mu(asDouble(eta_mu(i)), link_code);
+        mu(i) = Type(exp(log_mu_data.log_mu));
       }
     }
     REPORT(eta_mu);

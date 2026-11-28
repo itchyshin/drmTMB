@@ -10088,6 +10088,7 @@ drm_build_binomial_spec <- function(
       sd_mu = sd_mu,
       observed_y = observed_y,
       link = link,
+      weights = weights_model,
       phylo_mu = phylo_mu,
       sd_phylo = sd_phylo,
       phylo_mu2 = phylo_mu2,
@@ -22790,6 +22791,7 @@ binomial_start <- function(
   sd_mu = empty_sd_mu_structure(re_mu$n_re),
   observed_y = rep(TRUE, length(successes)),
   link = "logit",
+  weights = NULL,
   phylo_mu = empty_phylo_mu_structure(),
   sd_phylo = empty_sd_phylo_structure(),
   phylo_mu2 = empty_phylo_mu_structure(),
@@ -22812,17 +22814,30 @@ binomial_start <- function(
   link_fun <- stats::make.link(link)$linkfun
   n <- length(successes)
   off_full <- if (length(offset_mu) == n) offset_mu else rep(0, n)
-  s_obs <- successes[observed_y]
-  f_obs <- failures[observed_y]
-  X_mu_obs <- X_mu[observed_y, , drop = FALSE]
-  off_obs <- off_full[observed_y]
+  weights_full <- if (is.null(weights)) {
+    rep(1, n)
+  } else {
+    as.numeric(weights)
+  }
+  if (length(weights_full) != n) {
+    cli::cli_abort(
+      "Internal binomial start error: {.arg weights} length does not match the response."
+    )
+  }
+  use_for_fit <- observed_y & is.finite(weights_full) & weights_full > 0
+  s_obs <- successes[use_for_fit]
+  f_obs <- failures[use_for_fit]
+  X_mu_obs <- X_mu[use_for_fit, , drop = FALSE]
+  off_obs <- off_full[use_for_fit]
+  w_obs <- weights_full[use_for_fit]
   beta_mu <- tryCatch(
     suppressWarnings(
       stats::glm.fit(
         X_mu_obs,
         cbind(s_obs, f_obs),
         family = stats::binomial(link = link),
-        offset = off_obs
+        offset = off_obs,
+        weights = w_obs
       )$coefficients
     ),
     error = function(e) rep(0, ncol(X_mu))
@@ -22841,8 +22856,8 @@ binomial_start <- function(
   prop_all <- (successes + 0.5) / (trials_all + 1)
   link_y <- link_fun(pmin(pmax(prop_all, 1e-4), 1 - 1e-4))
   resid <- link_y - eta_mu
-  resid[!observed_y] <- 0
-  y_scale <- stats::sd(link_y[observed_y])
+  resid[!observed_y | !use_for_fit] <- 0
+  y_scale <- stats::sd(link_y[use_for_fit])
   if (!is.finite(y_scale) || y_scale <= 0) {
     y_scale <- 1
   }
