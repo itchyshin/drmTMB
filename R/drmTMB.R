@@ -5124,6 +5124,7 @@ drm_build_gaussian_ls_spec <- function(
   keep <- aligned$keep
   V_known <- aligned$V_known
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Gaussian")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && any(!observed_y)) {
@@ -5918,6 +5919,7 @@ drm_build_student_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "Student-t")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
   observed_y <- !is.na(y_raw)
   if (!include_missing_response && !all(observed_y)) {
@@ -6286,6 +6288,7 @@ drm_build_skew_normal_ls_spec <- function(
   weights_model <- aligned$weights_model
   keep <- aligned$keep
   y_raw <- stats::model.response(mf_mu)
+  drm_reject_factor_response(y_raw, mu_entry$response, "skew-normal")
   offset_mu <- drm_model_offset(mf_mu, dpar = "mu")
 
   if (length(y_raw) == 0L) {
@@ -21757,6 +21760,17 @@ prepare_betabinomial_response <- function(y, response) {
   )
 }
 
+drm_reject_factor_response <- function(y, response, family) {
+  if (is.factor(y)) {
+    cli::cli_abort(c(
+      "{family} response values must be numeric, not a factor.",
+      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+      "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+    ))
+  }
+  invisible(y)
+}
+
 prepare_binomial_response <- function(y, response, has_weights = FALSE) {
   if (length(y) == 0L) {
     cli::cli_abort(
@@ -27854,6 +27868,52 @@ sd_mu_group_values <- function(par, sd_mu, dpar = NULL, tmb_data = NULL) {
   out <- drm_exp_sd_logscale_guarded(drm_softclamp_log_sd(eta, tmb_data))
   names(out) <- names(eta)
   out
+}
+
+# Band for the Tweedie nu logit link (p = 1 + plogis(eta_nu)). Matches
+# drm_softclamp_tweedie_eta_nu() in src/drmTMB.cpp (#1468).
+drm_tweedie_eta_nu_softclamp_bounds <- function() {
+  c(lo = -35, hi = 35, margin = 1.5)
+}
+
+drm_softclamp_tweedie_eta_nu <- function(eta) {
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  x <- as.numeric(eta)
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  margin <- band[["margin"]]
+  out <- x
+  above <- x > hi
+  below <- x < lo
+  out[above] <- hi + margin * tanh((x[above] - hi) / margin)
+  out[below] <- lo - margin * tanh((lo - x[below]) / margin)
+  out
+}
+
+drm_tweedie_eta_nu_cap_active <- function(report) {
+  if (is.null(report$eta_nu)) {
+    return(NULL)
+  }
+  band <- drm_tweedie_eta_nu_softclamp_bounds()
+  values <- as.numeric(report$eta_nu)
+  values <- values[is.finite(values)]
+  if (!length(values)) {
+    return(NULL)
+  }
+  lo <- band[["lo"]]
+  hi <- band[["hi"]]
+  hit_hi <- any(values > hi)
+  hit_lo <- any(values < lo)
+  if (!hit_hi && !hit_lo) {
+    return(NULL)
+  }
+  chosen <- if (hit_hi) which.max(values) else which.min(values)
+  list(
+    value = values[[chosen]],
+    arm = if (hit_hi) "upper" else "lower",
+    lo = lo,
+    hi = hi
+  )
 }
 
 sd_sigma_group_log_values <- function(par, spec, dpar = NULL) {
