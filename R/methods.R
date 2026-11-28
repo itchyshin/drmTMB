@@ -4928,6 +4928,16 @@ print.summary.drmTMB <- function(x, ...) {
     x$convergence,
     x$convergence_message
   )
+  if (
+    is.null(convergence_label) &&
+      !is.null(x$convergence_status) &&
+      !identical(x$convergence_status, "converged")
+  ) {
+    convergence_label <- sprintf(
+      "convergence_status is %s (optimizer code 0)",
+      x$convergence_status
+    )
+  }
   if (is.null(convergence_label)) {
     cli::cli_text("convergence: {x$convergence}")
   } else {
