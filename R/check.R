@@ -5,8 +5,8 @@
 #' fits with random effects, known sampling covariance, phylogenetic location
 #' effects, or bivariate residual correlation `rho12`.
 #'
-#' The current checks cover the three-valued `convergence_status`
-#' (`ok` / `note` / `warning` for `"converged"` / `"boundary"` /
+#' The current checks cover the four-valued `convergence_status`
+#' (`ok` for `"converged"`; `warning` for `"not_converged"`, `"boundary"` and
 #' `"degenerate"`), optimizer convergence, finite objective values,
 #' optimizer evaluation counts, fixed-parameter gradients including the largest
 #' gradient component label, whether
@@ -187,7 +187,9 @@
 #'   which a bivariate Gaussian fit receives a warning.
 #' @param sd_boundary Random-effect standard deviation below which a fit
 #'   receives a warning that the variance component is near the lower
-#'   boundary.
+#'   boundary. For identity-link location terms the SD is compared as a
+#'   fraction of the response SD, so the cut-off does not depend on the
+#'   units of `y`.
 #' @param ... Reserved for future diagnostic options.
 #'
 #' @return A `drm_check` data frame. Its stable native reader columns are, in
@@ -211,9 +213,9 @@ check_drm <- function(object, ...) {
 #' `is_converged()` is a compact programmatic flag for workflows that need a
 #' yes/no answer before comparing, displaying, or post-processing a `drmTMB`
 #' fit. It is `TRUE` exactly when [convergence_status()] is `"converged"`.
-#' `"boundary"` and `"degenerate"` both return `FALSE`; use
-#' [convergence_status()] or [check_drm()] when a three-valued status is
-#' needed. `converged()` is the same predicate under the name DRModels.jl
+#' `"not_converged"`, `"boundary"` and `"degenerate"` all return `FALSE`; use
+#' [convergence_status()], [convergence_info()] or [check_drm()] when the
+#' status is needed. `converged()` is the same predicate under the name DRModels.jl
 #' also exports. A fit can therefore report optimizer code `0` while still
 #' returning `FALSE` here.
 #'
@@ -301,23 +303,39 @@ is_converged.drmTMB <- function(object, include_hessian = FALSE, ...) {
 #' Convergence status for a drmTMB fit
 #'
 #' `convergence_status()` returns a short character label for programmatic
-#' workflows that need more detail than [is_converged()]. A fit can report
-#' optimizer code `0` while the likelihood geometry is degenerate (no proper
-#' maximum or non-finite uncertainty); such fits return `"degenerate"` even
-#' when `multi_start` selected among several starts. Fixed-effect binomial
-#' separation, Poisson / NB2 rays with no finite MLE, and an unbounded
-#' continuous location-scale likelihood are included in that geometry.
-#' `"boundary"` marks an optimizer-converged fit with variance-component,
-#' residual-correlation, or temporal (residual SD, OU decay, AR1 persistence)
-#' parameters near an interpretability boundary. [is_converged()] and
-#' [converged()] are the same plain logical: they are `TRUE` only for
-#' `"converged"`. Numeric predicates are identical in DRModels.jl
-#' (`docs/design/278-twin-convergence-status.md`).
+#' workflows. A fit is `"converged"` only at an interior optimum with usable
+#' standard errors. Statuses are tested in this order and the first match
+#' wins; every non-converged status is a warning, never an error:
+#'
+#' \describe{
+#'   \item{`"not_converged"`}{The optimizer did not finish, the
+#'     log-likelihood is not finite, or the Newton step in SE units from the
+#'     stored gradient, `max_i |(H^-1 g)_i| / SE_i`, exceeds 1e-3.}
+#'   \item{`"boundary"`}{The optimizer finished but a random-effect SD is
+#'     near zero, a residual correlation is near +/-1, a temporal parameter
+#'     is at its limit, or the residual SD has collapsed (the Heywood case).
+#'     This is tested before the Hessian, so a boundary fit never reads
+#'     `"degenerate"`. Random-effect SDs on the response scale are compared
+#'     with the response SD, so the cut-off does not depend on the units of
+#'     `y`.}
+#'   \item{`"degenerate"`}{The Hessian is singular, a standard error is
+#'     non-finite or inflated, the fixed-effect design is aliased, or the
+#'     likelihood has no finite maximiser (separation, Poisson / NB2 rays,
+#'     unbounded location-scale).}
+#' }
+#'
+#' [is_converged()] and [converged()] are `TRUE` only for `"converged"`.
+#' Boundary fits are valid estimates: summaries that compare engines or
+#' recover variances should filter on the status rather than drop them.
+#' [convergence_info()] returns the full set of fields, including
+#' `boundary_params` (name and kind). Numeric predicates are shared with
+#' DRModels.jl (`docs/design/278-twin-convergence-status.md`).
 #'
 #' @param object A `drmTMB` fit.
 #' @param ... Reserved for future options.
 #'
-#' @return One of `"converged"`, `"boundary"`, or `"degenerate"`.
+#' @return One of `"converged"`, `"not_converged"`, `"boundary"`, or
+#'   `"degenerate"`.
 #' @export
 #'
 #' @examples
@@ -346,21 +364,7 @@ convergence_status.drmTMB <- function(object, ...) {
       "{.arg ...} is reserved for future {.fn convergence_status} options."
     )
   }
-  if (!drm_optimizer_converged(object)) {
-    return("degenerate")
-  }
-  if (
-    drm_inference_degenerate(object) ||
-      drm_fixed_effect_rank_deficient(object) ||
-      drm_standard_errors_pathological(object) ||
-      drm_mle_nonexistent_is_true(object)
-  ) {
-    return("degenerate")
-  }
-  if (drm_inference_at_boundary(object)) {
-    return("boundary")
-  }
-  "converged"
+  drm_convergence_info(object)$convergence_status
 }
 
 #' @rdname convergence_status
@@ -372,7 +376,11 @@ convergence_status.drmTMB_julia <- function(object, ...) {
       "{.arg ...} is reserved for future {.fn convergence_status} options."
     )
   }
-  drm_twin_convergence_status_from_parts(
+  bridge_status <- as.character(object$bridge[["convergence_status"]])
+  if (identical(bridge_status, "not_converged")) {
+    return("not_converged")
+  }
+  status <- drm_twin_convergence_status_from_parts(
     optimizer_ok = drm_julia_optimizer_ok(object),
     loglik = object$logLik,
     vcov = object$vcov,
@@ -384,6 +392,12 @@ convergence_status.drmTMB_julia <- function(object, ...) {
       error = function(e) numeric()
     )
   )
+  # A Julia-side "boundary" (DRModels.jl adopting the same rule) outranks
+  # degenerate: boundary is tested before the Hessian steps.
+  if (identical(bridge_status, "boundary") && identical(status, "degenerate")) {
+    return("boundary")
+  }
+  status
 }
 
 # Twin-contract numeric predicates. Keep bitwise identical to
@@ -437,7 +451,11 @@ drm_twin_vcov_positive_definite <- function(vcov) {
   isTRUE(all(is.finite(ev)) && min(ev) > 0)
 }
 
-drm_twin_inflated_se_is_true <- function(standard_errors) {
+# Unit-free: each SE is divided by `se_scale` (its parameter's reference scale,
+# default 1) before the absolute floor and the median ratio are applied, so
+# rescaling y by c rescales identity-link location SEs and their scale alike.
+drm_twin_inflated_se_is_true <- function(standard_errors, se_scale = 1) {
+  standard_errors <- standard_errors / se_scale
   finite_standard_errors <- standard_errors[is.finite(standard_errors)]
   if (length(finite_standard_errors) == 0L) {
     return(FALSE)
@@ -464,14 +482,25 @@ drm_twin_convergence_status_from_parts <- function(
   design_rank_deficient,
   mle_nonexistent,
   re_sd_values,
-  rho12_values
+  rho12_values,
+  re_sd_scale = 1
 ) {
+  # Converged rule (SHINICHI-1753-1118). First match wins:
+  # not_converged, then boundary (before any Hessian step), then degenerate.
   if (
     !isTRUE(optimizer_ok) ||
       !isTRUE(is.finite(loglik)) ||
       isTRUE(loglik <= drm_twin_sentinel_loglik)
   ) {
-    return("degenerate")
+    return("not_converged")
+  }
+  boundary <- drm_boundary_params_from_values(
+    re_sd_values = re_sd_values,
+    rho12_values = rho12_values,
+    re_sd_scale = re_sd_scale
+  )
+  if (nrow(boundary) > 0L) {
+    return("boundary")
   }
   standard_errors <- drm_standard_errors_from_vcov(vcov)
   if (
@@ -484,19 +513,263 @@ drm_twin_convergence_status_from_parts <- function(
   ) {
     return("degenerate")
   }
-  re_sd_values <- re_sd_values[is.finite(re_sd_values)]
-  rho12_values <- rho12_values[is.finite(rho12_values)]
-  at_boundary <- (
-    length(re_sd_values) > 0L &&
-      any(re_sd_values < drm_twin_re_sd_boundary)
-  ) || (
-    length(rho12_values) > 0L &&
-      any(abs(rho12_values) > drm_twin_rho12_boundary)
-  )
-  if (isTRUE(at_boundary)) {
-    return("boundary")
-  }
   "converged"
+}
+
+drm_empty_boundary_params <- function() {
+  data.frame(
+    name = character(),
+    kind = character(),
+    stringsAsFactors = FALSE
+  )
+}
+
+# Unit-free boundary rule. A random-effect SD on the response scale is
+# compared with `re_sd_scale` (the response SD for identity-link location
+# terms, 1 for link-scale terms), so the cut-off does not change when y is
+# multiplied by a constant (drmTMB #1751).
+drm_boundary_params_from_values <- function(
+  re_sd_values,
+  rho12_values,
+  re_sd_scale = 1
+) {
+  out <- drm_empty_boundary_params()
+  if (length(re_sd_values) > 0L) {
+    if (is.null(names(re_sd_values))) {
+      names(re_sd_values) <- paste0("sd", seq_along(re_sd_values))
+    }
+    scale <- rep_len(re_sd_scale, length(re_sd_values))
+    scale[!is.finite(scale) | scale <= 0] <- 1
+    relative <- re_sd_values / scale
+    hit <- is.finite(relative) & relative < drm_twin_re_sd_boundary
+    if (any(hit)) {
+      out <- rbind(out, data.frame(
+        name = names(re_sd_values)[hit],
+        kind = "re_sd",
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+  if (length(rho12_values) > 0L) {
+    if (is.null(names(rho12_values))) {
+      names(rho12_values) <- paste0("rho12", seq_along(rho12_values))
+    }
+    hit <- is.finite(rho12_values) &
+      abs(rho12_values) > drm_twin_rho12_boundary
+    if (any(hit)) {
+      out <- rbind(out, data.frame(
+        name = unique(names(rho12_values)[hit]),
+        kind = "rho12",
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+  rownames(out) <- NULL
+  out
+}
+
+#' Full convergence report for a drmTMB fit
+#'
+#' `convergence_info()` returns every field behind [convergence_status()]:
+#' `converged`, `convergence_status`, `boundary_params` (a data frame with
+#' `name` and `kind`; kinds are `"re_sd"`, `"rho12"`, `"heywood"`,
+#' `"temporal"`), `pd_hessian`, `max_gradient`,
+#' `optimizer_code` and `optimizer_message`. `max_gradient` is the Newton step
+#' in SE units, `max_i |(H^-1 g)_i| / SE_i`, which is the quantity the
+#' not-converged rule cuts at 1e-3; it is `NA` when no positive-definite
+#' Hessian is stored. See [convergence_status()] for
+#' the rule and its order.
+#'
+#' @param object A native `drmTMB` fit.
+#' @return A named list.
+#' @export
+#'
+#' @examples
+#' set.seed(20260916)
+#' dat <- data.frame(y = rnorm(40), x = rnorm(40))
+#' fit <- drmTMB(bf(y ~ x, sigma ~ 1), data = dat)
+#' convergence_info(fit)$convergence_status
+convergence_info <- function(object) {
+  if (!inherits(object, "drmTMB")) {
+    cli::cli_abort("{.fn convergence_info} is implemented for native {.cls drmTMB} fits.")
+  }
+  drm_convergence_info(object)
+}
+
+# Reference scale that turns a random-effect SD into a unit-free ratio.
+# Identity-link location terms (mu, mu1, mu2) live on the response scale, so
+# they are divided by the SD of that response; link-scale terms are already
+# unit-free and keep scale 1. Families whose location lives on the log or latent
+# scale (lognormal, biv_lognormal, cumulative_logit) also keep scale 1, with no
+# division by sd(y) (SHINICHI-0724-1120, item 2).
+drm_re_sd_reference_scale <- function(object, dpar) {
+  if (object$model$model_type %in% c("lognormal", "biv_lognormal", "cumulative_logit")) {
+    return(1)
+  }
+  response <- switch(
+    dpar,
+    mu = object$model$y,
+    mu1 = object$model$y1,
+    mu2 = object$model$y2,
+    NULL
+  )
+  if (is.null(response) || !is.numeric(response)) {
+    return(1)
+  }
+  family <- object$family
+  link <- if (!is.null(family$links)) family$links[[dpar]] else family$link
+  if (!identical(as.character(link), "identity")) {
+    return(1)
+  }
+  response_sd <- stats::sd(response, na.rm = TRUE)
+  if (is.finite(response_sd) && response_sd > 0) response_sd else 1
+}
+
+drm_native_boundary_params <- function(object) {
+  out <- drm_empty_boundary_params()
+  sd_values <- numeric()
+  sd_scale <- numeric()
+  for (dpar in names(object$sdpars)) {
+    values <- object$sdpars[[dpar]]
+    if (length(values) == 0L) {
+      next
+    }
+    if (is.null(names(values))) {
+      names(values) <- paste0(dpar, ":sd", seq_along(values))
+    }
+    sd_values <- c(sd_values, values)
+    sd_scale <- c(sd_scale, rep(drm_re_sd_reference_scale(object, dpar), length(values)))
+  }
+  rho_values <- tryCatch(
+    if (
+      object$model$model_type %in%
+        c("biv_gaussian", "biv_lognormal", "biv_student")
+    ) {
+      stats::setNames(as.numeric(rho12(object)), rep("rho12", length(rho12(object))))
+    } else {
+      numeric()
+    },
+    error = function(e) numeric()
+  )
+  out <- drm_boundary_params_from_values(
+    re_sd_values = sd_values,
+    rho12_values = rho_values,
+    re_sd_scale = sd_scale
+  )
+  # Temporal boundaries are already relative to the response SD or to the
+  # observed lags. A collapsed residual SD is the Heywood case.
+  if (isTRUE(drm_has_temporal_mu(object))) {
+    for (item in drm_temporal_boundary_findings(object)) {
+      key <- sub("=.*$", "", item)
+      out <- rbind(out, data.frame(
+        name = key,
+        kind = if (identical(key, "sigma_ratio")) "heywood" else "temporal",
+        stringsAsFactors = FALSE
+      ))
+    }
+  }
+  # Tweedie nu link predictor in the saturated soft-clamp tail (#1468): an
+  # artificial boundary, so it counts as boundary like main's #1795 rule.
+  tweedie_row <- check_tweedie_eta_nu_cap(object)
+  if (!is.null(tweedie_row) && identical(tweedie_row$status, "warning")) {
+    out <- rbind(out, data.frame(
+      name = "tweedie_eta_nu_cap",
+      kind = "tweedie_eta_nu_cap",
+      stringsAsFactors = FALSE
+    ))
+  }
+  rownames(out) <- NULL
+  out
+}
+
+# Newton step in SE units (CONV-GRADIENT-CUT, Shinichi 19 Nov 2026):
+# max_i |(H^{-1} g)_i| / SE_i with SE_i = sqrt((H^{-1})_ii). H^{-1} is the
+# fixed-effect covariance stored by sdreport. Unit-free: rescaling a parameter
+# rescales the step and its SE alike. Returns NA when no usable covariance is
+# stored (se = FALSE, skipped uncertainty, non-PD Hessian, non-finite entries);
+# those fits are screened by the degenerate steps, not here. Inf when the
+# gradient itself is non-finite.
+drm_newton_step_se <- function(object) {
+  gradient <- object$gradient
+  if (is.null(gradient) || length(gradient) == 0L) {
+    return(NA_real_)
+  }
+  gradient <- as.numeric(gradient)
+  if (!all(is.finite(gradient))) {
+    return(Inf)
+  }
+  if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
+    return(NA_real_)
+  }
+  cov_fixed <- object$sdr$cov.fixed
+  if (
+    !is.matrix(cov_fixed) ||
+      nrow(cov_fixed) != length(gradient) ||
+      ncol(cov_fixed) != length(gradient) ||
+      !all(is.finite(cov_fixed))
+  ) {
+    return(NA_real_)
+  }
+  variances <- diag(cov_fixed)
+  if (any(variances <= 0)) {
+    return(NA_real_)
+  }
+  step <- as.numeric(cov_fixed %*% gradient)
+  max(abs(step) / sqrt(variances))
+}
+
+drm_newton_step_se_tol <- 1e-3
+
+# Converged rule (SHINICHI-1753-1118). First match wins and every non-converged
+# status is a warning, never an error:
+#   not_converged: optimiser did not finish, non-finite likelihood, or a Newton step
+#                  above 1e-3 SE;
+#   boundary:      SD ~ 0, |rho12| ~ 1, Heywood (collapsed residual SD),
+#                  temporal limits; tested before the Hessian;
+#   degenerate:    non-PD Hessian, non-finite or inflated SEs, aliased design,
+#                  no finite MLE.
+drm_convergence_info <- function(object) {
+  optimizer_ok <- drm_optimizer_converged(object)
+  newton_step <- drm_newton_step_se(object)
+  boundary <- if (optimizer_ok) {
+    drm_native_boundary_params(object)
+  } else {
+    drm_empty_boundary_params()
+  }
+  status <- if (
+    !optimizer_ok ||
+      (is.finite(newton_step) && newton_step > drm_newton_step_se_tol) ||
+      identical(newton_step, Inf)
+  ) {
+    "not_converged"
+  } else if (nrow(boundary) > 0L) {
+    "boundary"
+  } else if (
+    drm_inference_degenerate(object) ||
+      drm_fixed_effect_rank_deficient(object) ||
+      drm_standard_errors_pathological(object) ||
+      drm_mle_nonexistent_is_true(object)
+  ) {
+    "degenerate"
+  } else {
+    "converged"
+  }
+  pd_hessian <- if (identical(object$control$se, FALSE)) {
+    NA
+  } else if (drm_is_mspl(object)) {
+    isTRUE(object$mspl$numerical$hessian_positive_definite)
+  } else {
+    !is.null(object$sdr) && isTRUE(object$sdr$pdHess)
+  }
+  list(
+    converged = identical(status, "converged"),
+    convergence_status = status,
+    boundary_params = boundary,
+    pd_hessian = pd_hessian,
+    max_gradient = newton_step,
+    optimizer_code = object$opt$convergence,
+    optimizer_message = as.character(object$opt$message)[1L]
+  )
 }
 
 drm_optimizer_converged <- function(object) {
@@ -590,32 +863,6 @@ drm_fixed_effect_design_matrices <- function(object) {
     }
   }
   X
-}
-
-drm_inference_at_boundary <- function(object) {
-  if (!drm_optimizer_converged(object) || drm_inference_degenerate(object)) {
-    return(FALSE)
-  }
-  rho_row <- check_rho12_boundary(
-    object,
-    rho_boundary = drm_twin_rho12_boundary
-  )
-  if (!is.null(rho_row) && identical(rho_row$status, "warning")) {
-    return(TRUE)
-  }
-  sd_row <- check_random_effect_sd_boundary(
-    object,
-    sd_boundary = drm_twin_re_sd_boundary
-  )
-  if (!is.null(sd_row) && identical(sd_row$status, "warning")) {
-    return(TRUE)
-  }
-  tweedie_nu_row <- check_tweedie_eta_nu_cap(object)
-  if (!is.null(tweedie_nu_row) && identical(tweedie_nu_row$status, "warning")) {
-    return(TRUE)
-  }
-  temporal_row <- check_temporal_boundary(object)
-  !is.null(temporal_row) && identical(temporal_row$status, "warning")
 }
 
 #' @rdname check_drm
@@ -1613,6 +1860,21 @@ check_standard_errors_finite <- function(object) {
 inflated_standard_error_floor <- drm_twin_inflated_se_floor
 inflated_standard_error_ratio <- drm_twin_inflated_se_ratio
 
+# Per-coefficient SE reference scale from vcov row labels "<dpar>:<term>":
+# sd(y) for identity-link location terms (mu, mu1, mu2), 1 otherwise.
+drm_se_reference_scales <- function(object, labels) {
+  if (is.null(labels)) {
+    return(1)
+  }
+  dpar <- sub(":.*$", "", labels)
+  vapply(
+    dpar,
+    function(d) drm_re_sd_reference_scale(object, d),
+    numeric(1),
+    USE.NAMES = FALSE
+  )
+}
+
 check_standard_errors_inflated <- function(object) {
   if (is.null(object$sdr) || !isTRUE(object$sdr$pdHess)) {
     return(NULL)
@@ -1625,6 +1887,8 @@ check_standard_errors_inflated <- function(object) {
   standard_errors <- rep(NA_real_, length(variances))
   non_negative <- is.finite(variances) & variances >= 0
   standard_errors[non_negative] <- sqrt(variances[non_negative])
+  standard_errors <- standard_errors /
+    drm_se_reference_scales(object, rownames(vcov))
   finite_standard_errors <- standard_errors[is.finite(standard_errors)]
   if (length(finite_standard_errors) == 0L) {
     return(NULL)
@@ -1700,7 +1964,8 @@ check_convergence_status <- function(object) {
     switch(
       status,
       converged = "ok",
-      boundary = "note",
+      not_converged = "warning",
+      boundary = "warning",
       degenerate = "warning",
       "note"
     ),
@@ -1711,10 +1976,17 @@ check_convergence_status <- function(object) {
         "Optimizer convergence and uncertainty diagnostics are consistent with",
         "a proper interior optimum."
       ),
+      not_converged = paste(
+        "The optimizer did not finish, the log-likelihood is not finite, or",
+        "the Newton step is above 1e-3 standard errors.",
+        "is_converged() and converged() are FALSE."
+      ),
       boundary = paste(
-        "The fit converged but variance-component, residual-correlation, or",
-        "temporal parameters are near an interpretability boundary; read",
-        "convergence_status() and boundary rows before inference."
+        "The optimizer finished but variance-component, residual-correlation,",
+        "Heywood (collapsed residual SD) or temporal parameters are at a",
+        "boundary; the Hessian was not consulted. See",
+        "convergence_info()$boundary_params. The estimate is valid but is",
+        "not an interior optimum, so is_converged() is FALSE."
       ),
       degenerate = paste(
         "The optimizer reported success but the likelihood geometry or",
@@ -2127,6 +2399,21 @@ check_random_effect_sd_boundary <- function(object, sd_boundary) {
     ))
   }
 
+  # Unit-free: identity-link location SDs are compared as a fraction of the
+  # response SD (other SDs are already on the link scale), so the cut-off does
+  # not change with the units of y (drmTMB #1751).
+  sd_scale <- unlist(
+    lapply(names(object$sdpars), function(dpar) {
+      rep(
+        drm_re_sd_reference_scale(object, dpar),
+        length(object$sdpars[[dpar]])
+      )
+    }),
+    use.names = FALSE
+  )
+  if (length(sd_scale) == length(sd_values)) {
+    sd_values <- sd_values / sd_scale
+  }
   min_index <- which.min(sd_values)
   min_value <- sd_values[[min_index]]
   min_name <- names(sd_values)[[min_index]]
