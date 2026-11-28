@@ -499,7 +499,7 @@ weights.drmTMB_julia <- function(object, ...) {
   rep(1, stats::nobs(object))
 }
 
-drm_update_drmTMB_fit <- function(object, formula., ..., evaluate = TRUE) {
+drm_update_drmTMB_fit <- function(object, formula., extras = list(), evaluate = TRUE) {
   call <- stats::getCall(object)
   if (is.null(call)) {
     call <- object$call
@@ -512,7 +512,6 @@ drm_update_drmTMB_fit <- function(object, formula., ..., evaluate = TRUE) {
       )
     )
   }
-  extras <- match.call(expand.dots = FALSE)$...
   if (!missing(formula.) && length(formula.)) {
     if (!inherits(formula., "drm_formula")) {
       cli::cli_abort(
@@ -564,7 +563,11 @@ drm_update_drmTMB_fit <- function(object, formula., ..., evaluate = TRUE) {
 #'   `evaluate = FALSE`.
 #' @export
 update.drmTMB <- function(object, formula., ..., evaluate = TRUE) {
-  drm_update_drmTMB_fit(object, formula., ..., evaluate = evaluate)
+  # Capture ... here: forwarding `...` into drm_update_drmTMB_fit() would
+  # leave match.call() with ..1 placeholders instead of the named expressions.
+  mc <- match.call(expand.dots = FALSE)
+  extras <- as.list(mc$...)
+  drm_update_drmTMB_fit(object, formula., extras = extras, evaluate = evaluate)
 }
 
 #' @describeIn update.drmTMB Refit an `engine = "julia"` fit. Formula changes are
@@ -579,5 +582,7 @@ update.drmTMB_julia <- function(object, formula., ..., evaluate = TRUE) {
       )
     )
   }
-  drm_update_drmTMB_fit(object, formula., ..., evaluate = evaluate)
+  mc <- match.call(expand.dots = FALSE)
+  extras <- as.list(mc$...)
+  drm_update_drmTMB_fit(object, formula., extras = extras, evaluate = evaluate)
 }
