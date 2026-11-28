@@ -1,8 +1,8 @@
 ---
-title: "Regularize selected coefficients with normal priors"
+title: "Prior tables for regression and covariance parameters"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Regularize selected coefficients with normal priors}
+  %\VignetteIndexEntry{Prior tables for regression and covariance parameters}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,7 +12,7 @@ library(drmTMB)
 knitr::opts_chunk$set(collapse=TRUE, comment="#>")
 ```
 
-Does survival vary with temperature anomaly? The six deliberately separated observations below illustrate an estimation problem: all survivors have positive anomalies and all failures have negative anomalies. They are invented teaching data, not biological evidence. A binomial coefficient can run toward infinity under this separation. Independent normal priors can keep selected coefficients finite. Choose their scales in the units of your predictors and the link-scale effect you consider plausible. The fit is a penalized or maximum-a-posteriori (MAP) point estimate; this workflow does not sample a full posterior.
+Does survival vary with temperature anomaly? The six deliberately separated observations below illustrate an estimation problem: all survivors have positive anomalies and all failures have negative anomalies. They are invented teaching data, not biological evidence. A binomial coefficient can run toward infinity under this separation. Independent normal priors can keep selected coefficients finite. Choose their scales in the units of your predictors and the link-scale effect you consider plausible. The fit is a penalized or maximum-a-posteriori (MAP) point estimate; this workflow does not sample a full posterior. The prior table shown below can also target Gaussian residual SDs, supported random-intercept SDs, and correlations.
 
 ```{r separation}
 d <- data.frame(x=c(-3,-2,-1,1,2,3), y=c(0,0,0,1,1,1))
@@ -65,6 +65,112 @@ The fit integrates over the group intercepts and adds the coefficient prior
 once to the marginal negative log-likelihood. `logLik(rf)` is the data
 log-likelihood at the resulting penalized estimates, without the prior term.
 
+## Use one table for coefficients, SDs, and correlations
+
+The prior table gives each row a distribution and target class. Normal and
+Student-t rows apply to named regression coefficients on their predictor link
+scale. Gamma rows target a residual SD or a supported random-intercept SD on
+its natural SD scale. The table writes Gamma parameters as `gamma(mean,shape)`;
+the density is normalized and receives no log-SD Jacobian when the optimizer
+uses log SD. An LKJ row targets a residual or random-slope correlation. The
+resolved preview identifies each target before fitting.
+
+```{r prior-table}
+set.seed(5107)
+tabdat <- expand.grid(group=seq_len(24), x=seq(-1, 1, length.out=8))
+tabdat$group <- factor(tabdat$group)
+ngroup <- length(levels(tabdat$group))
+tabdat$y <- 0.3 + 0.7*tabdat$x +
+  rnorm(ngroup, sd=0.45)[tabdat$group] +
+  rnorm(nrow(tabdat), sd=exp(-0.2 + 0.15*tabdat$x))
+f <- bf(mu=y ~ x + (1 | group), sigma=~1)
+prior_table <- data.frame(
+  prior=c("normal(0,2)", "student_t(0,1,4)", "gamma(0.55,2)",
+          "gamma(0.6,2)"),
+  class=c("fixef", "fixef", "residual_sd", "ranef_sd"),
+  dpar=c("mu", "mu", "sigma", "mu"),
+  coef=c("(Intercept)", "x", "(Intercept)", "group"),
+  scale=c("link", "link", "natural_sd", "natural_sd")
+)
+drm_resolve_priors(f, gaussian(), tabdat, prior_table)
+tf <- drmTMB(f, data=tabdat, priors=prior_table)
+c(logLik=as.numeric(logLik(tf)), log_prior=tf$log_prior,
+  data_plus_log_prior=as.numeric(logLik(tf)) + tf$log_prior,
+  penalized_nll=tf$penalized_objective)
+```
+
+Here the table regularizes the mean slope, the residual SD, and the independent
+random-intercept SD for `group`. These are separate targets in one Gaussian
+model. `logLik(tf)` remains the unpenalized data likelihood at the penalized
+estimate, and `tf$log_prior` supplies the prior contribution. Their sum is the
+maximized penalized criterion; `tf$penalized_objective` stores its negative,
+which is the quantity minimized by the optimizer.
+
+An LKJ prior can instead target the correlation in a random intercept-slope
+block. The current Gamma random-effect SD rows support independent random
+intercepts; do not combine one with a correlated random-slope block. The
+correlation row uses the exact grouping factor and coefficient pair:
+
+```{r slope-correlation}
+cor_dat <- expand.grid(group=seq_len(24), x=seq(-1, 1, length.out=8))
+cor_dat$group <- factor(cor_dat$group)
+ng <- nlevels(cor_dat$group)
+u0 <- rnorm(ng, sd=0.45)
+u1 <- 0.25*u0 + rnorm(ng, sd=0.18)
+cor_dat$y <- 0.3 + 0.7*cor_dat$x + u0[cor_dat$group] +
+  u1[cor_dat$group]*cor_dat$x + rnorm(nrow(cor_dat), sd=0.3)
+f_cor <- bf(mu=y ~ x + (1 + x | group), sigma=~1)
+cor_prior_table <- data.frame(
+  prior=c("normal(0,2)", "lkj(2)"),
+  class=c("fixef", "correlation"),
+  dpar=c("mu", "mu"),
+  coef=c("x", ""),
+  group=c("", "group"),
+  from_coef=c("", "(Intercept)"),
+  to_coef=c("", "x"),
+  scale=c("link", "natural_correlation")
+)
+drm_resolve_priors(f_cor, gaussian(), cor_dat, cor_prior_table)
+cor_fit <- drmTMB(f_cor, data=cor_dat, priors=cor_prior_table)
+c(data_logLik=as.numeric(logLik(cor_fit)),
+  log_prior=cor_fit$log_prior,
+  data_plus_log_prior=as.numeric(logLik(cor_fit)) + cor_fit$log_prior,
+  penalized_nll=cor_fit$penalized_objective)
+```
+
+The table is explicit about the parameters each row targets. A correlation
+prior does not add an SD prior to either random-effect coefficient. Gamma
+priors on individual SDs in a correlated random-slope block are not currently
+supported.
+
+For two Gaussian responses, a separate `rho12` row can regularize their
+residual correlation. This route permits exactly one LKJ prior on `rho12`,
+optionally combined with Normal or Student-t rows for exact `mu1` and `mu2`
+coefficients. You may write `sigma1 = ~1` and `sigma2 = ~1` explicitly; use
+intercept-only scale formulas for this prior route:
+
+```{r bivariate-correlation}
+bivdat <- data.frame(x=seq(-1, 1, length.out=40))
+err <- matrix(rnorm(2*nrow(bivdat)), ncol=2) %*%
+  chol(matrix(c(1, 0.45, 0.45, 1), nrow=2))
+bivdat$y1 <- 0.2 + 0.5*bivdat$x + err[, 1]
+bivdat$y2 <- -0.1 - 0.3*bivdat$x + err[, 2]
+biv_formula <- bf(mu1=y1 ~ x, mu2=y2 ~ x)
+biv_prior_table <- data.frame(
+  prior=c("normal(0,2)", "lkj(2)"),
+  class=c("fixef", "correlation"),
+  dpar=c("mu1", "rho12"),
+  coef=c("x", "(Intercept)"),
+  scale=c("link", "natural_correlation")
+)
+drm_resolve_priors(biv_formula, biv_gaussian(), bivdat, biv_prior_table)
+biv_fit <- drmTMB(biv_formula, family=biv_gaussian(), data=bivdat,
+                  priors=biv_prior_table)
+c(data_logLik=as.numeric(logLik(biv_fit)),
+  log_prior=biv_fit$log_prior,
+  data_plus_log_prior=as.numeric(logLik(biv_fit)) + biv_fit$log_prior)
+```
+
 With a varying residual SD, the marginal objective can have several local minima. A convergence flag does not show that the lowest minimum was found. Compare fits from multiple starts, for example with `control = drm_control(se = FALSE, logsigma_clamp = NULL, multi_start = 5)`. In the independent validation grid, the default start reached an inferior boundary minimum in one fixture; this multiple-start configuration passed all twelve fixtures. Multiple starts do not guarantee a global optimum.
 
 To penalize a whole coefficient block, choose the intercept policy explicitly. The ridge constructor adds `0.5 * lambda * sum(beta^2)` to the negative data log-likelihood. For positive lambda, it has the same optimum and curvature as a mean-zero normal prior with SD `1/sqrt(lambda)`; the ridge objective omits the normal density constant.
@@ -77,9 +183,39 @@ drm_resolve_priors(bf(mu=y~x), gaussian(), g, r)
 
 Exact coefficient names refer to the final design matrix, including factor contrasts and interactions. `coef="all"` includes or excludes the conventional intercept using design metadata. Level columns in a no-intercept factor formula remain ordinary coefficients. No automatic centring or scaling occurs. To discover factor and interaction names before selecting a column, inspect `colnames(model.matrix(~ f*x, data))`, using the predictor formula for that distributional parameter; then check `drm_resolve_priors()` on the complete-case data you will fit. Unknown names, empty or overlapping selections and rank-deficient designs fail before fitting. Zero lambda adds nothing but still validates the requested selection and design.
 
-`logLik(f)` returns the data log-likelihood at the penalized estimate. `f$fixed_prior_penalty` records the separate prior contribution. `summary()` and `vcov()` describe local penalized-Hessian curvature. Confidence intervals and ordinary AIC, BIC, likelihood-ratio and profile comparisons are unavailable for active fixed priors. Point predictions and simulations use the fitted parameter values, without drawing coefficient uncertainty.
+For the table fit, `logLik(tf)` reports the data log-likelihood at the
+penalized estimate. The fit stores `tf$log_prior` and separate penalty fields.
+`summary()` and `vcov()` describe local penalized-Hessian curvature, not
+calibrated uncertainty. Confidence intervals and profile comparisons are not
+available for active priors. AIC, BIC, and AICc return warning-labelled
+diagnostics using the unpenalized data likelihood and nominal parameter count;
+ordinary model comparisons require unpenalized refits. Likelihood-ratio tests
+warn and refuse prior fits. Point predictions and simulations use the fitted
+parameter values, without drawing coefficient uncertainty. These penalized
+fits have not been validated for `tmbstan` posterior sampling.
 
-This route accepts complete, unit-weight Gaussian and binomial-logit models with dense, unaggregated fixed-effect designs. Gaussian mean formulas may include one or two unlabelled independent random intercepts with distinct grouping partitions. Normal priors on mean and log residual-SD coefficients also support one phylogenetic mean intercept with a matching phylogenetic SD-regression formula in complete-data Gaussian ML models with full-rank fixed-effect designs. This route does not add priors to the phylogenetic SD-regression coefficients and does not support ridge penalties. Random slopes, scale random effects and other structured combinations are not supported with these priors. Fits with active priors use an unclamped log-scale predictor; when passing `drm_control()`, set `logsigma_clamp=NULL` explicitly. REML, MSPL, existing phylogenetic penalties and other response families refuse. If your analysis needs weights or another random-effect structure, fit that supported model without `priors`, or use another method whose regularization has been validated for that structure. Gamma priors on supported ordinary random-intercept SDs are described separately; tmbstan requires separate validation. A wider prior or a different coding can change the result; use the resolved table and compare several scientifically plausible scales.
+The univariate coefficient-prior route accepts complete, unit-weight Gaussian
+identity and binomial-logit models with dense, unaggregated fixed-effect
+designs. Gaussian mean formulas may include one or two unlabelled independent
+random intercepts with distinct grouping partitions. Gamma random-effect SD
+priors currently target these independent mean random intercepts. They do not
+target an SD inside a correlated random-slope block. A separate LKJ row can
+target the correlation in a two-coefficient Gaussian random-intercept-slope
+block. Bivariate Gaussian models have a narrower route: exactly one LKJ prior
+on residual `rho12`, optionally combined with Normal or Student-t priors on
+exact `mu1` or `mu2` coefficients. Normal priors on mean and log residual-SD
+coefficients also support one phylogenetic mean intercept with a matching
+phylogenetic SD-regression formula in complete-data Gaussian ML models with
+full-rank fixed-effect designs; they do not regularize the phylogenetic
+SD-regression coefficients. The existing phylogenetic SD penalty is distinct
+from the coefficient and Gamma SD table rows. Random-slope SD priors, scale
+random effects, weights, REML, MSPL, other response families, and unsupported
+structured combinations are refused. Fits with active priors use an unclamped
+log-scale predictor; when passing `drm_control()`, set `logsigma_clamp=NULL`
+explicitly, then use the resolved preview to confirm every target before
+fitting. A wider prior or a
+different coding can change the result, so compare several scientifically
+plausible scales.
 
 With `engine = "julia"`, Gaussian mean formulas with ordinary random effects
 currently refuse factor predictors; the native TMB route supports them.

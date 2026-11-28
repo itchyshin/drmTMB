@@ -111,7 +111,10 @@ test_that("drm_lrtest() refuses penalized (MAP) fits (comparison.jl:151-158)", {
   reduced <- drm_mc_fit(bf(y ~ 1, sigma ~ 1), dat)
   map <- full
   map$estimator <- "MAP"
-  expect_error(drm_lrtest(reduced, map), class = "drmTMB_lrtest_map_error")
+  expect_warning(
+    expect_error(drm_lrtest(reduced, map), class = "drmTMB_lrtest_map_error"),
+    class = "drmTMB_lrtest_map_warning"
+  )
 })
 
 test_that("drm_lrtest() warns on a boundary variance-component null (comparison.jl:101-114)", {

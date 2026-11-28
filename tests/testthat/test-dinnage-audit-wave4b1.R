@@ -130,7 +130,7 @@ test_that("Mi-4: near-collinear fixed-effect design columns add a note (Dinnage 
   expect_match(row$value, "max_abs_r=")
 })
 
-test_that("A-3: convergence_status and multi_start cannot clear a degenerate fit (Dinnage audit)", {
+test_that("A-3: convergence detects the degenerate fit (Dinnage audit)", {
   dat <- wave4b1_rank_deficient_gaussian(seed = 1333L)
   fit_one <- allow_nonconvergence(drmTMB(
     bf(y ~ x1 + x2 + x3, sigma ~ 1),

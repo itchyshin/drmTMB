@@ -34,7 +34,9 @@ which a bivariate Gaussian fit receives a warning.}
 
 \item{sd_boundary}{Random-effect standard deviation below which a fit
 receives a warning that the variance component is near the lower
-boundary.}
+boundary. For identity-link location terms the SD is compared as a
+fraction of the response SD, so the cut-off does not depend on the
+units of \code{y}.}
 
 \item{x}{A diagnostic table returned by \code{\link[=check_drm]{check_drm()}}.}
 
@@ -56,8 +58,8 @@ fits with random effects, known sampling covariance, phylogenetic location
 effects, or bivariate residual correlation \code{rho12}.
 }
 \details{
-The current checks cover the three-valued \code{convergence_status}
-(\code{ok} / \code{note} / \code{warning} for \code{"converged"} / \code{"boundary"} /
+The current checks cover the four-valued \code{convergence_status}
+(\code{ok} for \code{"converged"}; \code{warning} for \code{"not_converged"}, \code{"boundary"} and
 \code{"degenerate"}), optimizer convergence, finite objective values,
 optimizer evaluation counts, fixed-parameter gradients including the largest
 gradient component label, whether

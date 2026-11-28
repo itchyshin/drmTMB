@@ -59,9 +59,9 @@ testthat::test_that('table priors agree across native and Julia bridge routes', 
     unsupported <- zfits$table; unsupported$bridge_payload$options <- options
     expect_error(confint(unsupported,parm='fixef:mu:x',method='profile'),'SD-prior inference is unsupported')
   }
-  expect_error(confint(j,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect or SD prior fits')
+  expect_error(confint(j,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior')
   active <- suppressWarnings(drmTMB(zf,data=z,priors=data.frame(prior='ridge(1)',class='fixef',coef='x'),engine='julia'))
-  expect_error(confint(active,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior fits')
+  expect_error(confint(active,parm='fixef:mu:x',method='profile'),'not implemented for fixed-effect prior')
 })
 
 test_that('table-derived bridge targets reject incorrect backend identities', {
@@ -69,7 +69,7 @@ test_that('table-derived bridge targets reject incorrect backend identities', {
   f <- bf(mu=y~1+(1|site)+(1|observer),sigma=~1)
   table <- data.frame(prior=c('gamma(2.0588235294117645,3.5)','gamma(0.6666666666666666,2)'),class=c('ranef_sd','ranef_sd'),coef=c('observer','site'))
   specs <- drmTMB:::drm_normalize_prior_table(table,f,gaussian(),d)
-  resolved <- drm_resolve_priors(f,gaussian(),d,specs)
+  resolved <- drmTMB:::drm_resolve_priors_native(f,gaussian(),d,specs)
   expected <- drmTMB:::drm_julia_prior_v2_options(specs,resolved)$prior_expected_v2
   coords <- c('mu_(Intercept)','sigma_(Intercept)','eta_sd[mu|site|(Intercept)]','eta_sd[mu|observer|(Intercept)]')
   p1 <- -dgamma(.8,2,rate=3,log=TRUE); p2 <- -dgamma(.4,3.5,rate=1.7,log=TRUE)

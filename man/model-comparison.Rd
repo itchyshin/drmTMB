@@ -53,6 +53,9 @@ The correction is strictly positive, so \code{aicc(fit) > AIC(fit)}, and it
 vanishes as \eqn{n \to \infty}. Prefer AICc over AIC when \eqn{n / k} is
 small (a common rule of thumb is \eqn{n / k < 40}). Like AIC, AICc compares
 models fit by maximum likelihood on the same data; lower is better.
+For penalized / MAP fits, AICc is returned with a warning as a diagnostic:
+it uses the unpenalized data log-likelihood at the penalized estimate and a
+nominal parameter count, not an estimated effective degrees of freedom.
 
 This is the R port of DRM.jl's \code{aicc(fit)} (\code{src/comparison.jl}); the two
 agree to \code{1e-8} on the same fit.
@@ -62,7 +65,11 @@ emitted: the restricted likelihood is comparable only across models with
 identical fixed effects. This holds for both engines: \code{engine = "julia"}
 fits have their own \code{aicc()}, \code{\link[=AIC]{AIC()}} and \code{\link[=BIC]{BIC()}} methods that run the same
 REML guard before computing the value. Experimental MSPL fits do not expose a likelihood
-and error, as they do for \code{\link[=AIC]{AIC()}}.
+and error, as they do for \code{\link[=AIC]{AIC()}}. For penalized / MAP fits, AICc, \code{\link[=AIC]{AIC()}},
+and \code{\link[=BIC]{BIC()}} return warning-labeled diagnostics, not standard ML information
+criteria; ordinary model selection requires refits without priors or
+penalties. Likelihood-ratio tests warn and refuse penalized fits because
+their usual reference distributions do not apply.
 }
 \examples{
 \donttest{

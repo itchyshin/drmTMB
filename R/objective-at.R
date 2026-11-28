@@ -95,12 +95,17 @@ objective_at.drmTMB <- function(object, at, ...) {
   # `object$phylo_penalty` -- the queried point is generally not the optimum,
   # and `fn()` above already re-solved the inner Laplace problem for `full`,
   # so a bare `report()` now reads back the matching state.
-  penalty_report <- object$obj$report()$phylo_penalty
+  report <- object$obj$report()
+  penalty_report <- report$phylo_penalty
   penalty <- if (is.null(penalty_report)) 0 else as.numeric(penalty_report)
-  fixed_prior <- object$obj$report()$fixed_prior_penalty
+  fixed_prior <- report$fixed_prior_penalty
   if (!is.null(fixed_prior)) penalty <- penalty + as.numeric(fixed_prior)
-  sd_prior <- object$obj$report()$sd_prior_penalty
+  sd_prior <- report$sd_prior_penalty
   if (!is.null(sd_prior)) penalty <- penalty + as.numeric(sd_prior)
+  residual_sd_prior <- report$residual_sd_prior_penalty
+  if (!is.null(residual_sd_prior)) penalty <- penalty + as.numeric(residual_sd_prior)
+  correlation_prior <- report$correlation_prior_penalty
+  if (!is.null(correlation_prior)) penalty <- penalty + as.numeric(correlation_prior)
   value <- raw - penalty
   drm_pin_tmb_object_to_optimum(object$obj, object$opt, object$tmb_state)
   value

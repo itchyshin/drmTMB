@@ -12,6 +12,9 @@ test_that("fixed-prior inference has explicit limits", {
   expect_error(drm_abort_fixed_prior_inference(f,"confint"), "fixed.effect|prior")
   expect_error(drm_abort_fixed_prior_inference(f,"profile"), "fixed.effect|prior")
   expect_error(drm_abort_fixed_prior_inference(list(),"confint"), NA)
+  mixed <- list(resolved_priors = data.frame(precision = c(0, NA_real_)),
+                resolved_correlation_prior = data.frame(eta = 2))
+  expect_error(drm_abort_fixed_prior_inference(mixed, "confint"), "prior")
 })
 
 test_that("prior defaults use an unclamped likelihood without overriding explicit controls", {
@@ -40,10 +43,13 @@ test_that("prior workflow retains targets and guards unsupported inference", {
   expect_error(summary(f,conf.int=TRUE),"fixed-effect")
   expect_error(summary(f,conf.int=TRUE,method="profile"),"fixed-effect")
   expect_error(profile(f),"fixed-effect")
-  expect_error(AIC(f),"fixed-effect")
-  expect_error(BIC(f),"fixed-effect")
+  expect_warning(AIC(f), class = "drmTMB_ic_map_warning")
+  expect_warning(BIC(f), class = "drmTMB_ic_map_warning")
   expect_error(predict_parameters(f,conf.int=TRUE),"fixed-effect")
-  expect_error(drm_lrtest(f,f),"MAP")
+  expect_warning(
+    expect_error(drm_lrtest(f,f),"MAP"),
+    class = "drmTMB_lrtest_map_warning"
+  )
   u <- update(f)
   expect_equal(u$resolved_priors,f$resolved_priors)
   expect_equal(unlist(u$coefficients),unlist(f$coefficients),tolerance=1e-7)

@@ -2619,6 +2619,11 @@ drm_standard_error_status <- function(object) {
 #' `logLik()` returns a `"logLik"` object with `df` and `nobs` attributes so
 #' [stats::AIC()] and [stats::BIC()] use the fitted likelihood, optimized
 #' top-level parameter count, and fitted-row count consistently.
+#' For penalized / MAP fits, [stats::AIC()] and [stats::BIC()] return a
+#' warning-labeled diagnostic based on the unpenalized data log-likelihood at
+#' the penalized estimate and the nominal parameter count. Effective degrees
+#' of freedom are not estimated; refit without priors or penalties for ordinary
+#' model selection.
 #' `nobs()` returns the number of fitted rows after complete-case filtering.
 #' `df.residual()` returns `nobs - df`, where `df` is the number of optimized
 #' top-level parameters recorded in `logLik()`. `deviance()` returns
@@ -2747,9 +2752,6 @@ drm_ic_guarded_fit <- function(o) {
 drm_warn_information_criterion <- function(fits, what) {
   fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
   drm_fits <- fits
-  if (any(vapply(fits, drm_has_fixed_priors, logical(1)))) {
-    cli::cli_abort("{what} is not implemented for fixed-effect or SD prior fits; effective degrees of freedom are not defined.")
-  }
   estimators <- vapply(
     fits,
     function(o) if (is.null(o$estimator)) "ML" else o$estimator,
@@ -2758,8 +2760,9 @@ drm_warn_information_criterion <- function(fits, what) {
   if (any(estimators == "MAP")) {
     cli::cli_warn(
       c(
-        "{what} is not a standard information criterion for a penalized (MAP) fit.",
-        "i" = "{.fn logLik} returns the unpenalized data log-likelihood and a penalized parameter does not contribute a full degree of freedom."
+        "{what} on a penalized (MAP) fit is a diagnostic, not a standard ML information criterion.",
+        "i" = "{.fn logLik} returns the unpenalized data log-likelihood evaluated at the penalized estimate; refit without priors or penalties for ordinary model selection.",
+        "i" = "The reported parameter count is nominal; effective degrees of freedom are not estimated."
       ),
       class = "drmTMB_ic_map_warning"
     )
@@ -4640,6 +4643,7 @@ summary.drmTMB <- function(
   ...
 ) {
   profile_precision_missing <- missing(profile_precision)
+  convergence_info_native <- drm_convergence_info(object)
   validate_summary_conf_int(conf.int)
   if (isTRUE(conf.int)) {
     drm_abort_mspl_inference(object, "summary(conf.int = TRUE)")
@@ -4785,7 +4789,11 @@ summary.drmTMB <- function(
     mspl = if (drm_is_mspl(object)) object$mspl else NULL,
     estimator = object$estimator,
     estimator_exact = object$estimator_exact,
-    convergence_status = convergence_status(object),
+    convergence_status = convergence_info_native$convergence_status,
+    converged = convergence_info_native$converged,
+    boundary_params = convergence_info_native$boundary_params,
+    pd_hessian = convergence_info_native$pd_hessian,
+    max_gradient = convergence_info_native$max_gradient,
     convergence = object$opt$convergence,
     convergence_message = object$opt$message,
     conf.int = conf.int,

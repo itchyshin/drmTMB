@@ -248,7 +248,7 @@ test_that("temporal OU rejects invalid metadata before response omission", {
   )
 })
 
-test_that("temporal OU convergence checks see pathological non-mean directions", {
+test_that("temporal OU convergence checks see pathological uncertainty", {
   set.seed(12)
   dat <- expand.grid(
     elapsed = c(0, 1, 2, 5, 9),
@@ -266,8 +266,12 @@ test_that("temporal OU convergence checks see pathological non-mean directions",
   # covariance carries the huge SEs that vcov() would never show.
   fixed_se <- sqrt(diag(fit$sdr$cov.fixed))
   expect_gt(max(fixed_se), 1000)
+  # The adopted rule checks uncertainty as well as optimizer completion.
   expect_false(identical(convergence_status(fit), "converged"))
   expect_false(is_converged(fit))
+  inflated <- drmTMB:::check_standard_errors_inflated(fit)
+  expect_identical(inflated$status, "note")
+  expect_match(inflated$value, "sigma")
 })
 
 test_that("temporal OU summaries withhold sigma and SD standard errors", {

@@ -1,4 +1,4 @@
-# FX3: MLE-nonexistence must not report is_converged() = TRUE silently.
+# MLE-nonexistence is included in the adopted convergence classification.
 # Recipes are the sweep-oct16 t4 cells named in #1553, #1270, and #1469.
 
 t4_r_seed <- function(k, r) {
@@ -48,7 +48,7 @@ test_that("LP screen: complete, quasi-complete, overlapping, Poisson ray", {
   expect_false(dok$separated)
 })
 
-test_that("bin_complete r01 is degenerate and check_drm is not ok (#1270)", {
+test_that("bin_complete r01 is degenerate and receives an MLE warning (#1270)", {
   t4_rng(7, 1)
   x <- rnorm(50)
   d <- data.frame(y = as.integer(x > 0), x = x)
@@ -77,7 +77,7 @@ test_that("overlapping binomial control stays converged", {
   expect_identical(row$status, "ok")
 })
 
-test_that("pois_n8_lowmean all-zero and extreme-x are degenerate (#1553)", {
+test_that("Poisson MLE nonexistence is degenerate (#1553)", {
   t4_rng(15, 3)
   x <- rnorm(8)
   d3 <- data.frame(y = rpois(8, exp(-1.5 + 0.5 * x)), x = x)
@@ -109,14 +109,15 @@ test_that("ordinary Poisson n=20 stays converged (sibling of #1553)", {
   expect_identical(convergence_status(fit), "converged")
 })
 
-test_that("nbinom2 all-zero is degenerate (sibling count family)", {
+test_that("nbinom2 all-zero is degenerate when the Hessian is not positive definite", {
   d <- data.frame(y = rep(0, 12), x = seq(-1, 1, length.out = 12))
   fit <- suppressWarnings(drmTMB(bf(y ~ x, sigma ~ 1), family = nbinom2(), data = d))
+  expect_false(fit$pd_hessian)
   expect_false(is_converged(fit))
   expect_identical(convergence_status(fit), "degenerate")
 })
 
-test_that("gauss_n8 r06 unbounded location-scale is degenerate (#1469)", {
+test_that("unbounded location-scale is degenerate with an MLE warning (#1469)", {
   t4_rng(1, 6)
   x <- rnorm(8)
   d <- data.frame(y = 1 + 0.5 * x + exp(-0.4 + 0.3 * x) * rnorm(8), x = x)

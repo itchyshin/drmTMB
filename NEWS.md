@@ -4,6 +4,21 @@
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
 
+* `convergence_status()` now follows the adopted converged rule. It returns
+  `"converged"`, `"not_converged"`, `"boundary"` or `"degenerate"`, checked in
+  that order, and every non-converged status is a warning in `check_drm()`.
+  `"not_converged"` (optimiser failure, non-finite log-likelihood or a Newton
+  step above 1e-3 standard errors, `max_i |(H^-1 g)_i| / SE_i`) is no longer folded into `"degenerate"`. `"boundary"` is
+  tested before the Hessian, so a boundary fit with a flat Hessian reads
+  `"boundary"`, not `"degenerate"`; a collapsed residual SD (the Heywood case)
+  is a boundary kind. The random-effect SD cut-off is now relative to the
+  response SD for identity-link location terms, so rescaling `y` no longer
+  turns an interior SD into a false boundary (#1751). New
+  `convergence_info()` returns `converged`, `convergence_status`,
+  `boundary_params` (name and kind), `pd_hessian`, `max_gradient` (the Newton step in SE units) and the
+  optimiser code and message; `summary()` carries the same fields.
+  `is_converged()` is unchanged: `TRUE` only for `"converged"` (#1452).
+
 * Tweedie `nu` models now apply a C1-soft clamp to the logit link linear
   predictor before calling `dtweedie()`, so interior fits are unchanged while
   extreme `eta_nu` saturate smoothly instead of hitting a hard plateau
@@ -30,9 +45,9 @@
 
 * The native Gaussian mean random-intercept route accepts an optional Gamma prior on one named group SD, with explicit shape and rate on the SD scale. Active-prior fits report the data likelihood separately from the penalized objective.
 
-* Add an opt-in prior table for supported fixed effects and Gaussian random-intercept standard deviations.
+* Add an opt-in prior table for supported fixed effects, natural-scale random-effect standard deviations, and supported correlations. Coefficients accept Normal and Student-t priors; positive SD targets accept Gamma priors; supported correlation targets accept LKJ priors. `drm_resolve_priors()` previews resolved targets, and the Julia bridge uses versioned contracts for supported combinations.
 
-* In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Confidence intervals and information criteria remain unavailable for active-prior fits. The Julia bridge requires a DRModels.jl version containing the two-intercept prior-table support. Random slopes and correlation priors remain outside this slice.
+* In complete-data, unit-weight Gaussian ML models with full-rank fixed designs and two distinct, unlabelled iid mean random intercepts, Gamma SD priors may target either or both named groups and may be combined with fixed-effect priors. Active-prior fits report the unpenalized data likelihood separately from the penalized objective; intervals and information criteria remain unavailable. Unsupported targets and model combinations are refused explicitly.
 
 * A formula transform that produces `NA` or `NaN`, such as `log(x)` or
   `sqrt(x)` on a negative predictor, drops those rows from the response and the

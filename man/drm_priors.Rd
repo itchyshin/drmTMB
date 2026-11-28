@@ -5,7 +5,7 @@
 \alias{drm_prior_sd_gamma}
 \alias{drm_prior_normal}
 \alias{drm_prior_ridge}
-\title{Prior specifications for fixed effects and random-effect SDs}
+\title{Prior specifications for distributional regression parameters}
 \usage{
 drm_priors(...)
 
@@ -19,8 +19,10 @@ drm_prior_ridge(dpar, coef, lambda, intercept = NULL)
 \item{...}{Prior specifications returned by \code{drm_prior_normal()},
 \code{drm_prior_ridge()}, or \code{drm_prior_sd_gamma()}.}
 
-\item{dpar}{For fixed-effect priors, \code{"mu"} or \code{"sigma"}. The SD prior
-currently supports \code{"mu"} only.}
+\item{dpar}{For fixed-effect priors, \code{"mu"} or \code{"sigma"} in univariate
+models. In a bivariate Gaussian model, fixed Normal and Student-t priors
+may target \code{"mu1"} or \code{"mu2"} when combined with one \code{rho12} LKJ prior.
+The SD prior currently supports \code{"mu"} only.}
 
 \item{group}{Exact random-effect grouping variable name.}
 
@@ -45,20 +47,25 @@ currently supports \code{"mu"} only.}
 other constructors return one specification.
 }
 \description{
-Specify independent normal priors or ridge penalties on fixed-effect
-coefficients. Coefficient names refer to the final design matrix, so their
+Specify coefficient priors or penalties and natural-scale priors for
+supported positive scales and correlations. Coefficient names refer to the final design matrix, so their
 meaning depends on contrasts and predictor units. No automatic scaling is
 applied. For \code{coef = "all"}, state whether the intercept is included.
 }
 \details{
-Gaussian identity models may include one or two independent random intercepts in
-the mean, with distinct grouping partitions. \code{drm_prior_sd_gamma()} targets
-the named group standard deviation
-on the natural SD scale, with density relative to SD and no log-scale
-Jacobian. Shape must exceed one and rate must be positive. It may be combined
-with fixed-effect priors. The objective is the marginal data negative
-log-likelihood plus the prior or penalty. A normal prior includes its density
-constant, whereas a ridge penalty has no normalizing constant. \code{logLik()}
+The prior-table interface accepts normal, Student-t, and ridge coefficient
+rows, Gamma priors on supported random-effect and residual standard
+deviations, and LKJ(eta) priors on supported correlations. Pass a table
+directly to \code{drmTMB(priors = ...)} or \code{\link[=drm_resolve_priors]{drm_resolve_priors()}};
+\code{drm_priors()} collects constructor specifications.
+Gamma priors are densities on natural SD and LKJ priors are densities on
+natural correlation; optimizing transformed coordinates adds no Jacobian.
+In bivariate Gaussian models, exact Normal or Student-t fixed-effect rows
+for \code{mu1} and \code{mu2} may be combined with one intercept-only \code{rho12} LKJ row;
+other bivariate prior combinations remain unsupported.
+Shape must exceed one and rate must be positive. Normal, Student-t, Gamma,
+and LKJ densities include their normalizing constants; ridge remains an
+unnormalized penalty. \code{logLik()}
 reports the data likelihood at the penalized estimates. Confidence intervals
 and information criteria are not provided for active prior fits; local
 penalized-Hessian curvature is not a calibrated confidence interval.

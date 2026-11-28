@@ -49,6 +49,7 @@ test_that("is_converged() exposes optimizer and Hessian flags without rerunning"
 
   bad_hessian <- fit
   bad_hessian$sdr$pdHess <- FALSE
+  bad_hessian$pd_hessian <- FALSE
   expect_false(is_converged(bad_hessian))
   expect_false(is_converged(bad_hessian, include_hessian = TRUE))
 
@@ -1276,6 +1277,7 @@ test_that("check_drm() reports mutated diagnostic failure branches", {
 
   bad_hessian <- fit
   bad_hessian$sdr$pdHess <- FALSE
+  bad_hessian$pd_hessian <- FALSE
   hessian <- check_drm(bad_hessian)
   hessian <- hessian[hessian$check == "hessian_positive_definite", ]
   expect_equal(hessian$status, "warning")
@@ -1314,6 +1316,7 @@ test_that("is_converged() reports optimizer and Hessian readiness", {
 
   bad_hessian <- fit
   bad_hessian$sdr$pdHess <- FALSE
+  bad_hessian$pd_hessian <- FALSE
   expect_identical(is_converged(bad_hessian), FALSE)
   expect_identical(is_converged(bad_hessian, include_hessian = TRUE), FALSE)
 
