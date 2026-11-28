@@ -3324,6 +3324,7 @@ simulate.drmTMB <- function(
   newdata = NULL,
   ...
 ) {
+  nsim <- drm_validate_single_positive_integer(nsim, "nsim")
   if (!is.null(newdata)) {
     cli::cli_abort(c(
       "{.fn simulate} does not support {.arg newdata}; it draws for the training rows only.",

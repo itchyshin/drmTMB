@@ -29,6 +29,14 @@ test_that("simulate() refuses unused arguments in ...", {
   expect_error(simulate(z$fit, nsim = 1, not_an_arg = 1), "reserved for future")
 })
 
+test_that("simulate() aborts cleanly on invalid nsim (#1696)", {
+  z <- new_unused_args_fit()
+  expect_error(simulate(z$fit, nsim = 0), "nsim")
+  expect_error(simulate(z$fit, nsim = -1L), "nsim")
+  expect_error(simulate(z$fit, nsim = NA), "nsim")
+  expect_error(simulate(z$fit, nsim = 1.5), "positive integer")
+})
+
 test_that("predict() refuses unused arguments in ...", {
   z <- new_unused_args_fit()
   expect_error(

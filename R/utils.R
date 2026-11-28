@@ -5,6 +5,20 @@
   if (is.null(x)) y else x
 }
 
+# Shared guard for integer replication counts (`nsim`, etc.).
+drm_validate_single_positive_integer <- function(x, arg) {
+  if (
+    !is.numeric(x) ||
+      length(x) != 1L ||
+      is.na(x) ||
+      x < 1L ||
+      x != round(x)
+  ) {
+    cli::cli_abort("{.arg {arg}} must be a single positive integer.")
+  }
+  as.integer(x)
+}
+
 # Unknown-name suggestions: every case-sensitive prefix of `x` in `choices`,
 # or if none, every case-insensitive `adist` tie within `cutoff`. Return NULL
 # when nothing is close so the caller omits a "Did you mean" line.
