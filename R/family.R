@@ -355,6 +355,36 @@ drm_abort_base_beta_as_family <- function() {
   )
 }
 
+drm_foreign_near_name_constructor <- function(name) {
+  if (!is.character(name) || length(name) != 1L || is.na(name)) {
+    return(NULL)
+  }
+  key <- tolower(gsub("[^a-z0-9]", "", name))
+  switch(
+    key,
+    betabinomial = "beta_binomial",
+    skewnormal = "skew_normal",
+    NULL
+  )
+}
+
+drm_maybe_abort_foreign_near_name_family <- function(family) {
+  if (!inherits(family, "family") || inherits(family, "drm_family")) {
+    return(invisible(NULL))
+  }
+  hint <- drm_foreign_near_name_constructor(family$family)
+  if (is.null(hint)) {
+    return(invisible(NULL))
+  }
+  cli::cli_abort(
+    c(
+      "Family {.val {family$family}} is not a {.pkg drmTMB} family.",
+      "i" = "Use {.code drmTMB::{hint}()}."
+    ),
+    class = "drmTMB_foreign_near_name_family"
+  )
+}
+
 drm_eval_family_arg <- function(expr, env) {
   if (drm_is_bare_euler_beta_call(expr)) {
     drm_abort_base_beta_as_family()
