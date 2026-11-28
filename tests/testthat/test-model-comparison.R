@@ -99,9 +99,10 @@ test_that("drm_lrtest() and anova() refuse mismatched prior weights (#1888)", {
   d <- data.frame(x = stats::rnorm(40), y = stats::rnorm(40))
   w0 <- rep(1, 40)
   w1 <- c(rep(1, 35), rep(0, 5))
-  f0 <- drm_mc_fit(bf(y ~ 1), d, weights = w0)
-  f1 <- drm_mc_fit(bf(y ~ x), d, weights = w1)
-  f1_ok <- drm_mc_fit(bf(y ~ x), d, weights = w0)
+  # `weights` must be a numeric vector; a bare symbol is resolved in `data`.
+  f0 <- drm_mc_fit(bf(y ~ 1), d, weights = as.numeric(w0))
+  f1 <- drm_mc_fit(bf(y ~ x), d, weights = as.numeric(w1))
+  f1_ok <- drm_mc_fit(bf(y ~ x), d, weights = as.numeric(w0))
   expect_identical(stats::nobs(f0), stats::nobs(f1))
   expect_error(
     drm_lrtest(f0, f1),
