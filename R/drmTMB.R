@@ -820,6 +820,9 @@ drm_fit_spec <- function(
     spec$start_override <- utils::modifyList(base_override, public_override)
   }
   spec <- drm_apply_start_override(spec)
+  if (isTRUE(control$condition_mu_fe)) {
+    spec <- drm_apply_fe_affine_spec(spec)
+  }
   spec <- drm_complete_shared_tmb_parameters(spec)
 
   mi_quad_abort <- drm_spec_uses_mi_quadrature_abort(spec)
@@ -965,6 +968,9 @@ drm_fit_spec <- function(
     estimator = spec$estimator
   )
   sdr <- uncertainty$sdr
+  restored <- drm_fe_affine_restore_fit(opt, sdr, spec)
+  sdr <- restored$sdr
+  uncertainty$sdr <- sdr
   # sdreport() can leave the mutable full parameter vector at a Hessian
   # perturbation. Use the selected pre-SE state for random/marginalized entries;
   # parList still takes fixed parameters from opt$par and does not mutate obj.
@@ -26409,6 +26415,7 @@ split_tmb_sigma_random_scale_parameters <- function(out, par, spec) {
 }
 
 split_tmb_parameters <- function(par, spec) {
+  par <- drm_fe_affine_unscale_parlist(par, spec)
   if (identical(spec$model_type, "poisson")) {
     beta_mu <- unname(par$beta_mu)
     names(beta_mu) <- colnames(spec$X$mu)

@@ -71,6 +71,15 @@
 #'   of the number of groups; at ten thousand tips it dominates the fit. Set to
 #'   `FALSE` to keep per-quantity standard errors while skipping their joint
 #'   covariance.
+#' @param condition_mu_fe Logical; opt-in centre-and-scale conditioning for
+#'   non-intercept numeric columns in the `mu` fixed-effect design before
+#'   optimization and [TMB::sdreport()], then map Wald coefficients and
+#'   [stats::vcov()] back to the user's predictor units. Defaults to `FALSE`,
+#'   leaving the fit path unchanged. Set to `TRUE` when numeric location
+#'   predictors are heavily scaled (for example predictor values at or above
+#'   `1e3`, or shifted so the mean is at or above `1000`) and Wald standard
+#'   errors otherwise depend on units or fail to converge even though
+#'   coefficients and the log-likelihood are correct.
 #' @param se_group_sd Logical; report delta-method standard errors for the
 #'   *per-group* direct-SD surface (`sd_phylo(...) ~ .`). Defaults to `FALSE`.
 #'   The surface has one standard deviation per group, so `ADREPORT`ing it makes
@@ -204,6 +213,7 @@ drm_control <- function(
   se_report_covariance = TRUE,
   se_skip_delta_method = FALSE,
   se_group_sd = FALSE,
+  condition_mu_fe = FALSE,
   keep_data = TRUE,
   keep_model_frame = TRUE,
   keep_tmb_object = TRUE,
@@ -275,6 +285,7 @@ drm_control <- function(
     "se_skip_delta_method"
   )
   se_group_sd <- drm_control_flag(se_group_sd, "se_group_sd")
+  condition_mu_fe <- drm_control_flag(condition_mu_fe, "condition_mu_fe")
   keep_data <- drm_control_flag(keep_data, "keep_data")
   keep_model_frame <- drm_control_flag(keep_model_frame, "keep_model_frame")
   keep_tmb_object <- drm_control_flag(keep_tmb_object, "keep_tmb_object")
@@ -340,6 +351,7 @@ drm_control <- function(
       se_report_covariance = se_report_covariance,
       se_skip_delta_method = se_skip_delta_method,
       se_group_sd = se_group_sd,
+      condition_mu_fe = condition_mu_fe,
       keep_data = keep_data,
       keep_model_frame = keep_model_frame,
       keep_tmb_object = keep_tmb_object,

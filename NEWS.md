@@ -1,5 +1,17 @@
 # drmTMB 0.8.2
 
+* Opt-in `drm_control(condition_mu_fe = TRUE)` centres and scales non-intercept
+  numeric `mu` predictors before optimization and Wald standard errors, then maps
+  estimates and [stats::vcov()] back to the original predictor units. The
+  default remains `FALSE`, leaving the fit path unchanged. Use it when
+  predictors are heavily scaled (at or above `1e3`) or shifted (mean at or
+  above `1000`) and Wald standard errors depend on units (refs #1737).
+
+* `confint(..., method = "profile")` documentation now notes that profile
+  intervals for a Gaussian `sigma ~ x` slope with an ordinary `(1 | g)`
+  intercept can undercover at moderate group counts (about 90% at nominal 95%
+  in one measured `G = 30`, `sd_g = 0.5` cell; refs #1562).
+
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
