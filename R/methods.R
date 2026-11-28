@@ -6323,10 +6323,60 @@ drm_fixed_effect_basis <- function(
   )
 }
 
+drm_validate_prediction_random_grouping <- function(object, newdata, dpar) {
+  if (!is.data.frame(newdata)) {
+    return(invisible(newdata))
+  }
+  re <- object$model$random$mu
+  if (!is.list(re) || length(re$group_names) == 0L) {
+    return(invisible(newdata))
+  }
+  idx <- which(re$dpars %in% dpar)
+  if (length(idx) == 0L) {
+    return(invisible(newdata))
+  }
+  groups <- unique(re$group_names[idx])
+  train <- object$data
+  if (!is.data.frame(train)) {
+    cli::cli_abort(
+      "{.fn predict} needs the original {.arg data} to validate random-effect grouping columns."
+    )
+  }
+  for (g in groups) {
+    if (!g %in% names(newdata)) {
+      next
+    }
+    vals <- newdata[[g]]
+    if (anyNA(vals)) {
+      cli::cli_abort(c(
+        "New prediction data contains missing value{?s} for random-effect grouping column {.var {g}}.",
+        "i" = "Supply valid levels for {.var {g}}, as for fixed-effect factor predictors."
+      ))
+    }
+    train_vals <- train[[g]]
+    if (is.factor(train_vals)) {
+      if (!is.factor(vals)) {
+        vals <- factor(vals, levels = levels(train_vals))
+        newdata[[g]] <- vals
+      }
+      unknown <- setdiff(unique(as.character(vals)), levels(train_vals))
+      if (length(unknown) > 0L) {
+        cli::cli_abort(c(
+          "New prediction data contains unknown level{?s} for random-effect grouping column {.var {g}}.",
+          "i" = "Unknown level{?s}: {.val {unknown}}.",
+          "i" = "Fitted level{?s}: {.val {levels(train_vals)}}."
+        ))
+      }
+    }
+  }
+  invisible(newdata)
+}
+
 drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
   if (!is.data.frame(newdata)) {
     return(newdata)
   }
+  newdata <- drm_validate_prediction_random_grouping(object, newdata, dpar)
   newdata <- drm_prepare_missing_predictor_prediction_newdata(object, newdata, dpar)
   template <- drm_prediction_template_data(object, dpar)
   if (!is.data.frame(template)) {
