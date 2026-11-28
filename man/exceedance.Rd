@@ -55,7 +55,11 @@ the atom mass \code{Pr(Y <= 0) = Pr(Y == 0)} when the family's support has no
 continuous mass below the atom.
 
 This is a distributional (plug-in) output at \code{\link[=predict_parameters]{predict_parameters()}}'s
-fixed-effect, population-level parameter estimates \code{theta_hat}: the result
+parameter estimates \code{theta_hat}. With \code{newdata = NULL} (the fitted rows) of
+a random-effect fit, \code{theta_hat} is conditional on the random-effect modes,
+as for \code{\link[=predict.drmTMB]{predict.drmTMB()}}'s fitted-row predictions, so the exceedance
+probabilities are conditional on the modes, not marginal; with \code{newdata}
+supplied, \code{theta_hat} is fixed-effect and population-level. The result
 carries \code{attr(., "calibrated") <- FALSE} and does not propagate \code{theta_hat}
 uncertainty. See \code{\link[=fitted_distribution]{fitted_distribution()}} for the \code{"spike"}/\code{"unimplemented"}
 status rules this inherits (a \code{"spike"}-status family emits a one-time
