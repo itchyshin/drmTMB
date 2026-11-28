@@ -168,6 +168,7 @@ test-comparators-external-oracle.R	suggests-package	environment	runs	7
 test-comparators-phase19.R	suggests-package	environment	runs	12
 test-comparators.R	suggests-package	environment	runs	18
 test-control.R	cran-lane	environment	runs	4
+test-confint-dpar-shorthand.R	cran-lane	environment	runs	1
 test-count-correlated-q2-sd-oracle-b29b.R	cran-lane	environment	runs	2
 test-count-gamma-correlated-q2-oracle-b31no.R	cran-lane	environment	runs	5
 test-count-iid-slope-sd-missing-include.R	cran-lane	environment	runs	4
