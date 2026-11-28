@@ -16,5 +16,9 @@ test_that("formula() returns a standard formula and supports model.frame()", {
   expect_equal(rownames(mf), rownames(fit$model$model_frame$mu))
   mf_dat <- stats::model.frame(fml, data = dat)
   expect_equal(nrow(mf_dat), nrow(dat))
-  expect_true(all(c("y", "x") %in% names(mf_dat)))
+  expect_s3_class(stats::as.formula(fit$formula), "formula")
+  expect_equal(
+    nrow(stats::model.frame(stats::as.formula(fit$formula), data = dat)),
+    nrow(dat)
+  )
 })

@@ -43,6 +43,11 @@ formula.drmTMB <- function(x, ...) {
 }
 
 #' @export
-as.formula.drm_formula <- function(x, ...) {
+formula.drm_formula <- function(x, ...) {
   drm_entry_formula(drm_formula_primary_location_entry(x), response = TRUE)
+}
+
+#' @export
+as.formula.drm_formula <- function(x, ...) {
+  formula.drm_formula(x, ...)
 }
