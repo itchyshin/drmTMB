@@ -14112,6 +14112,16 @@ validate_nbinom2_sigma_random_terms <- function(
   allow_joint_ordinary_mu = FALSE
 ) {
   if (length(terms) == 0L) {
+    if (
+      isTRUE(has_zi) &&
+        (length(mu_terms) > 0L || !is.null(structured_term))
+    ) {
+      cli::cli_abort(c(
+        "Only the exact zero-inflated NB2 {.code sigma} random-intercept q1 gate is implemented.",
+        "x" = "This gate requires fixed-effect {.code mu}, {.code sigma ~ 1 + (1 | id)}, and {.code zi ~ 1}.",
+        "i" = "Remove sigma slopes, labels, structured terms, and mu random effects."
+      ))
+    }
     return(invisible(terms))
   }
   zi_iid_gate <- isTRUE(has_zi) &&
