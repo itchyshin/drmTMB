@@ -93,7 +93,12 @@ test_that("a character predictor used bare and inside a transform still predicts
     chr = rep(c("a", "bb", "ccc"), 10),
     stringsAsFactors = FALSE
   )
-  fit <- drmTMB(bf(y ~ chr + nchar(chr), sigma ~ 1), data = d)
+  # chr + nchar(chr) is an exact alias (nchar is constant on each level).
+  expect_error(
+    drmTMB(bf(y ~ chr + nchar(chr), sigma ~ 1), data = d),
+    "rank-deficient"
+  )
+  fit <- drmTMB(bf(y ~ chr, sigma ~ 1), data = d)
   nd <- data.frame(chr = c("a", "bb", "ccc"), stringsAsFactors = FALSE)
   expect_length(predict(fit, newdata = nd), 3L)
 })
