@@ -37,7 +37,7 @@ test_that("predict() refuses unused arguments in ...", {
   )
   expect_error(
     predict(z$fit, newdata = z$nd, dpar = "mu", se.fit = TRUE),
-    "reserved for future"
+    "se.fit"
   )
   expect_length(predict(z$fit, newdata = z$nd, dpar = "mu"), 2L)
 })
