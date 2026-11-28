@@ -50,3 +50,23 @@ test_that("summary() flags a real non-converged Student t fit (#1545)", {
   )
   expect_true(any(grepl("not converged", out)))
 })
+
+test_that("print(summary) warns when convergence_status is not converged at code 0 (#1951)", {
+  skip_on_cran()
+  set.seed(1)
+  d <- data.frame(y = rnorm(60), x = rnorm(60))
+  d$x2 <- d$x
+  fit <- suppressWarnings(drmTMB(bf(y ~ x + x2, sigma ~ 1), data = d, family = gaussian()))
+  expect_false(is_converged(fit))
+  expect_identical(convergence_status(fit), "degenerate")
+  expect_identical(fit$opt$convergence, 0L)
+
+  s <- summary(fit)
+  expect_identical(s$convergence_status, "degenerate")
+  expect_warning(
+    out <- cli::cli_fmt(print(s)),
+    "did not converge",
+    class = "drmTMB_convergence_warning"
+  )
+  expect_true(any(grepl("convergence_status is degenerate", out)))
+})
