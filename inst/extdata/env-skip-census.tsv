@@ -183,6 +183,7 @@ test-count-structured-q2-more-providers-sd.R	cran-lane	environment	runs	11
 test-count-structured-q2-more-providers-sd.R	suggests-package	environment	runs	4
 test-count-structured-sd-missing-include.R	cran-lane	environment	runs	2
 test-count-structured-sd-missing-include.R	suggests-package	environment	runs	2
+test-cov-1125x11-aghq-helpers.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	cran-lane	environment	runs	1
 test-cran-lane-filter.R	engine-drm-jl	environment	skips	3
 test-cumulative-logit-disc.R	suggests-package	environment	runs	1
