@@ -352,6 +352,9 @@ drmTMB <- function(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
     )
   }
+  # `meta_V()` / `meta_known_V()` are formula markers that return `NULL`, so a
+  # misplaced `meta_V(V = V)` in `...` vanishes before `...length()` runs (#1900).
+  drm_abort_misplaced_meta_v_dots(fit_call)
   # Inspect `...` without forcing it: `subset = cyl == 4` must not fail with
   # "object 'cyl' not found" before this guard can name the argument (#1486).
   if (...length() > 0L) {
@@ -15470,6 +15473,34 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     ))
   }
   invisible(terms)
+}
+
+# Refuse `meta_V()` / deprecated `meta_known_V()` passed to `drmTMB(...)` instead
+# of inside `bf()` (#1900). Both markers return `NULL`, so a positional
+# `meta_V(V = V)` can match `weights` or vanish from `...` before
+# `drm_abort_unused_dots()` runs.
+drm_abort_misplaced_meta_v_dots <- function(call) {
+  n <- length(call)
+  if (n < 2L) {
+    return(invisible(NULL))
+  }
+  for (i in 2:n) {
+    fn <- drm_call_name(call[[i]])
+    if (!is.na(fn) && fn %in% c("meta_V", "meta_known_V")) {
+      if (identical(fn, "meta_known_V")) {
+        cli::cli_abort(c(
+          "{.fn meta_known_V} must appear inside a {.fn bf} formula, not in the {.fn drmTMB} call.",
+          "i" = "Use {.code bf(y ~ x + meta_V(V = vi), ...)}; {.fn meta_known_V} is deprecated."
+        ), class = "drmTMB_misplaced_meta_v_error", call = call)
+      } else {
+        cli::cli_abort(c(
+          "{.fn meta_V} must appear inside a {.fn bf} formula, not in the {.fn drmTMB} call.",
+          "i" = "Use {.code bf(y ~ x + meta_V(V = vi), ...)}."
+        ), class = "drmTMB_misplaced_meta_v_error", call = call)
+      }
+    }
+  }
+  invisible(NULL)
 }
 
 # Name the arguments that reached `drmTMB(...)` instead of evaluating them
