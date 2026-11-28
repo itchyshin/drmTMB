@@ -833,3 +833,7 @@ scouting belongs to Jason).
 ## 2026-11-05: test every inference entry point for a new estimator
 
 The first coefficient-prior slice exposed summary/coeftable intervals, profile helpers and estimator-switch paths that bypassed the primary interval guard. Tests now cover those paths, zero-strength ML controls and diagnostics, and preview/fit agreement for unselected design blocks. For the next estimator change, enumerate those user-facing paths before closing the objective tests. Evidence and scope are in [the fixed-effect prior report](after-task/2026-11-05-fixed-effect-priors.md).
+
+## 2026-11-28: verify accepted repairs after combining branches
+
+Before a full integration suite, compare every accepted repair and its tests against the combined candidate. Record the exact source and distinguish production fixes from test-only corrections. The prior-table integration lost previously checked convergence callbacks and inference-test corrections during reconciliation; the mismatch was discovered only after long package runs. Keep the failed runs and replay the affected assignments on source-matched candidates.
