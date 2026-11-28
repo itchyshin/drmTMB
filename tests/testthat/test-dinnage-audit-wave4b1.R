@@ -130,7 +130,7 @@ test_that("Mi-4: near-collinear fixed-effect design columns add a note (Dinnage 
   expect_match(row$value, "max_abs_r=")
 })
 
-test_that("A-3: large finite uncertainty remains separate from convergence (Dinnage audit)", {
+test_that("A-3: convergence detects the degenerate fit (Dinnage audit)", {
   dat <- wave4b1_rank_deficient_gaussian(seed = 1333L)
   fit_one <- allow_nonconvergence(drmTMB(
     bf(y ~ x1 + x2 + x3, sigma ~ 1),
@@ -147,16 +147,16 @@ test_that("A-3: large finite uncertainty remains separate from convergence (Dinn
 
   expect_false(attr(check_drm(fit_one), "ok"))
   expect_false(attr(check_drm(fit_many), "ok"))
-  expect_equal(convergence_status(fit_one), "converged")
-  expect_equal(convergence_status(fit_many), "converged")
-  expect_true(is_converged(fit_one))
-  expect_true(is_converged(fit_many))
+  expect_equal(convergence_status(fit_one), "degenerate")
+  expect_equal(convergence_status(fit_many), "degenerate")
+  expect_false(is_converged(fit_one))
+  expect_false(is_converged(fit_many))
 
   chk_many <- check_drm(fit_many)
   status_row <- chk_many[chk_many$check == "convergence_status", ]
   expect_equal(nrow(status_row), 1L)
-  expect_equal(status_row$status, "ok")
-  expect_match(status_row$value, "converged")
+  expect_equal(status_row$status, "warning")
+  expect_match(status_row$value, "degenerate")
 })
 
 test_that("Md-J: bias-corrected Wald intervals record wald_bias_corrected (Dinnage audit)", {

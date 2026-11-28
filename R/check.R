@@ -856,6 +856,12 @@ drm_convergence_info <- function(object) {
     "not_converged"
   } else if (nrow(boundary) > 0L) {
     "boundary"
+  } else if (drm_is_mspl(object)) {
+    if (isTRUE(object$mspl$numerical$hessian_positive_definite)) {
+      "converged"
+    } else {
+      "degenerate"
+    }
   } else if (isTRUE(object$penalised)) {
     if (isTRUE(object$pd_hessian_penalised) && is.finite(newton_step)) {
       "converged"

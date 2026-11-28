@@ -1,4 +1,4 @@
-# MLE-existence diagnostics remain separate from the four numerical convergence checks.
+# MLE-nonexistence is included in the adopted convergence classification.
 # Recipes are the sweep-oct16 t4 cells named in #1553, #1270, and #1469.
 
 t4_r_seed <- function(k, r) {
@@ -48,13 +48,13 @@ test_that("LP screen: complete, quasi-complete, overlapping, Poisson ray", {
   expect_false(dok$separated)
 })
 
-test_that("bin_complete r01 receives an MLE warning separate from convergence (#1270)", {
+test_that("bin_complete r01 is degenerate and receives an MLE warning (#1270)", {
   t4_rng(7, 1)
   x <- rnorm(50)
   d <- data.frame(y = as.integer(x > 0), x = x)
   fit <- drmTMB(bf(y ~ x), family = binomial(), data = d)
-  expect_true(is_converged(fit))
-  expect_identical(convergence_status(fit), "converged")
+  expect_false(is_converged(fit))
+  expect_identical(convergence_status(fit), "degenerate")
   chk <- check_drm(fit)
   expect_false(isTRUE(attr(chk, "ok")))
   row <- chk[chk$check == "mle_existence", ]
@@ -77,14 +77,14 @@ test_that("overlapping binomial control stays converged", {
   expect_identical(row$status, "ok")
 })
 
-test_that("Poisson MLE warnings do not add a convergence gate (#1553)", {
+test_that("Poisson MLE nonexistence is degenerate (#1553)", {
   t4_rng(15, 3)
   x <- rnorm(8)
   d3 <- data.frame(y = rpois(8, exp(-1.5 + 0.5 * x)), x = x)
   expect_true(all(d3$y == 0))
   f3 <- drmTMB(bf(y ~ x), family = poisson(), data = d3)
-  expect_true(is_converged(f3))
-  expect_identical(convergence_status(f3), "converged")
+  expect_false(is_converged(f3))
+  expect_identical(convergence_status(f3), "degenerate")
   chk3 <- check_drm(f3)
   expect_false(isTRUE(attr(chk3, "ok")))
   expect_identical(chk3$check[chk3$check == "mle_existence"][1], "mle_existence")
@@ -96,8 +96,8 @@ test_that("Poisson MLE warnings do not add a convergence gate (#1553)", {
   expect_true(sum(d25$y > 0) >= 1)
   expect_true(max(d25$x[d25$y > 0]) == max(d25$x))
   f25 <- drmTMB(bf(y ~ x), family = poisson(), data = d25)
-  expect_true(is_converged(f25))
-  expect_identical(convergence_status(f25), "converged")
+  expect_false(is_converged(f25))
+  expect_identical(convergence_status(f25), "degenerate")
 })
 
 test_that("ordinary Poisson n=20 stays converged (sibling of #1553)", {
@@ -117,13 +117,13 @@ test_that("nbinom2 all-zero is degenerate when the Hessian is not positive defin
   expect_identical(convergence_status(fit), "degenerate")
 })
 
-test_that("unbounded scale clamp is a boundary and MLE warning remains separate (#1469)", {
+test_that("unbounded location-scale is degenerate with an MLE warning (#1469)", {
   t4_rng(1, 6)
   x <- rnorm(8)
   d <- data.frame(y = 1 + 0.5 * x + exp(-0.4 + 0.3 * x) * rnorm(8), x = x)
   fit <- suppressWarnings(drmTMB(bf(y ~ x, sigma ~ x), family = gaussian(), data = d))
   expect_false(is_converged(fit))
-  expect_identical(convergence_status(fit), "boundary")
+  expect_identical(convergence_status(fit), "degenerate")
   chk <- check_drm(fit)
   row <- chk[chk$check == "mle_existence", ]
   expect_identical(row$status, "warning")

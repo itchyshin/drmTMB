@@ -16,14 +16,15 @@ test_that("objective-only penalized estimators use optimizer diagnostics without
   expect_true(is.na(fit$logLik))
   expect_identical(convergence_status(fit), "converged")
   expect_true(is_converged(fit, include_hessian = TRUE))
+  fit$mspl$numerical$hessian_positive_definite <- FALSE
+  expect_identical(convergence_status(fit), "degenerate")
+  fit$mspl$numerical$hessian_positive_definite <- TRUE
 
-  # The adopted convergence classifier uses the same four checks for
-  # ordinary ML, objective-only ML, and prior fits. The separate existence
-  # diagnostic does not add a fifth convergence gate.
+  # An ordinary ML fit also applies the MLE-existence screen.
   fit$estimator <- "ML"
   fit$logLik <- -12.5
   fit$pd_hessian <- TRUE
-  expect_identical(convergence_status(fit), "converged")
+  expect_identical(convergence_status(fit), "degenerate")
 
   # Prior/MAP fits must still carry the unpenalized data logLik, even though
   # their optimizer objective is finite and their penalized Hessian is PD.

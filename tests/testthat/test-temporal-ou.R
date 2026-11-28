@@ -248,7 +248,7 @@ test_that("temporal OU rejects invalid metadata before response omission", {
   )
 })
 
-test_that("temporal OU uncertainty diagnostics do not redefine convergence", {
+test_that("temporal OU convergence checks see pathological uncertainty", {
   set.seed(12)
   dat <- expand.grid(
     elapsed = c(0, 1, 2, 5, 9),
@@ -266,12 +266,9 @@ test_that("temporal OU uncertainty diagnostics do not redefine convergence", {
   # covariance carries the huge SEs that vcov() would never show.
   fixed_se <- sqrt(diag(fit$sdr$cov.fixed))
   expect_gt(max(fixed_se), 1000)
-  # The adopted convergence rule uses optimizer completion, scaled gradient,
-  # boundary status, and positive-definite curvature. A large but finite
-  # standard error remains an uncertainty diagnostic, not another convergence
-  # gate.
-  expect_identical(convergence_status(fit), "converged")
-  expect_true(is_converged(fit))
+  # The adopted rule checks uncertainty as well as optimizer completion.
+  expect_false(identical(convergence_status(fit), "converged"))
+  expect_false(is_converged(fit))
   inflated <- drmTMB:::check_standard_errors_inflated(fit)
   expect_identical(inflated$status, "note")
   expect_match(inflated$value, "sigma")
