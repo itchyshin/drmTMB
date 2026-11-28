@@ -333,9 +333,14 @@ drm_profile_targets_julia_probe <- function(fit, candidates) {
   list(inputs = unique(inputs), reported = unique(reported))
 }
 
+bare_confint_dpar_shortcuts <- function(targets) {
+  unique(targets$dpar[targets$target_class == "fixed-effect"])
+}
+
 test_that("profile_targets() closes over what confint() accepts (phylo fit)", {
   fit <- drm_profile_targets_julia_fixture()
-  listed <- profile_targets(fit)$parm
+  targets <- profile_targets(fit)
+  listed <- targets$parm
   candidates <- drm_profile_targets_julia_candidates(fit)
   expect_gt(length(candidates), length(listed))
 
@@ -347,14 +352,16 @@ test_that("profile_targets() closes over what confint() accepts (phylo fit)", {
   # And no undocumented input name is quietly accepted either. This fit has
   # no sd()/sd_phylo() submodel, so it documents no aliases at all.
   expect_equal(drmTMB:::drm_julia_lss_dpar_aliases(fit), character(0))
-  expect_equal(setdiff(seen$inputs, listed), character(0))
+  documented_inputs <- c(listed, bare_confint_dpar_shortcuts(targets))
+  expect_equal(setdiff(seen$inputs, documented_inputs), character(0))
   # Non-vacuous.
   expect_true(all(c("fixef:mu:x", "sigma") %in% seen$reported))
 })
 
 test_that("profile_targets() closes over what confint() accepts (location-scale-scale fit)", {
   fit <- drm_profile_targets_julia_lss_fixture()
-  listed <- profile_targets(fit)$parm
+  targets <- profile_targets(fit)
+  listed <- targets$parm
 
   # Pinned to the live fit measured at DRM.jl 430ef64cc: six rows, the
   # bridge's own short sd_phylo spelling, and no sd: row (the bridge reports
@@ -379,6 +386,7 @@ test_that("profile_targets() closes over what confint() accepts (location-scale-
   # alias of one -- no third spelling sneaks in.
   documented <- c(
     listed,
+    bare_confint_dpar_shortcuts(targets),
     drm_profile_targets_julia_alias_inputs(fit, listed)
   )
   expect_equal(setdiff(seen$inputs, documented), character(0))
