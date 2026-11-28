@@ -419,7 +419,10 @@ drmTMB <- function(
     }
     drm_julia_experimental_notice()
     has_sd_prior <- !is.null(priors) && any(vapply(priors, inherits, logical(1), "drm_sd_prior"))
-    if (has_sd_prior && !base::missing(weights)) {
+    weights_absent <- drm_julia_weights_absent(
+      base::missing(weights), substitute(weights), data, parent.frame()
+    )
+    if (has_sd_prior && !isTRUE(weights_absent)) {
       bridge_weights <- drm_julia_sd_prior_weights(substitute(weights), data, parent.frame())
       return(drmTMB_julia_bridge(
         formula = formula, family = family, data = data, env = formula_env,
@@ -433,7 +436,7 @@ drmTMB <- function(
       family = family,
       data = data,
       env = formula_env,
-      weights_missing = base::missing(weights),
+      weights_missing = weights_absent,
       control = control,
       impute = impute,
       missing = missing,
@@ -21512,6 +21515,19 @@ subset_known_v <- function(V_known, keep, validate = TRUE) {
     validate_known_v_diag(out)
   }
   new_known_v(out, type = V_known$type)
+}
+
+# `weights = NULL` is the formal default and means no weights, so the Julia
+# bridge must not treat a supplied NULL as a weights request (#1450).
+drm_julia_weights_absent <- function(is_missing, weights_expr, data, env) {
+  if (isTRUE(is_missing)) {
+    return(TRUE)
+  }
+  value <- tryCatch(
+    eval(weights_expr, envir = data, enclos = env),
+    error = function(e) 1
+  )
+  is.null(value)
 }
 
 drm_julia_sd_prior_weights <- function(weights_expr, data, env) {
