@@ -330,11 +330,19 @@ drm_anova_lrt <- function(fits, labels, test = NULL) {
   }
 
   npar <- vapply(fits, function(f) as.numeric(f$df), numeric(1L))
+  nobs_vec <- vapply(fits, nobs, numeric(1L))
   ord <- order(npar)
   fits <- fits[ord]
   labels <- labels[ord]
   npar <- npar[ord]
+  nobs_vec <- nobs_vec[ord]
   if (any(diff(npar) <= 0)) {
+    if (length(unique(nobs_vec)) > 1L) {
+      cli::cli_abort(c(
+        "{.fn anova}: the fits use different numbers of observations ({nobs_vec[[1L]]} vs {nobs_vec[[length(nobs_vec)]]}).",
+        "i" = "A likelihood-ratio test needs the same data; did you subset rows between nested models?"
+      ))
+    }
     cli::cli_abort(c(
       "{.fn anova} needs fits with strictly increasing numbers of parameters to form nested comparisons.",
       "x" = "Models {.val {labels[c(FALSE, diff(npar) <= 0)]}} have as many parameters as the model before {?it/them}.",

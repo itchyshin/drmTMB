@@ -68,6 +68,22 @@ test_that("anova() compares more than two fits sequentially (#1240)", {
   expect_identical(rownames(named), c("m0", "full"))
 })
 
+test_that("anova() names different nobs when parameter counts match (#1899)", {
+  skip_on_cran()
+  set.seed(100)
+  dat_full <- data.frame(x = stats::rnorm(60), y = stats::rnorm(60))
+  dat_sub <- dat_full[1:40, , drop = FALSE]
+  ctrl <- drm_control(parallel = "none")
+  m_full <- anova_fit(bf(y ~ x, sigma ~ 1), dat_full, control = ctrl)
+  m_sub <- anova_fit(bf(y ~ x, sigma ~ 1), dat_sub, control = ctrl)
+  expect_equal(m_full$df, m_sub$df)
+  expect_error(
+    anova(m_sub, m_full),
+    "different numbers of observations",
+    fixed = TRUE
+  )
+})
+
 test_that("anova() uses the chi-bar-square p-value when one SD is added (#1240)", {
   d <- anova_ri_data()
   r0 <- anova_fit(bf(y ~ x, sigma ~ 1), d)
