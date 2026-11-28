@@ -2702,6 +2702,7 @@ NULL
 #' @export
 logLik.drmTMB <- function(object, ...) {
   drm_abort_mspl_inference(object, "logLik")
+  drm_warn_ic_convergence_status(list(object), "logLik")
   out <- object$logLik
   attr(out, "df") <- object$df
   attr(out, "nobs") <- object$nobs
@@ -2742,6 +2743,59 @@ drm_ic_fixed_effect_signature <- function(object) {
 # `REML` the same way but do not inherit "drmTMB".
 drm_ic_guarded_fit <- function(o) {
   inherits(o, c("drmTMB", "drmTMB_julia"))
+}
+
+# Post-fit logLik()/AIC()/BIC() can return finite values when the fit is not
+# usable for model comparison; warn once per extractor call (#1892).
+drm_parent_information_criterion <- function() {
+  for (call in sys.calls()) {
+    fn <- call[[1L]]
+    if (
+      identical(fn, quote(AIC)) ||
+        identical(fn, quote(BIC)) ||
+        identical(fn, quote(stats::AIC)) ||
+        identical(fn, quote(stats::BIC))
+    ) {
+      return(TRUE)
+    }
+  }
+  FALSE
+}
+
+drm_ic_convergence_warn_eligible <- function(object) {
+  is.list(object$opt) && !is.null(object$opt$convergence)
+}
+
+drm_warn_ic_convergence_status <- function(fits, what) {
+  fits <- fits[vapply(fits, drm_ic_guarded_fit, logical(1L))]
+  fits <- fits[vapply(fits, drm_ic_convergence_warn_eligible, logical(1L))]
+  if (!length(fits)) {
+    return(invisible(NULL))
+  }
+  statuses <- vapply(fits, convergence_status, character(1L))
+  bad <- !vapply(statuses, identical, logical(1L), "converged")
+  if (!any(bad)) {
+    return(invisible(NULL))
+  }
+  if (length(fits) == 1L) {
+    cli::cli_warn(
+      c(
+        "{what} is reported for a fit with {.fn convergence_status} {.val {statuses[[1L]]}}.",
+        "i" = "Treat this value as unreliable for model comparison; inspect {.fn check_drm}."
+      ),
+      class = "drmTMB_ic_convergence_warning"
+    )
+  } else {
+    bad_status <- sort(unique(statuses[bad]))
+    cli::cli_warn(
+      c(
+        "{what} is reported for at least one fit with {.fn convergence_status} in {.val {bad_status}}.",
+        "i" = "Treat these values as unreliable for model comparison; inspect {.fn check_drm}."
+      ),
+      class = "drmTMB_ic_convergence_warning"
+    )
+  }
+  invisible(NULL)
 }
 
 drm_warn_information_criterion <- function(fits, what) {
@@ -2806,6 +2860,7 @@ drm_information_criterion <- function(fits, penalty, what) {
   if (length(mspl)) {
     drm_abort_mspl_inference(fits[[mspl[[1L]]]], what)
   }
+  drm_warn_ic_convergence_status(fits, what)
   drm_warn_information_criterion(fits, what)
   computed <- lapply(fits, function(o) {
     ll_df <- drm_ic_loglik_df(o)
