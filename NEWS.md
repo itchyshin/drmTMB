@@ -1,5 +1,9 @@
 # drmTMB 0.8.2
 
+* `anova()` and `lrt_boundary()` now refuse two fits that used different
+  rows, even when both report the same number of observations. A different
+  observation count still reports that count (refs #1661).
+
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).
