@@ -94,6 +94,30 @@ test_that("drm_lrtest() matches DRM.jl lrtest on fixture 1 (comparison.jl:65-78)
   expect_error(drm_lrtest(drm_mc_fit(bf(y ~ 1, sigma ~ 1), dat[1:60, ]), full), "observations")
 })
 
+test_that("drm_lrtest() and anova() refuse mismatched prior weights (#1888)", {
+  set.seed(3)
+  d <- data.frame(x = stats::rnorm(40), y = stats::rnorm(40))
+  w0 <- rep(1, 40)
+  w1 <- c(rep(1, 35), rep(0, 5))
+  # `weights` must be a numeric vector; a bare symbol is resolved in `data`.
+  f0 <- drm_mc_fit(bf(y ~ 1), d, weights = as.numeric(w0))
+  f1 <- drm_mc_fit(bf(y ~ x), d, weights = as.numeric(w1))
+  f1_ok <- drm_mc_fit(bf(y ~ x), d, weights = as.numeric(w0))
+  expect_identical(stats::nobs(f0), stats::nobs(f1))
+  expect_error(
+    drm_lrtest(f0, f1),
+    class = "drmTMB_lrtest_weights_error"
+  )
+  expect_error(
+    anova(f0, f1),
+    class = "drmTMB_lrtest_weights_error"
+  )
+  expect_silent(drm_lrtest(f0, f1_ok))
+  expect_silent(anova(f0, f1_ok))
+  f0_null <- drm_mc_fit(bf(y ~ 1), d)
+  expect_silent(drm_lrtest(f0_null, f1_ok))
+})
+
 test_that("drm_lrtest() REML guard: same mean structure passes, different errors (comparison.jl:133-142)", {
   dat <- drm_mc_fixture_1()
   full <- drm_mc_fit(bf(y ~ x, sigma ~ z), dat, REML = TRUE)
