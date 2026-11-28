@@ -1,5 +1,7 @@
 # drmTMB 0.8.2
 
+* The Julia cross-family bridge no longer tags `gaussian(link = ...)` with a
+  non-identity link as an identity Gaussian axis (#1750).
 * Gaussian, Student-t and skew-normal models now abort when the response
   column is a factor or ordered factor, instead of fitting integer level
   codes silently (#1481).

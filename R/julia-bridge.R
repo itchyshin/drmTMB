@@ -12656,6 +12656,9 @@ drm_julia_xfam_family_tag <- function(family) {
     return(NULL)
   }
   if (identical(family$family, "gaussian")) {
+    if (!identical(family$link, "identity")) {
+      return(NULL)
+    }
     return("gaussian")
   }
   if (identical(family$family, "poisson")) {
