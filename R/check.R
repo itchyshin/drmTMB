@@ -4144,7 +4144,7 @@ bivariate_q4_re_diagnostic_message <- function(
 }
 
 random_effect_label_is_intercept <- function(label) {
-  grepl("^\\(1 \\| [^)]+\\)$", label) || grepl(":(Intercept)$", label)
+  grepl("^\\(1 \\| [^)]+\\)$", label) || grepl(":\\(Intercept\\)$", label)
 }
 
 random_effect_unique_n <- function(x) {
