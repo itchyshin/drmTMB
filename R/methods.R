@@ -6323,10 +6323,73 @@ drm_fixed_effect_basis <- function(
   )
 }
 
+drm_prediction_random_groups_for_dpar <- function(object, dpar) {
+  groups <- character()
+  for (slot in c("mu", "sigma")) {
+    re <- object$model$random[[slot]]
+    if (!is.list(re) || length(re$group_names) == 0L) {
+      next
+    }
+    idx <- which(re$dpars %in% dpar)
+    if (length(idx) > 0L) {
+      groups <- c(groups, re$group_names[idx])
+    }
+  }
+  unique(groups)
+}
+
+drm_validate_prediction_random_grouping <- function(object, newdata, dpar) {
+  if (!is.data.frame(newdata)) {
+    return(invisible(newdata))
+  }
+  groups <- drm_prediction_random_groups_for_dpar(object, dpar)
+  if (length(groups) == 0L) {
+    return(invisible(newdata))
+  }
+  train <- object$data
+  if (!is.data.frame(train)) {
+    cli::cli_abort(
+      "{.fn predict} needs the original {.arg data} to validate random-effect grouping columns."
+    )
+  }
+  for (g in groups) {
+    if (!g %in% names(newdata)) {
+      cli::cli_abort(c(
+        "New prediction data is missing random-effect grouping column {.var {g}}.",
+        "i" = "Include {.var {g}} in {.arg newdata}, as mixed-model packages require for grouping factors."
+      ))
+    }
+    vals <- newdata[[g]]
+    if (anyNA(vals)) {
+      cli::cli_abort(c(
+        "New prediction data contains missing value{?s} for random-effect grouping column {.var {g}}.",
+        "i" = "Supply valid levels for {.var {g}}, as for fixed-effect factor predictors."
+      ))
+    }
+    train_vals <- train[[g]]
+    if (is.factor(train_vals)) {
+      if (!is.factor(vals)) {
+        vals <- factor(vals, levels = levels(train_vals))
+        newdata[[g]] <- vals
+      }
+      unknown <- setdiff(unique(as.character(vals)), levels(train_vals))
+      if (length(unknown) > 0L) {
+        cli::cli_abort(c(
+          "New prediction data contains unknown level{?s} for random-effect grouping column {.var {g}}.",
+          "i" = "Unknown level{?s}: {.val {unknown}}.",
+          "i" = "Fitted level{?s}: {.val {levels(train_vals)}}."
+        ))
+      }
+    }
+  }
+  invisible(newdata)
+}
+
 drm_prepare_prediction_newdata <- function(object, newdata, dpar) {
   if (!is.data.frame(newdata)) {
     return(newdata)
   }
+  newdata <- drm_validate_prediction_random_grouping(object, newdata, dpar)
   newdata <- drm_prepare_missing_predictor_prediction_newdata(object, newdata, dpar)
   template <- drm_prediction_template_data(object, dpar)
   if (!is.data.frame(template)) {
