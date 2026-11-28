@@ -535,6 +535,12 @@ drmTMB <- function(
         data
       )
   ) {
+    if (
+      identical(missing_control$response, "include") &&
+        drm_reml_formula_has_structured_location(formula)
+    ) {
+      drm_abort_reml_structured_missing_response()
+    }
     cli::cli_abort(c(
       "{.arg REML} is not implemented with explicit missing-data engines yet.",
       "x" = "The model variables contain missing values and {.arg missing} requests a non-default engine.",
@@ -3506,6 +3512,36 @@ drm_reml_missing_engine_engages <- function(missing_control, formula, data) {
     return(TRUE)
   }
   anyNA(data[, present, drop = FALSE])
+}
+
+drm_reml_formula_has_structured_location <- function(formula) {
+  location_dpars <- c("mu", "mu1", "mu2")
+  marker_types <- drm_julia_structured_marker_types()
+  any(vapply(
+    formula$entries,
+    function(entry) {
+      if (!entry$dpar %in% location_dpars) {
+        return(FALSE)
+      }
+      length(Filter(
+        function(term) term$type %in% marker_types,
+        entry$structured
+      )) > 0L
+    },
+    logical(1)
+  ))
+}
+
+drm_abort_reml_structured_missing_response <- function() {
+  cli::cli_abort(c(
+    paste0(
+      "{.arg REML} is not supported with {.code miss_control(response = \"include\")} ",
+      "when the location formula has structured effects ",
+      "({.fn phylo}, {.fn spatial}, {.fn animal}, or {.fn relmat})."
+    ),
+    "i" = "Set {.code REML = FALSE} for maximum-likelihood estimation on the observed entries.",
+    "i" = "Use the default {.code missing = miss_control()} (complete-case) to keep {.code REML = TRUE} on rows with all responses observed."
+  ), class = "drmTMB_reml_structured_missing_response_unsupported")
 }
 
 drm_reml_admits_mean_structured_provider <- function(
