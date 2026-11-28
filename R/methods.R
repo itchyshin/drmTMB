@@ -3074,6 +3074,12 @@ predict.drmTMB <- function(
   if (drm_weights_are_unit(dots[["weights"]])) {
     dots[["weights"]] <- NULL
   }
+  if ("weights" %in% names(dots)) {
+    cli::cli_abort(c(
+      "{.fn predict} does not accept {.arg weights}.",
+      "i" = "Fitted-row predictions use the model as fit; {.arg newdata} rows are population-level predictions without re-weighting."
+    ))
+  }
   if (length(dots) > 0L) {
     cli::cli_abort("{.arg ...} is reserved for future options.")
   }
