@@ -352,6 +352,12 @@ drmTMB <- function(
       "{.arg formula} must be created with {.fn drm_formula} or {.fn bf}."
     )
   }
+  # `meta_V()` returns NULL. A trailing marker is often bound to `weights`
+  # rather than `...`, so inspect the full unevaluated call (#1900).
+  drm_abort_misplaced_formula_markers(
+    match.call(expand.dots = FALSE),
+    call_env = environment()
+  )
   # Inspect `...` without forcing it: `subset = cyl == 4` must not fail with
   # "object 'cyl' not found" before this guard can name the argument (#1486).
   if (...length() > 0L) {
@@ -15470,6 +15476,61 @@ validate_beta_binomial_sigma_random_terms <- function(terms) {
     ))
   }
   invisible(terms)
+}
+
+# Formula markers such as `meta_V()` return NULL. Users often pass them after
+# `data =` and `family =`, so R binds the call to `weights`, not `...` (#1900).
+drm_abort_misplaced_formula_markers <- function(
+  call,
+  call_env = parent.frame()
+) {
+  if (!is.call(call)) {
+    return(invisible(NULL))
+  }
+  marker_names <- character(0)
+  arg_names <- names(call)
+  if (length(call) < 2L) {
+    return(invisible(NULL))
+  }
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(call))
+  }
+  for (i in seq(2L, length(call))) {
+    nm <- arg_names[[i]]
+    expr <- call[[i]]
+    if (identical(nm, "formula")) {
+      next
+    }
+    if (identical(nm, "...")) {
+      for (dot_expr in as.list(expr)) {
+        if (is.call(dot_expr)) {
+          fn_name <- drm_call_name(dot_expr)
+          if (fn_name %in% c("meta_V", "meta_known_V")) {
+            marker_names <- c(marker_names, fn_name)
+          }
+        }
+      }
+      next
+    }
+    if (is.call(expr)) {
+      fn_name <- drm_call_name(expr)
+      if (fn_name %in% c("meta_V", "meta_known_V")) {
+        marker_names <- c(marker_names, fn_name)
+      }
+    }
+  }
+  if (length(marker_names) == 0L) {
+    return(invisible(NULL))
+  }
+  marker_names <- unique(marker_names)
+  cli::cli_abort(
+    c(
+      "Formula marker{?s} {.fn {marker_names}} must appear inside {.fn bf}, not in {.fn drmTMB} arguments such as {.arg weights} or {.arg ...}.",
+      "i" = "Use syntax such as {.code bf(yi ~ x + meta_V(V = vi), sigma ~ 1)}."
+    ),
+    class = "drmTMB_formula_marker_dots_error",
+    call = call_env
+  )
 }
 
 # Name the arguments that reached `drmTMB(...)` instead of evaluating them
