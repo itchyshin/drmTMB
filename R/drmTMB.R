@@ -4441,6 +4441,13 @@ drm_family_type <- function(family) {
     drm_abort_base_beta_as_family()
   }
   if (inherits(family, "family") && identical(family$family, "gaussian")) {
+    if (!identical(family$link, "identity")) {
+      cli::cli_abort(c(
+        "{.pkg drmTMB} Gaussian models currently require {.code gaussian()}, identity link.",
+        "x" = "Received Gaussian link {.val {family$link}}.",
+        "i" = "The implemented Gaussian contract is {.code mu = X_mu beta_mu} on the identity scale."
+      ))
+    }
     return("gaussian")
   }
   if (inherits(family, "family") && identical(family$family, "Gamma")) {
@@ -4538,6 +4545,15 @@ drm_family_type <- function(family) {
       ))
     }
     if (identical(family_names, c("gaussian", "gaussian"))) {
+      for (comp in composed) {
+        if (!identical(comp$link, "identity")) {
+          cli::cli_abort(c(
+            "{.pkg drmTMB} Gaussian models currently require {.code gaussian()}, identity link.",
+            "x" = "Received Gaussian link {.val {comp$link}}.",
+            "i" = "The implemented Gaussian contract is {.code mu = X_mu beta_mu} on the identity scale."
+          ))
+        }
+      }
       return("biv_gaussian")
     }
     cli::cli_abort(c(
