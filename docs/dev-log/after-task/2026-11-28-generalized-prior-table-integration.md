@@ -24,4 +24,4 @@ Embedded Julia initially failed during startup with the system libunwind. The qu
 
 ## Design, issue and next actions
 
-The existing convergence proposals #1781 and #1903 share ancestry; the combined draft is #1954. The companion Julia draft is #1631. PR #1651 was not changed. Open issue #1740 covers prior plus REML validation; #1459 concerns a separate imputation-prior weighting issue. Neither issue was changed. No issue or PR was closed, and no merge or release was performed. Review the two integration proposals and their queued GitHub checks. Keep prior plus REML and uncertainty calibration outside the validated claims.
+The existing convergence proposals #1781 and #1903 share ancestry; the combined proposal is #1954. The companion Julia proposal is #1631. PR #1651 was not changed. Open issue #1740 covers prior plus REML validation; #1459 concerns a separate imputation-prior weighting issue. Neither issue was changed. No issue or PR was closed, and no merge or release was performed. Review the two integration proposals and their queued GitHub checks. Keep prior plus REML and uncertainty calibration outside the validated claims.
