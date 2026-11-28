@@ -2352,7 +2352,7 @@ coef.drmTMB <- function(object, dpar = NULL, ...) {
   if (is.null(dpar)) {
     return(object$coefficients)
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(object$coefficients))
   object$coefficients[[dpar]]
 }
 
@@ -3099,16 +3099,7 @@ predict.drmTMB <- function(
   }
   # Exact match only: SD keys such as `sd(id, coef = "x")` share prefixes, so
   # partial matching could silently resolve to a different SD formula.
-  if (
-    !is.character(dpar) ||
-      length(dpar) != 1L ||
-      !dpar %in% names(object$coefficients)
-  ) {
-    cli::cli_abort(c(
-      "{.arg dpar} must exactly match one fitted parameter name.",
-      "i" = "Available names: {.val {names(object$coefficients)}}."
-    ))
-  }
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(object$coefficients))
   if (drm_has_temporal_mu(object) && !is.null(newdata)) {
     temporal_structure <- toupper(object$model$structured$temporal_mu$structure)
     cli::cli_abort(c(
@@ -6274,7 +6265,7 @@ drm_fixed_effect_basis <- function(
   if (is.null(dpar)) {
     dpar <- object$model$dpars[[1L]]
   }
-  dpar <- match.arg(dpar, names(object$coefficients))
+  dpar <- drm_resolve_fitted_dpar_name(dpar, names(object$coefficients))
   validate_fixed_effect_basis_covariance(covariance)
   if (is_random_scale_dpar(object, dpar)) {
     cli::cli_abort(c(
