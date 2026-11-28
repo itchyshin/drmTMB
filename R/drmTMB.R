@@ -21762,11 +21762,14 @@ prepare_betabinomial_response <- function(y, response) {
 
 drm_reject_factor_response <- function(y, response, family) {
   if (is.factor(y)) {
-    cli::cli_abort(c(
-      "{family} response values must be numeric, not a factor.",
-      "x" = "Response {.val {response}} has class {.val {class(y)}}.",
-      "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
-    ))
+    cli::cli_abort(
+      c(
+        "{family} response values must be numeric, not a factor.",
+        "x" = "Response {.val {response}} has class {.val {class(y)}}.",
+        "i" = "Level codes are not the measurements. Convert the column to numeric values yourself so the recorded numbers, not the level indices, are fitted."
+      ),
+      class = "drmTMB_factor_response"
+    )
   }
   invisible(y)
 }
